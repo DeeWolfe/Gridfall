@@ -57,7 +57,7 @@ export function launchSpec(nd) {
 
   setG({
     node: nd.node, type: nd.type, mod: nd.mod, reward: nd.reward, salv: nd.salv,
-    endless: !!nd.endless, gauntlet: !!nd.gauntlet,
+    heat: nd.heat || 0, endless: !!nd.endless, gauntlet: !!nd.gauntlet,
     waves: nd.endless ? 9999 : m.waves,
     turn: 1, dp: MAXDP, breaches: 0, over: false,
     ter: freshTerritory(), scorch: {},
@@ -96,6 +96,7 @@ export function launchSpec(nd) {
   if (G.type === 'uplink') clog(`Relay tile marked — lane ${G.uplinkAt.l + 1}, col ${G.uplinkAt.c}. Hold it three turns running.`);
   if (G.type === 'blitz') clog(`Quota: <span class="d">${G.quota}</span> hostiles destroyed before the waves run out.`);
   if (G.mod !== 'none') clog(`Modifier: <span style="color:var(--violet)">${MODS[G.mod].n}</span> ${MODS[G.mod].d}`);
+  if (G.heat) clog(`<span class="d">Deep-zone operation</span> — hive pressure +${G.heat} threat every wave.`);
   if (G.endless) clog('<span class="t">ONSLAUGHT</span> — the waves do not stop. See how far you get.');
   if (G.gauntlet) clog(`<span class="t">GAUNTLET ${active.gaunt.i + 1} of ${GAUNTLET_LEGS}</span> — one loss ends the chain.`);
 
@@ -108,7 +109,7 @@ export function launch(nodeId) {
   if (!active) return false;
   const nd = opRun().nodes[nodeId];
   if (!nd) return false;
-  return launchSpec({node: nodeId, type: nd.type, mod: nd.mod, reward: nd.reward, salv: nd.salv});
+  return launchSpec({node: nodeId, type: nd.type, mod: nd.mod, reward: nd.reward, salv: nd.salv, heat: nd.heat});
 }
 
 /** Onslaught: one board, waves that never stop and scale 1.9x each time. */

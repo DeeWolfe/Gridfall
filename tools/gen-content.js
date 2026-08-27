@@ -53,7 +53,7 @@ emit('missions.js', banner('Mission types and battlefield modifiers.'), 'MISSION
 writeFileSync(join(root, 'src/content/modifiers.js'),
   `${banner('Battlefield modifiers rolled onto campaign nodes.')}\nexport const MODS = ${lit(data.modifiers)};\n`);
 console.log('  wrote src/content/modifiers.js');
-emit('operations.js', banner('The 3 campaign operations — maps, zones, nodes and edges.'), 'OPS', data.operations);
+emit('operations.js', banner(`The ${Object.keys(data.operations).length} campaign operations — maps, zones, nodes and edges.`), 'OPS', data.operations);
 emit('doctrines.js', banner('Enemy doctrines: how a wave distributes itself across lanes.'), 'DOCTRINE', data.doctrines);
 emit('targeting-names.js', banner('Human-readable names for each targeting geometry.'), 'TGNAME', data.targeting);
 

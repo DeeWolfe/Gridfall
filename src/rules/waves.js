@@ -20,7 +20,8 @@ import {randInt} from '../state/rng.js';
 export function wave(t) {
   if (t > G.waves) return null;
 
-  let budget = Math.round(2 + t * (G.endless ? 1.9 : 1.5));
+  // Hot operations (op-level `heat`) run every wave over budget.
+  let budget = Math.round(2 + (G.heat || 0) + t * (G.endless ? 1.9 : 1.5));
   const pool = ['crawler'];
   if (t >= 2) pool.push('hulk', 'breacher', 'husk');
   if (t >= 3) pool.push('spitter', 'burrower');

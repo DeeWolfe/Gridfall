@@ -21,7 +21,8 @@ export function renderOps() {
     const done = run ? run.cleared.length : 0;
     const current = active.op === o.k;
     return `<button class="opcard${current ? ' cur' : ''}" data-op="${o.k}" style="--oc:${o.col}">
-      <div class="opname">${o.n}</div><div class="opsub">${o.sub}</div>
+      <div class="opname">${o.n}${o.heat ? `<span class="heatpips" title="Deep zone — +${o.heat} threat every wave">${'▲'.repeat(o.heat)}</span>` : ''}</div>
+      <div class="opsub">${o.sub}</div>
       ${opThumb(o, run)}
       <div class="opfoot"><span>${done} / ${o.nodes.length} cleared</span>
         <span style="color:${o.col}">${current ? 'ACTIVE ▸' : 'Deploy ▸'}</span></div></button>`;

@@ -441,6 +441,7 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .opcard:hover{border-color:var(--oc);box-shadow:0 0 34px -6px var(--oc);filter:brightness(1.08)}
 .opcard.cur{border-color:var(--oc);box-shadow:0 0 26px -8px var(--oc)}
 .opname{font-size:0.8125rem;font-weight:700;letter-spacing:.14em;color:var(--oc);padding:15px 16px 0}
+.heatpips{color:var(--red);font-size:0.5625rem;letter-spacing:.2em;margin-left:8px;vertical-align:1px}
 .opsub{font-size:0.625rem;color:var(--dim);padding:6px 16px 0;line-height:1.5}
 .opmini{width:100%;display:block;margin-top:10px;background:#080714;border-top:1px solid var(--line);
   border-bottom:1px solid var(--line)}

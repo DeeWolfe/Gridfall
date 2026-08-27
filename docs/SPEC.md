@@ -170,12 +170,32 @@ A node may also carry `req`, a gate: it stays locked - whatever adjacency
 says - until the named nodes are cleared, with its `reqText` shown on the
 map ("Power offline - reset the Power Junction in the Deep Shaft").
 
+Two more node/operation fields: `type` pins a node's mission type instead of
+rolling it (an Archive that is always an Uplink, a rescue that is always
+Civilians; a pinned `side` node may sit outside the usual side pool), and an
+operation-level `heat` (1-3) adds that much threat to every wave's budget
+and pays +25% credits and +heat salvage per point; a node-level `heat`
+overrides it (Shallowhelm's mandatory Crystals hold runs at 1, not 3).
+`lore` on a node prefixes its map briefing line.
+
 - **Ironveil** - a split route converging on the Extraction Point; the
   Zone C Cache is a bonus spur.
 - **Blackmarrow** - the way out runs through The Throat, but that approach
   is gated on the Power Junction down in the Deep Shaft.
 - **Sunderglass** - twin routes over Prism Ridge; The Glassing is a
   two-node bonus chain.
+- **Lumenspire** (heat 1) - a linear push through an overrun research city:
+  the Archive Core is always an Uplink (the data), the Researcher Dorms are
+  an optional Civilians rescue, and Extraction is gated on the Archive.
+- **Crownring** (heat 2) - a concentric summit city ambushed mid-accord:
+  X routes from the Summit Hall to the second ring, a plus of ward gates
+  beyond it. The Northgate Delegation (always Civilians) must be walked out
+  before the Accord Extraction unlocks; the west and east gates are bonus.
+- **Shallowhelm** (heat 3) - a fortress gone dark. Three branches off the
+  Gatehouse: the Power Vault (always Crystals), the optional Records Hall
+  (always Uplink), and the Cleanse wing - gated on power, ending in the
+  Cleanse Core (always Blitz). Extraction is back at the Gatehouse, gated
+  on the armed Self-Cleanse.
 
 ## Modifiers
 

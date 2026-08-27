@@ -91,7 +91,7 @@ export function renderMap() {
       : n.role === 'side' ? ' <span style="color:var(--gold)">· BONUS OBJECTIVE</span>' : '';
     return `<div class="row" data-go="${n.id}" style="cursor:pointer">
         <span><b style="color:var(--zan)">${n.l ? n.l + ' — ' : ''}${m.n}</b>${nd.mod !== 'none' ? ` <span style="color:var(--violet)">· ${md.n}</span>` : ''}${tag}
-        <div style="font-size:0.5312rem;color:var(--dim);margin-top:4px;line-height:1.5">${m.d}${md.d ? ' ' + md.d : ''}</div></span>
+        <div style="font-size:0.5312rem;color:var(--dim);margin-top:4px;line-height:1.5">${n.lore ? n.lore + ' ' : ''}${m.d}${md.d ? ' ' + md.d : ''}</div></span>
         <span class="r hot">${nd.reward} cr · ${nd.salv} sv ▸</span></div>`;
   }).join('') || '<div class="row"><span style="color:var(--dim)">Operation complete.</span></div>';
 

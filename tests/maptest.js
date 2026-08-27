@@ -34,11 +34,15 @@ for (const opKey of Object.keys(A.OPS)) {
       if (n.role === 'final' && nd.type !== 'extract') F.push(`${opKey} final rolled ${nd.type}`);
       if (n.role === 'start' && nd.type !== 'stronghold') F.push(`${opKey} start rolled ${nd.type}`);
       if (n.role !== 'final' && nd.type === 'extract') F.push(`${opKey} ${n.id}: extract off the final node`);
+      if (n.type && nd.type !== n.type) F.push(`${opKey} ${n.id}: pinned type ${n.type}, rolled ${nd.type}`);
       if (n.role === 'side') {
-        if (!['crystals', 'specimens', 'uplink', 'blitz'].includes(nd.type)) {
-          F.push(`${opKey} side node rolled ${nd.type}`);
-        }
+        const pool = n.type ? [n.type] : ['crystals', 'specimens', 'uplink', 'blitz'];
+        if (!pool.includes(nd.type)) F.push(`${opKey} side node rolled ${nd.type}`);
         if (nd.salv < 8) F.push(`${opKey} side node salvage not boosted: ${nd.salv}`);
+      }
+      const wantHeat = A.OPS[opKey].heat ? (n.heat != null ? n.heat : A.OPS[opKey].heat) : 0;
+      if (wantHeat !== (nd.heat || 0)) {
+        F.push(`${opKey} ${n.id}: heat ${nd.heat}, expected ${wantHeat}`);
       }
     }
   }
@@ -102,6 +106,48 @@ for (const opKey of Object.keys(A.OPS)) {
   A.G.kills = 9;
   A.endTurn();
   if (!A.G.over || A.G.result.kind !== 'win') F.push('meeting the blitz quota did not win');
+}
+
+// G: the Crownring gate — no extraction until the Northgate delegation moves
+{
+  const p = A.blankProfile('CR');
+  p.op = 'crownring';
+  A.enterProfile(p);
+  const run = A.opRun();
+  run.cleared.push('n1', 'n4', 'n5');
+  if (A.nodeState('n9') !== 'locked') F.push('Accord Extraction open with the delegation pinned');
+  if (!A.reqBlocked('n9')) F.push('n9 not reported as gate-blocked');
+  run.cleared.push('n2', 'n6');
+  if (A.nodeState('n9') !== 'open') F.push('n9 still locked after the Northgate route cleared');
+}
+
+// H: Shallowhelm — the Cleanse needs power, and the way out needs the Cleanse
+{
+  const p = A.blankProfile('SH');
+  p.op = 'shallowhelm';
+  A.enterProfile(p);
+  const run = A.opRun();
+  run.cleared.push('n1');
+  if (A.nodeState('n6') !== 'locked' || !A.reqBlocked('n6')) F.push('Cleanse Antechamber open with the power out');
+  if (A.nodeState('n8') !== 'locked' || !A.reqBlocked('n8')) F.push('Gatehouse Extraction open with the Cleanse unarmed');
+  run.cleared.push('n2', 'n3');
+  if (A.nodeState('n6') !== 'open') F.push('restoring power did not open the Antechamber');
+  run.cleared.push('n6', 'n7');
+  if (A.nodeState('n8') !== 'open') F.push('arming the Cleanse did not open the way home');
+}
+
+// I: heat runs the wave budget over — wave 1 spends exactly its budget
+{
+  const p = A.blankProfile('HT');
+  A.enterProfile(p);
+  const spend = heat => {
+    A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0, salv: 0, heat});
+    return Object.entries(A.G.manifest).reduce((a, [k, c]) => a + A.BEST[k].threat * c, 0);
+  };
+  if (spend(0) !== 4) F.push('baseline wave-1 budget moved: ' + spend(0));
+  if (A.G.heat !== 0) F.push('heat leaked into a plain mission');
+  if (spend(6) !== 10) F.push('heat did not raise the wave budget');
+  if (A.G.heat !== 6) F.push('G.heat not carried into the mission');
 }
 
 F.report('campaign maps: all checks pass');

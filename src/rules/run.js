@@ -26,12 +26,14 @@ export function genRun() {
   map.nodes.forEach(n => {
     const role = n.role || 'main';
     nodes[n.id] = {
-      // The first node of an operation is always a straight Defend Stronghold,
+      // A node can pin its mission type in the map data (an Archive that is
+      // always an uplink, a rescue that is always civilians). Otherwise the
+      // first node of an operation is always a straight Defend Stronghold,
       // so a new player meets the base rules before any variant.
-      type: role === 'start' ? 'stronghold'
+      type: n.type || (role === 'start' ? 'stronghold'
         : role === 'final' ? 'extract'
           : role === 'side' ? sidePool[randInt(sidePool.length)]
-            : mainPool[randInt(mainPool.length)],
+            : mainPool[randInt(mainPool.length)]),
       mod: chance(0.45) ? mods[1 + randInt(mods.length - 1)] : 'none',
       reward: 70 + randInt(5) * 20,
       salv: 5 + randInt(5),
@@ -52,6 +54,20 @@ export function genRun() {
     nodes[n.id].reward = Math.round(nodes[n.id].reward * 1.5);
     nodes[n.id].salv += 3;
   });
+
+  // A hot operation runs every wave over budget (see wave()) — and pays for
+  // the trouble, node by node. A node can override the operation's heat when
+  // its mission type can't carry the full load (a mandatory Crystals hold).
+  if (map.heat) {
+    map.nodes.forEach(n => {
+      const nd = nodes[n.id];
+      const heat = n.heat != null ? n.heat : map.heat;
+      if (!heat) return;
+      nd.heat = heat;
+      nd.reward = Math.round(nd.reward * (1 + heat * 0.25));
+      nd.salv += heat;
+    });
+  }
 
   active.ops[active.op] = {cleared: [], nodes};
 }

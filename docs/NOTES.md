@@ -620,6 +620,40 @@ pulses once (`absorb`). State lives in `hold.js` (`toggleRoster`,
 only; the Quartermaster's grid never folds. The tiles stay in the DOM when
 folded (CSS `display:none`), which keeps the render guards honest.
 
+## Three deep-zone operations
+
+The campaign doubled: **Lumenspire**, **Crownring** and **Shallowhelm**, each
+built around a shape rather than a reskin, and each hotter than the first
+three. Two small engine features carry them:
+
+- **Pinned mission types** — a map node can declare `type` and skip the
+  roll. That is what makes "extract the research data" an actual Uplink on
+  the Archive Core every run, and a rescue actually Civilians.
+- **Heat** — an operation-level 1–3 that goes straight into every wave's
+  threat budget (`wave()` adds `G.heat`) and pays for itself (+25% credits
+  and +1 salvage per point, applied node-by-node in `genRun`). Calibrated
+  with a 60-run bot sweep: heat 1/2/3 costs the near-random floor roughly
+  5/15/30 points on stronghold — veteran content, not a wall. The ops
+  screen shows heat as red ▲ pips; the combat log announces it. Crystals
+  could not carry it (12% floor at heat 3), so nodes can override the
+  operation's heat — Shallowhelm's mandatory Power Vault runs at 1 (26%
+  floor) while the rest of the fortress runs at 3.
+
+The shapes: Lumenspire is a straight city spine — gates → Archive Core
+(uplink, gated ahead of Extraction) → evac — with the Researcher Dorms as a
+one-node Civilians side branch. Crownring is concentric: Summit Hall start,
+X routes to four second-ring nodes, a plus of four ward gates outside; the
+Northgate Delegation (civilians) gates the Accord Extraction, the east and
+west gates are bonus — the burrower-ambush-at-the-summit lore is DeeWolf's.
+Shallowhelm forks three ways from the Gatehouse — Power Vault (crystals),
+Records Hall (optional uplink side), and a Cleanse wing gated on the power
+branch, ending in a Blitz purge — then the final Extraction sits back at
+the Gatehouse, gated on the Cleanse Core: the way in is the way out.
+
+`maptest` grew the Crownring and Shallowhelm gate walkthroughs, pinned-type
+and heat-propagation checks across every op, and an exact wave-1 budget
+assertion for heat.
+
 ## The hold stopped wasting its lower half
 
 The menu column used to end at the four tiles, leaving a dead band the

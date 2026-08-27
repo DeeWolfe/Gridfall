@@ -1304,6 +1304,342 @@
      "n8"
     ]
    ]
+  },
+  "lumenspire": {
+   "k": "lumenspire",
+   "n": "OPERATION LUMENSPIRE",
+   "sub": "Meridian City · research spire, overrun",
+   "col": "#9d6bff",
+   "heat": 1,
+   "zones": [
+    {
+     "l": "THE PERIMETER",
+     "p": "20,110 96,58 176,70 196,150 150,214 40,196"
+    },
+    {
+     "l": "RESEARCH CAMPUS",
+     "p": "176,70 268,58 316,130 282,220 172,262 150,214 196,150"
+    },
+    {
+     "l": "EVAC CORRIDOR",
+     "p": "316,130 356,74 424,120 428,196 350,222 282,220"
+    }
+   ],
+   "nodes": [
+    {
+     "id": "n1",
+     "x": 62,
+     "y": 140,
+     "role": "start",
+     "l": "City Gates"
+    },
+    {
+     "id": "n2",
+     "x": 140,
+     "y": 110
+    },
+    {
+     "id": "n3",
+     "x": 222,
+     "y": 140,
+     "l": "Archive Core",
+     "type": "uplink",
+     "lore": "The research data lives here. Hold the uplink while it pulls."
+    },
+    {
+     "id": "n4",
+     "x": 300,
+     "y": 112
+    },
+    {
+     "id": "n5",
+     "x": 384,
+     "y": 150,
+     "role": "final",
+     "l": "Extraction Point",
+     "req": [
+      "n3"
+     ],
+     "reqText": "The research data is still in the spire — secure the Archive Core first"
+    },
+    {
+     "id": "n6",
+     "x": 226,
+     "y": 236,
+     "role": "side",
+     "l": "Researcher Dorms",
+     "type": "civilians",
+     "lore": "Survivors barricaded in the dorms. Walking them out is optional — and paid."
+    }
+   ],
+   "edges": [
+    [
+     "n1",
+     "n2"
+    ],
+    [
+     "n2",
+     "n3"
+    ],
+    [
+     "n3",
+     "n4"
+    ],
+    [
+     "n4",
+     "n5"
+    ],
+    [
+     "n3",
+     "n6"
+    ]
+   ]
+  },
+  "crownring": {
+   "k": "crownring",
+   "n": "OPERATION CROWNRING",
+   "sub": "Concordat summit · burrowers inside the walls",
+   "col": "#5dffa0",
+   "heat": 2,
+   "zones": [
+    {
+     "l": "THE CONCOURSE",
+     "p": "309,187 257,239 183,239 131,187 131,113 183,61 257,61 309,113"
+    },
+    {
+     "l": "OUTER WARDS",
+     "p": "354,205 275,284 165,284 86,205 86,95 165,16 275,16 354,95"
+    }
+   ],
+   "nodes": [
+    {
+     "id": "n1",
+     "x": 220,
+     "y": 150,
+     "role": "start",
+     "l": "Summit Hall"
+    },
+    {
+     "id": "n2",
+     "x": 170,
+     "y": 100
+    },
+    {
+     "id": "n3",
+     "x": 270,
+     "y": 100
+    },
+    {
+     "id": "n4",
+     "x": 170,
+     "y": 200
+    },
+    {
+     "id": "n5",
+     "x": 270,
+     "y": 200
+    },
+    {
+     "id": "n6",
+     "x": 220,
+     "y": 42,
+     "l": "Northgate Delegation",
+     "type": "civilians",
+     "lore": "The faction reps move on foot. Walk them through the ward."
+    },
+    {
+     "id": "n7",
+     "x": 88,
+     "y": 150,
+     "role": "side",
+     "l": "Westgate Vault"
+    },
+    {
+     "id": "n8",
+     "x": 352,
+     "y": 150,
+     "role": "side",
+     "l": "Eastgate Relay"
+    },
+    {
+     "id": "n9",
+     "x": 220,
+     "y": 258,
+     "role": "final",
+     "l": "Accord Extraction",
+     "req": [
+      "n6"
+     ],
+     "reqText": "The delegations leave first — clear the Northgate route"
+    }
+   ],
+   "edges": [
+    [
+     "n1",
+     "n2"
+    ],
+    [
+     "n1",
+     "n3"
+    ],
+    [
+     "n1",
+     "n4"
+    ],
+    [
+     "n1",
+     "n5"
+    ],
+    [
+     "n2",
+     "n6"
+    ],
+    [
+     "n3",
+     "n6"
+    ],
+    [
+     "n2",
+     "n7"
+    ],
+    [
+     "n4",
+     "n7"
+    ],
+    [
+     "n3",
+     "n8"
+    ],
+    [
+     "n5",
+     "n8"
+    ],
+    [
+     "n4",
+     "n9"
+    ],
+    [
+     "n5",
+     "n9"
+    ]
+   ]
+  },
+  "shallowhelm": {
+   "k": "shallowhelm",
+   "n": "OPERATION SHALLOWHELM",
+   "sub": "Fortress Shallow Helm · gone dark, no distress call",
+   "col": "#ff5a5a",
+   "heat": 3,
+   "zones": [
+    {
+     "l": "THE BAILEY",
+     "p": "20,96 96,52 150,86 158,214 92,252 24,204"
+    },
+    {
+     "l": "LOWER DECKS",
+     "p": "150,86 262,40 388,64 420,150 380,206 236,160 158,110"
+    },
+    {
+     "l": "ARCHIVE WING",
+     "p": "158,214 236,176 352,204 372,262 240,286 92,252"
+    }
+   ],
+   "nodes": [
+    {
+     "id": "n1",
+     "x": 62,
+     "y": 110,
+     "role": "start",
+     "l": "Gatehouse"
+    },
+    {
+     "id": "n2",
+     "x": 168,
+     "y": 66
+    },
+    {
+     "id": "n3",
+     "x": 280,
+     "y": 84,
+     "l": "Power Vault",
+     "type": "crystals",
+     "lore": "Restore the couplings. Hold them while they spin up.",
+     "heat": 1
+    },
+    {
+     "id": "n4",
+     "x": 170,
+     "y": 224
+    },
+    {
+     "id": "n5",
+     "x": 290,
+     "y": 244,
+     "role": "side",
+     "l": "Records Hall",
+     "type": "uplink",
+     "lore": "The garrison’s last logs. Optional — command pays well for answers."
+    },
+    {
+     "id": "n6",
+     "x": 240,
+     "y": 152,
+     "l": "Cleanse Antechamber",
+     "req": [
+      "n3"
+     ],
+     "reqText": "No power on the deck — restore the Power Vault first"
+    },
+    {
+     "id": "n7",
+     "x": 356,
+     "y": 158,
+     "l": "Cleanse Core",
+     "type": "blitz",
+     "lore": "Arm the Self-Cleanse and purge everything it flushes at you."
+    },
+    {
+     "id": "n8",
+     "x": 62,
+     "y": 196,
+     "role": "final",
+     "l": "Gatehouse Extraction",
+     "req": [
+      "n7"
+     ],
+     "reqText": "The Self-Cleanse is not armed — fight back to the Cleanse Core first"
+    }
+   ],
+   "edges": [
+    [
+     "n1",
+     "n2"
+    ],
+    [
+     "n2",
+     "n3"
+    ],
+    [
+     "n1",
+     "n4"
+    ],
+    [
+     "n4",
+     "n5"
+    ],
+    [
+     "n1",
+     "n6"
+    ],
+    [
+     "n6",
+     "n7"
+    ],
+    [
+     "n1",
+     "n8"
+    ]
+   ]
   }
  },
  "doctrines": [
