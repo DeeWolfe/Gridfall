@@ -41,6 +41,17 @@ for (const [sel, re] of Object.entries(MUST_SCALE)) {
   else if (!rules.some(m => re.test(m[1]))) F.push(sel + ' is not viewport-relative');
 }
 
+// The stacked combat layout must size its board and details rows to content.
+// Plain `auto` rows compress (the columns carry min-height:0) and the board
+// then paints straight over the card-details panel on short screens.
+{
+  const stacked = css.match(/@media\(max-width:999px\)\{[^@]*?\.cbmain\{grid-template-rows:([^;}]*)/);
+  if (!stacked) F.push('stacked combat layout lost its row template');
+  else if (!/^max-content max-content/.test(stacked[1])) {
+    F.push('stacked combat rows can compress below content: ' + stacked[1]);
+  }
+}
+
 // Clamps should have real headroom, not be decorative.
 const tight = [...css.matchAll(/clamp\(([\d.]+)px,\s*([\d.]+)vw[^,]*,\s*([\d.]+)px\)/g)]
   .filter(m => +m[3] / +m[1] < 1.25)

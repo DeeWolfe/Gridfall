@@ -837,7 +837,11 @@ body{font-size:1rem}
    and the hand — what used to be dead space. This block sits after the desktop
    layer so it wins the cascade against the rail's default display:none. */
 @media(max-width:999px){
-  .cbmain{grid-template-rows:auto auto minmax(8rem,1fr)}
+  /* max-content rows: the board and the details panel may never be compressed
+     below their content — auto rows here would shrink (the columns carry
+     min-height:0) and let the grid paint over the panel beneath it. When the
+     three rows outgrow the viewport, .cbmain scrolls instead. */
+  .cbmain{grid-template-rows:max-content max-content minmax(8rem,1fr)}
   .cbcol.intel{display:flex;order:3;min-height:0}
 }
 
