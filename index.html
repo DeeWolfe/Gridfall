@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>GRIDFALL</title>
+<link rel="stylesheet" href="./styles/gridfall.css">
+</head>
+<body>
+<div class="scr on" id="boot"><div class="bootwrap">
+  <div class="wordmark">GRIDFALL</div>
+  <div class="bootsub">Task force personnel record</div>
+  <div class="slots" id="slots"></div>
+  <div id="newform">
+    <input id="callsign" maxlength="12" placeholder="Callsign" autocomplete="off" spellcheck="false">
+    <div style="display:flex;gap:8px"><button class="btn" id="create" style="flex:1">Enlist</button>
+      <button class="btn ghost" id="cancelnew">Back</button></div></div>
+  <div style="text-align:center;margin-top:20px;font-size:0.5312rem;color:var(--dim);line-height:1.7">
+    Records are stored on this device only.</div>
+</div></div>
+
+<div class="scr" id="hold"><div id="vibe"><div class="holdgrid">
+  <div class="port"><canvas id="sky"></canvas><div class="portframe"></div>
+    <div class="strut" style="left:31%;top:0;bottom:0;width:9px"></div>
+    <div class="strut" style="left:67%;top:0;bottom:0;width:9px"></div>
+    <div class="strut" style="left:0;right:0;top:37%;height:9px"></div>
+    <div class="portlabel"><b id="shipname">—</b> · Descent <b id="eta">T−0:00</b> · <span id="sectorname">—</span>
+      <button class="mini renameship" id="renameship">Rename</button></div></div>
+  <div class="bay">
+    <div class="baytop"><div class="who"><div class="cs" id="h-cs">—</div><div class="rk" id="h-rk">—</div></div>
+      <div class="purse"><div class="cr"><div class="k">Credits</div><div class="v" id="h-cr">0</div></div>
+        <div class="sa"><div class="k">Salvage</div><div class="v" id="h-sa">0</div></div></div></div>
+    <div class="baymain">
+      <button class="deploy" id="gomap"><div class="lamp"></div><h2>OPERATIONS</h2>
+        <div class="sub" id="deploysub">Select a node and commit the squad.</div></button>
+      <div class="tiles">
+        <button class="tile sq" data-p="squad"><div class="tn">Squad</div><div class="td">Build the deck you deploy from.</div></button>
+        <button class="tile qm" data-p="quartermaster"><div class="tn">Quartermaster</div><div class="td">Requisition new assets.</div></button>
+        <button class="tile db" data-p="database"><div class="tn">Database</div><div class="td">Assets and hostiles on file.</div></button>
+        <button class="tile rec" data-p="record"><div class="tn">Service Record</div><div class="td">Deployments, losses, standing.</div></button></div></div>
+    <div class="bayfoot"><div style="font-size:0.5312rem;color:var(--dim)" id="saveflag">Saved</div>
+      <div style="display:flex;gap:7px"><button class="mini" data-p="settings">Settings</button>
+        <button class="mini" id="switch">Switch record</button></div></div>
+  </div></div></div></div>
+
+<div id="panel">
+  <div class="pbody" id="pbody"></div>
+  <div class="navfoot"><h2 id="ptitle">—</h2>
+    <button class="btn ghost" id="pclose">Close</button></div>
+</div>
+
+<div class="scr" id="modes">
+  <div class="mapbody" id="modesbody"></div>
+  <div class="navfoot"><h2>MODES</h2>
+    <button class="btn ghost" id="modesback">Return to hold</button></div>
+</div>
+<div class="scr" id="ops">
+  <div class="mapbody" id="opsbody"></div>
+  <div class="navfoot"><h2>CAMPAIGN OPERATIONS</h2>
+    <button class="btn ghost" id="opsback">Back to modes</button></div>
+</div>
+<div class="scr" id="map">
+  <div class="mapbody" id="mapbody"></div>
+  <div class="navfoot"><h2 id="maptitle">DELTA SHELF</h2>
+    <button class="btn ghost" id="mapback">Back to operations</button></div>
+</div>
+
+<div class="scr" id="combat">
+  <div class="cbhead">
+    <div class="mtitle">
+      <b id="c-title">—</b>
+      <span class="doctrine" id="c-doc">—</span>
+      <span id="c-obj">—</span>
+    </div>
+    <div class="incoming" id="man"></div>
+    <button class="leadbadge" id="leadbadge"></button>
+  </div>
+  <div class="cbmain">
+    <div class="cbcol mid">
+      <div class="field">
+        <div class="board" id="board"></div>
+        <div class="terbar" id="terbar"></div>
+        <div class="bstats">
+          <span>Ground <b id="c-ter">0</b></span>
+          <span>Breaches <b id="c-br">0</b></span>
+          <span>Deck <b id="c-deck">0</b></span>
+        </div>
+      </div>
+    </div>
+    <div class="cbcol side">
+      <div class="box selbox"><div id="selinfo">Nothing selected.</div></div>
+      <div class="box grow handbox">
+        <h3>Hand<span class="dpchip"><b id="c-dp">6</b> DP</span></h3>
+        <div class="hcards" id="hcards"></div>
+      </div>
+      <div class="cbacts">
+        <button class="btn" id="actPrimary">End turn</button>
+        <button class="btn ghost" id="actSecondary">Abort</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="result" id="result"><div class="rcard" id="rcard"><h2 id="rt">—</h2>
+  <div class="rs" id="rs"></div><button class="btn" id="rok" style="width:100%">Continue</button></div></div>
+
+<div id="dlg"><div class="dlgbg"></div><div class="dlgbox">
+  <button class="dlgx" id="dlgx" aria-label="Close">✕</button>
+  <div class="dlgtitle" id="dlgtitle">—</div>
+  <div class="dlgmsg" id="dlgmsg"></div>
+  <input id="dlginput" maxlength="14" autocomplete="off" spellcheck="false" style="display:none">
+  <div class="dlgacts" id="dlgacts"><button class="btn" id="dlgok">Confirm</button>
+    <button class="btn ghost" id="dlgno">Cancel</button></div></div></div>
+<div id="pack">
+  <div class="packbg" id="packbg"></div>
+  <div class="packflash" id="packflash"></div>
+  <div class="packwrap">
+    <div class="packlabel" id="packlabel">Requisition</div>
+    <div class="packhint" id="packhint">Tap the pack to open</div>
+    <div class="packstage" id="packstage"></div>
+    <div class="packfoot" id="packfoot"></div>
+  </div>
+</div>
+<div id="focus"><div class="fbg" id="fbg"></div><div class="fwrap" id="fwrap"></div></div>
+
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>

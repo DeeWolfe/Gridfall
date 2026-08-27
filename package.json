@@ -1,0 +1,15 @@
+{
+  "name": "gridfall",
+  "version": "1.0.0",
+  "description": "Gridfall — a lane-defence tactics game. ES modules, no runtime dependencies.",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "build": "node build.js",
+    "dev": "node tools/serve.js",
+    "test": "node tests/run-all.js",
+    "gen:content": "node tools/gen-content.js",
+    "check:content": "node tools/check-content.js"
+  },
+  "engines": {"node": ">=18"}
+}
