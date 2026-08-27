@@ -39,10 +39,39 @@ export function playerPhase() {
     u.fresh = false;
     if (u.tgt && !G.enemies.some(e => e.uid === u.tgt)) u.tgt = null;   // stale lock
     if (u.cd > 0) u.cd--;
+    if (u.cycling > 0) u.cycling--;
     if (u.stun > 0) u.stun--;
     if (u.regenTicks > 0) { u.hp = Math.min(u.max, u.hp + 2); u.regenTicks--; }
     if (nanites) u.hp = Math.min(u.max, u.hp + 1);
     if (u.regen) u.shield = Math.max(u.shield, u.shieldMax || 1);
+  });
+
+  // Field support: an Engineer repairs the Tech unit ahead; a Forward Base
+  // repairs its neighbours and hurries their cooldowns — but the extra step
+  // never brings a cooldown to zero, Coolant Core stacked or not.
+  G.units.forEach(u => {
+    if (u.techBuff) {
+      const t = G.units.find(o => o.lane === u.lane && o.col === u.col + u.size && o.tech);
+      if (t && t.hp < t.max) t.hp = Math.min(t.max, t.hp + u.techBuff.repair);
+    }
+    if (u.sustain) {
+      G.units.forEach(o => {
+        if (o.uid === u.uid || Math.abs(o.lane - u.lane) + Math.abs(o.col - u.col) !== 1) return;
+        if (o.hp < o.max) o.hp = Math.min(o.max, o.hp + u.sustain.repair);
+        for (let i = 0; i < u.sustain.cooldown; i++) if (o.cd > 1) o.cd--;
+      });
+    }
+  });
+
+  // Stim Injector: the host burns 1 hull a turn, and yes, it can burn out.
+  [...G.units].forEach(u => {
+    if (!u.decay) return;
+    u.hp -= 1;
+    if (u.hp <= 0) {
+      G.units = G.units.filter(x => x.uid !== u.uid);
+      G.lost++;
+      clog(`<span class="d">Stim Injector</span> burned out your ${u.n}.`, 'loss');
+    }
   });
 }
 
@@ -59,7 +88,14 @@ export function strike(e, D, chorus, pressing) {
     const u = unitAt(e.lane, c);
     if (u) { t = u; break; }
   }
-  if (t) dmgUnit(t, D.dmg + chorus, D.n + (pressing ? ' (pressing)' : ''), e);
+  if (!t) return;
+  // Any strike that is not against the adjacent cell arcs in — an I-Field
+  // shrugs it off entirely. forecastThreat mirrors this; keep them together.
+  if (t.ifield && t.col + t.size - 1 < e.col - 1) {
+    clog(`${t.n}'s I-Field absorbed ${D.n}'s ranged fire.`, 'info');
+    return;
+  }
+  dmgUnit(t, D.dmg + chorus, D.n + (pressing ? ' (pressing)' : ''), e);
 }
 
 /** Spore Node: release a Crawler into the first free cell behind it. */
@@ -89,7 +125,9 @@ function actHostile(e, chorus) {
   if (D.hold !== undefined && e.col <= D.hold) { strike(e, D, chorus); return; }
 
   const ahead = e.col - 1;
-  const blocked = ahead >= 0 && ((unitAt(e.lane, ahead) && !D.tunnel) || civAt(e.lane, ahead));
+  const aheadUnit = ahead >= 0 ? unitAt(e.lane, ahead) : null;
+  // A minefield does not read as an obstacle — hostiles walk straight onto it.
+  const blocked = ahead >= 0 && ((aheadUnit && !D.tunnel && !aheadUnit.mine) || civAt(e.lane, ahead));
   const queued = ahead >= 0 && foeAt(e.lane, ahead);
   if (blocked || queued) { strike(e, D, chorus, queued && !blocked); return; }
 
@@ -108,7 +146,15 @@ function actHostile(e, chorus) {
       break;
     }
     if (G.ter[e.lane][nc] === 'x') break;
-    if ((unitAt(e.lane, nc) && !D.tunnel) || foeAt(e.lane, nc) || civAt(e.lane, nc)) break;
+    const stepUnit = unitAt(e.lane, nc);
+    if ((stepUnit && !D.tunnel && !stepUnit.mine) || foeAt(e.lane, nc) || civAt(e.lane, nc)) break;
+    // First body in detonates the minefield; the mine is spent either way.
+    if (stepUnit && stepUnit.mine) {
+      G.units = G.units.filter(x => x.uid !== stepUnit.uid);
+      tapeEvent({type: 'clash', lane: e.lane, col: nc});
+      clog(`<span class="d">${D.n}</span> walked onto a <span class="g">Minefield</span> — ${stepUnit.mine} damage.`, 'kill');
+      dmgEnemy(e, stepUnit.mine, 'Minefield', true);
+    }
     if (scorched(e.lane, nc)) dmgEnemy(e, 2, 'Plasma');
     if (e.hp <= 0) break;
     e.col = nc;

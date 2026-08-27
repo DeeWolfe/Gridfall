@@ -7,7 +7,7 @@
 
 import {COLS} from '../state/constants.js';
 import {G, setMover} from '../state/session.js';
-import {cellPassable} from './board.js';
+import {cellPassable, unitAt, foeAt, civAt} from './board.js';
 import {fire} from './combat.js';
 import {useAbility} from './abilities.js';
 import {hooks} from '../state/hooks.js';
@@ -23,6 +23,15 @@ export function moveTargets(u) {
     for (let i = 0; i < u.size; i++) if (!cellPassable(nl, nc + i, u.uid)) return;
     out.push(nl * COLS + nc);
   });
+  // A charger may keep going forward, but never through anything — every cell
+  // on the way must be passable too.
+  for (let step = 2; step <= (u.charge || 0); step++) {
+    let clear = true;
+    for (let s = 1; s <= step && clear; s++) {
+      for (let i = 0; i < u.size; i++) if (!cellPassable(u.lane, u.col + s + i, u.uid)) clear = false;
+    }
+    if (clear) out.push(u.lane * COLS + u.col + step);
+  }
   return out;
 }
 
@@ -38,6 +47,45 @@ export function doMove(u, l, c) {
   if (!u.servo) u.acted = true;
   clog(`${u.n} repositioned${u.servo ? ' — servo legs, it can still fire' : ''}.`, 'order');
   setMover(u.servo && !u.acted ? u : null);
+  hooks.invalidate();
+}
+
+/**
+ * Cells holding a friendly unit Cipher may trade places with. Both units must
+ * fit where the other stands — a two-cell frame cannot swap into a one-cell
+ * hole.
+ */
+export function swapTargets(u) {
+  if (!u.swap || u.stun || u.acted) return [];
+  // `m` standing at (l, c): every covered cell must be on the board, passable
+  // ground, and free of anything except the two units trading places.
+  const fits = (m, l, c, partner) => {
+    for (let i = 0; i < m.size; i++) {
+      const cc = c + i;
+      if (cc >= COLS || G.ter[l][cc] === 'x') return false;
+      if (foeAt(l, cc) || civAt(l, cc)) return false;
+      const holder = unitAt(l, cc);
+      if (holder && holder.uid !== m.uid && holder.uid !== partner.uid) return false;
+    }
+    return true;
+  };
+  return G.units
+    .filter(o => o.uid !== u.uid && fits(u, o.lane, o.col, o) && fits(o, u.lane, u.col, u))
+    .map(o => o.lane * COLS + o.col);
+}
+
+/** Cipher's action: exchange positions with the friendly at (l, c). */
+export function doSwap(u, l, c) {
+  if (u.acted) return;
+  if (!swapTargets(u).includes(l * COLS + c)) return;
+  const o = G.units.find(x => x.lane === l && x.col === c && x.uid !== u.uid);
+  if (!o) return;
+  [u.lane, o.lane] = [o.lane, u.lane];
+  [u.col, o.col] = [o.col, u.col];
+  u.acted = true;      // the whole action, servo legs or not
+  u.moved = true;
+  clog(`${u.n} traded places with ${o.n}.`, 'order');
+  setMover(null);
   hooks.invalidate();
 }
 

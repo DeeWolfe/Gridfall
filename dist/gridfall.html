@@ -303,6 +303,8 @@ input:focus{border-color:var(--cyan);box-shadow:0 0 18px rgba(77,232,255,.14)}
 .cell.movesel{box-shadow:inset 0 0 0 2px var(--green),0 0 16px rgba(93,255,160,.35)}
 .cell.movetgt{background:#1b4a38;box-shadow:inset 0 0 0 2px var(--green);cursor:pointer}
 .cell.movetgt:hover{background:#256349}
+.cell.swaptgt{box-shadow:inset 0 0 0 2px var(--cyan),0 0 12px rgba(77,232,255,.4);cursor:pointer}
+.cell.swaptgt:hover{filter:brightness(1.3)}
 .cell.orderdest{box-shadow:inset 0 0 0 2px var(--green)}
 .cell.objtile{box-shadow:inset 0 0 0 2px var(--gold)}
 .cell.scorch{background:#4a2a12;box-shadow:inset 0 0 0 1px rgba(255,140,60,.5)}
@@ -324,6 +326,7 @@ input:focus{border-color:var(--cyan);box-shadow:0 0 18px rgba(77,232,255,.14)}
 .hintline{font-size:0.5rem;color:var(--dim);margin-top:7px;letter-spacing:.04em}
 .shield{position:absolute;top:0;left:1px;font-size:0.4375rem;color:var(--cyan)}
 .att{position:absolute;bottom:0;left:1px;font-size:0.4375rem;color:var(--gold)}
+.att.cyc{left:auto;right:1px;color:var(--cyan);font-size:0.5625rem}
 .terbar{height:6px;display:flex;margin-top:9px;border:1px solid var(--line)}
 .terbar i{display:block;height:100%}
 .terbar .p{background:var(--cyan)} .terbar .n{background:#241f45} .terbar .e{background:var(--mag)}
@@ -1233,13 +1236,13 @@ const POOL = {
     heal: 2,
     healPlay: 3,
     healType: "common",
-    healMode: "front",
+    healMode: "adjacent",
     ab: {
       n: "Triage",
       d: "Heal every adjacent personnel unit for 4 instead of the unit ahead.",
       cd: 1,
     },
-    d: "Heals the personnel directly ahead. 3 on play, then 2 per turn.",
+    d: "Patches every friendly in the four adjacent cells for 2 each turn. No weapon, no burst, no heroics.",
   },
   archer: {
     n: "Archer",
@@ -1656,6 +1659,97 @@ const POOL = {
     },
     d: "Explosive hammer in an exo frame. Twenty hull, 5 damage adjacent, and a charge that shatters whatever it collides with.",
   },
+  zaku: {
+    n: "Fireteam Zaku",
+    t: "common",
+    dp: 1,
+    hp: 3,
+    price: 100,
+    mob: 1,
+    tg: "first",
+    dmg: 1,
+    single: 1,
+    squad: 2,
+    d: "Two bodies for one requisition. Neither will be missed and that is rather the point.",
+  },
+  cipher: {
+    n: "Cipher",
+    t: "common",
+    dp: 2,
+    hp: 3,
+    price: 140,
+    mob: 1,
+    tg: "first",
+    dmg: 2,
+    single: 1,
+    swap: 1,
+    d: "Trades places with any friendly unit on the board, anywhere. Uses its action for the turn.",
+  },
+  engineer: {
+    n: "Engineer",
+    t: "common",
+    dp: 2,
+    hp: 4,
+    price: 125,
+    mob: 1,
+    tg: "none",
+    techBuff: {dmg: 2, repair: 2},
+    d: "No weapon. The Tech unit directly ahead hits for +2 and repairs 2 hull every turn.",
+  },
+  outrider: {
+    n: "Outrider",
+    t: "common",
+    dp: 3,
+    hp: 5,
+    price: 150,
+    mob: 1,
+    tg: "adj",
+    dmg: 3,
+    single: 1,
+    charge: 2,
+    push: 1,
+    d: "Charges two cells. Whatever it strikes takes the hit and is driven back a cell.",
+  },
+  fob: {
+    n: "Forward Base",
+    t: "tech",
+    dp: 3,
+    hp: 10,
+    price: 175,
+    mob: 0,
+    tg: "none",
+    tech: 1,
+    zoneMin: 3,
+    sustain: {repair: 2, cooldown: 1},
+    d: "Deploys only on ground you already hold, in columns three and beyond. Adjacent friendlies repair 2 per turn and cool down a turn faster. Immobile.",
+  },
+  mine: {
+    n: "Minefield",
+    t: "tech",
+    dp: 1,
+    hp: 1,
+    price: 95,
+    mob: 0,
+    tg: "none",
+    tech: 1,
+    mine: 6,
+    zoneMin: 3,
+    anyGround: 1,
+    d: "Six damage to the first hostile that enters, then spent. Visible — hostiles route around mined lanes when they can.",
+  },
+  hecate: {
+    n: "Hecate Platform",
+    t: "special",
+    dp: 5,
+    hp: 4,
+    price: 375,
+    mob: 1,
+    tg: "boardFurthest",
+    dmg: 8,
+    single: 1,
+    recharge: 1,
+    d: "Reaches the furthest hostile on the board, any lane, for eight. Needs a turn to cycle — it cannot fire twice running.",
+  },
 };
 
 /* ==== src/content/gear.js =========================================== */
@@ -1692,6 +1786,19 @@ const GEAR = {
     cost: 110,
     d: "May deploy straight onto a hostile below Specialist tier, crushing it on landing and holding the cell.",
     crush: 1,
+  },
+  stim: {
+    n: "Stim Injector",
+    cost: 70,
+    d: "+2 damage. The unit loses 1 hull every turn it lives.",
+    dmg: 2,
+    decay: 1,
+  },
+  ifield: {
+    n: "I-Field",
+    cost: 90,
+    d: "Immune to indirect fire — Mortar, Plasma Artillerist, anything that arcs.",
+    immuneIndirect: 1,
   },
 };
 
@@ -2323,15 +2430,20 @@ function validTiles(cid) {
     return out;
   }
 
+  // `drop` and `anyGround` both ignore ownership; `zoneMin` additionally walls
+  // off the columns before it (a Forward Base belongs forward, a Minefield in
+  // the horde's path).
+  const ignoreOwnership = k.drop || k.anyGround;
   for (let l = 0; l < LANES; l++) for (let c = 0; c < COLS; c++) {
     if (G.ter[l][c] === 'x') continue;
-    if (!k.drop && G.ter[l][c] !== 'p') continue;
+    if (k.zoneMin && c < k.zoneMin) continue;
+    if (!ignoreOwnership && G.ter[l][c] !== 'p') continue;
     let ok = true;
     const size = k.size || 1;
     for (let i = 0; i < size; i++) {
       const cc = c + i;
       if (cc >= COLS || G.ter[l][cc] === 'x') { ok = false; break; }
-      if (!k.drop && G.ter[l][cc] !== 'p') { ok = false; break; }
+      if (!ignoreOwnership && G.ter[l][cc] !== 'p') { ok = false; break; }
       if (unitAt(l, cc) || foeAt(l, cc) || civAt(l, cc)) { ok = false; break; }
     }
     if (ok) out.push(l * COLS + c);
@@ -2411,6 +2523,9 @@ function laneScore(l) {
   let s = 0;
   G.units.forEach(u => {
     if (u.lane === l) s += (u.dmg || 0) * 1.6 + u.hp * 0.12 + (u.blocker ? 3 : 0);
+    // A visible minefield reads as a defended lane — that steering is the
+    // card's whole point, so it weighs in like a serious gun would.
+    if (u.lane === l && u.mine) s += u.mine * 0.7;
   });
   for (let c = 0; c < COLS; c++) if (G.ter[l][c] === 'p') s += 0.4;
   return s;
@@ -3007,6 +3122,7 @@ const TGNAME = {
   range3: "Exactly three cells ahead",
   diag: "The four diagonals only",
   range2: "Exactly two cells ahead",
+  boardFurthest: "Furthest hostile on the board",
 };
 
 /* ==== src/content/card-art.js ======================================= */
@@ -3182,6 +3298,42 @@ const pxBody = {
     <path d="M36 90 V104 M64 90 V104" stroke="${c}" stroke-width="1.6" opacity=".8"/>`,
 };
 
+const pxBodyNew = {
+  zaku: c => `<path d="M10 124 Q13 104 26 100 L40 100 Q53 104 56 124 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.5"/>
+    <path d="M24 98 L24 86 Q24 76 33 76 Q42 76 42 86 L42 98 Q33 102 24 98 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.5"/>
+    <path d="M27 88 L39 88 L39 93 Q33 96 27 93 Z" fill="${c}" opacity=".9"/>
+    <path d="M44 124 Q47 106 60 102 L74 102 Q87 106 90 124 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.5"/>
+    <path d="M58 100 L58 88 Q58 78 67 78 Q76 78 76 88 L76 100 Q67 104 58 100 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.5"/>
+    <path d="M61 90 L73 90 L73 95 Q67 98 61 95 Z" fill="${c}" opacity=".9"/>
+    <path d="M14 108 L44 92 M48 110 L78 94" stroke="${c}" stroke-width="1.8"/>`,
+  swapArrows: c => `<path d="M20 40 Q50 22 80 40 M80 40 L72 36 M80 40 L76 48" stroke="${c}" stroke-width="1.8" fill="none" opacity=".85"/>
+    <path d="M84 92 Q92 68 80 48" stroke="${c}" stroke-width="1.2" fill="none" opacity="0"/>
+    <path d="M80 116 Q50 134 20 116 M20 116 L28 120 M20 116 L24 108" stroke="${c}" stroke-width="1.8" fill="none" opacity=".85"/>`,
+  cog: c => `<circle cx="76" cy="52" r="7" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
+    <circle cx="76" cy="52" r="2.4" fill="${c}"/>
+    <path d="M76 42 V45 M76 59 V62 M66 52 H69 M83 52 H86 M69 45 L71 47 M81 57 L83 59 M83 45 L81 47 M71 57 L69 59" stroke="${c}" stroke-width="1.6"/>`,
+  dash: c => `<path d="M64 96 L76 90 M64 104 L80 98 M64 112 L76 106" stroke="${c}" stroke-width="1.8" opacity=".7"/>`,
+  fob: c => `<rect x="20" y="96" width="60" height="22" fill="${PXFILL}" stroke="${c}" stroke-width="1.8"/>
+    <rect x="30" y="80" width="40" height="16" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
+    <path d="M38 104 H62" stroke="${c}" stroke-width="1.2" opacity=".6"/>
+    <path d="M50 80 V58" stroke="${c}" stroke-width="1.8"/><circle cx="50" cy="56" r="2.4" fill="${c}"/>
+    <path d="M42 88 h6 M52 88 h6" stroke="${c}" stroke-width="1.6" opacity=".8"/>
+    <path d="M14 118 H86" stroke="${c}" stroke-width="1.4" opacity=".5"/>
+    <path d="M26 62 v6 M23 65 h6 M74 66 v6 M71 69 h6" stroke="${c}" stroke-width="1.4" opacity=".7"/>`,
+  mine: c => `<ellipse cx="50" cy="98" rx="26" ry="10" fill="${PXFILL}" stroke="${c}" stroke-width="1.8"/>
+    <ellipse cx="50" cy="94" rx="16" ry="6" fill="none" stroke="${c}" stroke-width="1.2" opacity=".7"/>
+    <path d="M38 90 V82 M50 88 V78 M62 90 V82" stroke="${c}" stroke-width="2"/>
+    <circle cx="50" cy="75" r="2" fill="${c}"/>
+    <path d="M20 112 L28 104 M80 112 L72 104" stroke="${c}" stroke-width="1.2" opacity=".5"/>
+    <path d="M30 60 L36 66 M70 60 L64 66 M50 54 V62" stroke="${c}" stroke-width="1.4" opacity=".6"/>`,
+  hecate: c => `<path d="M34 120 L50 92 L66 120 M40 110 H60" stroke="${c}" stroke-width="1.8" fill="none"/>
+    <path d="M42 96 L86 34" stroke="${c}" stroke-width="4"/>
+    <path d="M86 34 L92 26" stroke="${c}" stroke-width="1.6"/>
+    <rect x="40" y="88" width="20" height="12" rx="2" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
+    <circle cx="80" cy="26" r="8" fill="none" stroke="${c}" stroke-width="1" opacity=".6" stroke-dasharray="3 3"/>
+    <path d="M80 20 V32 M74 26 H86" stroke="${c}" stroke-width="1" opacity=".6"/>`,
+};
+
 // -- the card table ----------------------------------------------------------
 
 const pxDraw = {
@@ -3225,6 +3377,13 @@ const pxDraw = {
   hell: c => pxBody.hell(c),
   plasma: c => pxBody.plasma(c),
   exo: c => pxBust(c, 'heavy', true) + pxProp.hammer(c),
+  zaku: c => pxBodyNew.zaku(c),
+  cipher: c => pxBust(c, 'hood') + pxBodyNew.swapArrows(c),
+  engineer: c => pxBust(c, 'scout') + pxBodyNew.cog(c),
+  outrider: c => pxBust(c, 'trooper') + pxProp.katana(c) + pxBodyNew.dash(c),
+  fob: c => pxBodyNew.fob(c),
+  mine: c => pxBodyNew.mine(c),
+  hecate: c => pxBodyNew.hecate(c),
 };
 
 const hasPortrait = id => !!pxDraw[id];
@@ -3363,6 +3522,15 @@ function statRows(id) {
     k.dmg ? ['Damage', (k.dmg + (g && g.dmg ? g.dmg : 0)) + (k.burst ? ` (${k.burst} on play)` : '')] : null,
     k.tg && k.tg !== 'none' ? ['Targeting', TGNAME[k.tg] || k.tg] : null,
     k.indirect ? ['Line of fire', 'Indirect — fires over blockers'] : null,
+    k.recharge ? ['Rate of fire', 'Every other turn — needs a turn to cycle'] : null,
+    k.charge ? ['Charge', `Moves up to ${k.charge} cells forward`] : null,
+    k.push ? ['On hit', 'Drives the survivor back one cell'] : null,
+    k.swap ? ['Action', 'Trades places with any friendly unit, anywhere'] : null,
+    k.squad ? ['Deployment', `${k.squad} bodies from one card`] : null,
+    k.techBuff ? ['Support', `Tech unit ahead: +${k.techBuff.dmg} damage, repairs ${k.techBuff.repair}/turn`] : null,
+    k.sustain ? ['Support', `Adjacent: repair ${k.sustain.repair}/turn, cooldowns tick faster`] : null,
+    k.mine ? ['Trap', `${k.mine} damage to the first hostile in, then spent`] : null,
+    k.zoneMin ? ['Deployment', `Column ${k.zoneMin} and beyond${k.anyGround ? ', any ground' : ', held ground only'}`] : null,
     k.drop ? ['Deployment', 'Any tile, including hostile ground'] : null,
     k.regen ? ['Shield', 'Regenerates each turn'] : null,
     k.riposte ? ['Riposte', k.riposte + ' back to attackers'] : null,
@@ -4342,7 +4510,15 @@ function geomFor(u) {
   const front = u.col + u.size - 1;
   const L = u.lane;
   if (u.tg === 'none' || !u.dmg || u.stun) return [];
+  if (u.cycling > 0) return [];                  // a recharge weapon mid-cycle
   if (u.indirect && laneJammed(L)) return [];
+
+  // Board-wide targeting: the hostile deepest into any lane, ignoring lanes
+  // and blockers alike. The answer to a Chorus dug in behind the horde.
+  if (u.tg === 'boardFurthest') {
+    if (!G.enemies.length) return [];
+    return [[...G.enemies].sort((a, b) => b.col - a.col || a.uid - b.uid)[0]];
+  }
 
   const inLane = laneAhead(u, L);
   switch (u.tg) {
@@ -4438,7 +4614,17 @@ function mkUnit(cid, l, c) {
     aura: k.aura || 0,
     colBuff: k.col || 0,
     laneB: k.laneB || 0,
+    techBuff: k.techBuff || null,
+    sustain: k.sustain || null,
     dampen: k.dampen || 0,
+    swap: !!k.swap,
+    charge: k.charge || 0,
+    push: !!k.push,
+    mine: k.mine || 0,
+    recharge: !!k.recharge,
+    cycling: 0,
+    decay: !!(g && g.decay),
+    ifield: !!(g && g.immuneIndirect),
     heal: k.heal || 0,
     hot: k.hot || 0,
     healType: k.healType,
@@ -4476,6 +4662,8 @@ function buffOf(u) {
     if (o.aura && Math.abs(o.lane - u.lane) + Math.abs(o.col - u.col) === 1) b += o.aura;
     if (o.colBuff && o.col === u.col) b += o.colBuff;
     if (o.laneB && o.lane === u.lane) b += o.laneB;
+    // An Engineer boosts only the Tech unit directly ahead of it.
+    if (o.techBuff && u.tech && u.lane === o.lane && u.col === o.col + o.size) b += o.techBuff.dmg;
   });
   return Math.min(b, MAX_BUFF);
 }
@@ -4574,6 +4762,25 @@ function fire(u, onPlay) {
     if (!ts.length) break;
     ts.forEach(e => dmgEnemy(e, base, u.n, u.pen));
 
+    // A recharge weapon spends the next turn cycling. Set to 2 because the
+    // end-of-turn reset decrements once immediately after this fires.
+    if (u.recharge) u.cycling = 2;
+
+    // Outrider: survivors of the hit are driven back a cell. The push fails
+    // quietly if the cell behind is occupied or off the board — damage stands,
+    // and two bodies never share a cell.
+    if (u.push) {
+      ts.filter(e => e.hp > 0).forEach(e => {
+        const back = e.col + 1;
+        if (back >= COLS || G.ter[e.lane][back] === 'x') return;
+        if (G.enemies.some(o => o.uid !== e.uid && o.lane === e.lane && o.col === back)) return;
+        if (G.units.some(o => o.lane === e.lane && back >= o.col && back < o.col + o.size)) return;
+        if (G.civ.some(v => v.l === e.lane && v.c === back && v.hp > 0)) return;
+        e.col = back;
+        clog(`${u.n} drove ${BEST[e.k].n} back a cell.`, 'order');
+      });
+    }
+
     // Plasma lingers on the first target's 3x3 for two turns.
     if (u.scorch && ts.length) {
       const t = ts[0];
@@ -4604,7 +4811,9 @@ function healPass(u, onPlay) {
   const amount = onPlay ? (k.healPlay || u.heal) : u.heal;
   const list = u.healMode === 'front'
     ? G.units.filter(o => o.lane === u.lane && o.col === u.col + 1)
-    : G.units.filter(o => o.col === u.col && o.uid !== u.uid);
+    : u.healMode === 'adjacent'
+      ? G.units.filter(o => Math.abs(o.lane - u.lane) + Math.abs(o.col - u.col) === 1)
+      : G.units.filter(o => o.col === u.col && o.uid !== u.uid);
 
   list
     .filter(o => (u.healType === 'tech' ? o.tech : !o.tech))
@@ -4706,6 +4915,15 @@ function moveTargets(u) {
     for (let i = 0; i < u.size; i++) if (!cellPassable(nl, nc + i, u.uid)) return;
     out.push(nl * COLS + nc);
   });
+  // A charger may keep going forward, but never through anything — every cell
+  // on the way must be passable too.
+  for (let step = 2; step <= (u.charge || 0); step++) {
+    let clear = true;
+    for (let s = 1; s <= step && clear; s++) {
+      for (let i = 0; i < u.size; i++) if (!cellPassable(u.lane, u.col + s + i, u.uid)) clear = false;
+    }
+    if (clear) out.push(u.lane * COLS + u.col + step);
+  }
   return out;
 }
 
@@ -4721,6 +4939,45 @@ function doMove(u, l, c) {
   if (!u.servo) u.acted = true;
   clog(`${u.n} repositioned${u.servo ? ' — servo legs, it can still fire' : ''}.`, 'order');
   setMover(u.servo && !u.acted ? u : null);
+  hooks.invalidate();
+}
+
+/**
+ * Cells holding a friendly unit Cipher may trade places with. Both units must
+ * fit where the other stands — a two-cell frame cannot swap into a one-cell
+ * hole.
+ */
+function swapTargets(u) {
+  if (!u.swap || u.stun || u.acted) return [];
+  // `m` standing at (l, c): every covered cell must be on the board, passable
+  // ground, and free of anything except the two units trading places.
+  const fits = (m, l, c, partner) => {
+    for (let i = 0; i < m.size; i++) {
+      const cc = c + i;
+      if (cc >= COLS || G.ter[l][cc] === 'x') return false;
+      if (foeAt(l, cc) || civAt(l, cc)) return false;
+      const holder = unitAt(l, cc);
+      if (holder && holder.uid !== m.uid && holder.uid !== partner.uid) return false;
+    }
+    return true;
+  };
+  return G.units
+    .filter(o => o.uid !== u.uid && fits(u, o.lane, o.col, o) && fits(o, u.lane, u.col, u))
+    .map(o => o.lane * COLS + o.col);
+}
+
+/** Cipher's action: exchange positions with the friendly at (l, c). */
+function doSwap(u, l, c) {
+  if (u.acted) return;
+  if (!swapTargets(u).includes(l * COLS + c)) return;
+  const o = G.units.find(x => x.lane === l && x.col === c && x.uid !== u.uid);
+  if (!o) return;
+  [u.lane, o.lane] = [o.lane, u.lane];
+  [u.col, o.col] = [o.col, u.col];
+  u.acted = true;      // the whole action, servo legs or not
+  u.moved = true;
+  clog(`${u.n} traded places with ${o.n}.`, 'order');
+  setMover(null);
   hooks.invalidate();
 }
 
@@ -5060,10 +5317,39 @@ function playerPhase() {
     u.fresh = false;
     if (u.tgt && !G.enemies.some(e => e.uid === u.tgt)) u.tgt = null;   // stale lock
     if (u.cd > 0) u.cd--;
+    if (u.cycling > 0) u.cycling--;
     if (u.stun > 0) u.stun--;
     if (u.regenTicks > 0) { u.hp = Math.min(u.max, u.hp + 2); u.regenTicks--; }
     if (nanites) u.hp = Math.min(u.max, u.hp + 1);
     if (u.regen) u.shield = Math.max(u.shield, u.shieldMax || 1);
+  });
+
+  // Field support: an Engineer repairs the Tech unit ahead; a Forward Base
+  // repairs its neighbours and hurries their cooldowns — but the extra step
+  // never brings a cooldown to zero, Coolant Core stacked or not.
+  G.units.forEach(u => {
+    if (u.techBuff) {
+      const t = G.units.find(o => o.lane === u.lane && o.col === u.col + u.size && o.tech);
+      if (t && t.hp < t.max) t.hp = Math.min(t.max, t.hp + u.techBuff.repair);
+    }
+    if (u.sustain) {
+      G.units.forEach(o => {
+        if (o.uid === u.uid || Math.abs(o.lane - u.lane) + Math.abs(o.col - u.col) !== 1) return;
+        if (o.hp < o.max) o.hp = Math.min(o.max, o.hp + u.sustain.repair);
+        for (let i = 0; i < u.sustain.cooldown; i++) if (o.cd > 1) o.cd--;
+      });
+    }
+  });
+
+  // Stim Injector: the host burns 1 hull a turn, and yes, it can burn out.
+  [...G.units].forEach(u => {
+    if (!u.decay) return;
+    u.hp -= 1;
+    if (u.hp <= 0) {
+      G.units = G.units.filter(x => x.uid !== u.uid);
+      G.lost++;
+      clog(`<span class="d">Stim Injector</span> burned out your ${u.n}.`, 'loss');
+    }
   });
 }
 
@@ -5080,7 +5366,14 @@ function strike(e, D, chorus, pressing) {
     const u = unitAt(e.lane, c);
     if (u) { t = u; break; }
   }
-  if (t) dmgUnit(t, D.dmg + chorus, D.n + (pressing ? ' (pressing)' : ''), e);
+  if (!t) return;
+  // Any strike that is not against the adjacent cell arcs in — an I-Field
+  // shrugs it off entirely. forecastThreat mirrors this; keep them together.
+  if (t.ifield && t.col + t.size - 1 < e.col - 1) {
+    clog(`${t.n}'s I-Field absorbed ${D.n}'s ranged fire.`, 'info');
+    return;
+  }
+  dmgUnit(t, D.dmg + chorus, D.n + (pressing ? ' (pressing)' : ''), e);
 }
 
 /** Spore Node: release a Crawler into the first free cell behind it. */
@@ -5110,7 +5403,9 @@ function actHostile(e, chorus) {
   if (D.hold !== undefined && e.col <= D.hold) { strike(e, D, chorus); return; }
 
   const ahead = e.col - 1;
-  const blocked = ahead >= 0 && ((unitAt(e.lane, ahead) && !D.tunnel) || civAt(e.lane, ahead));
+  const aheadUnit = ahead >= 0 ? unitAt(e.lane, ahead) : null;
+  // A minefield does not read as an obstacle — hostiles walk straight onto it.
+  const blocked = ahead >= 0 && ((aheadUnit && !D.tunnel && !aheadUnit.mine) || civAt(e.lane, ahead));
   const queued = ahead >= 0 && foeAt(e.lane, ahead);
   if (blocked || queued) { strike(e, D, chorus, queued && !blocked); return; }
 
@@ -5129,7 +5424,15 @@ function actHostile(e, chorus) {
       break;
     }
     if (G.ter[e.lane][nc] === 'x') break;
-    if ((unitAt(e.lane, nc) && !D.tunnel) || foeAt(e.lane, nc) || civAt(e.lane, nc)) break;
+    const stepUnit = unitAt(e.lane, nc);
+    if ((stepUnit && !D.tunnel && !stepUnit.mine) || foeAt(e.lane, nc) || civAt(e.lane, nc)) break;
+    // First body in detonates the minefield; the mine is spent either way.
+    if (stepUnit && stepUnit.mine) {
+      G.units = G.units.filter(x => x.uid !== stepUnit.uid);
+      tapeEvent({type: 'clash', lane: e.lane, col: nc});
+      clog(`<span class="d">${D.n}</span> walked onto a <span class="g">Minefield</span> — ${stepUnit.mine} damage.`, 'kill');
+      dmgEnemy(e, stepUnit.mine, 'Minefield', true);
+    }
     if (scorched(e.lane, nc)) dmgEnemy(e, 2, 'Plasma');
     if (e.hp <= 0) break;
     e.col = nc;
@@ -5261,7 +5564,9 @@ function forecastThreat() {
       willStrike = true;
     } else {
       const ahead = e.col - 1;
-      if (ahead >= 0 && ((unitAt(e.lane, ahead) && !D.tunnel) || civAt(e.lane, ahead) || foeAt(e.lane, ahead))) {
+      const au = ahead >= 0 ? unitAt(e.lane, ahead) : null;
+      // Mirrors actHostile: a minefield is not an obstacle, so it draws no strike.
+      if (ahead >= 0 && ((au && !D.tunnel && !au.mine) || civAt(e.lane, ahead) || foeAt(e.lane, ahead))) {
         willStrike = true;
       }
     }
@@ -5279,6 +5584,8 @@ function forecastThreat() {
       const key = 'c' + cv.l + ',' + cv.c;
       hits[key] = (hits[key] || 0) + D.dmg;
     } else if (target) {
+      // Mirrors strike(): an I-Field swallows any hit that is not adjacent.
+      if (target.ifield && target.col + target.size - 1 < e.col - 1) return;
       hits[target.uid] = (hits[target.uid] || 0) + Math.max(1, D.dmg - dampenIn(target.lane));
     }
   });
@@ -5299,10 +5606,23 @@ function supportTargets(u) {
   if (u.colBuff) G.units.forEach(o => { if (o.uid !== u.uid && o.col === u.col) add(o); });
   if (u.laneB) G.units.forEach(o => { if (o.uid !== u.uid && o.lane === u.lane) add(o); });
 
+  if (u.techBuff) {
+    G.units.forEach(o => { if (o.lane === u.lane && o.col === u.col + u.size && o.tech) add(o); });
+  }
+  if (u.sustain) {
+    G.units.forEach(o => {
+      if (o.uid !== u.uid && Math.abs(o.lane - u.lane) + Math.abs(o.col - u.col) === 1) add(o);
+    });
+  }
+
   if (u.heal || u.hot) {
     const wantsTech = u.healType === 'tech';
     if (u.healMode === 'front') {
       G.units.forEach(o => { if (o.lane === u.lane && o.col === u.col + 1 && !!o.tech === wantsTech) add(o); });
+    } else if (u.healMode === 'adjacent') {
+      G.units.forEach(o => {
+        if (Math.abs(o.lane - u.lane) + Math.abs(o.col - u.col) === 1 && !!o.tech === wantsTech) add(o);
+      });
     } else {
       G.units.forEach(o => { if (o.uid !== u.uid && o.col === u.col && !!o.tech === wantsTech) add(o); });
     }
@@ -5322,12 +5642,15 @@ function supportLabel(u) {
   if (u.aura) return 'Buffing adjacent friendlies';
   if (u.colBuff) return 'Buffing this column';
   if (u.laneB) return 'Buffing this lane';
+  if (u.techBuff) return 'Boosting and repairing the Tech unit ahead';
+  if (u.sustain) return 'Repairing neighbours and hurrying their cooldowns';
   if (u.hot) return 'Regenerating ' + (u.healType === 'tech' ? 'Tech' : 'personnel') + ' in column';
   if (u.heal) {
-    return 'Healing ' + (u.healMode === 'front'
-      ? 'the unit ahead'
-      : (u.healType === 'tech' ? 'Tech in column' : 'personnel in column'));
+    return 'Healing ' + (u.healMode === 'front' ? 'the unit ahead'
+      : u.healMode === 'adjacent' ? 'adjacent friendlies'
+        : (u.healType === 'tech' ? 'Tech in column' : 'personnel in column'));
   }
+  if (u.mine) return 'Armed — detonates on the first hostile to enter';
   if (u.dampen) return 'Damping hostile damage in this lane';
   return null;
 }
@@ -5548,10 +5871,11 @@ function drawSel() {
     const canChoose = u.single && g.length > 1;
 
     const verdict = u.acted ? 'Action committed for this turn'
-      : !g.length ? 'No target in range — it will hold'
-        : canChoose ? `<b>${g.length}</b> targets in reach — tap one in gold to strike`
-          : u.single ? `Will strike ${BEST[ts[0].k].n} for <b>${dmg}</b>`
-            : `Will strike ${g.length} hostile${g.length > 1 ? 's' : ''} for <b>${dmg}</b> each`;
+      : u.cycling > 0 ? 'Weapon cycling — ready to fire next turn'
+        : !g.length ? 'No target in range — it will hold'
+          : canChoose ? `<b>${g.length}</b> targets in reach — tap one in gold to strike`
+            : u.single ? `Will strike ${BEST[ts[0].k].n} for <b>${dmg}</b>`
+              : `Will strike ${g.length} hostile${g.length > 1 ? 's' : ''} for <b>${dmg}</b> each`;
 
     el.innerHTML = `<div class="selhead"><b style="color:var(--cyan)">${u.n}</b>
         <span class="hpbadge">${u.hp}/${u.max}${u.acted ? ' · spent' : ''}</span></div>
@@ -5565,6 +5889,7 @@ function drawSel() {
       ${supportLabel(u) ? `<div class="selsupport">${supportLabel(u)}</div>` : ''}
       <div class="selfire ${g.length ? 'live' : 'dead'}">${verdict}</div>
       ${!u.acted && u.mob ? '<div class="hintline">Tap a green tile to reposition.</div>' : ''}
+      ${!u.acted && u.swap ? '<div class="hintline">Or tap a highlighted friendly to trade places — anywhere on the board.</div>' : ''}
       ${u.ab && !u.acted ? `<div class="selacts">
         <button class="mini" data-useab="1"${u.cd > 0 ? ' disabled' : ''}>${u.cd > 0 ? `${u.ab.n} (${u.cd})` : u.ab.n}</button></div>
         <div class="abline"><b>${u.ab.n}</b> ${u.ab.d}</div>` : ''}`;
@@ -5583,7 +5908,9 @@ function drawSel() {
         ${k.hp ? `<div><span>Hull</span><b>${k.hp + (g && g.hp ? g.hp : 0)}</b></div>` : ''}
         ${k.dmg ? `<div><span>Damage</span><b>${k.dmg + (g && g.dmg ? g.dmg : 0)}</b></div>` : ''}
         ${k.tg && k.tg !== 'none' ? `<div><span>Targeting</span><b>${TGNAME[k.tg]}</b></div>` : ''}
-        <div><span>Deploy</span><b>${k.drop ? 'Any tile' : 'Held tiles'}</b></div>
+        <div><span>Deploy</span><b>${k.drop ? 'Any tile'
+    : k.anyGround ? `Any ground · col ${k.zoneMin}+`
+      : k.zoneMin ? `Held · col ${k.zoneMin}+` : 'Held tiles'}</b></div>
       </div>
       <div class="selfire live">Tap a lit tile to deploy</div>
       <div class="abline">${k.d}</div>`;
@@ -5605,7 +5932,7 @@ function unitMarkup(u, incoming) {
         ${u.tgt ? '<span class="lockpip">⌖</span>' : ''}
         <span class="minihp"><i style="width:${Math.max(0, u.hp / u.max * 100)}%"></i></span>
         ${u.shield > 0 ? `<span class="shield">${'◈'.repeat(Math.min(u.shield, 2))}</span>` : ''}
-        ${u.att.cannon ? '<span class="att">▮</span>' : ''}${u.acted ? '<span class="ord done">✓</span>' : ''}
+        ${u.att.cannon ? '<span class="att">▮</span>' : ''}${u.cycling > 0 ? '<span class="att cyc">⟳</span>' : ''}${u.acted ? '<span class="ord done">✓</span>' : ''}
         <div class="nm">${u.n.split(' ')[0]}${u.size > 1 ? '▸' : ''}</div><div class="hp">${u.hp}</div></div>`;
 }
 
@@ -5623,6 +5950,7 @@ function foeMarkup(e, striking, locked) {
 function drawBoard() {
   const valid = sel ? validTiles(sel) : [];
   const moves = mover ? moveTargets(mover) : [];
+  const swaps = mover ? swapTargets(mover) : [];
   const threat = forecastThreat();
 
   // Gold = will be struck if this unit fires; aimable = may be locked onto.
@@ -5661,6 +5989,7 @@ function drawBoard() {
     if (G.crystals.some(x => x.l === l && x.c === c)) cls += ' objtile';
     if (valid.includes(i)) cls += ' valid';
     if (moves.includes(i)) cls += ' movetgt';
+    if (swaps.includes(i)) cls += ' swaptgt';
     if (mover && mover.lane === l && mover.col === c) cls += ' movesel';
     if (willHit.has(i)) cls += ' willhit';
     if (buffed.has(i)) cls += ' buffed';
@@ -5697,9 +6026,10 @@ function drawBoard() {
       cell.innerHTML = marker;
     }
 
-    // Placement and movement win over whatever the cell's occupant wired up.
+    // Placement, movement and swaps win over whatever the occupant wired up.
     if (valid.includes(i)) cell.onclick = () => { sfx('deploy'); deploy(sel, l, c); };
     else if (moves.includes(i)) cell.onclick = () => { sfx('move'); doMove(mover, l, c); };
+    else if (swaps.includes(i)) cell.onclick = () => { sfx('move'); doSwap(mover, l, c); };
     else if (!cell.onclick && (sel || mover)) {
       cell.onclick = () => { setSel(null); setMover(null); drawAll(); };
     }

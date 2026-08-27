@@ -456,6 +456,52 @@ Re-simulated: the breadth player now buys ~33 packs and ~12 singles per
 the saver still shops singles first and converts spare credits to packs after
 — both styles viable, same overall pacing.
 
+## The first card drop
+
+Seven new cards, one rework, two gear pieces, from the `new-cards.json` brief.
+The removal it listed (`flamer`) was a no-op — that card never existed in this
+data. Prices arrived on the pre-rebalance scale and were converted to the
+current curve (~0.72x commons/tech, ~0.67x specialists, ~0.75x gear); the
+brief's `aura:{repair,cooldown}` field on Forward Base was renamed `sustain`
+because `aura` is already a number in this grammar (Scout's damage aura).
+
+Reused machinery: **Fireteam Zaku** rides the Hell Jumpers `squad` path, the
+**Medic rework** is a new `healMode:"adjacent"` beside `front` and `col`.
+New machinery, each behind its own flag and guard:
+
+- `swap` (**Cipher**) — trades places with any friendly anywhere; both units
+  must fit where the other stands; consumes the whole action. `swaptest`.
+- `techBuff` (**Engineer**) — +2 damage and 2 repair/turn to the Tech unit
+  directly ahead, resolved inside `buffOf()` under the same +2 cap as every
+  other buff.
+- `charge`+`push` (**Outrider**) — moves up to two forward through clear
+  cells; survivors of its hit are driven back one cell, and the push fails
+  quietly at the board edge or an occupied cell — damage stands, bodies never
+  stack. `pushtest`.
+- `zoneMin`/`anyGround` (**Forward Base**, **Minefield**) — deployment zone
+  restrictions in `validTiles()`. `zonetest`.
+- `sustain` (**Forward Base**) — adjacent friendlies repair 2/turn and
+  cooldowns tick one extra step, but only while above 1: stacked with Coolant
+  Core, nothing ever reaches zero.
+- `mine` (**Minefield**) — hostiles do not read it as an obstacle; the first
+  one in takes 6 unreduced damage and spends it. It weighs into `laneScore()`
+  like a serious gun, so the horde routes around mined lanes — the steering is
+  the card. The reference build never actually had this path; it was built
+  fresh.
+- `boardFurthest`+`recharge` (**Hecate Platform**) — targets the deepest
+  hostile on the whole board, ignoring lanes and blockers (the answer to a
+  dug-in Chorus); needs a turn to cycle between shots, surfaced like a
+  cooldown. `hecatetest`.
+- `decay` (**Stim Injector**) — the host burns 1 hull a turn and can burn out
+  entirely; that is intended, not clamped.
+- `immuneIndirect` (**I-Field**) — any strike from beyond the adjacent cell
+  is absorbed; `strike()` and `forecastThreat()` mirror each other on it.
+
+`cardtest` picked the new entries up automatically (now 45 cards x 12 gear
+states, every combination played live). The brief's shelved card — Requiem
+Sage, rebuild-a-destroyed-unit — stays shelved until permanent attrition has
+been felt in play.
+
 ## Still open
 
 1. **Crystals still loses to "Three breaches"** more than anything else — the
@@ -467,6 +513,9 @@ the saver still shops singles first and converts spare credits to packs after
    images, which replace a placeholder the moment they land in `CARD_ART`.
 3. **Every win rate above comes from a near-random bot.** It never plans, rarely
    repositions and never uses manual targeting. Treat the numbers as floors.
+4. **Forward Base is the riskiest of the new cards** — repair plus cooldown
+   acceleration in the contested half props up Retake and Crystals directly.
+   If it proves dominant in play, cut the cooldown half and keep the repair.
 
 Two things the structure now makes cheap:
 

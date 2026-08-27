@@ -54,6 +54,9 @@ export function laneScore(l) {
   let s = 0;
   G.units.forEach(u => {
     if (u.lane === l) s += (u.dmg || 0) * 1.6 + u.hp * 0.12 + (u.blocker ? 3 : 0);
+    // A visible minefield reads as a defended lane — that steering is the
+    // card's whole point, so it weighs in like a serious gun would.
+    if (u.lane === l && u.mine) s += u.mine * 0.7;
   });
   for (let c = 0; c < COLS; c++) if (G.ter[l][c] === 'p') s += 0.4;
   return s;

@@ -15,6 +15,7 @@ const ROOT = join(HERE, '..');
 // Logic first, then the renderer, then what actually ships.
 const GUARDS = [
   'acttest', 'movetest', 'aimtest', 'hltest', 'clashtest', 'spawntest',
+  'swaptest', 'pushtest', 'zonetest', 'hecatetest',
   'opentest', 'leadtest', 'packtest', 'cardtest', 'repro',
   'playtest', 'actbar', 'csstest', 'cssdup', 'headtest', 'navtest', 'scaletest',
   'handtest', 'uitest', 'tapetest', 'tuttest', 'sndtest', 'arttest', 'buildtest',

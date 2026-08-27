@@ -94,6 +94,25 @@ export function fire(u, onPlay) {
     if (!ts.length) break;
     ts.forEach(e => dmgEnemy(e, base, u.n, u.pen));
 
+    // A recharge weapon spends the next turn cycling. Set to 2 because the
+    // end-of-turn reset decrements once immediately after this fires.
+    if (u.recharge) u.cycling = 2;
+
+    // Outrider: survivors of the hit are driven back a cell. The push fails
+    // quietly if the cell behind is occupied or off the board — damage stands,
+    // and two bodies never share a cell.
+    if (u.push) {
+      ts.filter(e => e.hp > 0).forEach(e => {
+        const back = e.col + 1;
+        if (back >= COLS || G.ter[e.lane][back] === 'x') return;
+        if (G.enemies.some(o => o.uid !== e.uid && o.lane === e.lane && o.col === back)) return;
+        if (G.units.some(o => o.lane === e.lane && back >= o.col && back < o.col + o.size)) return;
+        if (G.civ.some(v => v.l === e.lane && v.c === back && v.hp > 0)) return;
+        e.col = back;
+        clog(`${u.n} drove ${BEST[e.k].n} back a cell.`, 'order');
+      });
+    }
+
     // Plasma lingers on the first target's 3x3 for two turns.
     if (u.scorch && ts.length) {
       const t = ts[0];
@@ -124,7 +143,9 @@ export function healPass(u, onPlay) {
   const amount = onPlay ? (k.healPlay || u.heal) : u.heal;
   const list = u.healMode === 'front'
     ? G.units.filter(o => o.lane === u.lane && o.col === u.col + 1)
-    : G.units.filter(o => o.col === u.col && o.uid !== u.uid);
+    : u.healMode === 'adjacent'
+      ? G.units.filter(o => Math.abs(o.lane - u.lane) + Math.abs(o.col - u.col) === 1)
+      : G.units.filter(o => o.col === u.col && o.uid !== u.uid);
 
   list
     .filter(o => (u.healType === 'tech' ? o.tech : !o.tech))

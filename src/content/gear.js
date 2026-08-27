@@ -32,4 +32,17 @@ export const GEAR = {
     d: "May deploy straight onto a hostile below Specialist tier, crushing it on landing and holding the cell.",
     crush: 1,
   },
+  stim: {
+    n: "Stim Injector",
+    cost: 70,
+    d: "+2 damage. The unit loses 1 hull every turn it lives.",
+    dmg: 2,
+    decay: 1,
+  },
+  ifield: {
+    n: "I-Field",
+    cost: 90,
+    d: "Immune to indirect fire — Mortar, Plasma Artillerist, anything that arcs.",
+    immuneIndirect: 1,
+  },
 };

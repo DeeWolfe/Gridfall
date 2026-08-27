@@ -34,7 +34,7 @@ src/
   save/       storage shim, profile migration, derived profile readings
   rules/      the game itself. no DOM, anywhere in here
   render/     screens, panels, overlays, and the boot wiring
-tests/        28 harnesses; see tests/README.md
+tests/        32 harnesses; see tests/README.md
 tools/        content generator, content check, dev server
 reference/    the original single-file build and its extracted data
 ```
@@ -95,7 +95,7 @@ node tests/run-all.js --no-build
 node tests/run-all.js acttest # one harness
 ```
 
-25 guards must pass. Three balance harnesses report win rates and never fail —
+29 guards must pass. Three balance harnesses report win rates and never fail —
 their numbers come from a bot that plays close to randomly, so read every figure
 as a floor rather than a measurement.
 

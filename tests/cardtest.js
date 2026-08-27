@@ -1,5 +1,6 @@
 // Every card, with and without every piece of gear, deployed into a live
-// mission and played out. 39 x 9 = 351 combinations; none may throw.
+// mission and played out. Every combination must run clean; new cards and
+// gear are picked up automatically from the pool.
 import * as A from './support/api.js';
 import {failures} from './support/harness.js';
 

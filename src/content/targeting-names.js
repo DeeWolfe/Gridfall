@@ -18,4 +18,5 @@ export const TGNAME = {
   range3: "Exactly three cells ahead",
   diag: "The four diagonals only",
   range2: "Exactly two cells ahead",
+  boardFurthest: "Furthest hostile on the board",
 };

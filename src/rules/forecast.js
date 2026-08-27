@@ -29,7 +29,9 @@ export function forecastThreat() {
       willStrike = true;
     } else {
       const ahead = e.col - 1;
-      if (ahead >= 0 && ((unitAt(e.lane, ahead) && !D.tunnel) || civAt(e.lane, ahead) || foeAt(e.lane, ahead))) {
+      const au = ahead >= 0 ? unitAt(e.lane, ahead) : null;
+      // Mirrors actHostile: a minefield is not an obstacle, so it draws no strike.
+      if (ahead >= 0 && ((au && !D.tunnel && !au.mine) || civAt(e.lane, ahead) || foeAt(e.lane, ahead))) {
         willStrike = true;
       }
     }
@@ -47,6 +49,8 @@ export function forecastThreat() {
       const key = 'c' + cv.l + ',' + cv.c;
       hits[key] = (hits[key] || 0) + D.dmg;
     } else if (target) {
+      // Mirrors strike(): an I-Field swallows any hit that is not adjacent.
+      if (target.ifield && target.col + target.size - 1 < e.col - 1) return;
       hits[target.uid] = (hits[target.uid] || 0) + Math.max(1, D.dmg - dampenIn(target.lane));
     }
   });
@@ -67,10 +71,23 @@ export function supportTargets(u) {
   if (u.colBuff) G.units.forEach(o => { if (o.uid !== u.uid && o.col === u.col) add(o); });
   if (u.laneB) G.units.forEach(o => { if (o.uid !== u.uid && o.lane === u.lane) add(o); });
 
+  if (u.techBuff) {
+    G.units.forEach(o => { if (o.lane === u.lane && o.col === u.col + u.size && o.tech) add(o); });
+  }
+  if (u.sustain) {
+    G.units.forEach(o => {
+      if (o.uid !== u.uid && Math.abs(o.lane - u.lane) + Math.abs(o.col - u.col) === 1) add(o);
+    });
+  }
+
   if (u.heal || u.hot) {
     const wantsTech = u.healType === 'tech';
     if (u.healMode === 'front') {
       G.units.forEach(o => { if (o.lane === u.lane && o.col === u.col + 1 && !!o.tech === wantsTech) add(o); });
+    } else if (u.healMode === 'adjacent') {
+      G.units.forEach(o => {
+        if (Math.abs(o.lane - u.lane) + Math.abs(o.col - u.col) === 1 && !!o.tech === wantsTech) add(o);
+      });
     } else {
       G.units.forEach(o => { if (o.uid !== u.uid && o.col === u.col && !!o.tech === wantsTech) add(o); });
     }
@@ -90,12 +107,15 @@ export function supportLabel(u) {
   if (u.aura) return 'Buffing adjacent friendlies';
   if (u.colBuff) return 'Buffing this column';
   if (u.laneB) return 'Buffing this lane';
+  if (u.techBuff) return 'Boosting and repairing the Tech unit ahead';
+  if (u.sustain) return 'Repairing neighbours and hurrying their cooldowns';
   if (u.hot) return 'Regenerating ' + (u.healType === 'tech' ? 'Tech' : 'personnel') + ' in column';
   if (u.heal) {
-    return 'Healing ' + (u.healMode === 'front'
-      ? 'the unit ahead'
-      : (u.healType === 'tech' ? 'Tech in column' : 'personnel in column'));
+    return 'Healing ' + (u.healMode === 'front' ? 'the unit ahead'
+      : u.healMode === 'adjacent' ? 'adjacent friendlies'
+        : (u.healType === 'tech' ? 'Tech in column' : 'personnel in column'));
   }
+  if (u.mine) return 'Armed — detonates on the first hostile to enter';
   if (u.dampen) return 'Damping hostile damage in this lane';
   return null;
 }

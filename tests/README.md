@@ -1,6 +1,6 @@
 # Test suite
 
-25 guards and 3 balance harnesses. Run them all with `npm test`, one at a time
+29 guards and 3 balance harnesses. Run them all with `npm test`, one at a time
 with `node tests/run-all.js <name>`, or directly with `node tests/<name>.js`.
 
 The guards must pass. The balance harnesses only report — their numbers come
@@ -20,7 +20,11 @@ needing `install-dom.js`, something has leaked out of `src/render/`.
 | `clashtest` | Spawn-cell combat: all four outcomes |
 | `spawntest` | Spawn-marker contract over ~800 spawns; fire-on-play exactly once |
 | `opentest` | Opening-play cards: Pathfinder, Vanguard, Supply Cache |
-| `cardtest` | All 39 cards x 8 gear deployed in live missions (351 combinations) |
+| `swaptest` | Cipher's swap: exchanges anywhere, respects two-cell footprints, consumes the action |
+| `pushtest` | Outrider: charge reach, push-back, safe failure at edges and occupied cells |
+| `zonetest` | Deployment zones (Forward Base, Minefield) and the mine's one-shot entry trigger |
+| `hecatetest` | Board-wide furthest targeting through blockers; the recharge cycle |
+| `cardtest` | Every card x every gear deployed in live missions; none may throw |
 | `packtest` | Requisition packs: offers, fallback chain, full reveal flow |
 
 `packtest` and `aimtest` do install the stub for their final render checks.

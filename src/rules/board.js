@@ -68,15 +68,20 @@ export function validTiles(cid) {
     return out;
   }
 
+  // `drop` and `anyGround` both ignore ownership; `zoneMin` additionally walls
+  // off the columns before it (a Forward Base belongs forward, a Minefield in
+  // the horde's path).
+  const ignoreOwnership = k.drop || k.anyGround;
   for (let l = 0; l < LANES; l++) for (let c = 0; c < COLS; c++) {
     if (G.ter[l][c] === 'x') continue;
-    if (!k.drop && G.ter[l][c] !== 'p') continue;
+    if (k.zoneMin && c < k.zoneMin) continue;
+    if (!ignoreOwnership && G.ter[l][c] !== 'p') continue;
     let ok = true;
     const size = k.size || 1;
     for (let i = 0; i < size; i++) {
       const cc = c + i;
       if (cc >= COLS || G.ter[l][cc] === 'x') { ok = false; break; }
-      if (!k.drop && G.ter[l][cc] !== 'p') { ok = false; break; }
+      if (!ignoreOwnership && G.ter[l][cc] !== 'p') { ok = false; break; }
       if (unitAt(l, cc) || foeAt(l, cc) || civAt(l, cc)) { ok = false; break; }
     }
     if (ok) out.push(l * COLS + c);

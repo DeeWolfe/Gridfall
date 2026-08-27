@@ -161,6 +161,42 @@ const pxBody = {
     <path d="M36 90 V104 M64 90 V104" stroke="${c}" stroke-width="1.6" opacity=".8"/>`,
 };
 
+const pxBodyNew = {
+  zaku: c => `<path d="M10 124 Q13 104 26 100 L40 100 Q53 104 56 124 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.5"/>
+    <path d="M24 98 L24 86 Q24 76 33 76 Q42 76 42 86 L42 98 Q33 102 24 98 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.5"/>
+    <path d="M27 88 L39 88 L39 93 Q33 96 27 93 Z" fill="${c}" opacity=".9"/>
+    <path d="M44 124 Q47 106 60 102 L74 102 Q87 106 90 124 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.5"/>
+    <path d="M58 100 L58 88 Q58 78 67 78 Q76 78 76 88 L76 100 Q67 104 58 100 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.5"/>
+    <path d="M61 90 L73 90 L73 95 Q67 98 61 95 Z" fill="${c}" opacity=".9"/>
+    <path d="M14 108 L44 92 M48 110 L78 94" stroke="${c}" stroke-width="1.8"/>`,
+  swapArrows: c => `<path d="M20 40 Q50 22 80 40 M80 40 L72 36 M80 40 L76 48" stroke="${c}" stroke-width="1.8" fill="none" opacity=".85"/>
+    <path d="M84 92 Q92 68 80 48" stroke="${c}" stroke-width="1.2" fill="none" opacity="0"/>
+    <path d="M80 116 Q50 134 20 116 M20 116 L28 120 M20 116 L24 108" stroke="${c}" stroke-width="1.8" fill="none" opacity=".85"/>`,
+  cog: c => `<circle cx="76" cy="52" r="7" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
+    <circle cx="76" cy="52" r="2.4" fill="${c}"/>
+    <path d="M76 42 V45 M76 59 V62 M66 52 H69 M83 52 H86 M69 45 L71 47 M81 57 L83 59 M83 45 L81 47 M71 57 L69 59" stroke="${c}" stroke-width="1.6"/>`,
+  dash: c => `<path d="M64 96 L76 90 M64 104 L80 98 M64 112 L76 106" stroke="${c}" stroke-width="1.8" opacity=".7"/>`,
+  fob: c => `<rect x="20" y="96" width="60" height="22" fill="${PXFILL}" stroke="${c}" stroke-width="1.8"/>
+    <rect x="30" y="80" width="40" height="16" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
+    <path d="M38 104 H62" stroke="${c}" stroke-width="1.2" opacity=".6"/>
+    <path d="M50 80 V58" stroke="${c}" stroke-width="1.8"/><circle cx="50" cy="56" r="2.4" fill="${c}"/>
+    <path d="M42 88 h6 M52 88 h6" stroke="${c}" stroke-width="1.6" opacity=".8"/>
+    <path d="M14 118 H86" stroke="${c}" stroke-width="1.4" opacity=".5"/>
+    <path d="M26 62 v6 M23 65 h6 M74 66 v6 M71 69 h6" stroke="${c}" stroke-width="1.4" opacity=".7"/>`,
+  mine: c => `<ellipse cx="50" cy="98" rx="26" ry="10" fill="${PXFILL}" stroke="${c}" stroke-width="1.8"/>
+    <ellipse cx="50" cy="94" rx="16" ry="6" fill="none" stroke="${c}" stroke-width="1.2" opacity=".7"/>
+    <path d="M38 90 V82 M50 88 V78 M62 90 V82" stroke="${c}" stroke-width="2"/>
+    <circle cx="50" cy="75" r="2" fill="${c}"/>
+    <path d="M20 112 L28 104 M80 112 L72 104" stroke="${c}" stroke-width="1.2" opacity=".5"/>
+    <path d="M30 60 L36 66 M70 60 L64 66 M50 54 V62" stroke="${c}" stroke-width="1.4" opacity=".6"/>`,
+  hecate: c => `<path d="M34 120 L50 92 L66 120 M40 110 H60" stroke="${c}" stroke-width="1.8" fill="none"/>
+    <path d="M42 96 L86 34" stroke="${c}" stroke-width="4"/>
+    <path d="M86 34 L92 26" stroke="${c}" stroke-width="1.6"/>
+    <rect x="40" y="88" width="20" height="12" rx="2" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
+    <circle cx="80" cy="26" r="8" fill="none" stroke="${c}" stroke-width="1" opacity=".6" stroke-dasharray="3 3"/>
+    <path d="M80 20 V32 M74 26 H86" stroke="${c}" stroke-width="1" opacity=".6"/>`,
+};
+
 // -- the card table ----------------------------------------------------------
 
 const pxDraw = {
@@ -204,6 +240,13 @@ const pxDraw = {
   hell: c => pxBody.hell(c),
   plasma: c => pxBody.plasma(c),
   exo: c => pxBust(c, 'heavy', true) + pxProp.hammer(c),
+  zaku: c => pxBodyNew.zaku(c),
+  cipher: c => pxBust(c, 'hood') + pxBodyNew.swapArrows(c),
+  engineer: c => pxBust(c, 'scout') + pxBodyNew.cog(c),
+  outrider: c => pxBust(c, 'trooper') + pxProp.katana(c) + pxBodyNew.dash(c),
+  fob: c => pxBodyNew.fob(c),
+  mine: c => pxBodyNew.mine(c),
+  hecate: c => pxBodyNew.hecate(c),
 };
 
 export const hasPortrait = id => !!pxDraw[id];

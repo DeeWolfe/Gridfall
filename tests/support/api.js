@@ -39,7 +39,7 @@ export {mkUnit, buffOf, dmgPreview} from '../../src/rules/units.js';
 export {laneJammed, laneFloor, laneAhead, geomFor, candidatesFor, targetsFor} from '../../src/rules/targeting.js';
 export {dampenIn, dmgEnemy, blast, dmgUnit, fire, healPass} from '../../src/rules/combat.js';
 export {useAbility} from '../../src/rules/abilities.js';
-export {moveTargets, doMove, doAttack, doAbility} from '../../src/rules/actions.js';
+export {moveTargets, doMove, doAttack, doAbility, swapTargets, doSwap} from '../../src/rules/actions.js';
 export {deploy} from '../../src/rules/deploy.js';
 export {drawCard} from '../../src/rules/deck.js';
 export {spawnClash, resolveSpawn, spawnPhase} from '../../src/rules/spawn.js';

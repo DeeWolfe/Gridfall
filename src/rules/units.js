@@ -43,7 +43,17 @@ export function mkUnit(cid, l, c) {
     aura: k.aura || 0,
     colBuff: k.col || 0,
     laneB: k.laneB || 0,
+    techBuff: k.techBuff || null,
+    sustain: k.sustain || null,
     dampen: k.dampen || 0,
+    swap: !!k.swap,
+    charge: k.charge || 0,
+    push: !!k.push,
+    mine: k.mine || 0,
+    recharge: !!k.recharge,
+    cycling: 0,
+    decay: !!(g && g.decay),
+    ifield: !!(g && g.immuneIndirect),
     heal: k.heal || 0,
     hot: k.hot || 0,
     healType: k.healType,
@@ -81,6 +91,8 @@ export function buffOf(u) {
     if (o.aura && Math.abs(o.lane - u.lane) + Math.abs(o.col - u.col) === 1) b += o.aura;
     if (o.colBuff && o.col === u.col) b += o.colBuff;
     if (o.laneB && o.lane === u.lane) b += o.laneB;
+    // An Engineer boosts only the Tech unit directly ahead of it.
+    if (o.techBuff && u.tech && u.lane === o.lane && u.col === o.col + o.size) b += o.techBuff.dmg;
   });
   return Math.min(b, MAX_BUFF);
 }

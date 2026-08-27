@@ -47,7 +47,15 @@ export function geomFor(u) {
   const front = u.col + u.size - 1;
   const L = u.lane;
   if (u.tg === 'none' || !u.dmg || u.stun) return [];
+  if (u.cycling > 0) return [];                  // a recharge weapon mid-cycle
   if (u.indirect && laneJammed(L)) return [];
+
+  // Board-wide targeting: the hostile deepest into any lane, ignoring lanes
+  // and blockers alike. The answer to a Chorus dug in behind the horde.
+  if (u.tg === 'boardFurthest') {
+    if (!G.enemies.length) return [];
+    return [[...G.enemies].sort((a, b) => b.col - a.col || a.uid - b.uid)[0]];
+  }
 
   const inLane = laneAhead(u, L);
   switch (u.tg) {

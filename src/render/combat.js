@@ -17,7 +17,7 @@ import {costOf, gearOf, vetOf, leadOf} from '../save/progression.js';
 import {unitAt, foeAt, civAt, held, scorched, validTiles} from '../rules/board.js';
 import {geomFor, candidatesFor, targetsFor} from '../rules/targeting.js';
 import {buffOf, dmgPreview} from '../rules/units.js';
-import {moveTargets, doMove, doAttack, doAbility} from '../rules/actions.js';
+import {moveTargets, doMove, doAttack, doAbility, swapTargets, doSwap} from '../rules/actions.js';
 import {deploy} from '../rules/deploy.js';
 import {endTurn} from '../rules/phases.js';
 import {objText, abortMission} from '../rules/mission.js';
@@ -134,10 +134,11 @@ export function drawSel() {
     const canChoose = u.single && g.length > 1;
 
     const verdict = u.acted ? 'Action committed for this turn'
-      : !g.length ? 'No target in range — it will hold'
-        : canChoose ? `<b>${g.length}</b> targets in reach — tap one in gold to strike`
-          : u.single ? `Will strike ${BEST[ts[0].k].n} for <b>${dmg}</b>`
-            : `Will strike ${g.length} hostile${g.length > 1 ? 's' : ''} for <b>${dmg}</b> each`;
+      : u.cycling > 0 ? 'Weapon cycling — ready to fire next turn'
+        : !g.length ? 'No target in range — it will hold'
+          : canChoose ? `<b>${g.length}</b> targets in reach — tap one in gold to strike`
+            : u.single ? `Will strike ${BEST[ts[0].k].n} for <b>${dmg}</b>`
+              : `Will strike ${g.length} hostile${g.length > 1 ? 's' : ''} for <b>${dmg}</b> each`;
 
     el.innerHTML = `<div class="selhead"><b style="color:var(--cyan)">${u.n}</b>
         <span class="hpbadge">${u.hp}/${u.max}${u.acted ? ' · spent' : ''}</span></div>
@@ -151,6 +152,7 @@ export function drawSel() {
       ${supportLabel(u) ? `<div class="selsupport">${supportLabel(u)}</div>` : ''}
       <div class="selfire ${g.length ? 'live' : 'dead'}">${verdict}</div>
       ${!u.acted && u.mob ? '<div class="hintline">Tap a green tile to reposition.</div>' : ''}
+      ${!u.acted && u.swap ? '<div class="hintline">Or tap a highlighted friendly to trade places — anywhere on the board.</div>' : ''}
       ${u.ab && !u.acted ? `<div class="selacts">
         <button class="mini" data-useab="1"${u.cd > 0 ? ' disabled' : ''}>${u.cd > 0 ? `${u.ab.n} (${u.cd})` : u.ab.n}</button></div>
         <div class="abline"><b>${u.ab.n}</b> ${u.ab.d}</div>` : ''}`;
@@ -169,7 +171,9 @@ export function drawSel() {
         ${k.hp ? `<div><span>Hull</span><b>${k.hp + (g && g.hp ? g.hp : 0)}</b></div>` : ''}
         ${k.dmg ? `<div><span>Damage</span><b>${k.dmg + (g && g.dmg ? g.dmg : 0)}</b></div>` : ''}
         ${k.tg && k.tg !== 'none' ? `<div><span>Targeting</span><b>${TGNAME[k.tg]}</b></div>` : ''}
-        <div><span>Deploy</span><b>${k.drop ? 'Any tile' : 'Held tiles'}</b></div>
+        <div><span>Deploy</span><b>${k.drop ? 'Any tile'
+    : k.anyGround ? `Any ground · col ${k.zoneMin}+`
+      : k.zoneMin ? `Held · col ${k.zoneMin}+` : 'Held tiles'}</b></div>
       </div>
       <div class="selfire live">Tap a lit tile to deploy</div>
       <div class="abline">${k.d}</div>`;
@@ -191,7 +195,7 @@ function unitMarkup(u, incoming) {
         ${u.tgt ? '<span class="lockpip">⌖</span>' : ''}
         <span class="minihp"><i style="width:${Math.max(0, u.hp / u.max * 100)}%"></i></span>
         ${u.shield > 0 ? `<span class="shield">${'◈'.repeat(Math.min(u.shield, 2))}</span>` : ''}
-        ${u.att.cannon ? '<span class="att">▮</span>' : ''}${u.acted ? '<span class="ord done">✓</span>' : ''}
+        ${u.att.cannon ? '<span class="att">▮</span>' : ''}${u.cycling > 0 ? '<span class="att cyc">⟳</span>' : ''}${u.acted ? '<span class="ord done">✓</span>' : ''}
         <div class="nm">${u.n.split(' ')[0]}${u.size > 1 ? '▸' : ''}</div><div class="hp">${u.hp}</div></div>`;
 }
 
@@ -209,6 +213,7 @@ function foeMarkup(e, striking, locked) {
 export function drawBoard() {
   const valid = sel ? validTiles(sel) : [];
   const moves = mover ? moveTargets(mover) : [];
+  const swaps = mover ? swapTargets(mover) : [];
   const threat = forecastThreat();
 
   // Gold = will be struck if this unit fires; aimable = may be locked onto.
@@ -247,6 +252,7 @@ export function drawBoard() {
     if (G.crystals.some(x => x.l === l && x.c === c)) cls += ' objtile';
     if (valid.includes(i)) cls += ' valid';
     if (moves.includes(i)) cls += ' movetgt';
+    if (swaps.includes(i)) cls += ' swaptgt';
     if (mover && mover.lane === l && mover.col === c) cls += ' movesel';
     if (willHit.has(i)) cls += ' willhit';
     if (buffed.has(i)) cls += ' buffed';
@@ -283,9 +289,10 @@ export function drawBoard() {
       cell.innerHTML = marker;
     }
 
-    // Placement and movement win over whatever the cell's occupant wired up.
+    // Placement, movement and swaps win over whatever the occupant wired up.
     if (valid.includes(i)) cell.onclick = () => { sfx('deploy'); deploy(sel, l, c); };
     else if (moves.includes(i)) cell.onclick = () => { sfx('move'); doMove(mover, l, c); };
+    else if (swaps.includes(i)) cell.onclick = () => { sfx('move'); doSwap(mover, l, c); };
     else if (!cell.onclick && (sel || mover)) {
       cell.onclick = () => { setSel(null); setMover(null); drawAll(); };
     }

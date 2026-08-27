@@ -22,7 +22,7 @@ Extracted from the reference build. Numbers here match `gridfall-data.json`; tha
 
 ## Cards
 
-### Common (18)
+### Common (22)
 
 | Card | DP | Hull | Targeting | Notes |
 |---|---|---|---|---|
@@ -31,7 +31,11 @@ Extracted from the reference build. Numbers here match `gridfall-data.json`; tha
 | Pathfinder | 1 | 4 | First hostile in lane | single-target |
 | Vanguard | 3 | 7 | Adjacent cell | single-target |
 | Rifleman | 2 | 5 | First hostile in lane | single-target |
-| Medic | 2 | 3 | — | ability: Triage |
+| Medic | 2 | 3 | — | heals the four adjacent cells, ability: Triage |
+| Fireteam Zaku | 1 | 3 | First hostile in lane | single-target, two bodies from one card |
+| Cipher | 2 | 3 | First hostile in lane | single-target, may trade places with any friendly anywhere (uses its action) |
+| Engineer | 2 | 4 | — | Tech unit directly ahead: +2 damage and repairs 2/turn |
+| Outrider | 3 | 5 | Adjacent cell | single-target, charges up to 2 cells forward, drives survivors back a cell |
 | Archer | 2 | 4 | Two ahead plus both rear diagonals | single-target |
 | Assassin | 2 | 3 | One adjacent hostile | single-target, deploys anywhere |
 | Samurai | 3 | 7 | All eight surrounding cells | — |
@@ -45,7 +49,7 @@ Extracted from the reference build. Numbers here match `gridfall-data.json`; tha
 | Kunoichi | 2 | 3 | The four diagonals only | deploys anywhere |
 | Herald | 2 | 4 | — | — |
 
-### Tech (12)
+### Tech (14)
 
 | Card | DP | Hull | Targeting | Notes |
 |---|---|---|---|---|
@@ -61,8 +65,10 @@ Extracted from the reference build. Numbers here match `gridfall-data.json`; tha
 | Pulse Emitter | 2 | 5 | All eight surrounding cells | — |
 | Scrambler | 2 | 6 | — | — |
 | Lance Battery | 3 | 7 | Exactly three cells ahead | single-target |
+| Forward Base | 3 | 10 | — | held ground in column 3+ only; adjacent friendlies repair 2/turn and cool down faster (never to zero) |
+| Minefield | 1 | 1 | — | any ground in column 3+; 6 damage to the first hostile in, then spent; steers the horde away |
 
-### Specialist (8)
+### Specialist (9)
 
 | Card | DP | Hull | Targeting | Notes |
 |---|---|---|---|---|
@@ -74,6 +80,7 @@ Extracted from the reference build. Numbers here match `gridfall-data.json`; tha
 | Hell Jumpers | 4 | 5 | All eight surrounding cells | deploys anywhere |
 | Plasma Artillerist | 5 | 3 | 3x3 at exactly range 4 | indirect |
 | Exo Juggernaut | 5 | 20 | Adjacent cell | single-target, blocks lane, ability: Hammer Charge |
+| Hecate Platform | 5 | 4 | Furthest hostile on the board | single-target, ignores lanes and blockers, needs a turn to cycle between shots |
 
 ## Gear
 
@@ -81,15 +88,17 @@ One slot per card, bought with salvage.
 
 | Gear | Cost | Effect |
 |---|---|---|
-| Extended Barrel | 60 sv | +1 damage to this unit. |
-| Reactive Plating | 50 sv | +3 hull. |
-| Servo Legs | 110 sv | May move AND fire in the same turn. |
-| Targeting Uplink | 80 sv | Ignores hostile armour floors. |
-| Field Kit | 100 sv | Costs 1 less deploy point, minimum 1. |
-| Coolant Core | 120 sv | Ability cooldowns are 1 turn shorter, minimum 1. |
-| Phase Cloak | 140 sv | The first killing blow leaves it at 1 hull instead. Once per deployment. |
-| Ablative Weave | 90 sv | +1 shield capacity. Stacks with regenerating shields. |
-| Drop Pod | 150 sv | May deploy straight onto a hostile below Specialist tier, crushing it on landing and holding the cell. |
+| Extended Barrel | 45 sv | +1 damage to this unit. |
+| Reactive Plating | 40 sv | +3 hull. |
+| Servo Legs | 80 sv | May move AND fire in the same turn. |
+| Targeting Uplink | 60 sv | Ignores hostile armour floors. |
+| Field Kit | 75 sv | Costs 1 less deploy point, minimum 1. |
+| Coolant Core | 90 sv | Ability cooldowns are 1 turn shorter, minimum 1. |
+| Phase Cloak | 105 sv | The first killing blow leaves it at 1 hull instead. Once per deployment. |
+| Ablative Weave | 70 sv | +1 shield capacity. Stacks with regenerating shields. |
+| Drop Pod | 110 sv | May deploy straight onto a hostile below Specialist tier, crushing it on landing and holding the cell. |
+| Stim Injector | 70 sv | +2 damage. The unit loses 1 hull every turn it lives — it can burn out entirely. |
+| I-Field | 90 sv | Immune to any strike that arcs in from beyond the adjacent cell. |
 
 ## Hostiles
 
