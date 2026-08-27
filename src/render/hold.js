@@ -21,6 +21,7 @@ export function leadCardHTML() {
       <div class="leadrole">${L.role} <span>·</span> ${L.n}</div>
       <div class="leadbio">${L.bio}</div>
       <div class="leadperk"><b>${L.passive ? 'Passive' : 'Active'} · ${perk.n}</b>${perk.d}</div>
+      <div class="leadchain">Runs the squad. Reports to <b>${active.callsign}</b> · ${rankName(active.progress.rank)}</div>
       <div class="leadswap">${Object.keys(LEADS).map(k => {
         const o = LEADS[k];
         return `<button class="leadchip${k === id ? ' on' : ''}" data-lead="${k}" style="--lc:${o.col}">${o.call}</button>`;

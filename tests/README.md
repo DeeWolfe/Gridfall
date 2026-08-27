@@ -54,7 +54,7 @@ visible while all 39 playability checks passed.
 | `headtest` | Combat header cannot overlap; title and lead badge share a row |
 | `navtest` | Every screen's navigation sits after its body |
 | `scaletest` | Root clamp scales 1.6x+; no fixed font sizes; components stay viewport-relative |
-| `handtest` | Combat layout: hand is a scrolling row of upright cards in the footer, details panel beside the board |
+| `handtest` | Combat layout; "hull" never rendered as "HP"; the Database's three tabs share one row format |
 | `buildtest` | The bundle evaluates and plays a mission through |
 
 ## Balance — informational, no pass/fail

@@ -25,17 +25,20 @@ let dbTab = 'cards';
 
 const cardGrid = (ids, mode) => `<div class="cgrid">${ids.map(c => cardEl(c, mode)).join('')}</div>`;
 
+// An empty state has to span the grid, or it wraps inside one card column.
+const cardGridEmpty = text => `<div class="cgrid"><div class="cempty">${text}</div></div>`;
+
 function squadPanel() {
   const deck = active.loadout.deck;
   const reserve = active.unlocks.cards.filter(c => !deck.includes(c));
-  return `<div class="sect">Team lead</div>${leadCardHTML()}
+  return `<div class="sect">Team lead — answers to you</div>${leadCardHTML()}
    <div class="sect">Deck</div>
    <div class="bar"><div><b>${deck.length}</b> / ${DECKSIZE} in deck · <b style="color:var(--cyan)">${Object.keys(active.loadout.gear).length}</b> geared</div>
      <div style="color:var(--dim);font-size:0.5625rem">Tap any card to enlarge it — inspect, fit gear, add or remove</div></div>
    <div class="sect">Active deck</div>
-   ${deck.length ? cardGrid(deck, 'gear') : '<div class="cgrid"><div style="color:var(--dim);font-size:0.625rem">Empty.</div></div>'}
+   ${deck.length ? cardGrid(deck, 'gear') : cardGridEmpty('Empty.')}
    <div class="sect">Reserve — ${reserve.length}</div>
-   ${reserve.length ? cardGrid(reserve, 'gear') : '<div class="cgrid"><div style="color:var(--dim);font-size:0.625rem">Nothing in reserve.</div></div>'}`;
+   ${reserve.length ? cardGrid(reserve, 'gear') : cardGridEmpty('Nothing in reserve.')}`;
 }
 
 function quartermasterPanel() {
@@ -64,15 +67,35 @@ const dbTabs = () => `<div class="tabs">
      <button class="tab${dbTab === 'gear' ? ' on' : ''}" data-tab="gear">Gear</button>
      <button class="tab${dbTab === 'foes' ? ' on' : ''}" data-tab="foes">Hostiles</button></div>`;
 
+// One entry in a Database list. Assets, Gear and Hostiles all read the same
+// way: name, what it does, and the one number that matters on the right.
+const dbRow = ({label, body, right, hot, locked, attrs}) =>
+  `<div class="row${locked ? ' locked' : ''}"${attrs || ''} style="cursor:pointer">
+     <span><b style="color:${locked ? 'var(--dim)' : 'var(--cyan)'}">${label}</b>
+     <div style="font-size:0.5312rem;color:var(--dim);margin-top:4px;line-height:1.5">${body}</div></span>
+     <span class="r${hot ? ' hot' : ''}">${right}</span></div>`;
+
 function databasePanel() {
   if (dbTab === 'cards') {
     const tier = t => {
       const ids = Object.keys(POOL).filter(c => POOL[c].t === t);
       const owned = ids.filter(i => active.unlocks.cards.includes(i)).length;
-      return `<div class="sect">${TIERNAME[t]} — ${owned}/${ids.length} owned</div>` + cardGrid(ids, 'info');
+      const rows = ids.map(id => {
+        const k = POOL[id];
+        const has = active.unlocks.cards.includes(id);
+        return dbRow({
+          label: k.n,
+          body: k.d,
+          right: has ? `${costOf(id)} DP${k.hp ? ' · ' + k.hp + ' hull' : ''}` : `${k.price} cr`,
+          hot: !has,
+          attrs: ` data-focus="${id}" data-mode="info"`,
+        });
+      }).join('');
+      return `<div class="sect">${TIERNAME[t]} — ${owned}/${ids.length} owned</div>` +
+        `<div class="rows">${rows}</div>`;
     };
     return `<div class="bar"><div>Assets on file <b>${Object.keys(POOL).length}</b></div>
-       <div style="color:var(--dim);font-size:0.5625rem">Tap a card to enlarge — full stats, targeting and abilities</div></div>${dbTabs()}
+       <div style="color:var(--dim);font-size:0.5625rem">Tap an entry to enlarge — full stats, targeting and abilities</div></div>${dbTabs()}
        ${TIERS.map(tier).join('')}`;
   }
 
@@ -81,9 +104,13 @@ function databasePanel() {
       const g = GEAR[gi];
       const owned = active.unlocks.gear.includes(gi);
       const fittedTo = Object.keys(active.loadout.gear).find(k => active.loadout.gear[k] === gi);
-      return `<div class="row" data-gear="${gi}" style="cursor:pointer"><span><b style="color:var(--cyan)">${g.n}</b>
-         <div style="font-size:0.5312rem;color:var(--dim);margin-top:4px">${g.d}${fittedTo ? ` · fitted to ${POOL[fittedTo].n}` : ''}</div></span>
-         <span class="r${owned ? '' : ' hot'}">${owned ? 'Owned' : g.cost + ' sv'}</span></div>`;
+      return dbRow({
+        label: g.n,
+        body: g.d + (fittedTo ? ` · fitted to ${POOL[fittedTo].n}` : ''),
+        right: owned ? 'Owned' : g.cost + ' sv',
+        hot: !owned,
+        attrs: ` data-gear="${gi}"`,
+      });
     }).join('');
     return `<div class="bar"><div>Gear on file <b>${Object.keys(GEAR).length}</b></div>
      <div style="color:var(--dim);font-size:0.5625rem">One slot per card, bought with salvage</div></div>${dbTabs()}
@@ -96,10 +123,13 @@ function databasePanel() {
     const rows = ids.map(k => {
       const b = BEST[k];
       const on = seen.includes(k);
-      return `<div class="row${on ? '' : ' locked'}"${on ? ` data-foe="${k}" style="cursor:pointer"` : ''}>
-         <span><b style="color:${on ? 'var(--mag)' : 'var(--dim)'}">${on ? b.n : '████████'}</b>
-         <div style="font-size:0.5312rem;color:var(--dim);margin-top:4px;line-height:1.5">${on ? b.d : 'No contact logged.'}</div></span>
-         <span class="r">${on ? b.hp + ' HP · threat ' + b.threat : '—'}</span></div>`;
+      return dbRow({
+        label: on ? b.n : '████████',
+        body: on ? b.d : 'No contact logged.',
+        right: on ? `${b.hp} hull · threat ${b.threat}` : '—',
+        locked: !on,
+        attrs: on ? ` data-foe="${k}"` : '',
+      });
     }).join('');
     return `<div class="sect">${TIERNAME[t]} — ${ids.filter(k => seen.includes(k)).length}/${ids.length}</div>
      <div class="rows">${rows}</div>`;
@@ -134,7 +164,7 @@ function recordPanel() {
 
   return `
    <div class="bar"><div>${active.callsign} · <b style="color:var(--cyan)">${rankName(active.progress.rank)}</b></div>
-     <div style="color:var(--dim);font-size:0.5625rem">XP ${active.progress.xp}</div></div>
+     <div style="color:var(--dim);font-size:0.5625rem">Task force command · XP ${active.progress.xp}</div></div>
    <div class="sect">Field record</div><div class="rows">${fieldRecord}</div>
    <div class="sect">Veteran roster</div><div class="rows">${veterans}</div>
    <div class="sect">Modes</div><div class="rows">

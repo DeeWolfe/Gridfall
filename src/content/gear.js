@@ -26,4 +26,10 @@ export const GEAR = {
     d: "+1 shield capacity. Stacks with regenerating shields.",
     shield: 1,
   },
+  dropod: {
+    n: "Drop Pod",
+    cost: 150,
+    d: "May deploy straight onto a hostile below Specialist tier, crushing it on landing and holding the cell.",
+    crush: 1,
+  },
 };

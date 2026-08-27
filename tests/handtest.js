@@ -1,4 +1,5 @@
-// The combat screen's layout contract.
+// The combat screen's layout contract, plus two presentation rules that hold
+// across the whole game: one word for hull, one shape for the Database.
 //
 // The hand is a row of upright cards across the full width of the screen, not
 // a stack of horizontal bars squeezed into the side rail — and the details
@@ -81,6 +82,38 @@ const rule = sel => {
   if (hand && !/flex:\s*0\s+0\s+auto/.test(hand)) {
     F.push('the hand box grows and squeezes the details panel');
   }
+}
+
+// --- one word for the same stat, everywhere ---
+//
+// The game called it HULL on the focus card and the pack card but HP on the
+// hand tile and the hostile list. Every player-facing label is "hull" now; a
+// stray "HP" is the kind of thing that reads as two different stats.
+{
+  const strays = [];
+  // Only look at text the player sees: strip attribute values and the
+  // identifiers that legitimately contain "hp" (classes, fields, variables).
+  const visible = page
+    .replace(/<style>[\s\S]*?<\/style>/, '')
+    .replace(/class="[^"]*"/g, '')
+    .replace(/\b(?:minihp|pchp|fhp|ghp|hpbadge|hpbar|hpips|hp)\b\s*[:.=]/g, '');
+  const re = /\bHP\b/g;
+  let m;
+  while ((m = re.exec(visible))) strays.push(visible.slice(Math.max(0, m.index - 40), m.index + 12).trim());
+  if (strays.length) F.push(`"HP" still shown to the player (${strays.length}): ${strays[0]}`);
+}
+
+// --- the Database reads the same way on every tab ---
+{
+  const body = page.slice(page.indexOf('<script>'));
+  // All three tabs go through one row builder rather than each inventing a
+  // layout; Assets used to be the odd one out as a card grid.
+  if (!body.includes('function databasePanel')) F.push('database panel missing');
+  if (!/const dbRow\s*=/.test(body)) F.push('database tabs do not share one row format');
+  const panel = body.slice(body.indexOf('function databasePanel'), body.indexOf('function recordPanel'));
+  const builders = (panel.match(/dbRow\(/g) || []).length;
+  if (builders < 3) F.push(`only ${builders} of the 3 database tabs use the shared row`);
+  if (/cardGrid\(/.test(panel)) F.push('the Assets tab is still a card grid');
 }
 
 F.report('combat layout: all checks pass');

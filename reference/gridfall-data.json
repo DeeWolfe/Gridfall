@@ -1,1175 +1,1167 @@
 {
-  "constants": {
-    "LANES": 5,
-    "COLS": 8,
-    "MAXDP": 6,
-    "MAXBREACH": 3,
-    "DECKSIZE": 12,
-    "SAVE_VERSION": 4,
-    "STARTER": [
-      "scout",
-      "rifle",
-      "marks",
-      "wall",
-      "medic",
-      "turret",
-      "lancer",
-      "bulwark",
-      "assassin"
-    ]
+ "constants": {
+  "LANES": 5,
+  "COLS": 8,
+  "MAXDP": 6,
+  "MAXBREACH": 3,
+  "DECKSIZE": 12,
+  "SAVE_VERSION": 4,
+  "STARTER": [
+   "scout",
+   "rifle",
+   "marks",
+   "wall",
+   "medic",
+   "turret",
+   "lancer",
+   "bulwark",
+   "assassin"
+  ]
+ },
+ "cards": {
+  "scout": {
+   "n": "Scout",
+   "t": "common",
+   "dp": 1,
+   "hp": 3,
+   "price": 0,
+   "mob": 1,
+   "tg": "none",
+   "aura": 1,
+   "d": "+1 damage to friendlies in the four adjacent cells. Carries no weapon of its own."
   },
-  "cards": {
-    "scout": {
-      "n": "Scout",
-      "t": "common",
-      "dp": 1,
-      "hp": 3,
-      "price": 0,
-      "mob": 1,
-      "tg": "none",
-      "aura": 1,
-      "d": "+1 damage to friendlies in the four adjacent cells. Carries no weapon of its own."
-    },
-    "recon": {
-      "n": "Recon Lark",
-      "t": "common",
-      "dp": 1,
-      "hp": 2,
-      "price": 110,
-      "mob": 1,
-      "tg": "none",
-      "draw": 2,
-      "d": "Spotter drone. On deployment it calls in two more cards. Fragile and unarmed — its value is the opening hand it buys you."
-    },
-    "pathfinder": {
-      "n": "Pathfinder",
-      "t": "common",
-      "single": 1,
-      "dp": 1,
-      "hp": 4,
-      "price": 130,
-      "mob": 1,
-      "tg": "first",
-      "dmg": 1,
-      "claim": 2,
-      "d": "Forward scout. On deployment it claims the two tiles directly ahead as your ground. Strong opening land grab, ordinary once the lines are set."
-    },
-    "vanguard": {
-      "n": "Vanguard",
-      "t": "common",
-      "single": 1,
-      "dp": 3,
-      "hp": 7,
-      "price": 200,
-      "mob": 1,
-      "tg": "adj",
-      "dmg": 3,
-      "pristine": 3,
-      "d": "Fights hardest before it is bloodied — 3 extra damage while at full hull. Deploy it early and it hits like a Specialist; let it take a scratch and it is a Rifleman."
-    },
-    "rifle": {
-      "n": "Rifleman",
-      "t": "common",
-      "single": 1,
-      "dp": 2,
-      "hp": 5,
-      "price": 0,
-      "mob": 1,
-      "tg": "first",
-      "dmg": 2,
-      "d": "2 damage to the first hostile in the lane. The baseline body."
-    },
-    "medic": {
-      "n": "Medic",
-      "t": "common",
-      "dp": 2,
-      "hp": 3,
-      "price": 120,
-      "mob": 1,
-      "tg": "none",
-      "heal": 2,
-      "healPlay": 3,
-      "healType": "common",
-      "healMode": "front",
-      "ab": {
-        "n": "Triage",
-        "d": "Heal every adjacent personnel unit for 4 instead of the unit ahead.",
-        "cd": 1
-      },
-      "d": "Heals the personnel directly ahead. 3 on play, then 2 per turn."
-    },
-    "archer": {
-      "n": "Archer",
-      "t": "common",
-      "single": 1,
-      "dp": 2,
-      "hp": 4,
-      "price": 130,
-      "mob": 1,
-      "tg": "archer",
-      "dmg": 2,
-      "d": "Looses into a hook: two cells straight ahead, plus the two diagonals behind it. Covers its own flanks while it shoots forward."
-    },
-    "assassin": {
-      "n": "Assassin",
-      "t": "common",
-      "single": 1,
-      "dp": 2,
-      "hp": 3,
-      "price": 170,
-      "mob": 1,
-      "tg": "adj4",
-      "dmg": 4,
-      "drop": 1,
-      "choose": 1,
-      "d": "Deploys on ANY tile, including hostile ground. 4 damage to one adjacent hostile — up, down, left or right. Fragile behind the line."
-    },
-    "samurai": {
-      "n": "Samurai",
-      "t": "common",
-      "dp": 3,
-      "hp": 7,
-      "price": 190,
-      "mob": 1,
-      "tg": "around",
-      "dmg": 2,
-      "d": "Cuts all eight cells surrounding it for 2. The only Common that can answer something emerging behind you."
-    },
-    "marks": {
-      "n": "Marksman",
-      "t": "common",
-      "single": 1,
-      "dp": 3,
-      "hp": 4,
-      "price": 0,
-      "mob": 1,
-      "tg": "furthest",
-      "dmg": 3,
-      "burst": 5,
-      "d": "Hits the FURTHEST hostile in the lane, ignoring everything in front. 5 on play, then 3."
-    },
-    "lancer": {
-      "n": "Lancer",
-      "t": "common",
-      "dp": 3,
-      "hp": 4,
-      "price": 150,
-      "mob": 1,
-      "tg": "ahead3",
-      "dmg": 2,
-      "burst": 3,
-      "d": "Strikes all three cells directly ahead at once. 3 on play, then 2."
-    },
-    "mortar": {
-      "n": "Mortar",
-      "t": "common",
-      "dp": 3,
-      "hp": 3,
-      "price": 180,
-      "mob": 0,
-      "tg": "blast4",
-      "dmg": 2,
-      "indirect": 1,
-      "d": "Indirect fire. 3x3 centred exactly four cells ahead. Cannot hit anything closer."
-    },
-    "bulwark": {
-      "n": "Bulwark",
-      "t": "common",
-      "single": 1,
-      "dp": 3,
-      "hp": 10,
-      "price": 150,
-      "mob": 1,
-      "tg": "adj",
-      "dmg": 2,
-      "blocker": 1,
-      "regen": 1,
-      "ab": {
-        "n": "Brace",
-        "d": "Shield holds against two attacks this turn instead of one.",
-        "cd": 1
-      },
-      "d": "A one-cell energy shield that IS the wall. Deploys on any held tile, occupies nothing in front. Absorbs one attack per turn and regenerates. Mobile."
-    },
-    "ronin": {
-      "n": "Ronin",
-      "t": "common",
-      "dp": 3,
-      "hp": 6,
-      "price": 200,
-      "mob": 1,
-      "tg": "bothsides",
-      "dmg": 3,
-      "d": "Twin blades. Cuts the cell directly ahead AND the cell directly behind in the same motion. Nothing flanks a Ronin."
-    },
-    "naginata": {
-      "n": "Naginata",
-      "t": "common",
-      "dp": 2,
-      "hp": 5,
-      "price": 140,
-      "mob": 1,
-      "tg": "ahead2",
-      "dmg": 2,
-      "d": "Polearm reach. Strikes both cells one and two ahead. Cheap pressure that outranges a blade."
-    },
-    "kunoichi": {
-      "n": "Kunoichi",
-      "t": "common",
-      "dp": 2,
-      "hp": 3,
-      "price": 180,
-      "mob": 1,
-      "tg": "diag",
-      "dmg": 3,
-      "drop": 1,
-      "d": "Deploys on ANY tile. Strikes only the four diagonals — blind to what is directly beside her, lethal to what is not."
-    },
-    "herald": {
-      "n": "Herald",
-      "t": "common",
-      "dp": 2,
-      "hp": 4,
-      "price": 150,
-      "mob": 1,
-      "tg": "none",
-      "laneB": 1,
-      "d": "Battle standard. +1 damage to every friendly in the same lane. Pairs with Scout adjacency and Relay columns."
-    },
-    "wall": {
-      "n": "Barricade",
-      "t": "tech",
-      "dp": 1,
-      "hp": 12,
-      "price": 0,
-      "mob": 0,
-      "tg": "none",
-      "blocker": 1,
-      "tech": 1,
-      "d": "No weapon, no shield, no legs. Twelve hull that blocks the lane in both directions."
-    },
-    "supply": {
-      "n": "Supply Drone",
-      "t": "tech",
-      "dp": 1,
-      "hp": 3,
-      "price": 130,
-      "mob": 0,
-      "tg": "none",
-      "dpGain": 2,
-      "tech": 1,
-      "d": "Drops a munitions pallet on landing: +2 deploy points immediately, so it pays for itself and then some. Worth most on an opening turn with points to spare."
-    },
-    "beacon": {
-      "n": "Drop Beacon",
-      "t": "tech",
-      "dp": 2,
-      "hp": 4,
-      "price": 170,
-      "mob": 0,
-      "tg": "none",
-      "claim": 3,
-      "tech": 1,
-      "d": "Plants a landing marker that claims the three cells ahead of it the moment it touches down. Strongest while the middle of the field is still neutral."
-    },
-    "cache": {
-      "n": "Supply Cache",
-      "t": "tech",
-      "dp": 1,
-      "hp": 0,
-      "price": 160,
-      "instant": 1,
-      "gain": 3,
-      "tech": 1,
-      "d": "Crack it open for 3 extra deploy points this turn — but the scramble costs you a card at random from your hand. Best on turn one when the hand is deep and the board is empty."
-    },
-    "shield": {
-      "n": "Shield",
-      "t": "tech",
-      "dp": 1,
-      "hp": 0,
-      "price": 100,
-      "attach": "shield",
-      "tech": 1,
-      "d": "Attach to a unit. Absorbs the next incoming attack entirely, then breaks."
-    },
-    "cannon": {
-      "n": "Shoulder Cannon",
-      "t": "tech",
-      "dp": 2,
-      "hp": 0,
-      "price": 200,
-      "attach": "cannon",
-      "tech": 1,
-      "d": "Attach to a unit. It fires a second time each turn. Scales with whatever it is bolted to."
-    },
-    "dropod": {
-      "n": "Drop Pod",
-      "t": "tech",
-      "dp": 3,
-      "hp": 6,
-      "price": 230,
-      "mob": 0,
-      "tg": "adj",
-      "dmg": 2,
-      "crush": 1,
-      "tech": 1,
-      "d": "Orbital insertion straight onto a hostile. Crushes it outright and the pod holds the cell. Cannot crack Specialist-tier armour."
-    },
-    "turret": {
-      "n": "Turret",
-      "t": "tech",
-      "single": 1,
-      "dp": 2,
-      "hp": 8,
-      "price": 140,
-      "mob": 0,
-      "tg": "first",
-      "dmg": 2,
-      "tech": 1,
-      "d": "Anchored. 2 damage to the first hostile in the lane. Eight hull, no legs."
-    },
-    "relay": {
-      "n": "Relay",
-      "t": "tech",
-      "dp": 2,
-      "hp": 4,
-      "price": 160,
-      "mob": 0,
-      "tg": "none",
-      "col": 1,
-      "tech": 1,
-      "d": "+1 damage to every friendly in its column, across all five lanes."
-    },
-    "techblade": {
-      "n": "Tech Blade",
-      "t": "tech",
-      "dp": 2,
-      "hp": 6,
-      "price": 180,
-      "mob": 1,
-      "tg": "vert3",
-      "dmg": 3,
-      "tech": 1,
-      "d": "Sweeps a vertical arc — three cells top to bottom in the column directly ahead. Hits across lanes without leaving its own."
-    },
-    "pulse": {
-      "n": "Pulse Emitter",
-      "t": "tech",
-      "dp": 2,
-      "hp": 5,
-      "price": 150,
-      "mob": 0,
-      "tg": "around",
-      "dmg": 1,
-      "tech": 1,
-      "d": "Anchored resonator. Pulses all eight surrounding cells for 1 every turn. Weak alone, brutal behind a wall."
-    },
-    "scrambler": {
-      "n": "Scrambler",
-      "t": "tech",
-      "dp": 2,
-      "hp": 6,
-      "price": 170,
-      "mob": 0,
-      "tg": "none",
-      "dampen": 1,
-      "tech": 1,
-      "d": "Field disruptor. Every hostile in its lane deals 1 less damage. Does not stack with itself."
-    },
-    "battery": {
-      "n": "Lance Battery",
-      "t": "tech",
-      "single": 1,
-      "dp": 3,
-      "hp": 7,
-      "price": 220,
-      "mob": 0,
-      "tg": "range3",
-      "dmg": 4,
-      "tech": 1,
-      "d": "Anchored particle lance. 4 damage at exactly three cells — direct fire, so a blocker of yours cuts the beam."
-    },
-    "knight": {
-      "n": "Knight",
-      "t": "tech",
-      "single": 1,
-      "dp": 3,
-      "hp": 9,
-      "price": 210,
-      "mob": 1,
-      "tg": "adj",
-      "dmg": 3,
-      "blocker": 1,
-      "regen": 1,
-      "riposte": 3,
-      "tech": 1,
-      "d": "Tech shield and blade. Blocks the lane, regenerates its shield, and ripostes for 3 against anything that strikes it. Tech Medic repairs it; Bio Medic cannot."
-    },
-    "aegis": {
-      "n": "Aegis Knights",
-      "t": "special",
-      "single": 1,
-      "dp": 5,
-      "hp": 18,
-      "price": 520,
-      "mob": 0,
-      "size": 2,
-      "tg": "adj",
-      "dmg": 3,
-      "blocker": 1,
-      "regen": 1,
-      "riposte": 2,
-      "ab": {
-        "n": "Aegis Field",
-        "d": "Every friendly in this lane gains a shield this turn.",
-        "cd": 2
-      },
-      "d": "Armoured tech frames — two cells deep, eighteen hull, regenerating energy shields and swords. Seals a lane against chip damage indefinitely."
-    },
-    "biomed": {
-      "n": "Bio Medic",
-      "t": "special",
-      "dp": 4,
-      "hp": 4,
-      "price": 420,
-      "mob": 1,
-      "tg": "none",
-      "hot": 2,
-      "healType": "common",
-      "healMode": "col",
-      "d": "Healing over time. Applies regeneration to every Common unit in its column — 2 hull per turn, refreshed while it lives."
-    },
-    "techmed": {
-      "n": "Tech Medic",
-      "t": "special",
-      "dp": 4,
-      "hp": 4,
-      "price": 420,
-      "mob": 1,
-      "tg": "none",
-      "heal": 2,
-      "healPlay": 4,
-      "healType": "tech",
-      "healMode": "col",
-      "ab": {
-        "n": "Full Restore",
-        "d": "Burst-repair every Tech unit in the column for 8 and restore broken shields.",
-        "cd": 2
-      },
-      "d": "Burst repair. Trickles 2 per turn to Tech in its column, or dumps 8 at once on the ability."
-    },
-    "dragoon": {
-      "n": "Orbital Dragoon",
-      "t": "special",
-      "single": 1,
-      "dp": 4,
-      "hp": 5,
-      "price": 480,
-      "mob": 1,
-      "tg": "range2",
-      "dmg": 4,
-      "choose": 1,
-      "ab": {
-        "n": "Thruster Leap",
-        "d": "Vault and strike any hostile exactly two cells away in any direction for 6.",
-        "cd": 2
-      },
-      "d": "Strikes at a fixed range of two cells ahead for 4. Thrusters let it leap and hit anything two cells out in any direction."
-    },
-    "railgun": {
-      "n": "Rail Sniper",
-      "t": "special",
-      "dp": 5,
-      "hp": 4,
-      "price": 540,
-      "mob": 1,
-      "tg": "lane",
-      "dmg": 3,
-      "burst": 4,
-      "pen": 1,
-      "d": "Piercing shot down the entire lane, hitting every hostile in it and ignoring armour floors. 4 on play, then 3."
-    },
-    "hell": {
-      "n": "Hell Jumpers",
-      "t": "special",
-      "dp": 4,
-      "hp": 5,
-      "price": 460,
-      "mob": 1,
-      "tg": "around",
-      "dmg": 2,
-      "drop": 1,
-      "squad": 2,
-      "burstBlast": 3,
-      "d": "Two pods dropped behind hostile lines, on ANY tile. Each strikes all eight surrounding cells for 2. Orbital impact damages on landing."
-    },
-    "plasma": {
-      "n": "Plasma Artillerist",
-      "t": "special",
-      "dp": 5,
-      "hp": 3,
-      "price": 540,
-      "mob": 0,
-      "tg": "blast4",
-      "dmg": 3,
-      "indirect": 1,
-      "scorch": 1,
-      "d": "Plasma barrage, 3x3 at exactly four cells. The plasma lingers two turns, burning anything standing in it and denying capture."
-    },
-    "exo": {
-      "n": "Exo Juggernaut",
-      "t": "special",
-      "single": 1,
-      "dp": 5,
-      "hp": 20,
-      "price": 600,
-      "mob": 1,
-      "tg": "adj",
-      "dmg": 5,
-      "blocker": 1,
-      "ab": {
-        "n": "Hammer Charge",
-        "d": "Barrel two cells forward. Anything struck takes 8 and is stunned for a turn.",
-        "cd": 2
-      },
-      "d": "Explosive hammer in an exo frame. Twenty hull, 5 damage adjacent, and a charge that shatters whatever it collides with."
-    }
+  "recon": {
+   "n": "Recon Lark",
+   "t": "common",
+   "dp": 1,
+   "hp": 2,
+   "price": 110,
+   "mob": 1,
+   "tg": "none",
+   "draw": 2,
+   "d": "Spotter drone. On deployment it calls in two more cards. Fragile and unarmed — its value is the opening hand it buys you."
   },
-  "gear": {
-    "barrel": {
-      "n": "Extended Barrel",
-      "cost": 60,
-      "d": "+1 damage to this unit.",
-      "dmg": 1
-    },
-    "plating": {
-      "n": "Reactive Plating",
-      "cost": 50,
-      "d": "+3 hull.",
-      "hp": 3
-    },
-    "servo": {
-      "n": "Servo Legs",
-      "cost": 110,
-      "d": "May move AND fire in the same turn.",
-      "servo": 1
-    },
-    "uplink": {
-      "n": "Targeting Uplink",
-      "cost": 80,
-      "d": "Ignores hostile armour floors.",
-      "pen": 1
-    },
-    "kit": {
-      "n": "Field Kit",
-      "cost": 100,
-      "d": "Costs 1 less deploy point, minimum 1.",
-      "dp": -1
-    },
-    "coolant": {
-      "n": "Coolant Core",
-      "cost": 120,
-      "d": "Ability cooldowns are 1 turn shorter, minimum 1.",
-      "cool": 1
-    },
-    "phase": {
-      "n": "Phase Cloak",
-      "cost": 140,
-      "d": "The first killing blow leaves it at 1 hull instead. Once per deployment.",
-      "phase": 1
-    },
-    "weave": {
-      "n": "Ablative Weave",
-      "cost": 90,
-      "d": "+1 shield capacity. Stacks with regenerating shields.",
-      "shield": 1
-    }
+  "pathfinder": {
+   "n": "Pathfinder",
+   "t": "common",
+   "single": 1,
+   "dp": 1,
+   "hp": 4,
+   "price": 130,
+   "mob": 1,
+   "tg": "first",
+   "dmg": 1,
+   "claim": 2,
+   "d": "Forward scout. On deployment it claims the two tiles directly ahead as your ground. Strong opening land grab, ordinary once the lines are set."
   },
-  "hostiles": {
-    "crawler": {
-      "n": "Crawler",
-      "t": "common",
-      "hp": 3,
-      "dmg": 2,
-      "threat": 1,
-      "spd": 2,
-      "d": "Cheap, fast, endless. Moves two cells a turn and floods whatever lane you leave open."
-    },
-    "breacher": {
-      "n": "Breacher",
-      "t": "common",
-      "hp": 7,
-      "dmg": 4,
-      "threat": 3,
-      "spd": 1,
-      "hunts": 1,
-      "d": "Prioritises Tech over personnel. Punishes Barricade and Turret spam."
-    },
-    "spitter": {
-      "n": "Spitter",
-      "t": "common",
-      "hp": 5,
-      "dmg": 3,
-      "threat": 3,
-      "spd": 1,
-      "hold": 4,
-      "d": "Stops at range four and fires down the lane. Outranges most of your roster. Punishes turtling."
-    },
-    "burrower": {
-      "n": "Burrower",
-      "t": "common",
-      "hp": 5,
-      "dmg": 3,
-      "threat": 3,
-      "spd": 1,
-      "emerge": 3,
-      "d": "Emerges mid-board, behind your front line. Punishes over-committing forward."
-    },
-    "hulk": {
-      "n": "Hulk",
-      "t": "common",
-      "hp": 14,
-      "dmg": 6,
-      "threat": 4,
-      "spd": 0.5,
-      "floor": 1,
-      "d": "Slow, heavy, reduces all incoming damage by 1. Punishes chip damage."
-    },
-    "spore": {
-      "n": "Spore Node",
-      "t": "tech",
-      "hp": 10,
-      "dmg": 0,
-      "threat": 4,
-      "spd": 0,
-      "spawn": 2,
-      "d": "Immobile emplacement. Releases a Crawler every two turns and holds its tile until destroyed."
-    },
-    "pylon": {
-      "n": "Bulwark Pylon",
-      "t": "tech",
-      "hp": 12,
-      "dmg": 0,
-      "threat": 5,
-      "spd": 0,
-      "lanefloor": 1,
-      "d": "Immobile emplacement. +1 damage floor to every hostile in its lane."
-    },
-    "jammer": {
-      "n": "Jammer",
-      "t": "tech",
-      "hp": 8,
-      "dmg": 0,
-      "threat": 4,
-      "spd": 0,
-      "jam": 1,
-      "d": "Immobile emplacement. Blocks all indirect fire in its lane. Shuts off Mortar and Artillerist entirely."
-    },
-    "harrower": {
-      "n": "Harrower",
-      "t": "special",
-      "hp": 12,
-      "dmg": 6,
-      "threat": 7,
-      "spd": 1.5,
-      "tunnel": 1,
-      "d": "Tunnels straight past blockers. Barricades and Bulwarks do not stop it."
-    },
-    "chorus": {
-      "n": "Chorus",
-      "t": "special",
-      "hp": 14,
-      "dmg": 0,
-      "threat": 8,
-      "spd": 0,
-      "aura": 1,
-      "d": "Immobile at the far edge. +1 damage to every hostile on the board. Kill it first — if you can reach it."
-    },
-    "sovereign": {
-      "n": "Sovereign",
-      "t": "special",
-      "hp": 40,
-      "dmg": 8,
-      "threat": 10,
-      "spd": 0.5,
-      "convert": 1,
-      "d": "Moves every other turn. Every tile it crosses becomes hostile ground permanently."
-    }
+  "vanguard": {
+   "n": "Vanguard",
+   "t": "common",
+   "single": 1,
+   "dp": 3,
+   "hp": 7,
+   "price": 200,
+   "mob": 1,
+   "tg": "adj",
+   "dmg": 3,
+   "pristine": 3,
+   "d": "Fights hardest before it is bloodied — 3 extra damage while at full hull. Deploy it early and it hits like a Specialist; let it take a scratch and it is a Rifleman."
   },
-  "leads": {
-    "ironbrand": {
-      "n": "VALE",
-      "call": "IRONBRAND",
-      "role": "Line Commander",
-      "col": "#4de8ff",
-      "bio": "Held the Sundering Gate for nine days with a company of forty. Believes armour is a philosophy.",
-      "passive": {
-        "n": "Hardened Frames",
-        "d": "Every unit you deploy arrives with +1 hull."
-      }
-    },
-    "wildfire": {
-      "n": "KESTREL",
-      "call": "WILDFIRE",
-      "role": "Strike Officer",
-      "col": "#ff4d8f",
-      "bio": "Three commendations, two demotions, one very expensive orbital incident. Fights fast and asks after.",
-      "active": {
-        "n": "Emergency Requisition",
-        "d": "Once per mission: +4 deploy points immediately."
-      }
-    },
-    "coldwire": {
-      "n": "SABLE",
-      "call": "COLDWIRE",
-      "role": "Field Engineer",
-      "col": "#ffc94d",
-      "bio": "Speaks to machines more than people. The machines, notably, keep working.",
-      "passive": {
-        "n": "Nanite Weave",
-        "d": "All your units repair 1 hull at the end of every turn."
-      }
-    }
+  "rifle": {
+   "n": "Rifleman",
+   "t": "common",
+   "single": 1,
+   "dp": 2,
+   "hp": 5,
+   "price": 0,
+   "mob": 1,
+   "tg": "first",
+   "dmg": 2,
+   "d": "2 damage to the first hostile in the lane. The baseline body."
   },
-  "missions": {
-    "stronghold": {
-      "n": "Defend Stronghold",
-      "waves": 8,
-      "d": "Hold the line through every wave. Three breaches ends it."
-    },
-    "civilians": {
-      "n": "Protect Civilians",
-      "waves": 7,
-      "d": "Three civilian pods sit on your ground. Lose all three and the operation fails."
-    },
-    "specimens": {
-      "n": "Acquire Specimens",
-      "waves": 7,
-      "d": "Destroy the marked hostile type to fill the quota."
-    },
-    "crystals": {
-      "n": "Fight for Crystals",
-      "waves": 7,
-      "d": "Four crystal nodes on the field. Hold three when the last wave clears."
-    },
-    "retake": {
-      "n": "Retake Ground",
-      "waves": 7,
-      "d": "Hold 3 or more tiles in the hostile half when the last wave clears. Bring something that deploys behind their line."
-    },
-    "extract": {
-      "n": "Extraction",
-      "waves": 6,
-      "d": "Short and heavy. Survive to extraction."
-    }
+  "medic": {
+   "n": "Medic",
+   "t": "common",
+   "dp": 2,
+   "hp": 3,
+   "price": 120,
+   "mob": 1,
+   "tg": "none",
+   "heal": 2,
+   "healPlay": 3,
+   "healType": "common",
+   "healMode": "front",
+   "ab": {
+    "n": "Triage",
+    "d": "Heal every adjacent personnel unit for 4 instead of the unit ahead.",
+    "cd": 1
+   },
+   "d": "Heals the personnel directly ahead. 3 on play, then 2 per turn."
   },
-  "modifiers": {
-    "none": {
-      "n": "—",
-      "d": ""
-    },
-    "nest": {
-      "n": "Nest",
-      "d": "Emplacements from wave one."
-    },
-    "blackout": {
-      "n": "Blackout",
-      "d": "No wave preview and no spawn markers."
-    },
-    "breach": {
-      "n": "Hull breach",
-      "d": "The top lane is impassable."
-    },
-    "salvage": {
-      "n": "Salvage",
-      "d": "Each kill refunds 1 deploy point."
-    },
-    "swarm": {
-      "n": "Swarm",
-      "d": "Crawler counts doubled."
-    }
+  "archer": {
+   "n": "Archer",
+   "t": "common",
+   "single": 1,
+   "dp": 2,
+   "hp": 4,
+   "price": 130,
+   "mob": 1,
+   "tg": "archer",
+   "dmg": 2,
+   "d": "Looses into a hook: two cells straight ahead, plus the two diagonals behind it. Covers its own flanks while it shoots forward."
   },
-  "operations": {
-    "ironveil": {
-      "k": "ironveil",
-      "n": "OPERATION IRONVEIL",
-      "sub": "Delta Shelf · orbital shipyard, overrun",
-      "col": "#4de8ff",
-      "zones": [
-        {
-          "l": "ZONE A",
-          "p": "22,96 108,44 236,44 286,104 236,182 96,182"
-        },
-        {
-          "l": "ZONE B",
-          "p": "250,52 372,52 418,104 372,158 268,158 236,104"
-        },
-        {
-          "l": "ZONE C",
-          "p": "214,168 358,168 404,214 358,262 236,262 190,214"
-        }
-      ],
-      "nodes": [
-        {
-          "id": "n1",
-          "x": 96,
-          "y": 96
-        },
-        {
-          "id": "n2",
-          "x": 170,
-          "y": 118
-        },
-        {
-          "id": "n3",
-          "x": 250,
-          "y": 92
-        },
-        {
-          "id": "n4",
-          "x": 206,
-          "y": 172
-        },
-        {
-          "id": "n5",
-          "x": 278,
-          "y": 196
-        },
-        {
-          "id": "n6",
-          "x": 352,
-          "y": 170
-        },
-        {
-          "id": "n7",
-          "x": 236,
-          "y": 250
-        }
-      ],
-      "edges": [
-        [
-          "n1",
-          "n2"
-        ],
-        [
-          "n2",
-          "n3"
-        ],
-        [
-          "n2",
-          "n4"
-        ],
-        [
-          "n4",
-          "n5"
-        ],
-        [
-          "n5",
-          "n6"
-        ],
-        [
-          "n4",
-          "n7"
-        ],
-        [
-          "n3",
-          "n6"
-        ]
-      ]
-    },
-    "blackmarrow": {
-      "k": "blackmarrow",
-      "n": "OPERATION BLACKMARROW",
-      "sub": "Sub-crust mining tunnels · nest confirmed",
-      "col": "#ff4d8f",
-      "zones": [
-        {
-          "l": "UPPER GALLERY",
-          "p": "40,40 200,30 250,80 200,130 60,130"
-        },
-        {
-          "l": "THE THROAT",
-          "p": "170,110 330,100 390,160 330,220 190,220 150,160"
-        },
-        {
-          "l": "DEEP SHAFT",
-          "p": "60,180 190,190 230,250 170,278 70,265 30,220"
-        }
-      ],
-      "nodes": [
-        {
-          "id": "n1",
-          "x": 70,
-          "y": 80
-        },
-        {
-          "id": "n2",
-          "x": 150,
-          "y": 60
-        },
-        {
-          "id": "n3",
-          "x": 220,
-          "y": 110
-        },
-        {
-          "id": "n4",
-          "x": 300,
-          "y": 150
-        },
-        {
-          "id": "n5",
-          "x": 362,
-          "y": 180
-        },
-        {
-          "id": "n6",
-          "x": 190,
-          "y": 200
-        },
-        {
-          "id": "n7",
-          "x": 110,
-          "y": 228
-        },
-        {
-          "id": "n8",
-          "x": 200,
-          "y": 256
-        }
-      ],
-      "edges": [
-        [
-          "n1",
-          "n2"
-        ],
-        [
-          "n2",
-          "n3"
-        ],
-        [
-          "n3",
-          "n4"
-        ],
-        [
-          "n4",
-          "n5"
-        ],
-        [
-          "n3",
-          "n6"
-        ],
-        [
-          "n6",
-          "n7"
-        ],
-        [
-          "n7",
-          "n8"
-        ],
-        [
-          "n6",
-          "n8"
-        ]
-      ]
-    },
-    "sunderglass": {
-      "k": "sunderglass",
-      "n": "OPERATION SUNDERGLASS",
-      "sub": "Crystal fields · contested extraction",
-      "col": "#ffc94d",
-      "zones": [
-        {
-          "l": "THE SHALLOWS",
-          "p": "30,120 130,60 250,70 280,140 200,200 70,190"
-        },
-        {
-          "l": "PRISM RIDGE",
-          "p": "250,50 380,60 420,130 350,190 270,160 240,100"
-        },
-        {
-          "l": "THE GLASSING",
-          "p": "140,200 300,200 350,250 280,282 160,275"
-        }
-      ],
-      "nodes": [
-        {
-          "id": "n1",
-          "x": 70,
-          "y": 150
-        },
-        {
-          "id": "n2",
-          "x": 150,
-          "y": 105
-        },
-        {
-          "id": "n3",
-          "x": 245,
-          "y": 120
-        },
-        {
-          "id": "n4",
-          "x": 330,
-          "y": 95
-        },
-        {
-          "id": "n5",
-          "x": 392,
-          "y": 145
-        },
-        {
-          "id": "n6",
-          "x": 300,
-          "y": 185
-        },
-        {
-          "id": "n7",
-          "x": 200,
-          "y": 235
-        },
-        {
-          "id": "n8",
-          "x": 305,
-          "y": 252
-        }
-      ],
-      "edges": [
-        [
-          "n1",
-          "n2"
-        ],
-        [
-          "n2",
-          "n3"
-        ],
-        [
-          "n3",
-          "n4"
-        ],
-        [
-          "n4",
-          "n5"
-        ],
-        [
-          "n5",
-          "n6"
-        ],
-        [
-          "n3",
-          "n6"
-        ],
-        [
-          "n2",
-          "n7"
-        ],
-        [
-          "n7",
-          "n8"
-        ],
-        [
-          "n6",
-          "n8"
-        ]
-      ]
-    }
+  "assassin": {
+   "n": "Assassin",
+   "t": "common",
+   "single": 1,
+   "dp": 2,
+   "hp": 3,
+   "price": 170,
+   "mob": 1,
+   "tg": "adj4",
+   "dmg": 4,
+   "drop": 1,
+   "choose": 1,
+   "d": "Deploys on ANY tile, including hostile ground. 4 damage to one adjacent hostile — up, down, left or right. Fragile behind the line."
   },
-  "doctrines": [
-    {
-      "k": "focus",
-      "w": 26,
-      "n": "Concentrated push"
-    },
-    {
-      "k": "spread",
-      "w": 38,
-      "n": "Broad assault"
-    },
-    {
-      "k": "probe",
-      "w": 36,
-      "n": "Probing attack"
-    }
-  ],
-  "targeting": {
-    "first": "First hostile in lane",
-    "furthest": "Furthest hostile in lane",
-    "lane": "Every hostile in the lane",
-    "ahead3": "Three cells ahead",
-    "blast4": "3x3 at exactly range 4",
-    "adj": "Adjacent cell",
-    "around": "All eight surrounding cells",
-    "adj4": "One adjacent hostile",
-    "archer": "Two ahead plus both rear diagonals",
-    "vert3": "Three cells vertically, one column ahead",
-    "bothsides": "The cell ahead and the cell behind",
-    "ahead2": "Both cells one and two ahead",
-    "range3": "Exactly three cells ahead",
-    "diag": "The four diagonals only",
-    "range2": "Exactly two cells ahead"
+  "samurai": {
+   "n": "Samurai",
+   "t": "common",
+   "dp": 3,
+   "hp": 7,
+   "price": 190,
+   "mob": 1,
+   "tg": "around",
+   "dmg": 2,
+   "d": "Cuts all eight cells surrounding it for 2. The only Common that can answer something emerging behind you."
   },
-  "emptyProfile": {
-    "version": 4,
-    "id": "pmtapjx9y",
-    "callsign": "CALLSIGN",
-    "created": 1787785879606,
-    "lastPlayed": 1787785879606,
-    "progress": {
-      "rank": 1,
-      "xp": 0,
-      "credits": 300,
-      "salvage": 120
-    },
-    "unlocks": {
-      "cards": [
-        "scout",
-        "rifle",
-        "marks",
-        "wall",
-        "medic",
-        "turret",
-        "lancer",
-        "bulwark",
-        "assassin"
-      ],
-      "enemies": [],
-      "gear": []
-    },
-    "loadout": {
-      "deck": [
-        "scout",
-        "rifle",
-        "marks",
-        "wall",
-        "medic",
-        "turret",
-        "lancer",
-        "bulwark",
-        "assassin"
-      ],
-      "gear": {}
-    },
-    "stats": {
-      "deployments": 0,
-      "held": 0,
-      "lost": 0,
-      "breaches": 0,
-      "kills": 0,
-      "unitsLost": 0
-    },
-    "ship": "ANVIL-7",
-    "lead": "ironbrand",
-    "usage": {},
-    "op": "ironveil",
-    "ops": {},
-    "mode": "campaign",
-    "ironman": false,
-    "gaunt": null,
-    "bests": {
-      "onslaught": 0,
-      "gauntlet": 0
-    },
-    "settings": {}
+  "marks": {
+   "n": "Marksman",
+   "t": "common",
+   "single": 1,
+   "dp": 3,
+   "hp": 4,
+   "price": 0,
+   "mob": 1,
+   "tg": "furthest",
+   "dmg": 3,
+   "burst": 5,
+   "d": "Hits the FURTHEST hostile in the lane, ignoring everything in front. 5 on play, then 3."
+  },
+  "lancer": {
+   "n": "Lancer",
+   "t": "common",
+   "dp": 3,
+   "hp": 4,
+   "price": 150,
+   "mob": 1,
+   "tg": "ahead3",
+   "dmg": 2,
+   "burst": 3,
+   "d": "Strikes all three cells directly ahead at once. 3 on play, then 2."
+  },
+  "mortar": {
+   "n": "Mortar",
+   "t": "common",
+   "dp": 3,
+   "hp": 3,
+   "price": 180,
+   "mob": 0,
+   "tg": "blast4",
+   "dmg": 2,
+   "indirect": 1,
+   "d": "Indirect fire. 3x3 centred exactly four cells ahead. Cannot hit anything closer."
+  },
+  "bulwark": {
+   "n": "Bulwark",
+   "t": "common",
+   "single": 1,
+   "dp": 3,
+   "hp": 10,
+   "price": 150,
+   "mob": 1,
+   "tg": "adj",
+   "dmg": 2,
+   "blocker": 1,
+   "regen": 1,
+   "ab": {
+    "n": "Brace",
+    "d": "Shield holds against two attacks this turn instead of one.",
+    "cd": 1
+   },
+   "d": "A one-cell energy shield that IS the wall. Deploys on any held tile, occupies nothing in front. Absorbs one attack per turn and regenerates. Mobile."
+  },
+  "ronin": {
+   "n": "Ronin",
+   "t": "common",
+   "dp": 3,
+   "hp": 6,
+   "price": 200,
+   "mob": 1,
+   "tg": "bothsides",
+   "dmg": 3,
+   "d": "Twin blades. Cuts the cell directly ahead AND the cell directly behind in the same motion. Nothing flanks a Ronin."
+  },
+  "naginata": {
+   "n": "Naginata",
+   "t": "common",
+   "dp": 2,
+   "hp": 5,
+   "price": 140,
+   "mob": 1,
+   "tg": "ahead2",
+   "dmg": 2,
+   "d": "Polearm reach. Strikes both cells one and two ahead. Cheap pressure that outranges a blade."
+  },
+  "kunoichi": {
+   "n": "Kunoichi",
+   "t": "common",
+   "dp": 2,
+   "hp": 3,
+   "price": 180,
+   "mob": 1,
+   "tg": "diag",
+   "dmg": 3,
+   "drop": 1,
+   "d": "Deploys on ANY tile. Strikes only the four diagonals — blind to what is directly beside her, lethal to what is not."
+  },
+  "herald": {
+   "n": "Herald",
+   "t": "common",
+   "dp": 2,
+   "hp": 4,
+   "price": 150,
+   "mob": 1,
+   "tg": "none",
+   "laneB": 1,
+   "d": "Battle standard. +1 damage to every friendly in the same lane. Pairs with Scout adjacency and Relay columns."
+  },
+  "wall": {
+   "n": "Barricade",
+   "t": "tech",
+   "dp": 1,
+   "hp": 12,
+   "price": 0,
+   "mob": 0,
+   "tg": "none",
+   "blocker": 1,
+   "tech": 1,
+   "d": "No weapon, no shield, no legs. Twelve hull that blocks the lane in both directions."
+  },
+  "supply": {
+   "n": "Supply Drone",
+   "t": "tech",
+   "dp": 1,
+   "hp": 3,
+   "price": 130,
+   "mob": 0,
+   "tg": "none",
+   "dpGain": 2,
+   "tech": 1,
+   "d": "Drops a munitions pallet on landing: +2 deploy points immediately, so it pays for itself and then some. Worth most on an opening turn with points to spare."
+  },
+  "beacon": {
+   "n": "Drop Beacon",
+   "t": "tech",
+   "dp": 2,
+   "hp": 4,
+   "price": 170,
+   "mob": 0,
+   "tg": "none",
+   "claim": 3,
+   "tech": 1,
+   "d": "Plants a landing marker that claims the three cells ahead of it the moment it touches down. Strongest while the middle of the field is still neutral."
+  },
+  "cache": {
+   "n": "Supply Cache",
+   "t": "tech",
+   "dp": 1,
+   "hp": 0,
+   "price": 160,
+   "instant": 1,
+   "gain": 3,
+   "tech": 1,
+   "d": "Crack it open for 3 extra deploy points this turn — but the scramble costs you a card at random from your hand. Best on turn one when the hand is deep and the board is empty."
+  },
+  "shield": {
+   "n": "Shield",
+   "t": "tech",
+   "dp": 1,
+   "hp": 0,
+   "price": 100,
+   "attach": "shield",
+   "tech": 1,
+   "d": "Attach to a unit. Absorbs the next incoming attack entirely, then breaks."
+  },
+  "cannon": {
+   "n": "Shoulder Cannon",
+   "t": "tech",
+   "dp": 2,
+   "hp": 0,
+   "price": 200,
+   "attach": "cannon",
+   "tech": 1,
+   "d": "Attach to a unit. It fires a second time each turn. Scales with whatever it is bolted to."
+  },
+  "turret": {
+   "n": "Turret",
+   "t": "tech",
+   "single": 1,
+   "dp": 2,
+   "hp": 8,
+   "price": 140,
+   "mob": 0,
+   "tg": "first",
+   "dmg": 2,
+   "tech": 1,
+   "d": "Anchored. 2 damage to the first hostile in the lane. Eight hull, no legs."
+  },
+  "relay": {
+   "n": "Relay",
+   "t": "tech",
+   "dp": 2,
+   "hp": 4,
+   "price": 160,
+   "mob": 0,
+   "tg": "none",
+   "col": 1,
+   "tech": 1,
+   "d": "+1 damage to every friendly in its column, across all five lanes."
+  },
+  "techblade": {
+   "n": "Tech Blade",
+   "t": "tech",
+   "dp": 2,
+   "hp": 6,
+   "price": 180,
+   "mob": 1,
+   "tg": "vert3",
+   "dmg": 3,
+   "tech": 1,
+   "d": "Sweeps a vertical arc — three cells top to bottom in the column directly ahead. Hits across lanes without leaving its own."
+  },
+  "pulse": {
+   "n": "Pulse Emitter",
+   "t": "tech",
+   "dp": 2,
+   "hp": 5,
+   "price": 150,
+   "mob": 0,
+   "tg": "around",
+   "dmg": 1,
+   "tech": 1,
+   "d": "Anchored resonator. Pulses all eight surrounding cells for 1 every turn. Weak alone, brutal behind a wall."
+  },
+  "scrambler": {
+   "n": "Scrambler",
+   "t": "tech",
+   "dp": 2,
+   "hp": 6,
+   "price": 170,
+   "mob": 0,
+   "tg": "none",
+   "dampen": 1,
+   "tech": 1,
+   "d": "Field disruptor. Every hostile in its lane deals 1 less damage. Does not stack with itself."
+  },
+  "battery": {
+   "n": "Lance Battery",
+   "t": "tech",
+   "single": 1,
+   "dp": 3,
+   "hp": 7,
+   "price": 220,
+   "mob": 0,
+   "tg": "range3",
+   "dmg": 4,
+   "tech": 1,
+   "d": "Anchored particle lance. 4 damage at exactly three cells — direct fire, so a blocker of yours cuts the beam."
+  },
+  "knight": {
+   "n": "Knight",
+   "t": "common",
+   "single": 1,
+   "dp": 3,
+   "hp": 9,
+   "price": 200,
+   "mob": 1,
+   "tg": "adj",
+   "dmg": 3,
+   "blocker": 1,
+   "regen": 1,
+   "riposte": 1,
+   "d": "Shield and blade. Blocks the lane, regenerates its shield, and ripostes for 1 against anything that strikes it. Personnel — a Medic can patch it, a Tech Medic cannot."
+  },
+  "aegis": {
+   "n": "Aegis Knights",
+   "t": "special",
+   "single": 1,
+   "dp": 5,
+   "hp": 18,
+   "price": 520,
+   "mob": 0,
+   "size": 2,
+   "tg": "adj",
+   "dmg": 3,
+   "blocker": 1,
+   "regen": 1,
+   "riposte": 2,
+   "ab": {
+    "n": "Aegis Field",
+    "d": "Every friendly in this lane gains a shield this turn.",
+    "cd": 2
+   },
+   "d": "Armoured tech frames — two cells deep, eighteen hull, regenerating energy shields and swords. Seals a lane against chip damage indefinitely."
+  },
+  "biomed": {
+   "n": "Bio Medic",
+   "t": "special",
+   "dp": 4,
+   "hp": 4,
+   "price": 420,
+   "mob": 1,
+   "tg": "none",
+   "hot": 2,
+   "healType": "common",
+   "healMode": "col",
+   "d": "Healing over time. Applies regeneration to every Common unit in its column — 2 hull per turn, refreshed while it lives."
+  },
+  "techmed": {
+   "n": "Tech Medic",
+   "t": "special",
+   "dp": 4,
+   "hp": 4,
+   "price": 420,
+   "mob": 1,
+   "tg": "none",
+   "heal": 2,
+   "healPlay": 4,
+   "healType": "tech",
+   "healMode": "col",
+   "ab": {
+    "n": "Full Restore",
+    "d": "Burst-repair every Tech unit in the column for 8 and restore broken shields.",
+    "cd": 2
+   },
+   "d": "Burst repair. Trickles 2 per turn to Tech in its column, or dumps 8 at once on the ability."
+  },
+  "dragoon": {
+   "n": "Orbital Dragoon",
+   "t": "special",
+   "single": 1,
+   "dp": 4,
+   "hp": 5,
+   "price": 480,
+   "mob": 1,
+   "tg": "range2",
+   "dmg": 4,
+   "choose": 1,
+   "ab": {
+    "n": "Thruster Leap",
+    "d": "Vault and strike any hostile exactly two cells away in any direction for 6.",
+    "cd": 2
+   },
+   "d": "Strikes at a fixed range of two cells ahead for 4. Thrusters let it leap and hit anything two cells out in any direction."
+  },
+  "railgun": {
+   "n": "Rail Sniper",
+   "t": "special",
+   "dp": 5,
+   "hp": 4,
+   "price": 540,
+   "mob": 1,
+   "tg": "lane",
+   "dmg": 3,
+   "burst": 4,
+   "pen": 1,
+   "d": "Piercing shot down the entire lane, hitting every hostile in it and ignoring armour floors. 4 on play, then 3."
+  },
+  "hell": {
+   "n": "Hell Jumpers",
+   "t": "special",
+   "dp": 4,
+   "hp": 5,
+   "price": 460,
+   "mob": 1,
+   "tg": "around",
+   "dmg": 2,
+   "drop": 1,
+   "squad": 2,
+   "burstBlast": 3,
+   "d": "Two pods dropped behind hostile lines, on ANY tile. Each strikes all eight surrounding cells for 2. Orbital impact damages on landing."
+  },
+  "plasma": {
+   "n": "Plasma Artillerist",
+   "t": "special",
+   "dp": 5,
+   "hp": 3,
+   "price": 540,
+   "mob": 0,
+   "tg": "blast4",
+   "dmg": 3,
+   "indirect": 1,
+   "scorch": 1,
+   "d": "Plasma barrage, 3x3 at exactly four cells. The plasma lingers two turns, burning anything standing in it and denying capture."
+  },
+  "exo": {
+   "n": "Exo Juggernaut",
+   "t": "special",
+   "single": 1,
+   "dp": 5,
+   "hp": 20,
+   "price": 600,
+   "mob": 1,
+   "tg": "adj",
+   "dmg": 5,
+   "blocker": 1,
+   "ab": {
+    "n": "Hammer Charge",
+    "d": "Barrel two cells forward. Anything struck takes 8 and is stunned for a turn.",
+    "cd": 2
+   },
+   "d": "Explosive hammer in an exo frame. Twenty hull, 5 damage adjacent, and a charge that shatters whatever it collides with."
   }
+ },
+ "gear": {
+  "barrel": {
+   "n": "Extended Barrel",
+   "cost": 60,
+   "d": "+1 damage to this unit.",
+   "dmg": 1
+  },
+  "plating": {
+   "n": "Reactive Plating",
+   "cost": 50,
+   "d": "+3 hull.",
+   "hp": 3
+  },
+  "servo": {
+   "n": "Servo Legs",
+   "cost": 110,
+   "d": "May move AND fire in the same turn.",
+   "servo": 1
+  },
+  "uplink": {
+   "n": "Targeting Uplink",
+   "cost": 80,
+   "d": "Ignores hostile armour floors.",
+   "pen": 1
+  },
+  "kit": {
+   "n": "Field Kit",
+   "cost": 100,
+   "d": "Costs 1 less deploy point, minimum 1.",
+   "dp": -1
+  },
+  "coolant": {
+   "n": "Coolant Core",
+   "cost": 120,
+   "d": "Ability cooldowns are 1 turn shorter, minimum 1.",
+   "cool": 1
+  },
+  "phase": {
+   "n": "Phase Cloak",
+   "cost": 140,
+   "d": "The first killing blow leaves it at 1 hull instead. Once per deployment.",
+   "phase": 1
+  },
+  "weave": {
+   "n": "Ablative Weave",
+   "cost": 90,
+   "d": "+1 shield capacity. Stacks with regenerating shields.",
+   "shield": 1
+  },
+  "dropod": {
+   "n": "Drop Pod",
+   "cost": 150,
+   "d": "May deploy straight onto a hostile below Specialist tier, crushing it on landing and holding the cell.",
+   "crush": 1
+  }
+ },
+ "hostiles": {
+  "crawler": {
+   "n": "Crawler",
+   "t": "common",
+   "hp": 3,
+   "dmg": 2,
+   "threat": 1,
+   "spd": 2,
+   "d": "Cheap, fast, endless. Moves two cells a turn and floods whatever lane you leave open."
+  },
+  "breacher": {
+   "n": "Breacher",
+   "t": "common",
+   "hp": 7,
+   "dmg": 4,
+   "threat": 3,
+   "spd": 1,
+   "hunts": 1,
+   "d": "Prioritises Tech over personnel. Punishes Barricade and Turret spam."
+  },
+  "spitter": {
+   "n": "Spitter",
+   "t": "common",
+   "hp": 5,
+   "dmg": 3,
+   "threat": 3,
+   "spd": 1,
+   "hold": 4,
+   "d": "Stops at range four and fires down the lane. Outranges most of your roster. Punishes turtling."
+  },
+  "burrower": {
+   "n": "Burrower",
+   "t": "common",
+   "hp": 5,
+   "dmg": 3,
+   "threat": 3,
+   "spd": 1,
+   "emerge": 3,
+   "d": "Emerges mid-board, behind your front line. Punishes over-committing forward."
+  },
+  "hulk": {
+   "n": "Hulk",
+   "t": "common",
+   "hp": 14,
+   "dmg": 6,
+   "threat": 4,
+   "spd": 0.5,
+   "floor": 1,
+   "d": "Slow, heavy, reduces all incoming damage by 1. Punishes chip damage."
+  },
+  "spore": {
+   "n": "Spore Node",
+   "t": "tech",
+   "hp": 10,
+   "dmg": 0,
+   "threat": 4,
+   "spd": 0,
+   "spawn": 2,
+   "d": "Immobile emplacement. Releases a Crawler every two turns and holds its tile until destroyed."
+  },
+  "pylon": {
+   "n": "Bulwark Pylon",
+   "t": "tech",
+   "hp": 12,
+   "dmg": 0,
+   "threat": 5,
+   "spd": 0,
+   "lanefloor": 1,
+   "d": "Immobile emplacement. +1 damage floor to every hostile in its lane."
+  },
+  "jammer": {
+   "n": "Jammer",
+   "t": "tech",
+   "hp": 8,
+   "dmg": 0,
+   "threat": 4,
+   "spd": 0,
+   "jam": 1,
+   "d": "Immobile emplacement. Blocks all indirect fire in its lane. Shuts off Mortar and Artillerist entirely."
+  },
+  "harrower": {
+   "n": "Harrower",
+   "t": "special",
+   "hp": 12,
+   "dmg": 6,
+   "threat": 7,
+   "spd": 1.5,
+   "tunnel": 1,
+   "d": "Tunnels straight past blockers. Barricades and Bulwarks do not stop it."
+  },
+  "chorus": {
+   "n": "Chorus",
+   "t": "special",
+   "hp": 14,
+   "dmg": 0,
+   "threat": 8,
+   "spd": 0,
+   "aura": 1,
+   "d": "Immobile at the far edge. +1 damage to every hostile on the board. Kill it first — if you can reach it."
+  },
+  "sovereign": {
+   "n": "Sovereign",
+   "t": "special",
+   "hp": 40,
+   "dmg": 8,
+   "threat": 10,
+   "spd": 0.5,
+   "convert": 1,
+   "d": "Moves every other turn. Every tile it crosses becomes hostile ground permanently."
+  }
+ },
+ "leads": {
+  "ironbrand": {
+   "n": "VALE",
+   "call": "IRONBRAND",
+   "role": "Line Commander",
+   "col": "#4de8ff",
+   "bio": "Held the Sundering Gate for nine days with a company of forty. Believes armour is a philosophy.",
+   "passive": {
+    "n": "Hardened Frames",
+    "d": "Every unit you deploy arrives with +1 hull."
+   }
+  },
+  "wildfire": {
+   "n": "KESTREL",
+   "call": "WILDFIRE",
+   "role": "Strike Officer",
+   "col": "#ff4d8f",
+   "bio": "Three commendations, two demotions, one very expensive orbital incident. Fights fast and asks after.",
+   "active": {
+    "n": "Emergency Requisition",
+    "d": "Once per mission: +4 deploy points immediately."
+   }
+  },
+  "coldwire": {
+   "n": "SABLE",
+   "call": "COLDWIRE",
+   "role": "Field Engineer",
+   "col": "#ffc94d",
+   "bio": "Speaks to machines more than people. The machines, notably, keep working.",
+   "passive": {
+    "n": "Nanite Weave",
+    "d": "All your units repair 1 hull at the end of every turn."
+   }
+  }
+ },
+ "missions": {
+  "stronghold": {
+   "n": "Defend Stronghold",
+   "waves": 8,
+   "d": "Hold the line through every wave. Three breaches ends it."
+  },
+  "civilians": {
+   "n": "Protect Civilians",
+   "waves": 7,
+   "d": "Three civilian pods sit on your ground. Lose all three and the operation fails."
+  },
+  "specimens": {
+   "n": "Acquire Specimens",
+   "waves": 7,
+   "d": "Destroy the marked hostile type to fill the quota."
+  },
+  "crystals": {
+   "n": "Fight for Crystals",
+   "waves": 7,
+   "d": "Four crystal nodes on the field. Hold three when the last wave clears."
+  },
+  "retake": {
+   "n": "Retake Ground",
+   "waves": 7,
+   "d": "Hold 3 or more tiles in the hostile half when the last wave clears. Bring something that deploys behind their line."
+  },
+  "extract": {
+   "n": "Extraction",
+   "waves": 6,
+   "d": "Short and heavy. Survive to extraction."
+  }
+ },
+ "modifiers": {
+  "none": {
+   "n": "—",
+   "d": ""
+  },
+  "nest": {
+   "n": "Nest",
+   "d": "Emplacements from wave one."
+  },
+  "blackout": {
+   "n": "Blackout",
+   "d": "No wave preview and no spawn markers."
+  },
+  "breach": {
+   "n": "Hull breach",
+   "d": "The top lane is impassable."
+  },
+  "salvage": {
+   "n": "Salvage",
+   "d": "Each kill refunds 1 deploy point."
+  },
+  "swarm": {
+   "n": "Swarm",
+   "d": "Crawler counts doubled."
+  }
+ },
+ "operations": {
+  "ironveil": {
+   "k": "ironveil",
+   "n": "OPERATION IRONVEIL",
+   "sub": "Delta Shelf · orbital shipyard, overrun",
+   "col": "#4de8ff",
+   "zones": [
+    {
+     "l": "ZONE A",
+     "p": "22,96 108,44 236,44 286,104 236,182 96,182"
+    },
+    {
+     "l": "ZONE B",
+     "p": "250,52 372,52 418,104 372,158 268,158 236,104"
+    },
+    {
+     "l": "ZONE C",
+     "p": "214,168 358,168 404,214 358,262 236,262 190,214"
+    }
+   ],
+   "nodes": [
+    {
+     "id": "n1",
+     "x": 96,
+     "y": 96
+    },
+    {
+     "id": "n2",
+     "x": 170,
+     "y": 118
+    },
+    {
+     "id": "n3",
+     "x": 250,
+     "y": 92
+    },
+    {
+     "id": "n4",
+     "x": 206,
+     "y": 172
+    },
+    {
+     "id": "n5",
+     "x": 278,
+     "y": 196
+    },
+    {
+     "id": "n6",
+     "x": 352,
+     "y": 170
+    },
+    {
+     "id": "n7",
+     "x": 236,
+     "y": 250
+    }
+   ],
+   "edges": [
+    [
+     "n1",
+     "n2"
+    ],
+    [
+     "n2",
+     "n3"
+    ],
+    [
+     "n2",
+     "n4"
+    ],
+    [
+     "n4",
+     "n5"
+    ],
+    [
+     "n5",
+     "n6"
+    ],
+    [
+     "n4",
+     "n7"
+    ],
+    [
+     "n3",
+     "n6"
+    ]
+   ]
+  },
+  "blackmarrow": {
+   "k": "blackmarrow",
+   "n": "OPERATION BLACKMARROW",
+   "sub": "Sub-crust mining tunnels · nest confirmed",
+   "col": "#ff4d8f",
+   "zones": [
+    {
+     "l": "UPPER GALLERY",
+     "p": "40,40 200,30 250,80 200,130 60,130"
+    },
+    {
+     "l": "THE THROAT",
+     "p": "170,110 330,100 390,160 330,220 190,220 150,160"
+    },
+    {
+     "l": "DEEP SHAFT",
+     "p": "60,180 190,190 230,250 170,278 70,265 30,220"
+    }
+   ],
+   "nodes": [
+    {
+     "id": "n1",
+     "x": 70,
+     "y": 80
+    },
+    {
+     "id": "n2",
+     "x": 150,
+     "y": 60
+    },
+    {
+     "id": "n3",
+     "x": 220,
+     "y": 110
+    },
+    {
+     "id": "n4",
+     "x": 300,
+     "y": 150
+    },
+    {
+     "id": "n5",
+     "x": 362,
+     "y": 180
+    },
+    {
+     "id": "n6",
+     "x": 190,
+     "y": 200
+    },
+    {
+     "id": "n7",
+     "x": 110,
+     "y": 228
+    },
+    {
+     "id": "n8",
+     "x": 200,
+     "y": 256
+    }
+   ],
+   "edges": [
+    [
+     "n1",
+     "n2"
+    ],
+    [
+     "n2",
+     "n3"
+    ],
+    [
+     "n3",
+     "n4"
+    ],
+    [
+     "n4",
+     "n5"
+    ],
+    [
+     "n3",
+     "n6"
+    ],
+    [
+     "n6",
+     "n7"
+    ],
+    [
+     "n7",
+     "n8"
+    ],
+    [
+     "n6",
+     "n8"
+    ]
+   ]
+  },
+  "sunderglass": {
+   "k": "sunderglass",
+   "n": "OPERATION SUNDERGLASS",
+   "sub": "Crystal fields · contested extraction",
+   "col": "#ffc94d",
+   "zones": [
+    {
+     "l": "THE SHALLOWS",
+     "p": "30,120 130,60 250,70 280,140 200,200 70,190"
+    },
+    {
+     "l": "PRISM RIDGE",
+     "p": "250,50 380,60 420,130 350,190 270,160 240,100"
+    },
+    {
+     "l": "THE GLASSING",
+     "p": "140,200 300,200 350,250 280,282 160,275"
+    }
+   ],
+   "nodes": [
+    {
+     "id": "n1",
+     "x": 70,
+     "y": 150
+    },
+    {
+     "id": "n2",
+     "x": 150,
+     "y": 105
+    },
+    {
+     "id": "n3",
+     "x": 245,
+     "y": 120
+    },
+    {
+     "id": "n4",
+     "x": 330,
+     "y": 95
+    },
+    {
+     "id": "n5",
+     "x": 392,
+     "y": 145
+    },
+    {
+     "id": "n6",
+     "x": 300,
+     "y": 185
+    },
+    {
+     "id": "n7",
+     "x": 200,
+     "y": 235
+    },
+    {
+     "id": "n8",
+     "x": 305,
+     "y": 252
+    }
+   ],
+   "edges": [
+    [
+     "n1",
+     "n2"
+    ],
+    [
+     "n2",
+     "n3"
+    ],
+    [
+     "n3",
+     "n4"
+    ],
+    [
+     "n4",
+     "n5"
+    ],
+    [
+     "n5",
+     "n6"
+    ],
+    [
+     "n3",
+     "n6"
+    ],
+    [
+     "n2",
+     "n7"
+    ],
+    [
+     "n7",
+     "n8"
+    ],
+    [
+     "n6",
+     "n8"
+    ]
+   ]
+  }
+ },
+ "doctrines": [
+  {
+   "k": "focus",
+   "w": 26,
+   "n": "Concentrated push"
+  },
+  {
+   "k": "spread",
+   "w": 38,
+   "n": "Broad assault"
+  },
+  {
+   "k": "probe",
+   "w": 36,
+   "n": "Probing attack"
+  }
+ ],
+ "targeting": {
+  "first": "First hostile in lane",
+  "furthest": "Furthest hostile in lane",
+  "lane": "Every hostile in the lane",
+  "ahead3": "Three cells ahead",
+  "blast4": "3x3 at exactly range 4",
+  "adj": "Adjacent cell",
+  "around": "All eight surrounding cells",
+  "adj4": "One adjacent hostile",
+  "archer": "Two ahead plus both rear diagonals",
+  "vert3": "Three cells vertically, one column ahead",
+  "bothsides": "The cell ahead and the cell behind",
+  "ahead2": "Both cells one and two ahead",
+  "range3": "Exactly three cells ahead",
+  "diag": "The four diagonals only",
+  "range2": "Exactly two cells ahead"
+ },
+ "emptyProfile": {
+  "version": 4,
+  "id": "pmtapjx9y",
+  "callsign": "CALLSIGN",
+  "created": 1787785879606,
+  "lastPlayed": 1787785879606,
+  "progress": {
+   "rank": 1,
+   "xp": 0,
+   "credits": 300,
+   "salvage": 120
+  },
+  "unlocks": {
+   "cards": [
+    "scout",
+    "rifle",
+    "marks",
+    "wall",
+    "medic",
+    "turret",
+    "lancer",
+    "bulwark",
+    "assassin"
+   ],
+   "enemies": [],
+   "gear": []
+  },
+  "loadout": {
+   "deck": [
+    "scout",
+    "rifle",
+    "marks",
+    "wall",
+    "medic",
+    "turret",
+    "lancer",
+    "bulwark",
+    "assassin"
+   ],
+   "gear": {}
+  },
+  "stats": {
+   "deployments": 0,
+   "held": 0,
+   "lost": 0,
+   "breaches": 0,
+   "kills": 0,
+   "unitsLost": 0
+  },
+  "ship": "ANVIL-7",
+  "lead": "ironbrand",
+  "usage": {},
+  "op": "ironveil",
+  "ops": {},
+  "mode": "campaign",
+  "ironman": false,
+  "gaunt": null,
+  "bests": {
+   "onslaught": 0,
+   "gauntlet": 0
+  },
+  "settings": {}
+ }
 }

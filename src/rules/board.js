@@ -8,6 +8,7 @@ import {LANES, COLS} from '../state/constants.js';
 import {POOL} from '../content/cards.js';
 import {BEST} from '../content/hostiles.js';
 import {G} from '../state/session.js';
+import {gearOf} from '../save/progression.js';
 
 /** Your unit covering this cell — units may be two cells wide. */
 export const unitAt = (l, c) => G.units.find(u => u.lane === l && c >= u.col && c < u.col + u.size);
@@ -53,17 +54,6 @@ export function validTiles(cid) {
   const k = POOL[cid];
   const out = [];
 
-  // Drop Pod comes down on top of a hostile and crushes it — but not through
-  // Specialist armour.
-  if (k.crush) {
-    G.enemies.forEach(e => {
-      if (BEST[e.k].t === 'special') return;
-      if (G.ter[e.lane][e.col] === 'x') return;
-      out.push(e.lane * COLS + e.col);
-    });
-    return out;
-  }
-
   // Instants are consumed where you stand; any held tile will do.
   if (k.instant) {
     for (let l = 0; l < LANES; l++) for (let c = 0; c < COLS; c++) {
@@ -90,6 +80,16 @@ export function validTiles(cid) {
       if (unitAt(l, cc) || foeAt(l, cc) || civAt(l, cc)) { ok = false; break; }
     }
     if (ok) out.push(l * COLS + c);
+  }
+
+  // A Drop Pod comes down on top of a hostile and crushes it — but not through
+  // Specialist armour, and only for a unit that fits in the one cell it clears.
+  if (gearOf(cid) && gearOf(cid).crush && (k.size || 1) === 1) {
+    G.enemies.forEach(e => {
+      if (BEST[e.k].t === 'special') return;
+      if (G.ter[e.lane][e.col] === 'x') return;
+      out.push(e.lane * COLS + e.col);
+    });
   }
   return out;
 }

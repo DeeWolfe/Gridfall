@@ -1,7 +1,10 @@
-# Gridfall
+# Gridfall: Zanshin Protocol
 
 A lane-defence tactics game for the browser. Five lanes, eight columns, twelve
 cards, and a horde that tells you exactly which lane it is coming down.
+
+You are the task force commander. A team lead runs the squad in the field and
+answers to you.
 
 You hold ground to deploy, and you deploy to hold ground. Tiles flip to whoever
 ends the turn standing on them, and you may only play cards onto tiles you

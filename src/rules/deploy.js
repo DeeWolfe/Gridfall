@@ -9,7 +9,7 @@ import {POOL} from '../content/cards.js';
 import {BEST} from '../content/hostiles.js';
 import {G, active, clearSelection} from '../state/session.js';
 import {randInt} from '../state/rng.js';
-import {costOf, vetOf} from '../save/progression.js';
+import {costOf, vetOf, gearOf} from '../save/progression.js';
 import {VET} from '../content/ranks.js';
 import {hooks} from '../state/hooks.js';
 import {unitAt, foeAt, civAt} from './board.js';
@@ -111,16 +111,19 @@ export function deploy(cid, l, c) {
   } else if (k.squad) {
     placeSquad(cid, l, c);
   } else {
-    // Drop Pod lands on a hostile and crushes it outright.
-    if (k.crush) {
+    // A Drop Pod lands on a hostile and crushes it outright. The gear only
+    // widens where the card may be played, so the crush fires when the chosen
+    // cell actually holds something.
+    const pod = gearOf(cid);
+    if (pod && pod.crush) {
       const e = foeAt(l, c);
       if (e) {
         G.enemies = G.enemies.filter(x => x.uid !== e.uid);
         G.kills++;
         clog(`<span class="g">${k.n}</span> came down on ${BEST[e.k].n} and crushed it.`, 'kill');
         if (!active.unlocks.enemies.includes(e.k)) active.unlocks.enemies.push(e.k);
+        G.ter[l][c] = 'p';
       }
-      G.ter[l][c] = 'p';
     }
 
     const u = mkUnit(cid, l, c);

@@ -1,4 +1,4 @@
-<title>GRIDFALL</title>
+<title>Gridfall: Zanshin Protocol</title>
 <style>
 :root{
   --void:#07060f; --deep:#0e0c1e; --panel:#15122c; --panel2:#1d1940;
@@ -31,14 +31,78 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .mini:hover{color:var(--cyan);border-color:var(--cyan-d)}
 
 /* ============ BOOT ============ */
-#boot{align-items:center;justify-content:center;padding:24px;overflow:auto;
-  background:radial-gradient(ellipse at 50% 30%,#1a1440 0%,var(--void) 68%)}
-.bootwrap{width:100%;max-width:clamp(360px,32vw,560px)}
-.wordmark{font-size:2.375rem;font-weight:700;letter-spacing:.32em;text-align:center;line-height:1;
-  background:linear-gradient(180deg,var(--cyan),var(--violet));-webkit-background-clip:text;
+#boot{align-items:center;justify-content:center;padding:clamp(12px,2.4vw,32px);overflow:auto;
+  background:radial-gradient(ellipse at 50% 26%,#181236 0%,var(--void) 66%)}
+.bootwrap{width:100%;max-width:clamp(360px,34vw,600px)}
+
+/* The login screen is a console you are logged into, not a title card: a
+   framed terminal with a status bar, a boot log and an authentication prompt. */
+.console{position:relative;border:1px solid var(--line2);background:linear-gradient(180deg,#0c0a1e,#080714);
+  box-shadow:0 0 60px rgba(77,232,255,.07),inset 0 0 90px rgba(9,7,22,.9)}
+/* Corner brackets rather than a clipped corner: clip-path cuts the border away
+   and leaves the diagonal unpainted, which reads as a rendering fault. Each
+   bracket is written out in full — a shared rule plus an override would declare
+   the same selector twice, which cssdup rightly rejects. */
+.console::before{content:'';position:absolute;top:-1px;left:-1px;width:18px;height:18px;
+  pointer-events:none;border-top:2px solid var(--cyan);border-left:2px solid var(--cyan)}
+.console::after{content:'';position:absolute;bottom:-1px;right:-1px;width:18px;height:18px;
+  pointer-events:none;border-bottom:2px solid var(--cyan);border-right:2px solid var(--cyan)}
+.conbar{display:flex;align-items:center;gap:9px;padding:.55rem .85rem;border-bottom:1px solid var(--line);
+  background:rgba(77,232,255,.045)}
+.condot{width:7px;height:7px;flex:0 0 auto;background:var(--green);border-radius:50%;
+  box-shadow:0 0 9px var(--green);animation:conpulse 2.6s infinite}
+.contitle{font-size:0.5312rem;letter-spacing:.26em;text-transform:uppercase;color:var(--cyan);font-weight:700}
+.conid{margin-left:auto;font-size:0.4688rem;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.conbody{padding:clamp(14px,2vw,26px) clamp(13px,1.8vw,24px) clamp(15px,2vw,24px)}
+@keyframes conpulse{0%,100%{opacity:1}50%{opacity:.28}}
+
+.wordmark{font-size:clamp(1.75rem,3.4vw,2.375rem);font-weight:700;letter-spacing:.3em;text-align:center;
+  line-height:1;background:linear-gradient(180deg,var(--cyan),var(--violet));-webkit-background-clip:text;
   background-clip:text;color:transparent;filter:drop-shadow(0 0 24px rgba(77,232,255,.32))}
-.bootsub{text-align:center;margin:11px 0 32px;font-size:0.5625rem;letter-spacing:.24em;
-  color:var(--dim);text-transform:uppercase}
+.bootsub{text-align:center;margin:10px 0 20px;font-size:0.5625rem;letter-spacing:.34em;
+  color:var(--violet);text-transform:uppercase}
+
+.bootlog{list-style:none;display:flex;flex-direction:column;gap:3px;margin-bottom:16px;
+  padding:.6rem .7rem;border-left:2px solid var(--line2);background:rgba(255,255,255,.014)}
+.bootlog li{font-size:0.5rem;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);
+  opacity:0;animation:conline .5s forwards}
+.bootlog li::before{content:'› ';color:var(--cyan-d)}
+.bootlog li:nth-child(2){animation-delay:.16s}
+.bootlog li:nth-child(3){animation-delay:.32s}
+.bootlog li:nth-child(4){animation-delay:.48s}
+.bootlog li.warn{color:var(--gold)}
+.bootlog li.warn::before{content:'! ';color:var(--gold)}
+@keyframes conline{to{opacity:1}}
+
+.conreads{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;margin-bottom:18px;
+  background:var(--line);border:1px solid var(--line)}
+.conreads div{background:var(--void);padding:.5rem .6rem;display:flex;flex-direction:column;gap:3px}
+.conreads span{font-size:0.4375rem;letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
+.conreads b{font-size:0.5625rem;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan)}
+
+.conlabel{font-size:0.4688rem;letter-spacing:.26em;text-transform:uppercase;color:var(--dim);
+  margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.conlabel::after{content:'';flex:1;height:1px;background:var(--line)}
+
+.prompt{font-size:0.4688rem;letter-spacing:.26em;text-transform:uppercase;color:var(--dim)}
+.promptline{display:flex;align-items:stretch;gap:0;border:1px solid var(--line2);background:var(--panel)}
+.promptline:focus-within{border-color:var(--cyan);box-shadow:0 0 18px rgba(77,232,255,.14)}
+.caret{display:flex;align-items:center;padding:0 .55rem;color:var(--cyan);font-size:0.75rem;
+  border-right:1px solid var(--line);animation:conblink 1.15s steps(1) infinite}
+.promptline input{border:none;box-shadow:none;background:transparent}
+.promptline input:focus{border:none;box-shadow:none}
+@keyframes conblink{0%,55%{opacity:1}56%,100%{opacity:.22}}
+
+.conacts{display:flex;gap:8px}
+.conacts .btn{flex:1}
+.conacts .btn.ghost{flex:0 0 auto}
+.confoot{margin-top:16px;padding-top:12px;border-top:1px solid var(--line);
+  font-size:0.4688rem;letter-spacing:.12em;color:var(--dim);line-height:1.7;text-align:center}
+
+/* A faint raster over the whole console. Purely atmospheric, never in the way. */
+.scanlines{position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(77,232,255,.028) 2px 3px)}
+
 .slots{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
 .slot{background:var(--panel);border:1px solid var(--line);padding:14px 16px;display:flex;
   justify-content:space-between;align-items:center;gap:12px;text-align:left;width:100%;transition:.13s;
@@ -130,6 +194,7 @@ input:focus{border-color:var(--cyan);box-shadow:0 0 18px rgba(77,232,255,.14)}
 .row.locked{opacity:.4}
 
 /* ============ CARD GRID ============ */
+.cempty{grid-column:1/-1;color:var(--dim);font-size:0.625rem}
 .cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(62px,4.6vw,84px),1fr));gap:clamp(4px,.35vw,6px)}
 
 .gcard{position:relative;background:linear-gradient(170deg,var(--panel2) 0%,var(--deep) 62%);
@@ -341,6 +406,9 @@ input:focus{border-color:var(--cyan);box-shadow:0 0 18px rgba(77,232,255,.14)}
 .leadbio{font-size:0.5rem;color:var(--dim);line-height:1.55}
 .leadperk{font-size:0.5rem;color:var(--dim);line-height:1.55;border-left:2px solid var(--lc);padding-left:8px}
 .leadperk b{display:block;color:var(--lc);letter-spacing:.1em;text-transform:uppercase;font-size:0.5rem;margin-bottom:3px}
+.leadchain{margin-top:9px;padding-top:8px;border-top:1px solid var(--line);
+  font-size:0.4688rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.leadchain b{color:var(--cyan)}
 .leadswap{display:flex;gap:5px;flex-wrap:wrap;margin-top:1px}
 .leadchip{font-size:0.4688rem;letter-spacing:.1em;padding:5px 9px;border:1px solid var(--line2);color:var(--dim)}
 .leadchip:hover{color:var(--lc);border-color:var(--lc)}
@@ -651,15 +719,46 @@ body{font-size:1rem}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 <div class="scr on" id="boot"><div class="bootwrap">
-  <div class="wordmark">GRIDFALL</div>
-  <div class="bootsub">Task force personnel record</div>
-  <div class="slots" id="slots"></div>
-  <div id="newform">
-    <input id="callsign" maxlength="12" placeholder="Callsign" autocomplete="off" spellcheck="false">
-    <div style="display:flex;gap:8px"><button class="btn" id="create" style="flex:1">Enlist</button>
-      <button class="btn ghost" id="cancelnew">Back</button></div></div>
-  <div style="text-align:center;margin-top:20px;font-size:0.5312rem;color:var(--dim);line-height:1.7">
-    Records are stored on this device only.</div>
+  <div class="console">
+    <div class="conbar">
+      <span class="condot"></span>
+      <span class="contitle">Zanshin Protocol</span>
+      <span class="conid">NODE 07 · SECURE</span>
+    </div>
+    <div class="conbody">
+      <div class="wordmark">GRIDFALL</div>
+      <div class="bootsub">Zanshin Protocol</div>
+
+      <ol class="bootlog">
+        <li>orbital uplink established</li>
+        <li>crypto handshake · ok</li>
+        <li>task force registry mounted</li>
+        <li class="warn">awaiting command authentication</li>
+      </ol>
+
+      <div class="conreads">
+        <div><span>Uplink</span><b>Stable</b></div>
+        <div><span>Registry</span><b>3 slots</b></div>
+        <div><span>Clearance</span><b>Command</b></div>
+      </div>
+
+      <div class="conlabel">Command records</div>
+      <div class="slots" id="slots"></div>
+
+      <div id="newform">
+        <label class="prompt" for="callsign">Commander callsign</label>
+        <div class="promptline">
+          <span class="caret">&gt;</span>
+          <input id="callsign" maxlength="12" placeholder="CALLSIGN" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="conacts"><button class="btn" id="create">Authenticate</button>
+          <button class="btn ghost" id="cancelnew">Back</button></div>
+      </div>
+
+      <div class="confoot">You command the task force. Records are held on this device only.</div>
+    </div>
+    <div class="scanlines"></div>
+  </div>
 </div></div>
 
 <div class="scr" id="hold"><div id="vibe"><div class="holdgrid">
@@ -1280,19 +1379,6 @@ const POOL = {
     tech: 1,
     d: "Attach to a unit. It fires a second time each turn. Scales with whatever it is bolted to.",
   },
-  dropod: {
-    n: "Drop Pod",
-    t: "tech",
-    dp: 3,
-    hp: 6,
-    price: 230,
-    mob: 0,
-    tg: "adj",
-    dmg: 2,
-    crush: 1,
-    tech: 1,
-    d: "Orbital insertion straight onto a hostile. Crushes it outright and the pod holds the cell. Cannot crack Specialist-tier armour.",
-  },
   turret: {
     n: "Turret",
     t: "tech",
@@ -1369,19 +1455,18 @@ const POOL = {
   },
   knight: {
     n: "Knight",
-    t: "tech",
+    t: "common",
     single: 1,
     dp: 3,
     hp: 9,
-    price: 210,
+    price: 200,
     mob: 1,
     tg: "adj",
     dmg: 3,
     blocker: 1,
     regen: 1,
-    riposte: 3,
-    tech: 1,
-    d: "Tech shield and blade. Blocks the lane, regenerates its shield, and ripostes for 3 against anything that strikes it. Tech Medic repairs it; Bio Medic cannot.",
+    riposte: 1,
+    d: "Shield and blade. Blocks the lane, regenerates its shield, and ripostes for 1 against anything that strikes it. Personnel — a Medic can patch it, a Tech Medic cannot.",
   },
   aegis: {
     n: "Aegis Knights",
@@ -1538,6 +1623,12 @@ const GEAR = {
     cost: 90,
     d: "+1 shield capacity. Stacks with regenerating shields.",
     shield: 1,
+  },
+  dropod: {
+    n: "Drop Pod",
+    cost: 150,
+    d: "May deploy straight onto a hostile below Specialist tier, crushing it on landing and holding the cell.",
+    crush: 1,
   },
 };
 
@@ -1953,6 +2044,68 @@ const BEST = {
   },
 };
 
+/* ==== src/content/ranks.js ========================================== */
+// Progression vocabulary: card tiers, commander ranks, and card veterancy.
+// Not part of gridfall-data.json — these are presentation ladders rather than
+// balance numbers, and nothing outside the UI reads them.
+
+const TIERNAME = {common: 'Common', tech: 'Tech', special: 'Specialist'};
+
+// The player commands the whole task force; a team lead runs the squad under
+// them. The ladder therefore starts at command tier, not at enlisted ranks.
+const RANKS = ['Acting Commander', 'Commander', 'Senior Commander',
+  'Task Force Commander', 'Operations Director', 'Marshal'];
+
+// A card's rank climbs with how many times it has been deployed across the
+// whole profile. `at` is the deployment count that unlocks the tier.
+const VET = [
+  {n: 'Standard', at: 0, col: '#8d9bbd'},
+  {n: 'Veteran', at: 10, col: '#b8c4dd'},
+  {n: 'Elite', at: 30, col: '#ffc94d'},
+  {n: 'Legend', at: 75, col: '#9d6bff'},
+];
+
+/* ==== src/save/progression.js ======================================= */
+// Derived readings of the active profile: what a card costs right now, what
+// gear is bolted to it, how far up the veterancy ladder it has climbed.
+
+const rankName = r => RANKS[Math.min(r - 1, RANKS.length - 1)];
+
+/** Human-readable age of a timestamp, for the record-select screen. */
+const ago = t => {
+  const d = Math.floor((Date.now() - t) / 864e5);
+  return d < 1 ? 'today' : d === 1 ? 'yesterday' : d + ' days ago';
+};
+
+/** Veterancy standing of a card across this profile's whole career. */
+function vetOf(id) {
+  const u = (active && active.usage && active.usage[id]) || 0;
+  let t = 0;
+  for (let i = VET.length - 1; i >= 0; i--) {
+    if (u >= VET[i].at) { t = i; break; }
+  }
+  return {t, u, n: VET[t].n, col: VET[t].col, next: t < VET.length - 1 ? VET[t + 1].at : null};
+}
+
+/** The gear fitted to a card, or null. */
+function gearOf(id) {
+  if (!active || !active.loadout || !active.loadout.gear) return null;
+  return GEAR[active.loadout.gear[id]] || null;
+}
+
+/** Deploy-point cost including any gear discount. Never below 1. */
+function costOf(id) {
+  const k = POOL[id];
+  if (!k) return 99;
+  const g = gearOf(id);
+  return Math.max(1, k.dp + (g && g.dp ? g.dp : 0));
+}
+
+/** The active profile's team lead, defaulting to Ironbrand. */
+function leadOf() {
+  return LEADS[(active && active.lead) || 'ironbrand'] || LEADS.ironbrand;
+}
+
 /* ==== src/rules/board.js ============================================ */
 // Reading the board: what occupies a cell, who owns what, where you may build.
 //
@@ -2004,17 +2157,6 @@ function validTiles(cid) {
   const k = POOL[cid];
   const out = [];
 
-  // Drop Pod comes down on top of a hostile and crushes it — but not through
-  // Specialist armour.
-  if (k.crush) {
-    G.enemies.forEach(e => {
-      if (BEST[e.k].t === 'special') return;
-      if (G.ter[e.lane][e.col] === 'x') return;
-      out.push(e.lane * COLS + e.col);
-    });
-    return out;
-  }
-
   // Instants are consumed where you stand; any held tile will do.
   if (k.instant) {
     for (let l = 0; l < LANES; l++) for (let c = 0; c < COLS; c++) {
@@ -2041,6 +2183,16 @@ function validTiles(cid) {
       if (unitAt(l, cc) || foeAt(l, cc) || civAt(l, cc)) { ok = false; break; }
     }
     if (ok) out.push(l * COLS + c);
+  }
+
+  // A Drop Pod comes down on top of a hostile and crushes it — but not through
+  // Specialist armour, and only for a unit that fits in the one cell it clears.
+  if (gearOf(cid) && gearOf(cid).crush && (k.size || 1) === 1) {
+    G.enemies.forEach(e => {
+      if (BEST[e.k].t === 'special') return;
+      if (G.ter[e.lane][e.col] === 'x') return;
+      out.push(e.lane * COLS + e.col);
+    });
   }
   return out;
 }
@@ -2581,65 +2733,6 @@ const TGNAME = {
   range2: "Exactly two cells ahead",
 };
 
-/* ==== src/content/ranks.js ========================================== */
-// Progression vocabulary: card tiers, commander ranks, and card veterancy.
-// Not part of gridfall-data.json — these are presentation ladders rather than
-// balance numbers, and nothing outside the UI reads them.
-
-const TIERNAME = {common: 'Common', tech: 'Tech', special: 'Specialist'};
-
-const RANKS = ['Recruit', 'Corporal', 'Sergeant', 'Lieutenant', 'Captain', 'Commander'];
-
-// A card's rank climbs with how many times it has been deployed across the
-// whole profile. `at` is the deployment count that unlocks the tier.
-const VET = [
-  {n: 'Standard', at: 0, col: '#8d9bbd'},
-  {n: 'Veteran', at: 10, col: '#b8c4dd'},
-  {n: 'Elite', at: 30, col: '#ffc94d'},
-  {n: 'Legend', at: 75, col: '#9d6bff'},
-];
-
-/* ==== src/save/progression.js ======================================= */
-// Derived readings of the active profile: what a card costs right now, what
-// gear is bolted to it, how far up the veterancy ladder it has climbed.
-
-const rankName = r => RANKS[Math.min(r - 1, RANKS.length - 1)];
-
-/** Human-readable age of a timestamp, for the record-select screen. */
-const ago = t => {
-  const d = Math.floor((Date.now() - t) / 864e5);
-  return d < 1 ? 'today' : d === 1 ? 'yesterday' : d + ' days ago';
-};
-
-/** Veterancy standing of a card across this profile's whole career. */
-function vetOf(id) {
-  const u = (active && active.usage && active.usage[id]) || 0;
-  let t = 0;
-  for (let i = VET.length - 1; i >= 0; i--) {
-    if (u >= VET[i].at) { t = i; break; }
-  }
-  return {t, u, n: VET[t].n, col: VET[t].col, next: t < VET.length - 1 ? VET[t + 1].at : null};
-}
-
-/** The gear fitted to a card, or null. */
-function gearOf(id) {
-  if (!active || !active.loadout || !active.loadout.gear) return null;
-  return GEAR[active.loadout.gear[id]] || null;
-}
-
-/** Deploy-point cost including any gear discount. Never below 1. */
-function costOf(id) {
-  const k = POOL[id];
-  if (!k) return 99;
-  const g = gearOf(id);
-  return Math.max(1, k.dp + (g && g.dp ? g.dp : 0));
-}
-
-/** The active profile's team lead, defaulting to Ironbrand. */
-function leadOf() {
-  return LEADS[(active && active.lead) || 'ironbrand'] || LEADS.ironbrand;
-}
-
 /* ==== src/render/art.js ============================================= */
 // Procedural art. No image assets ship with the game: card sigils and lead
 // portraits are SVG generated from a hash of the id, so every card has a
@@ -2752,7 +2845,7 @@ function statRows(id) {
     k.pristine ? ['Pristine bonus', '+' + k.pristine + ' damage at full hull'] : null,
     k.claim ? ['On deployment', 'Claims ' + k.claim + ' tiles ahead'] : null,
     k.instant ? ['Type', 'Instant — no body left behind'] : null,
-    k.crush ? ['Deployment', 'Onto a hostile — destroys it outright'] : null,
+    g && g.crush ? ['Deployment', 'Onto a hostile — crushes it outright'] : null,
     (k.heal || k.hot) ? ['Support', 'Heals ' + (k.healType === 'tech' ? 'Tech' : 'Common') + ' units'] : null,
   ].filter(Boolean);
 }
@@ -3086,6 +3179,7 @@ function leadCardHTML() {
       <div class="leadrole">${L.role} <span>·</span> ${L.n}</div>
       <div class="leadbio">${L.bio}</div>
       <div class="leadperk"><b>${L.passive ? 'Passive' : 'Active'} · ${perk.n}</b>${perk.d}</div>
+      <div class="leadchain">Runs the squad. Reports to <b>${active.callsign}</b> · ${rankName(active.progress.rank)}</div>
       <div class="leadswap">${Object.keys(LEADS).map(k => {
         const o = LEADS[k];
         return `<button class="leadchip${k === id ? ' on' : ''}" data-lead="${k}" style="--lc:${o.col}">${o.call}</button>`;
@@ -3898,16 +3992,19 @@ function deploy(cid, l, c) {
   } else if (k.squad) {
     placeSquad(cid, l, c);
   } else {
-    // Drop Pod lands on a hostile and crushes it outright.
-    if (k.crush) {
+    // A Drop Pod lands on a hostile and crushes it outright. The gear only
+    // widens where the card may be played, so the crush fires when the chosen
+    // cell actually holds something.
+    const pod = gearOf(cid);
+    if (pod && pod.crush) {
       const e = foeAt(l, c);
       if (e) {
         G.enemies = G.enemies.filter(x => x.uid !== e.uid);
         G.kills++;
         clog(`<span class="g">${k.n}</span> came down on ${BEST[e.k].n} and crushed it.`, 'kill');
         if (!active.unlocks.enemies.includes(e.k)) active.unlocks.enemies.push(e.k);
+        G.ter[l][c] = 'p';
       }
-      G.ter[l][c] = 'p';
     }
 
     const u = mkUnit(cid, l, c);
@@ -4721,7 +4818,7 @@ function cardEl(id, mode) {
 
   return `<button class="gcard t-${k.t}${cls} v${v.t}" title="${attr(tip)}" data-focus="${id}" data-mode="${mode}">
     <div class="gart">${sigil(id, k.t, null, v.t >= 2 ? v.col : null)}<div class="gcost">${costOf(id)}</div>
-      ${k.hp ? `<div class="ghp">${hull} HP</div>` : ''}
+      ${k.hp ? `<div class="ghp">${hull} HULL</div>` : ''}
       ${v.t ? `<div class="pips">${'◆'.repeat(v.t)}</div>` : ''}</div>
     <div class="gname">${k.n}</div>
     <div class="gtype">${traits}</div>
@@ -4738,17 +4835,20 @@ let dbTab = 'cards';
 
 const cardGrid = (ids, mode) => `<div class="cgrid">${ids.map(c => cardEl(c, mode)).join('')}</div>`;
 
+// An empty state has to span the grid, or it wraps inside one card column.
+const cardGridEmpty = text => `<div class="cgrid"><div class="cempty">${text}</div></div>`;
+
 function squadPanel() {
   const deck = active.loadout.deck;
   const reserve = active.unlocks.cards.filter(c => !deck.includes(c));
-  return `<div class="sect">Team lead</div>${leadCardHTML()}
+  return `<div class="sect">Team lead — answers to you</div>${leadCardHTML()}
    <div class="sect">Deck</div>
    <div class="bar"><div><b>${deck.length}</b> / ${DECKSIZE} in deck · <b style="color:var(--cyan)">${Object.keys(active.loadout.gear).length}</b> geared</div>
      <div style="color:var(--dim);font-size:0.5625rem">Tap any card to enlarge it — inspect, fit gear, add or remove</div></div>
    <div class="sect">Active deck</div>
-   ${deck.length ? cardGrid(deck, 'gear') : '<div class="cgrid"><div style="color:var(--dim);font-size:0.625rem">Empty.</div></div>'}
+   ${deck.length ? cardGrid(deck, 'gear') : cardGridEmpty('Empty.')}
    <div class="sect">Reserve — ${reserve.length}</div>
-   ${reserve.length ? cardGrid(reserve, 'gear') : '<div class="cgrid"><div style="color:var(--dim);font-size:0.625rem">Nothing in reserve.</div></div>'}`;
+   ${reserve.length ? cardGrid(reserve, 'gear') : cardGridEmpty('Nothing in reserve.')}`;
 }
 
 function quartermasterPanel() {
@@ -4777,15 +4877,35 @@ const dbTabs = () => `<div class="tabs">
      <button class="tab${dbTab === 'gear' ? ' on' : ''}" data-tab="gear">Gear</button>
      <button class="tab${dbTab === 'foes' ? ' on' : ''}" data-tab="foes">Hostiles</button></div>`;
 
+// One entry in a Database list. Assets, Gear and Hostiles all read the same
+// way: name, what it does, and the one number that matters on the right.
+const dbRow = ({label, body, right, hot, locked, attrs}) =>
+  `<div class="row${locked ? ' locked' : ''}"${attrs || ''} style="cursor:pointer">
+     <span><b style="color:${locked ? 'var(--dim)' : 'var(--cyan)'}">${label}</b>
+     <div style="font-size:0.5312rem;color:var(--dim);margin-top:4px;line-height:1.5">${body}</div></span>
+     <span class="r${hot ? ' hot' : ''}">${right}</span></div>`;
+
 function databasePanel() {
   if (dbTab === 'cards') {
     const tier = t => {
       const ids = Object.keys(POOL).filter(c => POOL[c].t === t);
       const owned = ids.filter(i => active.unlocks.cards.includes(i)).length;
-      return `<div class="sect">${TIERNAME[t]} — ${owned}/${ids.length} owned</div>` + cardGrid(ids, 'info');
+      const rows = ids.map(id => {
+        const k = POOL[id];
+        const has = active.unlocks.cards.includes(id);
+        return dbRow({
+          label: k.n,
+          body: k.d,
+          right: has ? `${costOf(id)} DP${k.hp ? ' · ' + k.hp + ' hull' : ''}` : `${k.price} cr`,
+          hot: !has,
+          attrs: ` data-focus="${id}" data-mode="info"`,
+        });
+      }).join('');
+      return `<div class="sect">${TIERNAME[t]} — ${owned}/${ids.length} owned</div>` +
+        `<div class="rows">${rows}</div>`;
     };
     return `<div class="bar"><div>Assets on file <b>${Object.keys(POOL).length}</b></div>
-       <div style="color:var(--dim);font-size:0.5625rem">Tap a card to enlarge — full stats, targeting and abilities</div></div>${dbTabs()}
+       <div style="color:var(--dim);font-size:0.5625rem">Tap an entry to enlarge — full stats, targeting and abilities</div></div>${dbTabs()}
        ${TIERS.map(tier).join('')}`;
   }
 
@@ -4794,9 +4914,13 @@ function databasePanel() {
       const g = GEAR[gi];
       const owned = active.unlocks.gear.includes(gi);
       const fittedTo = Object.keys(active.loadout.gear).find(k => active.loadout.gear[k] === gi);
-      return `<div class="row" data-gear="${gi}" style="cursor:pointer"><span><b style="color:var(--cyan)">${g.n}</b>
-         <div style="font-size:0.5312rem;color:var(--dim);margin-top:4px">${g.d}${fittedTo ? ` · fitted to ${POOL[fittedTo].n}` : ''}</div></span>
-         <span class="r${owned ? '' : ' hot'}">${owned ? 'Owned' : g.cost + ' sv'}</span></div>`;
+      return dbRow({
+        label: g.n,
+        body: g.d + (fittedTo ? ` · fitted to ${POOL[fittedTo].n}` : ''),
+        right: owned ? 'Owned' : g.cost + ' sv',
+        hot: !owned,
+        attrs: ` data-gear="${gi}"`,
+      });
     }).join('');
     return `<div class="bar"><div>Gear on file <b>${Object.keys(GEAR).length}</b></div>
      <div style="color:var(--dim);font-size:0.5625rem">One slot per card, bought with salvage</div></div>${dbTabs()}
@@ -4809,10 +4933,13 @@ function databasePanel() {
     const rows = ids.map(k => {
       const b = BEST[k];
       const on = seen.includes(k);
-      return `<div class="row${on ? '' : ' locked'}"${on ? ` data-foe="${k}" style="cursor:pointer"` : ''}>
-         <span><b style="color:${on ? 'var(--mag)' : 'var(--dim)'}">${on ? b.n : '████████'}</b>
-         <div style="font-size:0.5312rem;color:var(--dim);margin-top:4px;line-height:1.5">${on ? b.d : 'No contact logged.'}</div></span>
-         <span class="r">${on ? b.hp + ' HP · threat ' + b.threat : '—'}</span></div>`;
+      return dbRow({
+        label: on ? b.n : '████████',
+        body: on ? b.d : 'No contact logged.',
+        right: on ? `${b.hp} hull · threat ${b.threat}` : '—',
+        locked: !on,
+        attrs: on ? ` data-foe="${k}"` : '',
+      });
     }).join('');
     return `<div class="sect">${TIERNAME[t]} — ${ids.filter(k => seen.includes(k)).length}/${ids.length}</div>
      <div class="rows">${rows}</div>`;
@@ -4847,7 +4974,7 @@ function recordPanel() {
 
   return `
    <div class="bar"><div>${active.callsign} · <b style="color:var(--cyan)">${rankName(active.progress.rank)}</b></div>
-     <div style="color:var(--dim);font-size:0.5625rem">XP ${active.progress.xp}</div></div>
+     <div style="color:var(--dim);font-size:0.5625rem">Task force command · XP ${active.progress.xp}</div></div>
    <div class="sect">Field record</div><div class="rows">${fieldRecord}</div>
    <div class="sect">Veteran roster</div><div class="rows">${veterans}</div>
    <div class="sect">Modes</div><div class="rows">

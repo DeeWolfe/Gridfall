@@ -4,7 +4,10 @@
 
 export const TIERNAME = {common: 'Common', tech: 'Tech', special: 'Specialist'};
 
-export const RANKS = ['Recruit', 'Corporal', 'Sergeant', 'Lieutenant', 'Captain', 'Commander'];
+// The player commands the whole task force; a team lead runs the squad under
+// them. The ladder therefore starts at command tier, not at enlisted ranks.
+export const RANKS = ['Acting Commander', 'Commander', 'Senior Commander',
+  'Task Force Commander', 'Operations Director', 'Marshal'];
 
 // A card's rank climbs with how many times it has been deployed across the
 // whole profile. `at` is the deployment count that unlocks the tier.

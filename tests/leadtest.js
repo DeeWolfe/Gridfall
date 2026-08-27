@@ -83,25 +83,46 @@ drawAll();
   if (badge.includes('READY') || badge.includes('SPENT')) F.push('passive lead should not show an active tag');
 }
 
-// --- Drop Pod: crushes a Common hostile, cannot touch a Specialist ---
+// --- Drop Pod gear: crushes a Common hostile, cannot touch a Specialist ---
 {
+  if (!A.GEAR.dropod) F.push('Drop Pod is not gear');
+  if (A.POOL.dropod) F.push('Drop Pod is still a card');
+
+  A.active.loadout.gear = {rifle: 'dropod'};
   A.launch(firstNode());
   clearBoard();
-  A.G.hand = ['dropod'];
+  A.G.hand = ['rifle'];
   A.G.dp = 9;
   const crawler = spawnFoe('crawler', 2, 6, 3);
   spawnFoe('sovereign', 3, 6, 40);
 
-  const tiles = A.validTiles('dropod');
+  const tiles = A.validTiles('rifle');
   if (!tiles.includes(2 * A.COLS + 6)) F.push('drop pod cannot target a Common hostile');
   if (tiles.includes(3 * A.COLS + 6)) F.push('drop pod should not be able to crush a Specialist');
+  // The gear widens where the card may go; it must not remove normal ground.
+  if (!tiles.some(t => A.G.ter[(t / A.COLS) | 0][t % A.COLS] === 'p')) {
+    F.push('drop pod gear removed the card\'s normal deployment tiles');
+  }
 
-  A.deploy('dropod', 2, 6);
+  A.deploy('rifle', 2, 6);
   if (A.G.enemies.some(e => e.uid === crawler.uid)) F.push('drop pod did not destroy the hostile');
-  const pod = A.G.units.find(u => u.id === 'dropod');
+  const pod = A.G.units.find(u => u.id === 'rifle');
   if (!pod) F.push('drop pod left no unit behind');
   else if (pod.lane !== 2 || pod.col !== 6) F.push('drop pod did not occupy the cleared cell');
   if (A.G.ter[2][6] !== 'p') F.push('cleared cell was not claimed');
+  A.active.loadout.gear = {};
+}
+
+// --- Knight is a Common unit, and does not out-riposte the Specialist ---
+{
+  const knight = A.POOL.knight;
+  if (knight.t !== 'common') F.push('Knight is not a Common');
+  if (knight.tech) F.push('Knight is still flagged Tech');
+  if (knight.riposte >= A.POOL.aegis.riposte) {
+    F.push(`Knight ripostes for ${knight.riposte}, at or above the Specialist's ${A.POOL.aegis.riposte}`);
+  }
+  const u = A.mkUnit('knight', 2, 1);
+  if (u.tech) F.push('a deployed Knight still counts as Tech');
 }
 
 // --- doctrine variety, and what each posture does to lane spread ---

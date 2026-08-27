@@ -3,20 +3,51 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>GRIDFALL</title>
+<title>Gridfall: Zanshin Protocol</title>
 <link rel="stylesheet" href="./styles/gridfall.css">
 </head>
 <body>
 <div class="scr on" id="boot"><div class="bootwrap">
-  <div class="wordmark">GRIDFALL</div>
-  <div class="bootsub">Task force personnel record</div>
-  <div class="slots" id="slots"></div>
-  <div id="newform">
-    <input id="callsign" maxlength="12" placeholder="Callsign" autocomplete="off" spellcheck="false">
-    <div style="display:flex;gap:8px"><button class="btn" id="create" style="flex:1">Enlist</button>
-      <button class="btn ghost" id="cancelnew">Back</button></div></div>
-  <div style="text-align:center;margin-top:20px;font-size:0.5312rem;color:var(--dim);line-height:1.7">
-    Records are stored on this device only.</div>
+  <div class="console">
+    <div class="conbar">
+      <span class="condot"></span>
+      <span class="contitle">Zanshin Protocol</span>
+      <span class="conid">NODE 07 · SECURE</span>
+    </div>
+    <div class="conbody">
+      <div class="wordmark">GRIDFALL</div>
+      <div class="bootsub">Zanshin Protocol</div>
+
+      <ol class="bootlog">
+        <li>orbital uplink established</li>
+        <li>crypto handshake · ok</li>
+        <li>task force registry mounted</li>
+        <li class="warn">awaiting command authentication</li>
+      </ol>
+
+      <div class="conreads">
+        <div><span>Uplink</span><b>Stable</b></div>
+        <div><span>Registry</span><b>3 slots</b></div>
+        <div><span>Clearance</span><b>Command</b></div>
+      </div>
+
+      <div class="conlabel">Command records</div>
+      <div class="slots" id="slots"></div>
+
+      <div id="newform">
+        <label class="prompt" for="callsign">Commander callsign</label>
+        <div class="promptline">
+          <span class="caret">&gt;</span>
+          <input id="callsign" maxlength="12" placeholder="CALLSIGN" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="conacts"><button class="btn" id="create">Authenticate</button>
+          <button class="btn ghost" id="cancelnew">Back</button></div>
+      </div>
+
+      <div class="confoot">You command the task force. Records are held on this device only.</div>
+    </div>
+    <div class="scanlines"></div>
+  </div>
 </div></div>
 
 <div class="scr" id="hold"><div id="vibe"><div class="holdgrid">

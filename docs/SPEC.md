@@ -1,4 +1,4 @@
-# Gridfall — mechanics spec
+# Gridfall: Zanshin Protocol — mechanics spec
 
 Extracted from the reference build. Numbers here match `gridfall-data.json`; that file is the source of truth.
 
@@ -22,7 +22,7 @@ Extracted from the reference build. Numbers here match `gridfall-data.json`; tha
 
 ## Cards
 
-### Common (17)
+### Common (18)
 
 | Card | DP | Hull | Targeting | Notes |
 |---|---|---|---|---|
@@ -39,12 +39,13 @@ Extracted from the reference build. Numbers here match `gridfall-data.json`; tha
 | Lancer | 3 | 4 | Three cells ahead | — |
 | Mortar | 3 | 3 | 3x3 at exactly range 4 | indirect |
 | Bulwark | 3 | 10 | Adjacent cell | single-target, blocks lane, shield regen, ability: Brace |
+| Knight | 3 | 9 | Adjacent cell | single-target, blocks lane, shield regen, riposte 1 |
 | Ronin | 3 | 6 | The cell ahead and the cell behind | — |
 | Naginata | 2 | 5 | Both cells one and two ahead | — |
 | Kunoichi | 2 | 3 | The four diagonals only | deploys anywhere |
 | Herald | 2 | 4 | — | — |
 
-### Tech (14)
+### Tech (12)
 
 | Card | DP | Hull | Targeting | Notes |
 |---|---|---|---|---|
@@ -54,14 +55,12 @@ Extracted from the reference build. Numbers here match `gridfall-data.json`; tha
 | Supply Cache | 1 | — | — | instant |
 | Shield | 1 | — | — | attachment |
 | Shoulder Cannon | 2 | — | — | attachment |
-| Drop Pod | 3 | 6 | Adjacent cell | crushes on landing |
 | Turret | 2 | 8 | First hostile in lane | single-target |
 | Relay | 2 | 4 | — | — |
 | Tech Blade | 2 | 6 | Three cells vertically, one column ahead | — |
 | Pulse Emitter | 2 | 5 | All eight surrounding cells | — |
 | Scrambler | 2 | 6 | — | — |
 | Lance Battery | 3 | 7 | Exactly three cells ahead | single-target |
-| Knight | 3 | 9 | Adjacent cell | single-target, blocks lane, shield regen, riposte 3 |
 
 ### Specialist (8)
 
@@ -90,6 +89,7 @@ One slot per card, bought with salvage.
 | Coolant Core | 120 sv | Ability cooldowns are 1 turn shorter, minimum 1. |
 | Phase Cloak | 140 sv | The first killing blow leaves it at 1 hull instead. Once per deployment. |
 | Ablative Weave | 90 sv | +1 shield capacity. Stacks with regenerating shields. |
+| Drop Pod | 150 sv | May deploy straight onto a hostile below Specialist tier, crushing it on landing and holding the cell. |
 
 ## Hostiles
 
@@ -106,6 +106,11 @@ One slot per card, bought with salvage.
 | Harrower | Specialist | 12 | 6 | 7 | 1.5 | Tunnels straight past blockers. Barricades and Bulwarks do not stop it. |
 | Chorus | Specialist | 14 | — | 8 | immobile | Immobile at the far edge. +1 damage to every hostile on the board. Kill it first — if you can reach it. |
 | Sovereign | Specialist | 40 | 8 | 10 | 0.5 | Moves every other turn. Every tile it crosses becomes hostile ground permanently. |
+
+## Command
+
+You are the task force commander. A team lead runs the squad in the field and
+answers to you; your rank ladder is Acting Commander through Marshal.
 
 ## Team leads
 

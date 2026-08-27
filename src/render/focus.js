@@ -41,7 +41,7 @@ function statRows(id) {
     k.pristine ? ['Pristine bonus', '+' + k.pristine + ' damage at full hull'] : null,
     k.claim ? ['On deployment', 'Claims ' + k.claim + ' tiles ahead'] : null,
     k.instant ? ['Type', 'Instant — no body left behind'] : null,
-    k.crush ? ['Deployment', 'Onto a hostile — destroys it outright'] : null,
+    g && g.crush ? ['Deployment', 'Onto a hostile — crushes it outright'] : null,
     (k.heal || k.hot) ? ['Support', 'Heals ' + (k.healType === 'tech' ? 'Tech' : 'Common') + ' units'] : null,
   ].filter(Boolean);
 }
