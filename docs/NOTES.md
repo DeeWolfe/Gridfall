@@ -260,6 +260,29 @@ tape.js and dialog.js during this work — fourth real catch for that guard.
 not references, the declined hook still invalidates, a replay restores G to
 the exact objects it started with, and skip is immediate and idempotent.
 
+## The first-mission briefing
+
+A five-step coach card over a fresh commander's first campaign mission: the
+grid and the territory rule, deploying, the spawn-marker promise, ending the
+turn, and the loss conditions. The two steps that matter advance only when the
+player actually does the thing — the deploy step waits for a real deploy, the
+end-turn step waits for the turn to end — and the card never blocks a control,
+so the board stays playable underneath it. Skippable at every step.
+
+It is pure presentation (`src/render/tutorial.js`): the rules know nothing
+about it, it starts from the enterCombat hook and advances from the same
+composed repaint the playback uses. Completion lives on the profile
+(`settings.tutorial`), so it runs once per commander; Settings has a
+"Combat briefing · Replay" row that queues it for the next campaign mission.
+It never runs in Onslaught or the Gauntlet, and an aborted run leaves no
+stale overlay behind.
+
+The bundler's duplicate-declaration guard caught two more collisions here
+(`finish` and `step` against mission.js and battlefield.js) — five real
+catches now. `tuttest.js` pins the contract: fresh-only, do-it advancement,
+done sticks through a save round trip, veterans never see it, replay runs
+once and settles back to done.
+
 ## Still open
 
 Carried over from the handoff, in the order it recommended.

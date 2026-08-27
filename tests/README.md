@@ -1,6 +1,6 @@
 # Test suite
 
-22 guards and 3 balance harnesses. Run them all with `npm test`, one at a time
+23 guards and 3 balance harnesses. Run them all with `npm test`, one at a time
 with `node tests/run-all.js <name>`, or directly with `node tests/<name>.js`.
 
 The guards must pass. The balance harnesses only report — their numbers come
@@ -63,6 +63,7 @@ visible while all 39 playability checks passed.
 |---|---|
 | `uitest` | The desktop/compact swap: preference round trip, both swap controls, the stamped desktop layer, the combat log |
 | `tapetest` | Turn playback: tape off until enabled, frames are snapshots, replay restores G exactly, input holds off |
+| `tuttest` | First-mission briefing: fresh commanders only, do-it advancement, completion sticks, replay from Settings |
 
 ## Balance — informational, no pass/fail
 

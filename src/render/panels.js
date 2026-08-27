@@ -187,7 +187,9 @@ const settingsPanel = () => `<div class="sect">Interface</div><div class="rows">
    <div class="row"><span>Save version</span><span class="r">v${active.version}</span></div>
    <div class="row" id="shipren" style="cursor:pointer"><span>Dropship name</span><span class="r hot">DS ${active.ship || 'ANVIL-7'}</span></div>
    <div class="row" id="expo" style="cursor:pointer"><span>Export save</span><span class="r hot">Copy JSON</span></div>
-   <div class="row" id="newrun" style="cursor:pointer"><span>Regenerate current operation</span><span class="r" style="color:var(--mag)">Reroll missions</span></div></div>
+   <div class="row" id="newrun" style="cursor:pointer"><span>Regenerate current operation</span><span class="r" style="color:var(--mag)">Reroll missions</span></div>
+   <div class="row" id="tutreplay" style="cursor:pointer"><span>Combat briefing<div style="font-size:0.5312rem;color:var(--dim);margin-top:4px">Runs at the start of your next campaign mission.</div></span>
+     <span class="r hot">${active.settings.tutorial === 'replay' ? 'Queued' : 'Replay'}</span></div></div>
    <div class="sect">Controls</div><div class="rows">
    <div class="row"><span>End turn</span><span class="r">Space · Enter</span></div>
    <div class="row"><span>Deploy the nth card in hand</span><span class="r">1 – 9</span></div>
@@ -243,6 +245,16 @@ export function openPanel(key) {
   }
   const renameRow = $('shipren');
   if (renameRow) renameRow.onclick = () => renameShip(() => openPanel('settings'));
+
+  const tutRow = $('tutreplay');
+  if (tutRow) {
+    tutRow.onclick = () => {
+      active.settings = active.settings || {};
+      active.settings.tutorial = 'replay';
+      commit();
+      openPanel('settings');
+    };
+  }
 
   const rerollRow = $('newrun');
   if (rerollRow) {

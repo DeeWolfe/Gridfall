@@ -777,6 +777,28 @@ body{font-size:1rem}
 :root[data-ui="pc"] .row:hover{background:rgba(77,232,255,.045)}
 
 
+/* ============ FIRST-MISSION BRIEFING ============
+   A gold coach card over the combat screen. The do-it steps advance on the
+   player's own actions, so the card never blocks the board's controls. */
+#tut{position:absolute;z-index:30;top:clamp(52px,9vh,96px);left:50%;transform:translateX(-50%);
+  display:none;width:clamp(272px,40vw,400px);max-width:calc(100vw - 18px)}
+#tut.on{display:block}
+.tutcard{background:linear-gradient(180deg,#151228,#0b0919);border:1px solid var(--gold);
+  box-shadow:0 10px 44px rgba(0,0,0,.6),0 0 26px rgba(255,201,77,.14);padding:.85rem .95rem}
+.tutpips{display:flex;gap:5px;margin-bottom:8px}
+.tutpips i{width:17px;height:3px;background:var(--line2)}
+.tutpips i.on{background:var(--gold)}
+.tuttitle{font-size:0.625rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:6px}
+.tutbody{font-size:0.5938rem;line-height:1.7;color:var(--txt)}
+.tutwait{margin-top:9px;font-size:0.5312rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--cyan);border-left:2px solid var(--cyan);padding-left:8px;animation:tutpulse 1.7s infinite}
+@keyframes tutpulse{50%{opacity:.4}}
+.tutacts{margin-top:10px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.tutacts .btn{padding:.5rem 1.1rem}
+.tutskip{font-size:0.5rem;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);cursor:pointer}
+.tutskip:hover{color:var(--mag)}
+
 /* ============ TURN PLAYBACK ============
    While a turn replays, the board is a recording: cells and cards go inert and
    the action bar reads Resolving. Any key or click skips to the end. */

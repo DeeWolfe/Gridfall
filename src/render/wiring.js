@@ -25,6 +25,7 @@ import {showResult} from './result.js';
 import {applyUiMode, cycleUiMode, uiModeLabel, uiPreference} from './uimode.js';
 import {enableTape} from '../rules/tape.js';
 import {playTurn, skipReplay} from './playback.js';
+import {maybeStartTutorial, tutorialTick} from './tutorial.js';
 
 const AUTOSAVE_MS = 20000;
 
@@ -148,8 +149,9 @@ function wireCrashGuard() {
 }
 
 export function boot() {
+  const repaint = () => { drawAll(); tutorialTick(); };
   setHooks({
-    invalidate: drawAll,
+    invalidate: repaint,
     turnResolved: frames => {
       // Playback wants a real browser: skip it for reduced-motion users and in
       // the stub DOM the harnesses run (no matchMedia there).
@@ -159,9 +161,9 @@ export function boot() {
           !matchMedia('(prefers-reduced-motion: reduce)').matches;
       } catch { animate = false; }
       if (!animate || !frames.length || !$('combat').classList.contains('on')) return false;
-      return playTurn(frames, drawAll);
+      return playTurn(frames, repaint);
     },
-    enterCombat: () => { show('combat'); drawAll(); },
+    enterCombat: () => { show('combat'); drawAll(); maybeStartTutorial(); },
     showResult,
     notify,
     ask,
