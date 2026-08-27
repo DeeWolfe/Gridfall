@@ -283,6 +283,34 @@ catches now. `tuttest.js` pins the contract: fresh-only, do-it advancement,
 done sticks through a save round trip, veterans never see it, replay runs
 once and settles back to done.
 
+## Sound, and the import gap closed
+
+**Sound.** Fourteen effects, all synthesized on a small WebAudio graph in
+`src/render/sound.js` — no assets, nothing to load, the single-file build stays
+honest. Deploys thunk, lasers glide down a sawtooth, deaths are filtered noise,
+the breach alarm is a two-tone that always plays even when a dense playback
+frame caps itself at three sounds. Player actions sound immediately; resolution
+sounds ride the turn playback's frames; the result card gets a win/lose sting
+and the pack burst its own sparkle. The context is created lazily inside the
+first user gesture, so autoplay policy never blocks it, and everything is a
+silent no-op where WebAudio does not exist — which is also why the whole suite
+runs clean in the stub. The switch is a Settings row, stored on the profile.
+
+**Import save.** Settings had *Export · Copy JSON* and nowhere to paste it.
+The dialog grew a paste mode (a textarea alongside the 14-char input), and the
+new *Import save* row runs the pasted record through `migrate()` on the way in
+— so a legacy export is repaired exactly like a legacy load. Same id replaces
+its twin; otherwise it takes a free slot; three full slots refuse politely.
+Importing over the record being played swaps it in live.
+
+One hardening that came out of writing the import test: `migrate()` now strips
+markup from callsigns and ship names. They render through innerHTML across the
+UI, and an imported record was the first path where they arrive from outside
+the input fields' own caps.
+
+The bundler's duplicate-declaration guard caught `ctx` (sound vs battlefield)
+— seven catches now. `sndtest.js` covers both features end to end.
+
 ## Still open
 
 Carried over from the handoff, in the order it recommended.

@@ -8,17 +8,18 @@ import {GEAR} from '../content/gear.js';
 import {BEST} from '../content/hostiles.js';
 import {OPS} from '../content/operations.js';
 import {TIERNAME} from '../content/ranks.js';
-import {active} from '../state/session.js';
+import {active, profiles} from '../state/session.js';
 import {store} from '../save/store.js';
-import {commit} from '../save/profile.js';
+import {commit, migrate, saveAll} from '../save/profile.js';
 import {rankName, costOf, vetOf} from '../save/progression.js';
 import {genRun} from '../rules/run.js';
 import {$, attr} from './dom.js';
 import {sigil} from './art.js';
-import {ask} from './dialog.js';
+import {ask, notify} from './dialog.js';
 import {cardEl} from './card-html.js';
 import {focusCard, focusEnemy, focusGear} from './focus.js';
-import {leadCardHTML, paintHold} from './hold.js';
+import {leadCardHTML, paintHold, enter} from './hold.js';
+import {soundOn, toggleSound} from './sound.js';
 import {UI_MODES, UI_LABELS, uiPreference, uiModeLabel, setUiMode} from './uimode.js';
 
 const TIERS = ['common', 'special', 'tech'];
@@ -181,12 +182,16 @@ const settingsPanel = () => `<div class="sect">Interface</div><div class="rows">
      Compact stacks and scrolls. Automatic picks by display.</div></span>
      <span class="uipick">${UI_MODES.map(m =>
        `<button class="mini${uiPreference() === m ? ' on' : ''}" data-ui="${m}">${UI_LABELS[m]}</button>`).join('')}</span></div>
-   <div class="row"><span>In force</span><span class="r hot">${uiModeLabel()}</span></div></div>
+   <div class="row"><span>In force</span><span class="r hot">${uiModeLabel()}</span></div>
+   <div class="row" id="sndrow" style="cursor:pointer"><span>Sound effects<div style="font-size:0.5312rem;color:var(--dim);margin-top:4px">All synthesized — nothing to download.</div></span>
+     <span class="r hot">${soundOn() ? 'On' : 'Off'}</span></div></div>
    <div class="sect">System</div><div class="rows">
    <div class="row"><span>Storage</span><span class="r">${store.ephemeral ? 'Blocked — session only' : 'This device'}</span></div>
    <div class="row"><span>Save version</span><span class="r">v${active.version}</span></div>
    <div class="row" id="shipren" style="cursor:pointer"><span>Dropship name</span><span class="r hot">DS ${active.ship || 'ANVIL-7'}</span></div>
    <div class="row" id="expo" style="cursor:pointer"><span>Export save</span><span class="r hot">Copy JSON</span></div>
+   <div class="row" id="impo" style="cursor:pointer"><span>Import save<div style="font-size:0.5312rem;color:var(--dim);margin-top:4px">Paste an exported record — it is repaired to the current version on the way in.</div></span>
+     <span class="r hot">Paste JSON</span></div>
    <div class="row" id="newrun" style="cursor:pointer"><span>Regenerate current operation</span><span class="r" style="color:var(--mag)">Reroll missions</span></div>
    <div class="row" id="tutreplay" style="cursor:pointer"><span>Combat briefing<div style="font-size:0.5312rem;color:var(--dim);margin-top:4px">Runs at the start of your next campaign mission.</div></span>
      <span class="r hot">${active.settings.tutorial === 'replay' ? 'Queued' : 'Replay'}</span></div></div>
@@ -245,6 +250,34 @@ export function openPanel(key) {
   }
   const renameRow = $('shipren');
   if (renameRow) renameRow.onclick = () => renameShip(() => openPanel('settings'));
+
+  const soundRow = $('sndrow');
+  if (soundRow) soundRow.onclick = () => { toggleSound(); openPanel('settings'); };
+
+  const importRow = $('impo');
+  if (importRow) {
+    importRow.onclick = () => ask('Import record',
+      'Paste the exported JSON. The record is repaired to the current version on import.',
+      raw => {
+        if (!raw || typeof raw !== 'string' || !raw.trim()) return;
+        let p = null;
+        try { p = migrate(JSON.parse(raw)); } catch { p = null; }
+        if (!p) { notify('Import failed', 'That is not a readable record.'); return; }
+
+        const i = profiles.findIndex(x => x.id === p.id);
+        if (i >= 0) profiles[i] = p;
+        else if (profiles.length >= 3) {
+          notify('No free slot', 'All three record slots hold commanders. Erase one from the login screen first.');
+          return;
+        } else {
+          profiles.push(p);
+        }
+        saveAll(profiles);
+        // Importing over the record being played swaps it in live.
+        if (active && active.id === p.id) enter(p);
+        notify('Record imported', `<b style="color:var(--cyan)">${p.callsign}</b> is on file.`);
+      }, {paste: true, ok: 'Import'});
+  }
 
   const tutRow = $('tutreplay');
   if (tutRow) {

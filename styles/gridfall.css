@@ -541,6 +541,10 @@ body{font-size:1rem}
 .dlgacts{display:flex;gap:8px;margin-top:14px}
 .dlgacts .btn{flex:1;text-align:center}
 #dlginput{margin-top:2px}
+#dlgpaste{margin-top:2px;width:100%;min-height:7.5rem;resize:vertical;font-family:inherit;
+  font-size:0.5312rem;line-height:1.5;letter-spacing:0;text-transform:none;
+  background:var(--panel);border:1px solid var(--line2);color:var(--txt);padding:9px 10px;outline:none}
+#dlgpaste:focus{border-color:var(--cyan);box-shadow:0 0 18px rgba(77,232,255,.14)}
 
 /* ================= REQUISITION PACK ================= */
 #pack{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;padding:20px}

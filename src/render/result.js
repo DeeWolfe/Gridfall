@@ -3,11 +3,13 @@
 
 import {G} from '../state/session.js';
 import {$} from './dom.js';
+import {sfx} from './sound.js';
 
 export function showResult() {
   const r = G && G.result;
   if (!r) return;
 
+  sfx(r.kind === 'win' ? 'win' : 'lose');
   $('rcard').className = 'rcard ' + r.kind;
   $('rt').textContent = r.title;
 

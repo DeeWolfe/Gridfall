@@ -89,7 +89,10 @@ function wireNavigation() {
 }
 
 function wireDialog() {
-  $('dlgok').onclick = () => dlgClose($('dlginput').style.display === 'block' ? $('dlginput').value : true);
+  $('dlgok').onclick = () => {
+    if ($('dlgpaste').style.display === 'block') return dlgClose($('dlgpaste').value);
+    dlgClose($('dlginput').style.display === 'block' ? $('dlginput').value : true);
+  };
   $('dlgno').onclick = () => dlgClose(false);
   $('dlgx').onclick = () => dlgClose(false);
   $('dlginput').addEventListener('keydown', e => { if (e.key === 'Enter') $('dlgok').click(); });

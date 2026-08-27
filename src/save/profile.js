@@ -47,7 +47,10 @@ export function migrate(p) {
   if (!p || typeof p !== 'object') return null;
 
   p.id = p.id || 'p' + Math.random().toString(36).slice(2, 9);
-  p.callsign = p.callsign || 'UNNAMED';
+  // Names render through innerHTML all over the UI, and an imported record is
+  // the one path where they arrive from outside the input fields' own caps.
+  p.callsign = String(p.callsign || 'UNNAMED').replace(/[<>&"']/g, '').slice(0, 12) || 'UNNAMED';
+  p.ship = String(p.ship || 'ANVIL-7').replace(/[<>&"']/g, '').slice(0, 14) || 'ANVIL-7';
   p.created = p.created || Date.now();
   p.lastPlayed = p.lastPlayed || Date.now();
   p.progress = p.progress || {};
@@ -89,7 +92,6 @@ export function migrate(p) {
   p.mode = p.mode || 'campaign';
   p.bests = p.bests || {onslaught: 0, gauntlet: 0};
   p.gaunt = p.gaunt || null;
-  p.ship = p.ship || 'ANVIL-7';
   p.usage = p.usage || {};
   p.settings = p.settings || {};
   p.lead = LEADS[p.lead] ? p.lead : 'ironbrand';

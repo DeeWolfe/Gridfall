@@ -9,11 +9,20 @@ let pending = null;
  * @param {string} msg    may contain markup
  * @param {(value:any)=>void} [cb]  receives false on cancel, true on confirm,
  *                                  or the entered string when `opts.input` is set
- * @param {{input?:string, ok?:string, noCancel?:boolean, xOnly?:boolean}} [opts]
+ * @param {{input?:string, paste?:boolean, ok?:string, noCancel?:boolean, xOnly?:boolean}} [opts]
  */
 export function ask(title, msg, cb, opts = {}) {
   $('dlgtitle').textContent = title;
   $('dlgmsg').innerHTML = msg || '';
+
+  const paste = $('dlgpaste');
+  if (opts.paste) {
+    paste.style.display = 'block';
+    paste.value = '';
+    setTimeout(() => { try { paste.focus(); } catch { /* not focusable yet */ } }, 40);
+  } else {
+    paste.style.display = 'none';
+  }
 
   const input = $('dlginput');
   if (opts.input !== undefined) {

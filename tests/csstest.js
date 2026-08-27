@@ -30,7 +30,7 @@ const {head, body} = pageParts(page);
 
   // Ids the script creates at runtime rather than declaring in the shell.
   const DYNAMIC = ['expo', 'goCampaign', 'goGauntlet', 'goOnslaught', 'ironbox',
-    'newrun', 'shipren', 'tutreplay', 'packbox', 'packnext'];
+    'newrun', 'shipren', 'tutreplay', 'sndrow', 'impo', 'packbox', 'packnext'];
   const referenced = [...new Set([...body.matchAll(/\$\('([\w-]+)'\)/g)].map(m => m[1]))];
   const missing = referenced.filter(r => !declared.includes(r) && !DYNAMIC.includes(r));
   console.log('ids referenced but never declared:', missing.length ? missing : 'none');

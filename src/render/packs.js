@@ -9,6 +9,7 @@ import {costOf} from '../save/progression.js';
 import {packOffer, claimPack} from '../rules/packs.js';
 import {$} from './dom.js';
 import {sigil, bokehLayer} from './art.js';
+import {sfx} from './sound.js';
 
 const BURST_MS = 260;
 
@@ -68,6 +69,7 @@ export function showPack() {
 export function burstPack() {
   if (packOpen) return;
   packOpen = true;
+  sfx('pack');
 
   const flash = $('packflash');
   flash.classList.remove('go');

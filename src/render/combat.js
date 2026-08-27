@@ -29,6 +29,7 @@ import {ask, notify} from './dialog.js';
 import {focusCard, focusEnemy, closeFocus} from './focus.js';
 import {renderMap} from './map.js';
 import {renderModes} from './modes.js';
+import {sfx} from './sound.js';
 
 const LEAD_DP_BONUS = 4;
 const LOG_LINES = 40;
@@ -99,7 +100,7 @@ export function drawActions() {
   }
   primary.className = 'btn';
   primary.textContent = replaying ? 'Resolving…' : 'End turn';
-  primary.onclick = endTurn;
+  primary.onclick = () => { sfx('confirm'); endTurn(); };
   primary.disabled = G.over || replaying;
   secondary.className = 'btn ghost';
   secondary.textContent = 'Abort';
@@ -264,15 +265,15 @@ export function drawBoard() {
       const locked = G.units.some(x => x.tgt === e.uid);
       cell.innerHTML = marker + foeMarkup(e, threat.atk[e.uid], locked);
       cell.classList.add('clickable');
-      if (aimable.has(i) && mover && !mover.acted) cell.onclick = () => doAttack(mover, e);
+      if (aimable.has(i) && mover && !mover.acted) cell.onclick = () => { sfx('zap'); doAttack(mover, e); };
       else cell.onclick = () => focusEnemy(e.k);
     } else {
       cell.innerHTML = marker;
     }
 
     // Placement and movement win over whatever the cell's occupant wired up.
-    if (valid.includes(i)) cell.onclick = () => deploy(sel, l, c);
-    else if (moves.includes(i)) cell.onclick = () => doMove(mover, l, c);
+    if (valid.includes(i)) cell.onclick = () => { sfx('deploy'); deploy(sel, l, c); };
+    else if (moves.includes(i)) cell.onclick = () => { sfx('move'); doMove(mover, l, c); };
     else if (!cell.onclick && (sel || mover)) {
       cell.onclick = () => { setSel(null); setMover(null); drawAll(); };
     }
@@ -328,6 +329,7 @@ export function drawHand() {
     el.onclick = ev => {
       if (ev.target.dataset.z) { focusCard(cid, 'hand'); return; }
       if (unaffordable) return;
+      sfx(sel === cid ? 'tap' : 'select');
       setSel(sel === cid ? null : cid);
       setMover(null);
       drawAll();

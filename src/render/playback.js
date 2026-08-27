@@ -12,6 +12,7 @@ import {COLS} from '../state/constants.js';
 import {G, setReplaying} from '../state/session.js';
 import {$} from './dom.js';
 import {drawAll} from './combat.js';
+import {sfx} from './sound.js';
 
 /** Everything a frame snapshot overrides on G while it is being shown. */
 const SWAP = ['ter', 'units', 'enemies', 'civ', 'scorch', 'predict', 'held', 'breaches'];
@@ -100,6 +101,11 @@ function float(cell, text, cls) {
 }
 
 function paintEffects(events) {
+  // A dense frame plays a handful of sounds, not a wall of them. The breach
+  // alarm always sounds — it is the one the player must not miss.
+  let sfxBudget = 3;
+  const play = name => { if (sfxBudget-- > 0) sfx(name); };
+
   events.forEach(ev => {
     const cell = ev.lane !== undefined ? cellAt(ev.lane, ev.col !== undefined ? ev.col : 0) : null;
     if (!cell) return;
@@ -107,18 +113,22 @@ function paintEffects(events) {
       case 'hit':
         cell.classList.add(ev.died ? 'fx-die' : 'fx-hit');
         float(cell, '-' + ev.amount, ev.foe ? '' : 'own');
+        play(ev.died ? 'boom' : ev.foe ? 'zap' : 'thud');
         break;
       case 'shield':
         cell.classList.add('fx-hit');
         float(cell, '◈', 'shield');
+        play('ping');
         break;
       case 'spawn':
       case 'clash':
         cell.classList.add('fx-drop');
+        play('drop');
         break;
       case 'breach':
         cell.classList.add('fx-breach');
         float(cell, 'BREACH', 'own');
+        sfx('alarm');
         break;
     }
   });
