@@ -1,7 +1,7 @@
 // Boot: install the presentation hooks, wire the shell's fixed controls, and
 // put the record-select screen up.
 
-import {G, active, profiles, sel, setActive, setG, setSel, setMover, MAPDEF} from '../state/session.js';
+import {G, active, profiles, sel, replaying, setActive, setG, setSel, setMover, MAPDEF} from '../state/session.js';
 import {POOL} from '../content/cards.js';
 import {costOf} from '../save/progression.js';
 import {setHooks} from '../state/hooks.js';
@@ -23,6 +23,8 @@ import {openPanel, renameShip} from './panels.js';
 import {showPack, setAfterPacks} from './packs.js';
 import {showResult} from './result.js';
 import {applyUiMode, cycleUiMode, uiModeLabel, uiPreference} from './uimode.js';
+import {enableTape} from '../rules/tape.js';
+import {playTurn, skipReplay} from './playback.js';
 
 const AUTOSAVE_MS = 20000;
 
@@ -114,6 +116,7 @@ function wireKeyboard() {
       return;
     }
     if ($('combat').classList.contains('on') && G) {
+      if (replaying) { skipReplay(); return; }
       if (e.key === ' ' || e.key === 'Enter') {
         e.preventDefault();
         const p = $('actPrimary');
@@ -147,6 +150,17 @@ function wireCrashGuard() {
 export function boot() {
   setHooks({
     invalidate: drawAll,
+    turnResolved: frames => {
+      // Playback wants a real browser: skip it for reduced-motion users and in
+      // the stub DOM the harnesses run (no matchMedia there).
+      let animate = false;
+      try {
+        animate = typeof matchMedia === 'function' &&
+          !matchMedia('(prefers-reduced-motion: reduce)').matches;
+      } catch { animate = false; }
+      if (!animate || !frames.length || !$('combat').classList.contains('on')) return false;
+      return playTurn(frames, drawAll);
+    },
     enterCombat: () => { show('combat'); drawAll(); },
     showResult,
     notify,
@@ -165,6 +179,7 @@ export function boot() {
 
   initProfiles();
   applyUiMode();
+  enableTape();
   wireCrashGuard();
   wireRecordScreen();
   wireNavigation();

@@ -14,8 +14,12 @@ import {unitAt, foeAt, civAt} from './board.js';
 import {buffOf} from './units.js';
 import {dampenIn} from './combat.js';
 import {clog} from './log.js';
+import {tapeEvent, tapeMark} from './tape.js';
 
-const mkFoe = (k, lane, col, hp) => ({uid: nextUid(), k, lane, col, hp, mv: 0, acc: 0, stun: 0});
+const mkFoe = (k, lane, col, hp) => {
+  tapeEvent({type: 'spawn', lane, col});
+  return {uid: nextUid(), k, lane, col, hp, mv: 0, acc: 0, stun: 0};
+};
 
 /**
  * A hostile dropping onto one of your units: they fight to the death and the
@@ -46,6 +50,7 @@ export function spawnClash(k, D, u) {
 /** Resolve a contested landing. Returns true if the hostile got in (or died trying). */
 function dropFight(k, D, u) {
   const r = spawnClash(k, D, u);
+  tapeEvent({type: 'clash', lane: u.lane, col: u.col});
 
   if (r.outcome === 'repelled') {
     if (!D.dmg) {
@@ -124,6 +129,7 @@ export function spawnPhase() {
   queue.forEach(({lane, k}) => {
     if (G.ter[lane][0] === 'x') { G.held.push({lane, k}); return; }
     if (!resolveSpawn(k, lane)) G.held.push({lane, k});
+    tapeMark('spawn');
   });
 
   if (G.held.length) {

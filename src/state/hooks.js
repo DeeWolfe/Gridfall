@@ -8,6 +8,12 @@
 export const hooks = {
   /** The board state changed — redraw the combat screen. */
   invalidate() {},
+  /**
+   * A turn finished resolving; `frames` is the recorded tape. Return true to
+   * take over presentation (play it back), false to fall through to a plain
+   * invalidate. The default declines, which is what every test relies on.
+   */
+  turnResolved(_frames) { return false; },
   /** A mission just started — switch to the combat screen. */
   enterCombat() {},
   /** The mission ended. `G.result` holds what to show. */

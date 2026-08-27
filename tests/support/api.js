@@ -24,8 +24,8 @@ export {LANES, COLS, MAXDP, MAXBREACH, DECKSIZE, SAVE_VERSION, STARTER} from '..
 export {shuffle, randInt, takeOne, chance} from '../../src/state/rng.js';
 export {hooks, setHooks} from '../../src/state/hooks.js';
 export {
-  active, profiles, G, MAPDEF, sel, mover, packQueue,
-  setActive, setProfiles, setG, setMapdef, setSel, setMover, setPackQueue,
+  active, profiles, G, MAPDEF, sel, mover, packQueue, replaying,
+  setActive, setProfiles, setG, setMapdef, setSel, setMover, setPackQueue, setReplaying,
   nextUid, clearSelection,
 } from '../../src/state/session.js';
 

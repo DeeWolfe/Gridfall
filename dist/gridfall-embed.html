@@ -779,6 +779,25 @@ body{font-size:1rem}
 :root[data-ui="pc"] .row:hover{background:rgba(77,232,255,.045)}
 
 
+/* ============ TURN PLAYBACK ============
+   While a turn replays, the board is a recording: cells and cards go inert and
+   the action bar reads Resolving. Any key or click skips to the end. */
+.replaying .cell,.replaying .hc{pointer-events:none}
+.fxfloat{position:absolute;left:50%;top:34%;transform:translateX(-50%);z-index:6;
+  font-size:0.8125rem;font-weight:700;color:#ffd078;pointer-events:none;
+  text-shadow:0 1px 6px rgba(0,0,0,.85);animation:fxrise .7s ease-out forwards}
+.fxfloat.own{color:#ff8fb5}
+.fxfloat.shield{color:var(--cyan)}
+@keyframes fxrise{from{opacity:1;transform:translate(-50%,0)}to{opacity:0;transform:translate(-50%,-16px)}}
+.fx-hit{animation:fxhit .3s}
+@keyframes fxhit{from{box-shadow:inset 0 0 0 30px rgba(255,208,120,.32)}to{box-shadow:inset 0 0 0 0 rgba(255,208,120,0)}}
+.fx-die{animation:fxdie .42s}
+@keyframes fxdie{0%{background:rgba(255,120,60,.5);filter:brightness(1.8)}100%{filter:none}}
+.fx-drop{animation:fxdrop .3s}
+@keyframes fxdrop{from{transform:scale(1.14);filter:brightness(1.7)}to{transform:none}}
+.fx-breach{animation:fxbreach .55s}
+@keyframes fxbreach{0%,55%{box-shadow:inset 0 0 0 3px var(--mag)}100%{box-shadow:inset 0 0 0 0 transparent}}
+
 /* Stacked: the combat log takes the leftover height between the details panel
    and the hand — what used to be dead space. This block sits after the desktop
    layer so it wins the cascade against the rail's default display:none. */
@@ -1081,6 +1100,10 @@ const setMover = u => { mover = u; };
 /** Requisition packs owed to the player, oldest first. */
 let packQueue = [];
 const setPackQueue = q => { packQueue = q; };
+
+/** True while the renderer is replaying a turn. Input and endTurn hold off. */
+let replaying = false;
+const setReplaying = v => { replaying = v; };
 
 let uid = 0;
 /** Monotonic id for units and hostiles. Unique within a session. */
@@ -1736,6 +1759,12 @@ function leadOf() {
 const hooks = {
   /** The board state changed — redraw the combat screen. */
   invalidate() {},
+  /**
+   * A turn finished resolving; `frames` is the recorded tape. Return true to
+   * take over presentation (play it back), false to fall through to a plain
+   * invalidate. The default declines, which is what every test relies on.
+   */
+  turnResolved(_frames) { return false; },
   /** A mission just started — switch to the combat screen. */
   enterCombat() {},
   /** The mission ended. `G.result` holds what to show. */
@@ -2455,6 +2484,78 @@ function queuePack(tier, label) {
   packQueue.push({tier, label});
 }
 
+/* ==== src/rules/tape.js ============================================= */
+// The turn tape: what actually happened when the player hit End turn.
+//
+// Resolution is synchronous and stays that way — the logic harnesses and the
+// balance bots call endTurn() hundreds of times and pay nothing for this.
+// When recording is enabled (the renderer's boot turns it on; nothing else
+// does), the phases mark frames as they go: each frame is a cheap snapshot of
+// the board plus the hit/spawn/breach events since the last mark. The renderer
+// then replays the frames at a visible pace instead of teleporting the board
+// to its final state.
+//
+// DOM-free, like everything under rules/.
+
+let enabled = false;
+let collecting = false;
+let frames = [];
+let pendingEvents = [];
+
+/** One-way switch, flipped by the renderer's boot. Tests that want the tape
+ *  call it too; everything else never pays for a snapshot. */
+function enableTape() {
+  enabled = true;
+}
+
+/** Start a fresh recording for one turn. No-op unless enabled. */
+function tapeBegin() {
+  if (!enabled) return;
+  collecting = true;
+  frames = [];
+  pendingEvents = [];
+}
+
+/** Record one visible event (a hit, a spawn, a breach) for the current frame. */
+function tapeEvent(e) {
+  if (collecting) pendingEvents.push(e);
+}
+
+/**
+ * Close the current frame: snapshot the board and attach the pending events.
+ * Skipped when nothing happened since the last mark, unless forced — a forced
+ * empty frame is a deliberate beat in the playback.
+ */
+function tapeMark(label, force) {
+  if (!collecting) return;
+  if (!pendingEvents.length && !force) return;
+  frames.push({label, events: pendingEvents, ...snapshot()});
+  pendingEvents = [];
+}
+
+/** Stop recording and hand the frames over. Also used to discard on finish(). */
+function tapeEnd() {
+  collecting = false;
+  const out = frames;
+  frames = [];
+  pendingEvents = [];
+  return out;
+}
+
+/** Everything drawBoard() and the header read that changes mid-resolution. */
+function snapshot() {
+  return {
+    ter: G.ter.map(row => row.slice()),
+    units: G.units.map(u => ({...u})),
+    enemies: G.enemies.map(e => ({...e})),
+    civ: G.civ.map(v => ({...v})),
+    scorch: {...G.scorch},
+    predict: G.predict.slice(),
+    held: (G.held || []).slice(),
+    breaches: G.breaches,
+  };
+}
+
 /* ==== src/rules/log.js ============================================== */
 // The combat log. Newest first, capped so a long Onslaught cannot grow it
 // without bound. Entries carry a category so the renderer can colour them.
@@ -2709,6 +2810,7 @@ function settleCampaign(win, why) {
 
 /** End the mission, pay out, and describe the outcome on `G.result`. */
 function finish(win, why) {
+  tapeEnd();                     // the result card takes over; drop the tape
   G.over = true;
   G.result = G.endless ? settleOnslaught()
     : G.gauntlet ? settleGauntlet(win, why)
@@ -4056,7 +4158,9 @@ function logContact(k) {
  * leave at least 1 through, unless the source penetrates (`pen`).
  */
 function dmgEnemy(e, d, src, pen) {
-  e.hp -= pen ? d : Math.max(1, d - laneFloor(e));
+  const dealt = pen ? d : Math.max(1, d - laneFloor(e));
+  e.hp -= dealt;
+  tapeEvent({type: 'hit', foe: true, lane: e.lane, col: e.col, amount: dealt, died: e.hp <= 0});
   if (e.hp > 0) return;
 
   G.enemies = G.enemies.filter(x => x.uid !== e.uid);
@@ -4089,11 +4193,14 @@ function dmgUnit(u, d, src, attacker) {
   if (u.shield > 0) {
     u.shield--;
     u.att.shield = false;
+    tapeEvent({type: 'shield', lane: u.lane, col: u.col});
     clog(`${u.n}'s shield held.`, 'loss');
     return;
   }
 
   u.hp -= d;
+  tapeEvent({type: 'hit', foe: false, lane: u.lane, col: u.col, amount: d,
+    died: u.hp <= 0 && !(u.phase && !u.phased)});
   if (u.hp <= 0 && u.phase && !u.phased) {
     u.phased = true;
     u.hp = 1;
@@ -4460,7 +4567,10 @@ function deploy(cid, l, c) {
 // lane or fights the unit standing on it. If it cannot get in at all it holds
 // at the edge and tries again next turn — still in the same lane.
 
-const mkFoe = (k, lane, col, hp) => ({uid: nextUid(), k, lane, col, hp, mv: 0, acc: 0, stun: 0});
+const mkFoe = (k, lane, col, hp) => {
+  tapeEvent({type: 'spawn', lane, col});
+  return {uid: nextUid(), k, lane, col, hp, mv: 0, acc: 0, stun: 0};
+};
 
 /**
  * A hostile dropping onto one of your units: they fight to the death and the
@@ -4491,6 +4601,7 @@ function spawnClash(k, D, u) {
 /** Resolve a contested landing. Returns true if the hostile got in (or died trying). */
 function dropFight(k, D, u) {
   const r = spawnClash(k, D, u);
+  tapeEvent({type: 'clash', lane: u.lane, col: u.col});
 
   if (r.outcome === 'repelled') {
     if (!D.dmg) {
@@ -4569,6 +4680,7 @@ function spawnPhase() {
   queue.forEach(({lane, k}) => {
     if (G.ter[lane][0] === 'x') { G.held.push({lane, k}); return; }
     if (!resolveSpawn(k, lane)) G.held.push({lane, k});
+    tapeMark('spawn');
   });
 
   if (G.held.length) {
@@ -4594,6 +4706,7 @@ function playerPhase() {
     if (u.fresh || u.acted) return;
     fire(u, false);
     healPass(u, false);
+    tapeMark('fire');            // one frame per unit that actually did something
   });
 
   const nanites = leadOf().passive && leadOf().passive.n === 'Nanite Weave';
@@ -4640,47 +4753,55 @@ function sporePulse(e, D) {
   }
 }
 
+/** One hostile's action for the turn: it moves or it attacks, never both. */
+function actHostile(e, chorus) {
+  if (e.hp <= 0) return;
+  if (e.stun) { e.stun--; return; }
+  const D = BEST[e.k];
+
+  if (D.spawn) { sporePulse(e, D); return; }
+  if (D.spd === 0) return;
+
+  // Spitters stop at range and shell down the lane.
+  if (D.hold !== undefined && e.col <= D.hold) { strike(e, D, chorus); return; }
+
+  const ahead = e.col - 1;
+  const blocked = ahead >= 0 && ((unitAt(e.lane, ahead) && !D.tunnel) || civAt(e.lane, ahead));
+  const queued = ahead >= 0 && foeAt(e.lane, ahead);
+  if (blocked || queued) { strike(e, D, chorus, queued && !blocked); return; }
+
+  // Fractional speeds bank movement across turns.
+  e.mv = (e.mv || 0) + D.spd;
+  let steps = 0;
+  while (e.mv >= 1) { steps++; e.mv--; }
+
+  for (let s = 0; s < steps; s++) {
+    const nc = e.col - 1;
+    if (nc < 0) {
+      G.breaches++;
+      G.enemies = G.enemies.filter(x => x.uid !== e.uid);
+      tapeEvent({type: 'breach', lane: e.lane});
+      clog(`<span class="d">BREACH</span> — ${D.n} crossed the line.`, 'loss');
+      break;
+    }
+    if (G.ter[e.lane][nc] === 'x') break;
+    if ((unitAt(e.lane, nc) && !D.tunnel) || foeAt(e.lane, nc) || civAt(e.lane, nc)) break;
+    if (scorched(e.lane, nc)) dmgEnemy(e, 2, 'Plasma');
+    if (e.hp <= 0) break;
+    e.col = nc;
+    if (D.convert) G.ter[e.lane][nc] = 'e';   // a Sovereign salts the earth
+    if (D.hold !== undefined && e.col <= D.hold) break;
+  }
+}
+
 /** Step 3. Each hostile either moves or attacks — never both in one turn. */
 function enemyPhase() {
   const chorus = G.enemies.some(e => BEST[e.k].aura) ? 1 : 0;
-
   [...G.enemies].forEach(e => {
-    if (e.hp <= 0) return;
-    if (e.stun) { e.stun--; return; }
-    const D = BEST[e.k];
-
-    if (D.spawn) { sporePulse(e, D); return; }
-    if (D.spd === 0) return;
-
-    // Spitters stop at range and shell down the lane.
-    if (D.hold !== undefined && e.col <= D.hold) { strike(e, D, chorus); return; }
-
-    const ahead = e.col - 1;
-    const blocked = ahead >= 0 && ((unitAt(e.lane, ahead) && !D.tunnel) || civAt(e.lane, ahead));
-    const queued = ahead >= 0 && foeAt(e.lane, ahead);
-    if (blocked || queued) { strike(e, D, chorus, queued && !blocked); return; }
-
-    // Fractional speeds bank movement across turns.
-    e.mv = (e.mv || 0) + D.spd;
-    let steps = 0;
-    while (e.mv >= 1) { steps++; e.mv--; }
-
-    for (let s = 0; s < steps; s++) {
-      const nc = e.col - 1;
-      if (nc < 0) {
-        G.breaches++;
-        G.enemies = G.enemies.filter(x => x.uid !== e.uid);
-        clog(`<span class="d">BREACH</span> — ${D.n} crossed the line.`, 'loss');
-        break;
-      }
-      if (G.ter[e.lane][nc] === 'x') break;
-      if ((unitAt(e.lane, nc) && !D.tunnel) || foeAt(e.lane, nc) || civAt(e.lane, nc)) break;
-      if (scorched(e.lane, nc)) dmgEnemy(e, 2, 'Plasma');
-      if (e.hp <= 0) break;
-      e.col = nc;
-      if (D.convert) G.ter[e.lane][nc] = 'e';   // a Sovereign salts the earth
-      if (D.hold !== undefined && e.col <= D.hold) break;
-    }
+    const moved = e.col;
+    actHostile(e, chorus);
+    // A frame per hostile that did anything visible: struck, spawned, or moved.
+    tapeMark('enemy', e.col !== moved);
   });
 }
 
@@ -4732,11 +4853,13 @@ function endgameCheck() {
 }
 
 function endTurn() {
-  if (!G || G.over || !active) return;
+  if (!G || G.over || !active || replaying) return;
 
+  tapeBegin();
   playerPhase();
   enemyPhase();
   territoryPhase();
+  tapeMark('territory', true);   // a deliberate beat as the tiles flip
 
   const lost = lossCheck();
   if (lost) return finish(false, lost);
@@ -4763,7 +4886,9 @@ function endTurn() {
   G.dp = MAXDP;
   for (let i = 0; i < 2; i++) drawCard();
   clearSelection();
-  hooks.invalidate();
+  // The tape goes to whoever presents the game; the default hook declines and
+  // we fall back to the plain redraw every harness expects.
+  if (!hooks.turnResolved(tapeEnd())) hooks.invalidate();
 }
 
 /* ==== src/rules/forecast.js ========================================= */
@@ -4938,12 +5063,13 @@ function drawActions() {
     return;
   }
   primary.className = 'btn';
-  primary.textContent = 'End turn';
+  primary.textContent = replaying ? 'Resolving…' : 'End turn';
   primary.onclick = endTurn;
-  primary.disabled = G.over;
+  primary.disabled = G.over || replaying;
   secondary.className = 'btn ghost';
   secondary.textContent = 'Abort';
   secondary.onclick = leaveCombat;
+  secondary.disabled = replaying;
 }
 
 /** What the selected unit will do, or what the selected card will cost. */
@@ -5632,6 +5758,128 @@ function showResult() {
   $('result').classList.add('on');
 }
 
+/* ==== src/render/playback.js ======================================== */
+// Replaying a turn tape: the board steps through the recorded frames instead
+// of teleporting to the end state, with damage floats and hit flashes drawn
+// over the cells each frame touched.
+//
+// The frames carry clones of everything drawBoard() reads, so playback swaps
+// those fields into G, draws, and restores the real (final) values when it is
+// done. While it runs, `replaying` in the session holds off input: endTurn
+// refuses to re-enter, the action bar disables, and the cells go inert via the
+// `.replaying` class. Any key or click skips to the end.
+
+/** Everything a frame snapshot overrides on G while it is being shown. */
+const SWAP = ['ter', 'units', 'enemies', 'civ', 'scorch', 'predict', 'held', 'breaches'];
+
+/** Per-frame pacing by what the frame shows, before long-turn compression. */
+const PACE = {fire: 200, enemy: 155, territory: 300, spawn: 200};
+
+/** A turn never takes longer than ~22 beats to watch, however busy it was. */
+const MAX_BEATS = 22;
+const MIN_DELAY = 70;
+
+let saved = null;
+let queue = [];
+let timer = 0;
+let squeeze = 1;
+let onDone = null;
+
+const isReplaying = () => saved !== null;
+
+/**
+ * Play the recorded frames, then call `done` with the real state restored.
+ * Returns false (and plays nothing) when there is nothing to show or a replay
+ * is somehow already running.
+ */
+function playTurn(frames, done) {
+  if (saved || !frames.length || !G) {
+    if (done) done();
+    return false;
+  }
+  setReplaying(true);
+  $('combat').classList.add('replaying');
+  $('combat').onclick = skipReplay;
+
+  saved = {};
+  SWAP.forEach(k => { saved[k] = G[k]; });
+  queue = frames.slice();
+  squeeze = Math.min(1, MAX_BEATS / frames.length);
+  onDone = done;
+  stepFrame();
+  return true;
+}
+
+/** Jump straight to the end of the tape. Wired to any key or click. */
+function skipReplay() {
+  if (!saved) return;
+  clearTimeout(timer);
+  queue = [];
+  finishReplay();
+}
+
+function stepFrame() {
+  if (!saved) return;
+  const f = queue.shift();
+  if (!f) {
+    finishReplay();
+    return;
+  }
+  SWAP.forEach(k => { if (f[k] !== undefined) G[k] = f[k]; });
+  drawAll();
+  paintEffects(f.events);
+  const delay = Math.max(MIN_DELAY, (PACE[f.label] || 180) * squeeze);
+  timer = setTimeout(stepFrame, delay);
+}
+
+function finishReplay() {
+  SWAP.forEach(k => { G[k] = saved[k]; });
+  saved = null;
+  setReplaying(false);
+  $('combat').classList.remove('replaying');
+  $('combat').onclick = null;
+  const done = onDone;
+  onDone = null;
+  if (done) done();
+}
+
+/** The cell element at (lane, col) — drawBoard appends them in index order. */
+function cellAt(lane, col) {
+  return $('board').children[lane * COLS + col] || null;
+}
+
+function float(cell, text, cls) {
+  const s = document.createElement('span');
+  s.className = 'fxfloat' + (cls ? ' ' + cls : '');
+  s.textContent = text;
+  cell.appendChild(s);
+}
+
+function paintEffects(events) {
+  events.forEach(ev => {
+    const cell = ev.lane !== undefined ? cellAt(ev.lane, ev.col !== undefined ? ev.col : 0) : null;
+    if (!cell) return;
+    switch (ev.type) {
+      case 'hit':
+        cell.classList.add(ev.died ? 'fx-die' : 'fx-hit');
+        float(cell, '-' + ev.amount, ev.foe ? '' : 'own');
+        break;
+      case 'shield':
+        cell.classList.add('fx-hit');
+        float(cell, '◈', 'shield');
+        break;
+      case 'spawn':
+      case 'clash':
+        cell.classList.add('fx-drop');
+        break;
+      case 'breach':
+        cell.classList.add('fx-breach');
+        float(cell, 'BREACH', 'own');
+        break;
+    }
+  });
+}
+
 /* ==== src/render/wiring.js ========================================== */
 // Boot: install the presentation hooks, wire the shell's fixed controls, and
 // put the record-select screen up.
@@ -5726,6 +5974,7 @@ function wireKeyboard() {
       return;
     }
     if ($('combat').classList.contains('on') && G) {
+      if (replaying) { skipReplay(); return; }
       if (e.key === ' ' || e.key === 'Enter') {
         e.preventDefault();
         const p = $('actPrimary');
@@ -5759,6 +6008,17 @@ function wireCrashGuard() {
 function boot() {
   setHooks({
     invalidate: drawAll,
+    turnResolved: frames => {
+      // Playback wants a real browser: skip it for reduced-motion users and in
+      // the stub DOM the harnesses run (no matchMedia there).
+      let animate = false;
+      try {
+        animate = typeof matchMedia === 'function' &&
+          !matchMedia('(prefers-reduced-motion: reduce)').matches;
+      } catch { animate = false; }
+      if (!animate || !frames.length || !$('combat').classList.contains('on')) return false;
+      return playTurn(frames, drawAll);
+    },
     enterCombat: () => { show('combat'); drawAll(); },
     showResult,
     notify,
@@ -5777,6 +6037,7 @@ function boot() {
 
   initProfiles();
   applyUiMode();
+  enableTape();
   wireCrashGuard();
   wireRecordScreen();
   wireNavigation();

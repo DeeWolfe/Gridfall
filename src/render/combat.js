@@ -12,7 +12,7 @@ import {MODS} from '../content/modifiers.js';
 import {DOCTRINE} from '../content/doctrines.js';
 import {TGNAME} from '../content/targeting-names.js';
 import {TIERNAME} from '../content/ranks.js';
-import {G, active, sel, mover, setSel, setMover} from '../state/session.js';
+import {G, active, sel, mover, replaying, setSel, setMover} from '../state/session.js';
 import {costOf, gearOf, vetOf, leadOf} from '../save/progression.js';
 import {unitAt, foeAt, civAt, held, scorched, validTiles} from '../rules/board.js';
 import {geomFor, candidatesFor, targetsFor} from '../rules/targeting.js';
@@ -98,12 +98,13 @@ export function drawActions() {
     return;
   }
   primary.className = 'btn';
-  primary.textContent = 'End turn';
+  primary.textContent = replaying ? 'Resolving…' : 'End turn';
   primary.onclick = endTurn;
-  primary.disabled = G.over;
+  primary.disabled = G.over || replaying;
   secondary.className = 'btn ghost';
   secondary.textContent = 'Abort';
   secondary.onclick = leaveCombat;
+  secondary.disabled = replaying;
 }
 
 /** What the selected unit will do, or what the selected card will cost. */

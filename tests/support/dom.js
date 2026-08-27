@@ -168,4 +168,5 @@ export function installDom() {
   globalThis.addEventListener = (type, fn) => { handlers[type] = fn; };
   globalThis.setInterval = () => 0;
   globalThis.setTimeout = fn => { timers.push(fn); return 0; };
+  globalThis.clearTimeout = () => {};
 }

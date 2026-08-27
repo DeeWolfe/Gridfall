@@ -223,6 +223,43 @@ The canvas stub in `tests/support/dom.js` grew the operations the scene needs
 - The number-key badge moved onto the art box's corner, out of the tier line's
   way, and the board's height budget grew to match the taller hand strip.
 
+## Turn playback
+
+Hitting End turn no longer teleports the board to its final state. The turn
+plays out: idle units fire one at a time with damage floats and hit flashes,
+each hostile takes its action visibly, a beat as the territory flips, and the
+promised wave drops in cell by cell. Any key or click skips to the end; the
+action bar reads Resolving and refuses input until the tape is done.
+
+How it keeps the architecture honest:
+
+- **Rules record, they do not animate.** `src/rules/tape.js` is a recorder the
+  phases mark as they go — each frame is a cheap snapshot of what drawBoard
+  reads plus the hit/spawn/breach events since the last mark. `endTurn()` stays
+  synchronous and DOM-free; recording is off until a presenter enables it, so
+  the logic harnesses and the balance bots pay nothing.
+- **The hook decides the presentation.** `endTurn()` ends with
+  `hooks.turnResolved(tape)`; the default declines and falls through to the
+  plain invalidate every test relies on. The renderer's hook plays the tape —
+  except for reduced-motion users, who get the instant resolution as before.
+- **Playback swaps, draws, restores.** `src/render/playback.js` substitutes
+  each frame's snapshot into G, draws, overlays the effects, and puts the real
+  final state back when the tape ends. While it runs, `replaying` in the
+  session holds everything off: endTurn refuses to re-enter, the cells go
+  inert, 1–9 and Space are ignored.
+- **Long turns compress.** A turn never takes more than ~22 beats to watch;
+  frame delays squeeze down to a 70ms floor as the tape grows.
+
+`finish()` discards a half-recorded tape — no playback under a result card;
+the final turn resolves instantly. That is the one deliberate cut in v1.
+
+The build's duplicate-declaration check caught `pending` colliding between
+tape.js and dialog.js during this work — fourth real catch for that guard.
+
+`tapetest.js` pins the contract: no recording until enabled, frames are copies
+not references, the declined hook still invalidates, a replay restores G to
+the exact objects it started with, and skip is immediate and idempotent.
+
 ## Still open
 
 Carried over from the handoff, in the order it recommended.

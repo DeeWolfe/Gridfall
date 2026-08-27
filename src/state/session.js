@@ -35,6 +35,10 @@ export const setMover = u => { mover = u; };
 export let packQueue = [];
 export const setPackQueue = q => { packQueue = q; };
 
+/** True while the renderer is replaying a turn. Input and endTurn hold off. */
+export let replaying = false;
+export const setReplaying = v => { replaying = v; };
+
 let uid = 0;
 /** Monotonic id for units and hostiles. Unique within a session. */
 export const nextUid = () => ++uid;

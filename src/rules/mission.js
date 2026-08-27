@@ -18,6 +18,7 @@ import {held, heldEnemyHalf, crystalsHeld} from './board.js';
 import {wave, rollDoctrine, predictSpawns} from './waves.js';
 import {opRun, genRun} from './run.js';
 import {queuePack} from './packs.js';
+import {tapeEnd} from './tape.js';
 import {clog} from './log.js';
 
 /** Hostile types that can be set as an Acquire Specimens quota. */
@@ -250,6 +251,7 @@ function settleCampaign(win, why) {
 
 /** End the mission, pay out, and describe the outcome on `G.result`. */
 export function finish(win, why) {
+  tapeEnd();                     // the result card takes over; drop the tape
   G.over = true;
   G.result = G.endless ? settleOnslaught()
     : G.gauntlet ? settleGauntlet(win, why)

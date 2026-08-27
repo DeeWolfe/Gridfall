@@ -10,7 +10,7 @@
 
 import {LANES, COLS, MAXDP, MAXBREACH} from '../state/constants.js';
 import {BEST} from '../content/hostiles.js';
-import {G, active, nextUid, clearSelection} from '../state/session.js';
+import {G, active, nextUid, clearSelection, replaying} from '../state/session.js';
 import {hooks} from '../state/hooks.js';
 import {leadOf} from '../save/progression.js';
 import {unitAt, foeAt, civAt, held, heldEnemyHalf, crystalsHeld, scorched} from './board.js';
@@ -20,6 +20,7 @@ import {spawnPhase} from './spawn.js';
 import {drawCard} from './deck.js';
 import {finish} from './mission.js';
 import {clog} from './log.js';
+import {tapeBegin, tapeEnd, tapeMark, tapeEvent} from './tape.js';
 
 /** Step 2, then reset every unit for the turn ahead. */
 export function playerPhase() {
@@ -28,6 +29,7 @@ export function playerPhase() {
     if (u.fresh || u.acted) return;
     fire(u, false);
     healPass(u, false);
+    tapeMark('fire');            // one frame per unit that actually did something
   });
 
   const nanites = leadOf().passive && leadOf().passive.n === 'Nanite Weave';
@@ -74,47 +76,55 @@ function sporePulse(e, D) {
   }
 }
 
+/** One hostile's action for the turn: it moves or it attacks, never both. */
+function actHostile(e, chorus) {
+  if (e.hp <= 0) return;
+  if (e.stun) { e.stun--; return; }
+  const D = BEST[e.k];
+
+  if (D.spawn) { sporePulse(e, D); return; }
+  if (D.spd === 0) return;
+
+  // Spitters stop at range and shell down the lane.
+  if (D.hold !== undefined && e.col <= D.hold) { strike(e, D, chorus); return; }
+
+  const ahead = e.col - 1;
+  const blocked = ahead >= 0 && ((unitAt(e.lane, ahead) && !D.tunnel) || civAt(e.lane, ahead));
+  const queued = ahead >= 0 && foeAt(e.lane, ahead);
+  if (blocked || queued) { strike(e, D, chorus, queued && !blocked); return; }
+
+  // Fractional speeds bank movement across turns.
+  e.mv = (e.mv || 0) + D.spd;
+  let steps = 0;
+  while (e.mv >= 1) { steps++; e.mv--; }
+
+  for (let s = 0; s < steps; s++) {
+    const nc = e.col - 1;
+    if (nc < 0) {
+      G.breaches++;
+      G.enemies = G.enemies.filter(x => x.uid !== e.uid);
+      tapeEvent({type: 'breach', lane: e.lane});
+      clog(`<span class="d">BREACH</span> — ${D.n} crossed the line.`, 'loss');
+      break;
+    }
+    if (G.ter[e.lane][nc] === 'x') break;
+    if ((unitAt(e.lane, nc) && !D.tunnel) || foeAt(e.lane, nc) || civAt(e.lane, nc)) break;
+    if (scorched(e.lane, nc)) dmgEnemy(e, 2, 'Plasma');
+    if (e.hp <= 0) break;
+    e.col = nc;
+    if (D.convert) G.ter[e.lane][nc] = 'e';   // a Sovereign salts the earth
+    if (D.hold !== undefined && e.col <= D.hold) break;
+  }
+}
+
 /** Step 3. Each hostile either moves or attacks — never both in one turn. */
 export function enemyPhase() {
   const chorus = G.enemies.some(e => BEST[e.k].aura) ? 1 : 0;
-
   [...G.enemies].forEach(e => {
-    if (e.hp <= 0) return;
-    if (e.stun) { e.stun--; return; }
-    const D = BEST[e.k];
-
-    if (D.spawn) { sporePulse(e, D); return; }
-    if (D.spd === 0) return;
-
-    // Spitters stop at range and shell down the lane.
-    if (D.hold !== undefined && e.col <= D.hold) { strike(e, D, chorus); return; }
-
-    const ahead = e.col - 1;
-    const blocked = ahead >= 0 && ((unitAt(e.lane, ahead) && !D.tunnel) || civAt(e.lane, ahead));
-    const queued = ahead >= 0 && foeAt(e.lane, ahead);
-    if (blocked || queued) { strike(e, D, chorus, queued && !blocked); return; }
-
-    // Fractional speeds bank movement across turns.
-    e.mv = (e.mv || 0) + D.spd;
-    let steps = 0;
-    while (e.mv >= 1) { steps++; e.mv--; }
-
-    for (let s = 0; s < steps; s++) {
-      const nc = e.col - 1;
-      if (nc < 0) {
-        G.breaches++;
-        G.enemies = G.enemies.filter(x => x.uid !== e.uid);
-        clog(`<span class="d">BREACH</span> — ${D.n} crossed the line.`, 'loss');
-        break;
-      }
-      if (G.ter[e.lane][nc] === 'x') break;
-      if ((unitAt(e.lane, nc) && !D.tunnel) || foeAt(e.lane, nc) || civAt(e.lane, nc)) break;
-      if (scorched(e.lane, nc)) dmgEnemy(e, 2, 'Plasma');
-      if (e.hp <= 0) break;
-      e.col = nc;
-      if (D.convert) G.ter[e.lane][nc] = 'e';   // a Sovereign salts the earth
-      if (D.hold !== undefined && e.col <= D.hold) break;
-    }
+    const moved = e.col;
+    actHostile(e, chorus);
+    // A frame per hostile that did anything visible: struck, spawned, or moved.
+    tapeMark('enemy', e.col !== moved);
   });
 }
 
@@ -166,11 +176,13 @@ function endgameCheck() {
 }
 
 export function endTurn() {
-  if (!G || G.over || !active) return;
+  if (!G || G.over || !active || replaying) return;
 
+  tapeBegin();
   playerPhase();
   enemyPhase();
   territoryPhase();
+  tapeMark('territory', true);   // a deliberate beat as the tiles flip
 
   const lost = lossCheck();
   if (lost) return finish(false, lost);
@@ -197,5 +209,7 @@ export function endTurn() {
   G.dp = MAXDP;
   for (let i = 0; i < 2; i++) drawCard();
   clearSelection();
-  hooks.invalidate();
+  // The tape goes to whoever presents the game; the default hook declines and
+  // we fall back to the plain redraw every harness expects.
+  if (!hooks.turnResolved(tapeEnd())) hooks.invalidate();
 }

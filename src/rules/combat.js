@@ -7,6 +7,7 @@ import {G, active} from '../state/session.js';
 import {buffOf} from './units.js';
 import {targetsFor, laneFloor} from './targeting.js';
 import {clog} from './log.js';
+import {tapeEvent} from './tape.js';
 
 /** Scramblers shave 1 off every hostile attack in their lane. Does not stack. */
 export const dampenIn = l => (G.units.some(o => o.dampen && o.lane === l) ? 1 : 0);
@@ -21,7 +22,9 @@ function logContact(k) {
  * leave at least 1 through, unless the source penetrates (`pen`).
  */
 export function dmgEnemy(e, d, src, pen) {
-  e.hp -= pen ? d : Math.max(1, d - laneFloor(e));
+  const dealt = pen ? d : Math.max(1, d - laneFloor(e));
+  e.hp -= dealt;
+  tapeEvent({type: 'hit', foe: true, lane: e.lane, col: e.col, amount: dealt, died: e.hp <= 0});
   if (e.hp > 0) return;
 
   G.enemies = G.enemies.filter(x => x.uid !== e.uid);
@@ -54,11 +57,14 @@ export function dmgUnit(u, d, src, attacker) {
   if (u.shield > 0) {
     u.shield--;
     u.att.shield = false;
+    tapeEvent({type: 'shield', lane: u.lane, col: u.col});
     clog(`${u.n}'s shield held.`, 'loss');
     return;
   }
 
   u.hp -= d;
+  tapeEvent({type: 'hit', foe: false, lane: u.lane, col: u.col, amount: d,
+    died: u.hp <= 0 && !(u.phase && !u.phased)});
   if (u.hp <= 0 && u.phase && !u.phased) {
     u.phased = true;
     u.hp = 1;
