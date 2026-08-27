@@ -8,7 +8,7 @@ import {setHooks} from '../state/hooks.js';
 import {store} from '../save/store.js';
 import {blankProfile, saveAll, commit, initProfiles} from '../save/profile.js';
 import {opRun, genRun} from '../rules/run.js';
-import {launchGauntlet} from '../rules/mission.js';
+import {launchGauntlet, GAUNTLET_LEGS} from '../rules/mission.js';
 import {$, show} from './dom.js';
 import {ask, notify, dlgClose} from './dialog.js';
 import {closeFocus, setFocusFollowUp} from './focus.js';
@@ -32,7 +32,7 @@ const AUTOSAVE_MS = 20000;
 /** Where to go once the result card and any packs have been dismissed. */
 function afterMission(wasEndless, wasGauntlet, cleared) {
   if (wasEndless || (wasGauntlet && !cleared)) { show('modes'); renderModes(); return; }
-  if (wasGauntlet && active.gaunt && active.gaunt.i < 4) { launchGauntlet(); return; }
+  if (wasGauntlet && active.gaunt && active.gaunt.i < GAUNTLET_LEGS) { launchGauntlet(); return; }
   if (wasGauntlet) { show('modes'); renderModes(); return; }
   // A finished operation rolls a fresh set of missions to come back to.
   if (opRun().cleared.length >= MAPDEF.nodes.length) genRun();

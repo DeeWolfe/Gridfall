@@ -3,32 +3,32 @@
 // The 8 gear pieces, one slot per card, bought with salvage.
 
 export const GEAR = {
-  barrel: {n: "Extended Barrel", cost: 60, d: "+1 damage to this unit.", dmg: 1},
-  plating: {n: "Reactive Plating", cost: 50, d: "+3 hull.", hp: 3},
-  servo: {n: "Servo Legs", cost: 110, d: "May move AND fire in the same turn.", servo: 1},
-  uplink: {n: "Targeting Uplink", cost: 80, d: "Ignores hostile armour floors.", pen: 1},
-  kit: {n: "Field Kit", cost: 100, d: "Costs 1 less deploy point, minimum 1.", dp: -1},
+  barrel: {n: "Extended Barrel", cost: 45, d: "+1 damage to this unit.", dmg: 1},
+  plating: {n: "Reactive Plating", cost: 40, d: "+3 hull.", hp: 3},
+  servo: {n: "Servo Legs", cost: 80, d: "May move AND fire in the same turn.", servo: 1},
+  uplink: {n: "Targeting Uplink", cost: 60, d: "Ignores hostile armour floors.", pen: 1},
+  kit: {n: "Field Kit", cost: 75, d: "Costs 1 less deploy point, minimum 1.", dp: -1},
   coolant: {
     n: "Coolant Core",
-    cost: 120,
+    cost: 90,
     d: "Ability cooldowns are 1 turn shorter, minimum 1.",
     cool: 1,
   },
   phase: {
     n: "Phase Cloak",
-    cost: 140,
+    cost: 105,
     d: "The first killing blow leaves it at 1 hull instead. Once per deployment.",
     phase: 1,
   },
   weave: {
     n: "Ablative Weave",
-    cost: 90,
+    cost: 70,
     d: "+1 shield capacity. Stacks with regenerating shields.",
     shield: 1,
   },
   dropod: {
     n: "Drop Pod",
-    cost: 150,
+    cost: 110,
     d: "May deploy straight onto a hostile below Specialist tier, crushing it on landing and holding the cell.",
     crush: 1,
   },

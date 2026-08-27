@@ -26,15 +26,15 @@ export function genRun() {
       // so a new player meets the base rules before any variant.
       type: i === 0 ? 'stronghold' : types[randInt(types.length)],
       mod: chance(0.45) ? mods[1 + randInt(mods.length - 1)] : 'none',
-      reward: 60 + randInt(5) * 15,
-      salv: 3 + randInt(5),
+      reward: 70 + randInt(5) * 20,
+      salv: 5 + randInt(5),
     };
   });
 
   // The two objective missions are markedly harder; pay accordingly.
   Object.values(nodes).forEach(nd => {
     if (nd.type === 'crystals') { nd.reward = Math.round(nd.reward * 1.85) + 40; nd.salv += 4; }
-    if (nd.type === 'specimens') { nd.reward = Math.round(nd.reward * 1.35); nd.salv += 2; }
+    if (nd.type === 'specimens') { nd.reward = Math.round(nd.reward * 1.55); nd.salv += 2; }
   });
 
   active.ops[active.op] = {cleared: [], nodes};

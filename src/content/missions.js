@@ -20,7 +20,7 @@ export const MISSIONS = {
   },
   crystals: {
     n: "Fight for Crystals",
-    waves: 7,
+    waves: 6,
     d: "Four crystal nodes on the field. Hold three when the last wave clears.",
   },
   retake: {

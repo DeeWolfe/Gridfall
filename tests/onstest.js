@@ -5,7 +5,7 @@ import {playOut} from './support/bot.js';
 
 const ONSLAUGHT_RUNS = 21;
 const GAUNTLET_RUNS = 15;
-const GAUNTLET_LEGS = 4;
+const GAUNTLET_LEGS = 3;
 
 const waves = [];
 for (let i = 0; i < ONSLAUGHT_RUNS; i++) {

@@ -24,6 +24,10 @@ import {clog} from './log.js';
 /** Hostile types that can be set as an Acquire Specimens quota. */
 const QUOTA_TYPES = ['crawler', 'breacher', 'spitter', 'hulk'];
 
+// The handoff shipped four legs and roughly one full clear in fifteen attempts.
+// Three legs is the difference between a mode and a lottery ticket.
+export const GAUNTLET_LEGS = 3;
+
 /** Fresh, neutral-in-the-middle territory grid. */
 function freshTerritory() {
   const ter = [];
@@ -64,10 +68,13 @@ export function launchSpec(nd) {
 
   if (G.mod === 'breach') for (let c = 0; c < COLS; c++) G.ter[0][c] = 'x';
   if (G.type === 'civilians') G.civ = [{l: 1, c: 0, hp: 6}, {l: 2, c: 0, hp: 6}, {l: 3, c: 0, hp: 6}];
-  if (G.type === 'crystals') G.crystals = [{l: 0, c: 1}, {l: 1, c: 4}, {l: 3, c: 2}, {l: 4, c: 5}];
+  // Two nodes start on player ground, two sit in the neutral band. Never in
+  // hostile ground (c > 4) — holding a tile behind the spawn line all game is
+  // a different mission than contesting the middle, and a much worse one.
+  if (G.type === 'crystals') G.crystals = [{l: 0, c: 1}, {l: 1, c: 4}, {l: 3, c: 2}, {l: 4, c: 4}];
   if (G.type === 'specimens') {
     G.quotaK = QUOTA_TYPES[randInt(QUOTA_TYPES.length)];
-    G.quota = BEST[G.quotaK].threat <= 2 ? 5 : 3;
+    G.quota = BEST[G.quotaK].threat <= 2 ? 4 : 3;
   }
 
   for (let i = 0; i < Math.min(5, G.deck.length); i++) G.hand.push(G.deck.pop());
@@ -80,7 +87,7 @@ export function launchSpec(nd) {
   if (G.type === 'specimens') clog(`Quota: destroy <span class="d">${G.quota} ${BEST[G.quotaK].n}</span>.`);
   if (G.mod !== 'none') clog(`Modifier: <span style="color:var(--violet)">${MODS[G.mod].n}</span> ${MODS[G.mod].d}`);
   if (G.endless) clog('<span class="t">ONSLAUGHT</span> — the waves do not stop. See how far you get.');
-  if (G.gauntlet) clog(`<span class="t">GAUNTLET ${active.gaunt.i + 1} of 4</span> — one loss ends the chain.`);
+  if (G.gauntlet) clog(`<span class="t">GAUNTLET ${active.gaunt.i + 1} of ${GAUNTLET_LEGS}</span> — one loss ends the chain.`);
 
   hooks.enterCombat();
   return true;
@@ -100,15 +107,15 @@ export function launchOnslaught() {
   return launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0, salv: 0, endless: true});
 }
 
-/** Gauntlet: four missions back to back. One loss ends the chain. */
+/** Gauntlet: three missions back to back. One loss ends the chain. */
 export function launchGauntlet() {
   if (!active) return false;
-  if (!active.gaunt || active.gaunt.i >= 4) {
+  if (!active.gaunt || active.gaunt.i >= GAUNTLET_LEGS) {
     const types = Object.keys(MISSIONS);
     const mods = Object.keys(MODS);
     active.gaunt = {
       i: 0,
-      legs: [0, 1, 2, 3].map(() => ({
+      legs: Array.from({length: GAUNTLET_LEGS}, () => ({
         type: types[randInt(types.length)],
         mod: chance(0.6) ? mods[1 + randInt(mods.length - 1)] : 'none',
       })),
@@ -118,8 +125,8 @@ export function launchGauntlet() {
   const leg = active.gaunt.legs[active.gaunt.i];
   return launchSpec({
     node: null, type: leg.type, mod: leg.mod,
-    reward: 70 + active.gaunt.i * 40,
-    salv: 4 + active.gaunt.i * 2,
+    reward: 80 + active.gaunt.i * 50,
+    salv: 5 + active.gaunt.i * 2,
     gauntlet: true,
   });
 }
@@ -184,7 +191,7 @@ function settleGauntlet(win, why) {
     active.progress.credits += cr;
     active.progress.salvage += sv;
     active.stats.held++;
-    const done = active.gaunt.i >= 4;
+    const done = active.gaunt.i >= GAUNTLET_LEGS;
     queuePack('standard', 'Gauntlet leg cleared');
     if (done) {
       active.bests.gauntlet = (active.bests.gauntlet || 0) + 1;
@@ -193,7 +200,7 @@ function settleGauntlet(win, why) {
       active.gaunt = null;
       queuePack('specialist', 'Gauntlet complete');
     }
-    title = done ? 'GAUNTLET COMPLETE' : `LEG ${active.gaunt ? active.gaunt.i : 4} CLEARED`;
+    title = done ? 'GAUNTLET COMPLETE' : `LEG ${active.gaunt ? active.gaunt.i : GAUNTLET_LEGS} CLEARED`;
   } else {
     active.gaunt = null;
     active.stats.lost++;

@@ -3,7 +3,7 @@
 import {OPS} from '../content/operations.js';
 import {active} from '../state/session.js';
 import {commit} from '../save/profile.js';
-import {launchOnslaught, launchGauntlet} from '../rules/mission.js';
+import {launchOnslaught, launchGauntlet, GAUNTLET_LEGS} from '../rules/mission.js';
 import {$, show} from './dom.js';
 import {renderOps} from './ops.js';
 
@@ -27,8 +27,8 @@ export function renderModes() {
       <div class="mfoot"><span>Best · ${active.bests.onslaught || 0} waves</span><span style="color:#ff4d8f">Deploy ▸</span></div></button>
     <button class="modecard live" style="--oc:#ffc94d" id="goGauntlet">
       <div class="mname">Gauntlet</div>
-      <div class="mdesc">Four missions back to back, escalating rewards and heavier modifiers each leg. A single loss ends the chain.</div>
-      <div class="mfoot"><span>${g ? `In progress — leg ${g.i + 1} of 4` : `Completed · ${active.bests.gauntlet || 0}`}</span>
+      <div class="mdesc">Three missions back to back, escalating rewards and heavier modifiers each leg. A single loss ends the chain.</div>
+      <div class="mfoot"><span>${g ? `In progress — leg ${g.i + 1} of ${GAUNTLET_LEGS}` : `Completed · ${active.bests.gauntlet || 0}`}</span>
         <span style="color:#ffc94d">${g ? 'Resume ▸' : 'Begin ▸'}</span></div></button>
   </div>
   <div class="rows" style="margin-top:18px"><div class="row"><span>Ironman — losing a Campaign mission rerolls the whole operation</span>

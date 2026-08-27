@@ -178,7 +178,7 @@ Three items offered, keep one. Fallback chain when the collection fills: unowned
 
 - **Campaign** - node-by-node through an operation. Ironman toggle rerolls the operation on any loss.
 - **Onslaught** - endless waves, threat scales 1.9x per wave. Tracks personal best.
-- **Gauntlet** - four missions back to back, escalating rewards. One loss ends the chain.
+- **Gauntlet** - three missions back to back, escalating rewards. One loss ends the chain.
 
 ## Save schema
 

@@ -337,21 +337,61 @@ The first real piece — a Rifleman portrait — was offered but did not survive
 the upload (the file that arrived was a stale copy of an earlier screenshot),
 so `CARD_ART` ships empty until it lands.
 
+## The balance pass
+
+The three numeric problems the handoff flagged — the economy, Crystals, and
+the Gauntlet — addressed in one pass. Every rate below is the aggregate of
+three `mtest` runs (~100 missions per type) before and after; all of them come
+from the near-random bot and are floors, not measurements.
+
+**Crystals: two levers.** The fourth crystal sat at column 5 — behind the
+spawn line, so winning meant holding a tile the horde walks over every turn
+while also defending everywhere else. It now sits at column 4, in the neutral
+band, matching its partner: two nodes start on your ground, two are contested.
+(Placement lives in `launchSpec()` in `src/rules/mission.js`, not in data.)
+That alone moved the floor 31% → 37% — real, but "Three breaches" still
+dominated the losses, so the mission also went from 7 waves to 6 (the same
+length as Extraction), dropping the single heaviest wave. Together: 31% → 52%
+over 124 missions, and the failure mix is now split between breaches and
+nodes-not-held instead of breach-dominated.
+
+**Specimens: small-hostile quota 5 → 4** (big-hostile quota stays 3), which
+was worth a few points — 38% → ~42% pooled, still the lowest floor on the
+board. Rather than blunt the mission further, its payout multiplier went
+1.35× → 1.55×: it now out-pays everything but Crystals, which is the correct
+order for its difficulty.
+
+**Gauntlet: four legs → three**, exactly as the handoff suggested. Per-leg pay
+went up (80/130/180 cr instead of 70/110/150/190) so a full clear plus the
+250 cr bonus lands at 640 cr, close to the old four-leg total for one less
+mission. `GAUNTLET_LEGS` is exported from `mission.js`; the mode card and the
+auto-relaunch in wiring read it rather than repeating the number. Full clears
+moved from 1-in-15 to roughly 1-in-7 pooled across every post-change run.
+
+**The economy: pay up, prices down.** Campaign node payouts rose from
+60–120 cr / 3–7 salvage to 70–150 cr / 5–9 (`genRun()`), and every shop price
+came down: commons and tech about 28% (recon 110 → 80, battery 220 → 160),
+specialists about 33% (exo 600 → 400), gear about 25% (kit 100 → 75). The
+full card collection through the shop alone is now ~5,700 cr — roughly 52
+average wins instead of ~86 — and packs keep shortening that in play. First
+gear piece is now 4–5 wins away instead of 8+.
+
+After the pass (four pooled runs, ~130 missions per type): stronghold 68%,
+retake 70%, extract 95%, civilians 95%, crystals 52%, specimens ~42%;
+Onslaught median 10–13 waves (untouched); Gauntlet about 1 in 7. The intended
+shape — the two objective missions markedly harder than the defensive four,
+and paid accordingly — finally matches the numbers.
+
 ## Still open
 
-Carried over from the handoff, in the order it recommended.
-
-1. **Economy is mistuned.** The shop alone is ~86 mission wins for the full
-   collection. Shop prices were set before requisition packs existed and have
-   not been revisited since.
-2. **Crystals is now the outlier**, at ~28%. Specimens sits near 42%. See above.
-3. **Gauntlet completes about 1 in 15.** Four legs compounding at ~70% each. If
-   it is meant to be finishable, cut it to three.
-4. **No audio, no art.** Everything visual is procedural SVG
-   (`src/render/art.js`) and CSS. That was right for one file; it is probably not
-   right for the real thing. `art.js` is the seam — every caller wants an HTML
-   string and does not care how it was made.
-5. **Every win rate above comes from a near-random bot.** It never plans, rarely
+1. **Crystals still loses to "Three breaches"** more than anything else — the
+   mission stretches a defence thin by design. 45% is a floor a planning
+   player beats, but if it needs another notch, the next lever is one extra
+   endgame turn (`G.extra >= 4` for crystals only in `endgameCheck()`).
+2. **No card art yet.** Everything visual is procedural SVG
+   (`src/render/art.js`) and CSS. The embedding pipeline is built and proven
+   (see above); it is waiting on actual images.
+3. **Every win rate above comes from a near-random bot.** It never plans, rarely
    repositions and never uses manual targeting. Treat the numbers as floors.
 
 Two things the structure now makes cheap:
