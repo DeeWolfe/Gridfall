@@ -797,6 +797,36 @@
    "spd": 0.5,
    "convert": 1,
    "d": "Moves every other turn. Every tile it crosses becomes hostile ground permanently."
+  },
+  "husk": {
+   "n": "Husk",
+   "t": "common",
+   "hp": 6,
+   "dmg": 2,
+   "threat": 2,
+   "spd": 1,
+   "split": 2,
+   "d": "Shambles forward and falls apart when destroyed — two Crawlers crawl out of the wreck. Kill it somewhere you can afford the mess."
+  },
+  "mender": {
+   "n": "Mender",
+   "t": "tech",
+   "hp": 8,
+   "dmg": 0,
+   "threat": 4,
+   "spd": 1,
+   "mend": 2,
+   "d": "Carries no weapon. Advances with the horde and knits 2 hull back into the most wounded hostile in its lane every turn. Kill it first."
+  },
+  "screamer": {
+   "n": "Screamer",
+   "t": "special",
+   "hp": 10,
+   "dmg": 4,
+   "threat": 7,
+   "spd": 1,
+   "deathrush": 1,
+   "d": "Dies loudly. The scream sends every hostile on the board one step forward — time the kill, or the kill times you."
   }
  },
  "leads": {
@@ -1413,25 +1443,25 @@
   }
  },
  "leadUnlocks": {
+  "riptide": {
+   "req": "store",
+   "price": 380
+  },
   "loneedge": {
-   "req": "rank",
-   "value": 2
+   "req": "store",
+   "price": 420
   },
   "skunkworks": {
-   "req": "rank",
-   "value": 3
-  },
-  "riptide": {
-   "req": "operationsCleared",
-   "value": 1
+   "req": "store",
+   "price": 420
   },
   "quietstep": {
-   "req": "operationsCleared",
-   "value": 2
+   "req": "store",
+   "price": 450
   },
   "firebrand": {
-   "req": "gauntletClears",
-   "value": 1
+   "req": "store",
+   "price": 480
   }
  }
 }

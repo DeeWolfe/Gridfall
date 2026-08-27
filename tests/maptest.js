@@ -98,8 +98,8 @@ for (const opKey of Object.keys(A.OPS)) {
   const p = A.blankProfile('BZ');
   A.enterProfile(p);
   A.launchSpec({node: null, type: 'blitz', mod: 'none', reward: 0, salv: 0});
-  if (A.G.quota !== 10) F.push('blitz quota not set');
-  A.G.kills = 10;
+  if (A.G.quota !== 9) F.push('blitz quota not set');
+  A.G.kills = 9;
   A.endTurn();
   if (!A.G.over || A.G.result.kind !== 'win') F.push('meeting the blitz quota did not win');
 }

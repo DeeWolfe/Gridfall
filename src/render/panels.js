@@ -9,9 +9,10 @@ import {BEST} from '../content/hostiles.js';
 import {OPS} from '../content/operations.js';
 import {TIERNAME} from '../content/ranks.js';
 import {active, profiles} from '../state/session.js';
+import {LEADS} from '../content/leads.js';
 import {store} from '../save/store.js';
 import {commit, migrate, saveAll} from '../save/profile.js';
-import {rankName, costOf, vetOf, leadUnlocked, leadGateText} from '../save/progression.js';
+import {rankName, costOf, vetOf, leadUnlocked, leadGateText, leadPrice} from '../save/progression.js';
 import {genRun} from '../rules/run.js';
 import {purchasePack, PACK_PRICE} from '../rules/packs.js';
 import {$, attr} from './dom.js';
@@ -19,7 +20,7 @@ import {sigil} from './art.js';
 import {ask, notify} from './dialog.js';
 import {cardEl} from './card-html.js';
 import {focusCard, focusEnemy, focusGear} from './focus.js';
-import {leadCardHTML, paintHold, enter} from './hold.js';
+import {leadCardHTML, leadTilesHTML, paintHold, enter} from './hold.js';
 import {showPack, setAfterPacks} from './packs.js';
 import {soundOn, toggleSound} from './sound.js';
 import {UI_MODES, UI_LABELS, uiPreference, uiModeLabel, setUiMode} from './uimode.js';
@@ -36,6 +37,7 @@ function squadPanel() {
   const deck = active.loadout.deck;
   const reserve = active.unlocks.cards.filter(c => !deck.includes(c));
   return `<div class="sect">Team lead — answers to you</div>${leadCardHTML()}
+   <div class="sect">Roster</div>${leadTilesHTML('squad')}
    <div class="sect">Deck</div>
    <div class="bar"><div><b>${deck.length}</b> / ${DECKSIZE} in deck · <b style="color:var(--cyan)">${Object.keys(active.loadout.gear).length}</b> geared</div>
      <div style="color:var(--dim);font-size:0.5625rem">Tap any card to enlarge it — inspect, fit gear, add or remove</div></div>
@@ -67,7 +69,9 @@ function quartermasterPanel() {
    <div class="bar"><div><b>Requisition drop</b>
      <div style="color:var(--dim);font-size:0.5625rem;margin-top:3px">Three offers, keep one — duplicates promote the card instead. Now and then one arrives as a priority requisition.</div></div>
      <button class="btn${canBuyPack ? '' : ' ghost'}" id="buypack"${canBuyPack ? '' : ' disabled'}>Buy pack · ${PACK_PRICE} cr</button></div>
-   ${TIERS.map(tier).join('')}${gearGrid}`;
+   ${TIERS.map(tier).join('')}
+   <div class="sect">Team leads — credits</div>${leadTilesHTML('shop')}
+   ${gearGrid}`;
 }
 
 const dbTabs = () => `<div class="tabs">
@@ -271,10 +275,30 @@ export function openPanel(key) {
   const each = (sel, fn) => document.querySelectorAll('#pbody ' + sel).forEach(el => { el.onclick = () => fn(el); });
   each('[data-lead]', el => {
     const k = el.dataset.lead;
-    if (!leadUnlocked(k)) { notify('Locked', leadGateText(k) + ' to bring this lead aboard.'); return; }
+    if (!leadUnlocked(k)) { notify('Not on the roster', 'Recruit this lead at the Quartermaster — ' + leadGateText(k) + '.'); return; }
     active.lead = k;
     commit();
     openPanel('squad');
+  });
+  each('[data-leadbuy]', el => {
+    const k = el.dataset.leadbuy;
+    const L = LEADS[k];
+    const price = leadPrice(k);
+    if (leadUnlocked(k)) return;
+    if (active.progress.credits < price) {
+      notify('Insufficient credits', `${L.call} signs on for ${price} cr. You hold ${active.progress.credits}.`);
+      return;
+    }
+    ask(`Recruit ${L.call}`,
+      `${L.n} — ${L.role}.<br>${L.bio}<br><br>Sign on for <b style="color:var(--gold)">${price} cr</b>?`,
+      ok => {
+        if (!ok) return;
+        active.progress.credits -= price;
+        active.unlocks.leads.push(k);
+        commit();
+        notify('Aboard', `<b style="color:var(--zan)">${L.call}</b> has joined the task force. Assign them in Squad.`);
+        openPanel('quartermaster');
+      }, {ok: 'Recruit'});
   });
   each('[data-focus]', el => focusCard(el.dataset.focus, el.dataset.mode));
   each('[data-foe]', el => focusEnemy(el.dataset.foe));

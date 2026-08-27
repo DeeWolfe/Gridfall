@@ -115,6 +115,9 @@ One slot per card, bought with salvage.
 | Harrower | Specialist | 12 | 6 | 7 | 1.5 | Tunnels straight past blockers. Barricades and Bulwarks do not stop it. |
 | Chorus | Specialist | 14 | — | 8 | immobile | Immobile at the far edge. +1 damage to every hostile on the board. Kill it first — if you can reach it. |
 | Sovereign | Specialist | 40 | 8 | 10 | 0.5 | Moves every other turn. Every tile it crosses becomes hostile ground permanently. |
+| Husk | Common | 6 | 2 | 2 | 1 | Falls apart when destroyed - two Crawlers crawl out of the wreck. |
+| Mender | Tech | 8 | - | 4 | 1 | Unarmed. Advances with the horde and knits 2 hull into the most wounded hostile in its lane each turn. |
+| Screamer | Specialist | 10 | 4 | 7 | 1 | Its death sends every hostile on the board one step forward - time the kill. |
 
 ## Command
 
@@ -128,11 +131,11 @@ answers to you; your rank ladder is Acting Commander through Marshal.
 | VALE "IRONBRAND" | Line Commander | **Hardened Frames** Every unit deploys with +1 hull. | - | free |
 | KESTREL "WILDFIRE" | Strike Officer | - | **Emergency Requisition** (0 DP) +4 deploy points when the call lands. | free |
 | SABLE "COLDWIRE" | Field Engineer | **Nanite Weave** All units repair 1 hull per turn. | - | free |
-| GRAHAM "LONE EDGE" | Frontline Duelist | **Lone Edge** A unit with no adjacent friendly deals +2. | **Duel Protocol** (3 DP) One unit: +4 damage and untouchable for a turn. | rank 2 |
-| KUDELIA "SKUNKWORKS" | Field Engineer | **Field Fabrication** Tech deploys +2 hull, repairs 1/turn. | **Field Refit** (2 DP) Every Tech unit restored to full hull. | rank 3 |
-| ALLENBY "QUIETSTEP" | Infiltrator | **Quietstep** Cards that land on hostile ground cost 1 less, min 1. | **Silent Insertion** (2 DP) Next three deployments land anywhere. | 2 operations |
-| CAGALLI "FIREBRAND" | Saboteur | **Firebrand** +2 DP on any turn after you lost a unit. | **Breaching Charge** (3 DP) Destroy every hostile in a column at or below 8 hull. Ignores blockers. | Gauntlet clear |
-| YAZAN "RIPTIDE" | Skirmisher | **Riptide** Units that repositioned take 1 less damage. | **Grapple Net** (2 DP) Drag every hostile in a lane two cells back. | 1 operation |
+| GRAHAM "LONE EDGE" | Frontline Duelist | **Lone Edge** A unit with no adjacent friendly deals +2. | **Duel Protocol** (3 DP) One unit: +4 damage and untouchable for a turn. | 420 cr |
+| KUDELIA "SKUNKWORKS" | Field Engineer | **Field Fabrication** Tech deploys +2 hull, repairs 1/turn. | **Field Refit** (2 DP) Every Tech unit restored to full hull. | 420 cr |
+| ALLENBY "QUIETSTEP" | Infiltrator | **Quietstep** Cards that land on hostile ground cost 1 less, min 1. | **Silent Insertion** (2 DP) Next three deployments land anywhere. | 450 cr |
+| CAGALLI "FIREBRAND" | Saboteur | **Firebrand** +2 DP on any turn after you lost a unit. | **Breaching Charge** (3 DP) Destroy every hostile in a column at or below 8 hull. Ignores blockers. | 480 cr |
+| YAZAN "RIPTIDE" | Skirmisher | **Riptide** Units that repositioned take 1 less damage. | **Grapple Net** (2 DP) Drag every hostile in a lane two cells back. | 380 cr |
 
 ### Stratagems
 
@@ -141,6 +144,7 @@ the deck), one per mission, costs DP. Playing it commits the call; the effect
 resolves at the **start of the following turn**, with the affected cells
 marked in between - a prediction, not an undo. Coronet's General Advance is
 shelved: it breaks the one-action-per-unit rule everything else rests on.
+Unlockable leads are Quartermaster goods, recruited with credits.
 
 ## Missions
 

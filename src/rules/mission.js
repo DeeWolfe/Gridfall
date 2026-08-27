@@ -82,7 +82,7 @@ export function launchSpec(nd) {
   // The relay tile sits in the neutral band, middle lanes — contested by
   // definition, and reachable without holding hostile ground.
   if (G.type === 'uplink') G.uplinkAt = {l: 1 + randInt(3), c: 4};
-  if (G.type === 'blitz') G.quota = 10;
+  if (G.type === 'blitz') G.quota = 9;
 
   for (let i = 0; i < Math.min(5, G.deck.length); i++) G.hand.push(G.deck.pop());
   seedStratagem();               // the lead's one call, outside the deck
@@ -125,9 +125,11 @@ export function launchGauntlet() {
     const mods = Object.keys(MODS);
     active.gaunt = {
       i: 0,
-      legs: Array.from({length: GAUNTLET_LEGS}, () => ({
+      // The first leg comes clean; the modifiers ramp in behind it. With the
+      // full bestiary in the pool, three modified legs stopped being a mode.
+      legs: Array.from({length: GAUNTLET_LEGS}, (_, i) => ({
         type: types[randInt(types.length)],
-        mod: chance(0.6) ? mods[1 + randInt(mods.length - 1)] : 'none',
+        mod: i > 0 && chance(0.5) ? mods[1 + randInt(mods.length - 1)] : 'none',
       })),
     };
     commit();

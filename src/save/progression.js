@@ -50,24 +50,20 @@ export function leadOf() {
 
 /**
  * Is this lead available to the active profile? The starting three carry no
- * gate; the rest unlock off the service record.
+ * gate; the rest are Quartermaster goods, unlocked by purchase.
  */
 export function leadUnlocked(key) {
   const gate = LEADGATES[key];
-  if (!gate || !active) return !gate;
-  if (gate.req === 'rank') return active.progress.rank >= gate.value;
-  if (gate.req === 'operationsCleared') return (active.stats.opsCleared || 0) >= gate.value;
-  if (gate.req === 'gauntletClears') return (active.bests.gauntlet || 0) >= gate.value;
-  if (gate.req === 'onslaughtBest') return (active.bests.onslaught || 0) >= gate.value;
-  return false;
+  if (!gate) return true;
+  if (!active) return false;
+  return (active.unlocks.leads || []).includes(key);
 }
 
-/** The gate line shown on a locked lead chip. */
+/** The price of an unlockable lead, or 0 for the free tier. */
+export const leadPrice = key => (LEADGATES[key] ? LEADGATES[key].price : 0);
+
+/** The gate line shown on a locked lead. */
 export function leadGateText(key) {
   const gate = LEADGATES[key];
-  if (!gate) return '';
-  return gate.req === 'rank' ? `Reach rank ${gate.value}`
-    : gate.req === 'operationsCleared' ? `Complete ${gate.value} operation${gate.value > 1 ? 's' : ''}`
-      : gate.req === 'gauntletClears' ? 'Complete the Gauntlet'
-        : gate.req === 'onslaughtBest' ? `Survive ${gate.value} Onslaught waves` : '';
+  return gate ? `${gate.price} cr at the Quartermaster` : '';
 }

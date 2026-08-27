@@ -127,6 +127,19 @@ function actHostile(e, chorus) {
   if (D.spawn) { sporePulse(e, D); return; }
   if (D.spd === 0) return;
 
+  // A Mender spends its turn healing the most wounded hostile in its lane;
+  // with nothing to treat, it advances like the rest.
+  if (D.mend) {
+    const hurt = G.enemies
+      .filter(o => o.uid !== e.uid && o.lane === e.lane && o.hp < BEST[o.k].hp)
+      .sort((a, b) => a.hp / BEST[a.k].hp - b.hp / BEST[b.k].hp)[0];
+    if (hurt) {
+      hurt.hp = Math.min(BEST[hurt.k].hp, hurt.hp + D.mend);
+      clog(`<span class="d">Mender</span> knit ${D.mend} hull back into ${BEST[hurt.k].n}.`, 'wave');
+      return;
+    }
+  }
+
   // Spitters stop at range and shell down the lane.
   if (D.hold !== undefined && e.col <= D.hold) { strike(e, D, chorus); return; }
 
@@ -135,7 +148,8 @@ function actHostile(e, chorus) {
   // A minefield does not read as an obstacle — hostiles walk straight onto it.
   const blocked = ahead >= 0 && ((aheadUnit && !D.tunnel && !aheadUnit.mine) || civAt(e.lane, ahead));
   const queued = ahead >= 0 && foeAt(e.lane, ahead);
-  if (blocked || queued) { strike(e, D, chorus, queued && !blocked); return; }
+  // An unarmed hostile blocked in traffic simply waits.
+  if (blocked || queued) { if (D.dmg) strike(e, D, chorus, queued && !blocked); return; }
 
   // Fractional speeds bank movement across turns.
   e.mv = (e.mv || 0) + D.spd;

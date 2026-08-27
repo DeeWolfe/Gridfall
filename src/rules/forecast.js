@@ -22,7 +22,8 @@ export function forecastThreat() {
 
   G.enemies.forEach(e => {
     const D = BEST[e.k];
-    if (D.spd === 0 || e.stun) return;
+    // Unarmed hostiles (the Mender) never strike; mirrors actHostile.
+    if (D.spd === 0 || e.stun || !D.dmg) return;
 
     let willStrike = false;
     if (D.hold !== undefined && e.col <= D.hold) {

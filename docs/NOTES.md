@@ -575,6 +575,41 @@ expiry), `passivetest` (all five fire and stay silent), `grappletest` (drag
 in isolation), `breachtest` (threshold, blockers, floors), and `leadtest`
 updated for the conversion.
 
+## Leads in the store, a roster that scales, and three new hostiles
+
+The five unlockable leads became **Quartermaster goods** — recruited with
+credits (380–480 cr) instead of gated on the service record. That also hands
+credits another premium sink beside packs. The profile stores purchases in
+`unlocks.leads` (migrate-defaulted); the free three stay free.
+
+The lead UI was rebuilt for eight: the chip row became a **roster tile grid**
+(portrait, callsign, role, perk line, owned/price state), shared by Squad,
+the operations screen and the store — the same tile assigns in one place and
+recruits in the other. Locked tiles show their price; assigning a lead you
+don't own points you at the Quartermaster.
+
+Three hostiles joined the bestiary, one new mechanic each, guarded by
+`foetest`:
+
+- **Husk** (common, threat 2) — falls apart on death: two Crawlers spill
+  into the wreck cell and the free ground around it. Board-born, `src`-tagged
+  so the spawn-marker contract guard knows they were never promised.
+- **Mender** (tech, threat 4) — unarmed; advances with the horde and knits
+  2 hull into the most wounded hostile in its lane each turn. First shipped
+  at 3 and retuned.
+- **Screamer** (specialist, threat 7, wave 6+) — its death sends every
+  hostile one step forward, breaches included; one scream per causal chain.
+
+**The balance pass after.** The wider pool sank the kill-quota missions:
+specimens 44% → 29% (quota-type spawns diluted) and blitz 46% → 34%
+(the Mender un-killing progress). Three tunings brought every floor back to
+band — a third quota-type entry in the specimens pool, blitz quota 10 → 9,
+mend 3 → 2 — and the Gauntlet, which the harder bestiary had crushed to
+0-in-30, got its first leg modifier-free (mod chance 0.5 on legs two and
+three): pooled floors now stronghold 69%, retake ~66%, extract 93%,
+civilians 95%, crystals 46%, specimens 42%, uplink 44%, blitz 58%,
+Onslaught median 10, Gauntlet about 1-in-11.
+
 ## The pop layer
 
 Violet stepped up from bit-part to third lead, and the palette stopped being

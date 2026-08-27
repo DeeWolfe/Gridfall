@@ -462,10 +462,22 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .leadchain{margin-top:9px;padding-top:8px;border-top:1px solid var(--line);
   font-size:0.5625rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
 .leadchain b{color:var(--cyan)}
-.leadswap{display:flex;gap:5px;flex-wrap:wrap;margin-top:1px}
-.leadchip{font-size:0.5625rem;letter-spacing:.1em;padding:5px 9px;border:1px solid var(--line2);color:var(--dim)}
-.leadchip:hover{color:var(--lc);border-color:var(--lc)}
-.leadchip.on{color:var(--lc);border-color:var(--lc);background:rgba(255,255,255,.05)}
+/* The lead roster: one tile per lead, shared between Squad and the store. */
+.leadgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(150px,13vw,210px),1fr));gap:8px}
+.leadtile{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;
+  padding:10px 8px 8px;background:linear-gradient(170deg,var(--panel2),var(--deep));
+  border:1px solid var(--line2);cursor:pointer;transition:.12s}
+.leadtile:hover{border-color:var(--lc);box-shadow:0 0 20px -6px var(--lc)}
+.leadtile.on{border-color:var(--lc);box-shadow:0 0 24px -4px var(--lc);background:linear-gradient(170deg,#221c4a,var(--deep))}
+.leadtile.locked{opacity:.66}
+.ltpic{width:52px;height:52px;overflow:hidden;border:1px solid var(--line2)}
+.ltpic svg{width:100%;height:100%;display:block}
+.ltname{font-size:0.6562rem;font-weight:700;letter-spacing:.12em;color:var(--lc)}
+.ltrole{font-size:0.5312rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.ltperk{font-size:0.5312rem;color:var(--txt);opacity:.85;line-height:1.45;min-height:2em}
+.ltfoot{margin-top:auto;font-size:0.5625rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--green);border-top:1px solid var(--line);width:100%;padding-top:6px}
+.ltfoot.price{color:var(--gold)}
 @media(max-width:560px){.leadcard{grid-template-columns:48px 1fr;gap:9px;padding:9px}
   .leadbio{display:none}}
 
@@ -1975,11 +1987,11 @@ const LEADS = {
 // What each unlockable team lead is gated behind.
 
 const LEADGATES = {
-  loneedge: {req: "rank", value: 2},
-  skunkworks: {req: "rank", value: 3},
-  riptide: {req: "operationsCleared", value: 1},
-  quietstep: {req: "operationsCleared", value: 2},
-  firebrand: {req: "gauntletClears", value: 1},
+  riptide: {req: "store", price: 380},
+  loneedge: {req: "store", price: 420},
+  skunkworks: {req: "store", price: 420},
+  quietstep: {req: "store", price: 450},
+  firebrand: {req: "store", price: 480},
 };
 
 /* ==== src/content/ranks.js ========================================== */
@@ -2049,26 +2061,22 @@ function leadOf() {
 
 /**
  * Is this lead available to the active profile? The starting three carry no
- * gate; the rest unlock off the service record.
+ * gate; the rest are Quartermaster goods, unlocked by purchase.
  */
 function leadUnlocked(key) {
   const gate = LEADGATES[key];
-  if (!gate || !active) return !gate;
-  if (gate.req === 'rank') return active.progress.rank >= gate.value;
-  if (gate.req === 'operationsCleared') return (active.stats.opsCleared || 0) >= gate.value;
-  if (gate.req === 'gauntletClears') return (active.bests.gauntlet || 0) >= gate.value;
-  if (gate.req === 'onslaughtBest') return (active.bests.onslaught || 0) >= gate.value;
-  return false;
+  if (!gate) return true;
+  if (!active) return false;
+  return (active.unlocks.leads || []).includes(key);
 }
 
-/** The gate line shown on a locked lead chip. */
+/** The price of an unlockable lead, or 0 for the free tier. */
+const leadPrice = key => (LEADGATES[key] ? LEADGATES[key].price : 0);
+
+/** The gate line shown on a locked lead. */
 function leadGateText(key) {
   const gate = LEADGATES[key];
-  if (!gate) return '';
-  return gate.req === 'rank' ? `Reach rank ${gate.value}`
-    : gate.req === 'operationsCleared' ? `Complete ${gate.value} operation${gate.value > 1 ? 's' : ''}`
-      : gate.req === 'gauntletClears' ? 'Complete the Gauntlet'
-        : gate.req === 'onslaughtBest' ? `Survive ${gate.value} Onslaught waves` : '';
+  return gate ? `${gate.price} cr at the Quartermaster` : '';
 }
 
 /* ==== src/state/hooks.js ============================================ */
@@ -2173,7 +2181,7 @@ function blankProfile(callsign) {
     created: Date.now(),
     lastPlayed: Date.now(),
     progress: {rank: 1, xp: 0, credits: 300, salvage: 120},
-    unlocks: {cards: [...STARTER], enemies: [], gear: []},
+    unlocks: {cards: [...STARTER], enemies: [], gear: [], leads: []},
     loadout: {deck: [...STARTER], gear: {}},
     stats: {deployments: 0, held: 0, lost: 0, breaches: 0, kills: 0, unitsLost: 0},
     ship: 'ANVIL-7',
@@ -2226,6 +2234,7 @@ function migrate(p) {
   p.unlocks.cards = p.unlocks.cards || [...STARTER];
   p.unlocks.enemies = p.unlocks.enemies || [];
   p.unlocks.gear = p.unlocks.gear || [];
+  p.unlocks.leads = p.unlocks.leads || [];
   p.loadout = p.loadout || {};
   p.loadout.deck = p.loadout.deck || [...STARTER];
   p.loadout.gear = p.loadout.gear || {};
@@ -2594,6 +2603,36 @@ const BEST = {
     convert: 1,
     d: "Moves every other turn. Every tile it crosses becomes hostile ground permanently.",
   },
+  husk: {
+    n: "Husk",
+    t: "common",
+    hp: 6,
+    dmg: 2,
+    threat: 2,
+    spd: 1,
+    split: 2,
+    d: "Shambles forward and falls apart when destroyed — two Crawlers crawl out of the wreck. Kill it somewhere you can afford the mess.",
+  },
+  mender: {
+    n: "Mender",
+    t: "tech",
+    hp: 8,
+    dmg: 0,
+    threat: 4,
+    spd: 1,
+    mend: 2,
+    d: "Carries no weapon. Advances with the horde and knits 2 hull back into the most wounded hostile in its lane every turn. Kill it first.",
+  },
+  screamer: {
+    n: "Screamer",
+    t: "special",
+    hp: 10,
+    dmg: 4,
+    threat: 7,
+    spd: 1,
+    deathrush: 1,
+    d: "Dies loudly. The scream sends every hostile on the board one step forward — time the kill, or the kill times you.",
+  },
 };
 
 /* ==== src/rules/board.js ============================================ */
@@ -2723,12 +2762,15 @@ function wave(t) {
 
   let budget = Math.round(2 + t * (G.endless ? 1.9 : 1.5));
   const pool = ['crawler'];
-  if (t >= 2) pool.push('hulk', 'breacher');
+  if (t >= 2) pool.push('hulk', 'breacher', 'husk');
   if (t >= 3) pool.push('spitter', 'burrower');
-  if (t >= 4 || G.mod === 'nest') pool.push('spore', 'jammer', 'pylon');
+  if (t >= 4 || G.mod === 'nest') pool.push('spore', 'jammer', 'pylon', 'mender');
   if (t >= 5) pool.push('harrower');
+  if (t >= 6) pool.push('screamer');
   if ((t >= G.waves || (G.endless && t >= 7)) && G.type !== 'extract') pool.push('chorus', 'sovereign');
-  if (G.type === 'specimens' && G.quotaK) pool.push(G.quotaK, G.quotaK);
+  // The wider bestiary dilutes the quota type; three extra entries keep the
+  // Acquire Specimens target showing up often enough to be acquirable.
+  if (G.type === 'specimens' && G.quotaK) pool.push(G.quotaK, G.quotaK, G.quotaK);
 
   const out = {};
   let guard = 0;
@@ -3292,6 +3334,62 @@ function dmgEnemy(e, d, src, pen) {
   if (G.mod === 'salvage') G.dp++;
   clog(`<span class="g">${src}</span> destroyed ${BEST[e.k].n}.`, 'kill');
   logContact(e.k);
+
+  const D = BEST[e.k];
+  if (D.split) huskSplit(e, D.split);
+  if (D.deathrush) screamerRush(e);
+}
+
+/** A Husk falls apart: Crawlers spill into its cell and the free ground around it. */
+function huskSplit(e, count) {
+  const spots = [[e.lane, e.col], [e.lane, e.col + 1], [e.lane, e.col - 1],
+    [e.lane - 1, e.col], [e.lane + 1, e.col]];
+  let placed = 0;
+  for (const [l, c] of spots) {
+    if (placed >= count) break;
+    if (l < 0 || l >= LANES || c < 0 || c >= COLS) continue;
+    if (G.ter[l][c] === 'x' || unitAt(l, c) || foeAt(l, c) || civAt(l, c)) continue;
+    // Tagged board-born: these were never promised by a spawn marker.
+    G.enemies.push({uid: nextUid(), k: 'crawler', lane: l, col: c,
+      hp: BEST.crawler.hp, mv: 0, acc: 0, stun: 0, src: 'husk'});
+    placed++;
+  }
+  if (placed) clog(`<span class="d">The Husk falls apart</span> — ${placed} Crawler${placed > 1 ? 's' : ''} crawl out of the wreck.`, 'wave');
+}
+
+// A rush can kill (plasma, mines) and those kills must not scream in turn —
+// one scream per causal chain keeps it resolvable.
+let rushing = false;
+
+/** A Screamer's death sends every hostile on the board one step forward. */
+function screamerRush(e) {
+  if (rushing) return;
+  rushing = true;
+  clog('<span class="d">THE SCREAM</span> — every hostile surges a step forward.', 'loss');
+  [...G.enemies].sort((a, b) => a.col - b.col).forEach(o => {
+    if (o.hp <= 0 || BEST[o.k].spd === 0) return;
+    const nc = o.col - 1;
+    if (nc < 0) {
+      G.breaches++;
+      G.enemies = G.enemies.filter(x => x.uid !== o.uid);
+      tapeEvent({type: 'breach', lane: o.lane});
+      clog(`<span class="d">BREACH</span> — ${BEST[o.k].n} carried over the line by the scream.`, 'loss');
+      return;
+    }
+    if (G.ter[o.lane][nc] === 'x') return;
+    const su = unitAt(o.lane, nc);
+    if ((su && !BEST[o.k].tunnel && !su.mine) || foeAt(o.lane, nc) || civAt(o.lane, nc)) return;
+    if (su && su.mine) {
+      G.units = G.units.filter(x => x.uid !== su.uid);
+      clog(`<span class="d">${BEST[o.k].n}</span> surged onto a <span class="g">Minefield</span> — ${su.mine} damage.`, 'kill');
+      dmgEnemy(o, su.mine, 'Minefield', true);
+    }
+    if (o.hp <= 0) return;
+    if (scorched(o.lane, nc)) dmgEnemy(o, 2, 'Plasma');
+    if (o.hp <= 0) return;
+    o.col = nc;
+  });
+  rushing = false;
 }
 
 /** 3x3 splash centred on (l, c). */
@@ -3608,7 +3706,7 @@ function launchSpec(nd) {
   // The relay tile sits in the neutral band, middle lanes — contested by
   // definition, and reachable without holding hostile ground.
   if (G.type === 'uplink') G.uplinkAt = {l: 1 + randInt(3), c: 4};
-  if (G.type === 'blitz') G.quota = 10;
+  if (G.type === 'blitz') G.quota = 9;
 
   for (let i = 0; i < Math.min(5, G.deck.length); i++) G.hand.push(G.deck.pop());
   seedStratagem();               // the lead's one call, outside the deck
@@ -3651,9 +3749,11 @@ function launchGauntlet() {
     const mods = Object.keys(MODS);
     active.gaunt = {
       i: 0,
-      legs: Array.from({length: GAUNTLET_LEGS}, () => ({
+      // The first leg comes clean; the modifiers ramp in behind it. With the
+      // full bestiary in the pool, three modified legs stopped being a mode.
+      legs: Array.from({length: GAUNTLET_LEGS}, (_, i) => ({
         type: types[randInt(types.length)],
-        mod: chance(0.6) ? mods[1 + randInt(mods.length - 1)] : 'none',
+        mod: i > 0 && chance(0.5) ? mods[1 + randInt(mods.length - 1)] : 'none',
       })),
     };
     commit();
@@ -5003,14 +5103,33 @@ function leadCardHTML() {
       ${L.passive ? `<div class="leadperk"><b>Passive · ${L.passive.n}</b>${L.passive.d}</div>` : ''}
       ${def ? `<div class="leadperk strat"><b>Stratagem · ${def.n} · ${def.dp} DP</b>${def.d} Once per mission; resolves at the start of the following turn.</div>` : ''}
       <div class="leadchain">Runs the squad. Reports to <b>${active.callsign}</b> · ${rankName(active.progress.rank)}</div>
-      <div class="leadswap">${Object.keys(LEADS).map(k => {
-        const o = LEADS[k];
-        const open = leadUnlocked(k);
-        return `<button class="leadchip${k === id ? ' on' : ''}${open ? '' : ' locked'}"
-          data-lead="${k}" style="--lc:${o.col}"
-          title="${open ? o.call : 'Locked — ' + leadGateText(k)}">${open ? o.call : '🔒 ' + o.call}</button>`;
-      }).join('')}</div>
     </div></div>`;
+}
+
+/**
+ * The lead roster as a tile grid — the same tiles serve the Squad panel
+ * (assigning) and the Quartermaster (buying); `mode` decides the action.
+ */
+function leadTilesHTML(mode) {
+  const current = (active.lead && LEADS[active.lead]) ? active.lead : 'ironbrand';
+  return `<div class="leadgrid">${Object.keys(LEADS).map(k => {
+    const o = LEADS[k];
+    const open = leadUnlocked(k);
+    const def = o.stratagem ? STRATAGEMS[o.stratagem] : null;
+    const perk = o.passive ? o.passive.n : def ? def.n : '';
+    const foot = mode === 'shop'
+      ? (open ? (LEADGATES[k] ? 'Owned' : 'Standard issue') : leadPrice(k) + ' cr')
+      : (k === current ? 'Assigned' : open ? 'Tap to assign' : leadPrice(k) + ' cr · Quartermaster');
+    const attr = mode === 'shop' ? (open ? '' : ` data-leadbuy="${k}"`) : ` data-lead="${k}"`;
+    return `<button class="leadtile${mode === 'squad' && k === current ? ' on' : ''}${open ? '' : ' locked'}"
+        ${attr} style="--lc:${o.col}" title="${o.call} — ${o.role}. ${o.bio}">
+      <span class="ltpic">${portrait(k)}</span>
+      <span class="ltname">${open ? '' : '🔒 '}${o.call}</span>
+      <span class="ltrole">${o.role}</span>
+      <span class="ltperk">${o.passive ? '◈ ' + perk : ''}${o.passive && def ? ' · ' : ''}${def ? '⬡ ' + def.n : ''}</span>
+      <span class="ltfoot${open ? '' : ' price'}">${foot}</span>
+    </button>`;
+  }).join('')}</div>`;
 }
 
 /** Refresh the hold's readouts from the active profile. */
@@ -5219,7 +5338,9 @@ function renderOps() {
   if (!active) return;
   active.ops = active.ops || {};
 
-  $('opsbody').innerHTML = leadCardHTML() + `<div class="sect" style="margin-top:16px">Select an operation</div>
+  $('opsbody').innerHTML = leadCardHTML() +
+    `<div class="sect" style="margin-top:12px">Roster</div>` + leadTilesHTML('squad') +
+    `<div class="sect" style="margin-top:16px">Select an operation</div>
   <div class="opgrid">${Object.values(OPS).map(o => {
     const run = active.ops[o.k];
     const done = run ? run.cleared.length : 0;
@@ -5233,7 +5354,16 @@ function renderOps() {
   <div class="mnote">Each operation is its own map with its own missions. Progress is tracked separately — switch between them freely.</div>`;
 
   document.querySelectorAll('#opsbody [data-lead]').forEach(b => {
-    b.onclick = () => { active.lead = b.dataset.lead; commit(); renderOps(); };
+    b.onclick = () => {
+      const k = b.dataset.lead;
+      if (!leadUnlocked(k)) {
+        notify('Not on the roster', 'Recruit this lead at the Quartermaster — ' + leadGateText(k) + '.');
+        return;
+      }
+      active.lead = k;
+      commit();
+      renderOps();
+    };
   });
   document.querySelectorAll('#opsbody [data-op]').forEach(b => {
     b.onclick = () => {
@@ -5873,6 +6003,19 @@ function actHostile(e, chorus) {
   if (D.spawn) { sporePulse(e, D); return; }
   if (D.spd === 0) return;
 
+  // A Mender spends its turn healing the most wounded hostile in its lane;
+  // with nothing to treat, it advances like the rest.
+  if (D.mend) {
+    const hurt = G.enemies
+      .filter(o => o.uid !== e.uid && o.lane === e.lane && o.hp < BEST[o.k].hp)
+      .sort((a, b) => a.hp / BEST[a.k].hp - b.hp / BEST[b.k].hp)[0];
+    if (hurt) {
+      hurt.hp = Math.min(BEST[hurt.k].hp, hurt.hp + D.mend);
+      clog(`<span class="d">Mender</span> knit ${D.mend} hull back into ${BEST[hurt.k].n}.`, 'wave');
+      return;
+    }
+  }
+
   // Spitters stop at range and shell down the lane.
   if (D.hold !== undefined && e.col <= D.hold) { strike(e, D, chorus); return; }
 
@@ -5881,7 +6024,8 @@ function actHostile(e, chorus) {
   // A minefield does not read as an obstacle — hostiles walk straight onto it.
   const blocked = ahead >= 0 && ((aheadUnit && !D.tunnel && !aheadUnit.mine) || civAt(e.lane, ahead));
   const queued = ahead >= 0 && foeAt(e.lane, ahead);
-  if (blocked || queued) { strike(e, D, chorus, queued && !blocked); return; }
+  // An unarmed hostile blocked in traffic simply waits.
+  if (blocked || queued) { if (D.dmg) strike(e, D, chorus, queued && !blocked); return; }
 
   // Fractional speeds bank movement across turns.
   e.mv = (e.mv || 0) + D.spd;
@@ -6062,7 +6206,8 @@ function forecastThreat() {
 
   G.enemies.forEach(e => {
     const D = BEST[e.k];
-    if (D.spd === 0 || e.stun) return;
+    // Unarmed hostiles (the Mender) never strike; mirrors actHostile.
+    if (D.spd === 0 || e.stun || !D.dmg) return;
 
     let willStrike = false;
     if (D.hold !== undefined && e.col <= D.hold) {
@@ -6897,6 +7042,7 @@ function squadPanel() {
   const deck = active.loadout.deck;
   const reserve = active.unlocks.cards.filter(c => !deck.includes(c));
   return `<div class="sect">Team lead — answers to you</div>${leadCardHTML()}
+   <div class="sect">Roster</div>${leadTilesHTML('squad')}
    <div class="sect">Deck</div>
    <div class="bar"><div><b>${deck.length}</b> / ${DECKSIZE} in deck · <b style="color:var(--cyan)">${Object.keys(active.loadout.gear).length}</b> geared</div>
      <div style="color:var(--dim);font-size:0.5625rem">Tap any card to enlarge it — inspect, fit gear, add or remove</div></div>
@@ -6928,7 +7074,9 @@ function quartermasterPanel() {
    <div class="bar"><div><b>Requisition drop</b>
      <div style="color:var(--dim);font-size:0.5625rem;margin-top:3px">Three offers, keep one — duplicates promote the card instead. Now and then one arrives as a priority requisition.</div></div>
      <button class="btn${canBuyPack ? '' : ' ghost'}" id="buypack"${canBuyPack ? '' : ' disabled'}>Buy pack · ${PACK_PRICE} cr</button></div>
-   ${TIERS.map(tier).join('')}${gearGrid}`;
+   ${TIERS.map(tier).join('')}
+   <div class="sect">Team leads — credits</div>${leadTilesHTML('shop')}
+   ${gearGrid}`;
 }
 
 const dbTabs = () => `<div class="tabs">
@@ -7132,10 +7280,30 @@ function openPanel(key) {
   const each = (sel, fn) => document.querySelectorAll('#pbody ' + sel).forEach(el => { el.onclick = () => fn(el); });
   each('[data-lead]', el => {
     const k = el.dataset.lead;
-    if (!leadUnlocked(k)) { notify('Locked', leadGateText(k) + ' to bring this lead aboard.'); return; }
+    if (!leadUnlocked(k)) { notify('Not on the roster', 'Recruit this lead at the Quartermaster — ' + leadGateText(k) + '.'); return; }
     active.lead = k;
     commit();
     openPanel('squad');
+  });
+  each('[data-leadbuy]', el => {
+    const k = el.dataset.leadbuy;
+    const L = LEADS[k];
+    const price = leadPrice(k);
+    if (leadUnlocked(k)) return;
+    if (active.progress.credits < price) {
+      notify('Insufficient credits', `${L.call} signs on for ${price} cr. You hold ${active.progress.credits}.`);
+      return;
+    }
+    ask(`Recruit ${L.call}`,
+      `${L.n} — ${L.role}.<br>${L.bio}<br><br>Sign on for <b style="color:var(--gold)">${price} cr</b>?`,
+      ok => {
+        if (!ok) return;
+        active.progress.credits -= price;
+        active.unlocks.leads.push(k);
+        commit();
+        notify('Aboard', `<b style="color:var(--zan)">${L.call}</b> has joined the task force. Assign them in Squad.`);
+        openPanel('quartermaster');
+      }, {ok: 'Recruit'});
   });
   each('[data-focus]', el => focusCard(el.dataset.focus, el.dataset.mode));
   each('[data-foe]', el => focusEnemy(el.dataset.foe));

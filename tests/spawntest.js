@@ -35,7 +35,9 @@ for (let run = 0; run < RUNS; run++) {
     if (!A.G || A.G.over) break;
 
     // Spore Nodes release Crawlers mid-board; those carry no marker by design.
-    const arrived = A.G.enemies.filter(e => !before.includes(e.uid) && e.src !== 'spore');
+    // Board-born hostiles (spore releases, husk splits) carry a src tag and
+    // were never promised by a marker — the contract does not cover them.
+    const arrived = A.G.enemies.filter(e => !before.includes(e.uid) && !e.src);
     const got = {};
     arrived.forEach(e => { got[e.lane] = (got[e.lane] || 0) + 1; });
 

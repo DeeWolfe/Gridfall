@@ -22,12 +22,15 @@ export function wave(t) {
 
   let budget = Math.round(2 + t * (G.endless ? 1.9 : 1.5));
   const pool = ['crawler'];
-  if (t >= 2) pool.push('hulk', 'breacher');
+  if (t >= 2) pool.push('hulk', 'breacher', 'husk');
   if (t >= 3) pool.push('spitter', 'burrower');
-  if (t >= 4 || G.mod === 'nest') pool.push('spore', 'jammer', 'pylon');
+  if (t >= 4 || G.mod === 'nest') pool.push('spore', 'jammer', 'pylon', 'mender');
   if (t >= 5) pool.push('harrower');
+  if (t >= 6) pool.push('screamer');
   if ((t >= G.waves || (G.endless && t >= 7)) && G.type !== 'extract') pool.push('chorus', 'sovereign');
-  if (G.type === 'specimens' && G.quotaK) pool.push(G.quotaK, G.quotaK);
+  // The wider bestiary dilutes the quota type; three extra entries keep the
+  // Acquire Specimens target showing up often enough to be acquirable.
+  if (G.type === 'specimens' && G.quotaK) pool.push(G.quotaK, G.quotaK, G.quotaK);
 
   const out = {};
   let guard = 0;

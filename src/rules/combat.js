@@ -3,7 +3,8 @@
 import {LANES, COLS} from '../state/constants.js';
 import {POOL} from '../content/cards.js';
 import {BEST} from '../content/hostiles.js';
-import {G, active} from '../state/session.js';
+import {G, active, nextUid} from '../state/session.js';
+import {unitAt, foeAt, civAt, scorched} from './board.js';
 import {buffOf, leadBonus} from './units.js';
 import {leadOf} from '../save/progression.js';
 import {targetsFor, laneFloor} from './targeting.js';
@@ -34,6 +35,62 @@ export function dmgEnemy(e, d, src, pen) {
   if (G.mod === 'salvage') G.dp++;
   clog(`<span class="g">${src}</span> destroyed ${BEST[e.k].n}.`, 'kill');
   logContact(e.k);
+
+  const D = BEST[e.k];
+  if (D.split) huskSplit(e, D.split);
+  if (D.deathrush) screamerRush(e);
+}
+
+/** A Husk falls apart: Crawlers spill into its cell and the free ground around it. */
+function huskSplit(e, count) {
+  const spots = [[e.lane, e.col], [e.lane, e.col + 1], [e.lane, e.col - 1],
+    [e.lane - 1, e.col], [e.lane + 1, e.col]];
+  let placed = 0;
+  for (const [l, c] of spots) {
+    if (placed >= count) break;
+    if (l < 0 || l >= LANES || c < 0 || c >= COLS) continue;
+    if (G.ter[l][c] === 'x' || unitAt(l, c) || foeAt(l, c) || civAt(l, c)) continue;
+    // Tagged board-born: these were never promised by a spawn marker.
+    G.enemies.push({uid: nextUid(), k: 'crawler', lane: l, col: c,
+      hp: BEST.crawler.hp, mv: 0, acc: 0, stun: 0, src: 'husk'});
+    placed++;
+  }
+  if (placed) clog(`<span class="d">The Husk falls apart</span> — ${placed} Crawler${placed > 1 ? 's' : ''} crawl out of the wreck.`, 'wave');
+}
+
+// A rush can kill (plasma, mines) and those kills must not scream in turn —
+// one scream per causal chain keeps it resolvable.
+let rushing = false;
+
+/** A Screamer's death sends every hostile on the board one step forward. */
+function screamerRush(e) {
+  if (rushing) return;
+  rushing = true;
+  clog('<span class="d">THE SCREAM</span> — every hostile surges a step forward.', 'loss');
+  [...G.enemies].sort((a, b) => a.col - b.col).forEach(o => {
+    if (o.hp <= 0 || BEST[o.k].spd === 0) return;
+    const nc = o.col - 1;
+    if (nc < 0) {
+      G.breaches++;
+      G.enemies = G.enemies.filter(x => x.uid !== o.uid);
+      tapeEvent({type: 'breach', lane: o.lane});
+      clog(`<span class="d">BREACH</span> — ${BEST[o.k].n} carried over the line by the scream.`, 'loss');
+      return;
+    }
+    if (G.ter[o.lane][nc] === 'x') return;
+    const su = unitAt(o.lane, nc);
+    if ((su && !BEST[o.k].tunnel && !su.mine) || foeAt(o.lane, nc) || civAt(o.lane, nc)) return;
+    if (su && su.mine) {
+      G.units = G.units.filter(x => x.uid !== su.uid);
+      clog(`<span class="d">${BEST[o.k].n}</span> surged onto a <span class="g">Minefield</span> — ${su.mine} damage.`, 'kill');
+      dmgEnemy(o, su.mine, 'Minefield', true);
+    }
+    if (o.hp <= 0) return;
+    if (scorched(o.lane, nc)) dmgEnemy(o, 2, 'Plasma');
+    if (o.hp <= 0) return;
+    o.col = nc;
+  });
+  rushing = false;
 }
 
 /** 3x3 splash centred on (l, c). */

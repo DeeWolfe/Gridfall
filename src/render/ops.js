@@ -5,7 +5,9 @@ import {active, setMapdef} from '../state/session.js';
 import {commit} from '../save/profile.js';
 import {genRun} from '../rules/run.js';
 import {$, show} from './dom.js';
-import {leadCardHTML} from './hold.js';
+import {leadCardHTML, leadTilesHTML} from './hold.js';
+import {leadUnlocked, leadGateText} from '../save/progression.js';
+import {notify} from './dialog.js';
 import {renderMap} from './map.js';
 
 /** A thumbnail of an operation's map: zones, edges, and cleared nodes. */
@@ -26,7 +28,9 @@ export function renderOps() {
   if (!active) return;
   active.ops = active.ops || {};
 
-  $('opsbody').innerHTML = leadCardHTML() + `<div class="sect" style="margin-top:16px">Select an operation</div>
+  $('opsbody').innerHTML = leadCardHTML() +
+    `<div class="sect" style="margin-top:12px">Roster</div>` + leadTilesHTML('squad') +
+    `<div class="sect" style="margin-top:16px">Select an operation</div>
   <div class="opgrid">${Object.values(OPS).map(o => {
     const run = active.ops[o.k];
     const done = run ? run.cleared.length : 0;
@@ -40,7 +44,16 @@ export function renderOps() {
   <div class="mnote">Each operation is its own map with its own missions. Progress is tracked separately — switch between them freely.</div>`;
 
   document.querySelectorAll('#opsbody [data-lead]').forEach(b => {
-    b.onclick = () => { active.lead = b.dataset.lead; commit(); renderOps(); };
+    b.onclick = () => {
+      const k = b.dataset.lead;
+      if (!leadUnlocked(k)) {
+        notify('Not on the roster', 'Recruit this lead at the Quartermaster — ' + leadGateText(k) + '.');
+        return;
+      }
+      active.lead = k;
+      commit();
+      renderOps();
+    };
   });
   document.querySelectorAll('#opsbody [data-op]').forEach(b => {
     b.onclick = () => {

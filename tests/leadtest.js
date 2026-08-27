@@ -5,7 +5,7 @@ import {get} from './support/dom.js';
 import {failures, builtPage, pageParts} from './support/harness.js';
 import {spawnFoe, clearBoard, unlockAll} from './support/fixtures.js';
 import {portrait} from '../src/render/art.js';
-import {leadCardHTML} from '../src/render/hold.js';
+import {leadCardHTML, leadTilesHTML} from '../src/render/hold.js';
 import {renderOps} from '../src/render/ops.js';
 import {openPanel} from '../src/render/panels.js';
 import {drawAll} from '../src/render/combat.js';
@@ -148,14 +148,23 @@ drawAll();
 // --- the lead card lives on Squad, not on the hold screen ---
 {
   const card = leadCardHTML();
-  ['leadpic', 'leadname', 'leadrole', 'leadperk', 'data-lead', 'leadbio'].forEach(k => {
+  ['leadpic', 'leadname', 'leadrole', 'leadperk', 'leadbio'].forEach(k => {
     if (!card.includes(k)) F.push('lead card missing ' + k);
   });
   if (/undefined|NaN|\[object/.test(card)) F.push('lead card artefact');
 
+  // The roster grid carries the switching; every lead gets a tile.
+  const tiles = leadTilesHTML('squad');
+  if ((tiles.match(/data-lead=/g) || []).length !== Object.keys(A.LEADS).length) {
+    F.push('roster grid does not offer every lead');
+  }
+  if (!tiles.includes('leadtile')) F.push('roster grid missing its tiles');
+  if (/undefined|NaN|\[object/.test(tiles)) F.push('roster grid artefact');
+
   openPanel('squad');
   const squad = get('pbody')._html;
   if (!squad.includes('leadcard')) F.push('Squad page is missing the lead card');
+  if (!squad.includes('leadgrid')) F.push('Squad page is missing the roster grid');
   if (!squad.includes('Team lead')) F.push('Squad page is missing the lead heading');
   if (head.includes('id="leadcard"')) F.push('stale lead card still in the hold markup');
   if (css.includes('.leadbar{')) F.push('stale .leadbar css still present');
