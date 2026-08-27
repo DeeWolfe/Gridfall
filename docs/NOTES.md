@@ -539,6 +539,21 @@ siblings (crystals 43%, specimens 48% in the same runs):
 eight generation rolls each, the Blackmarrow gate, completion-on-final, side
 bonus pay, and both new objectives' win-and-reset logic.
 
+## The pop layer
+
+Violet stepped up from bit-part to third lead, and the palette stopped being
+flat: primary buttons run pink-to-violet, section and box headers carry a
+violet ✦ spark, the console label line became a pink-violet holo gradient,
+and the out-of-combat screens (login, modes, operations, map, panels) sit on
+subtle violet-and-pink aurora glows. The title wordmark is holographic
+(white → cyan → violet → pink) under twinkling violet stars. Combat is left
+alone — the board's readability outranks the mood there.
+
+The login console lost the redundant GRIDFALL wordmark (the title screen owns
+it now) and reflavoured as an authentication terminal: 認証 in holo gradient,
+"Commander authentication · 残心ネット", boot-log lines tagged with kanji
+(接続 / 暗号 / 登録 / 待機), and "Command records · 指揮記録".
+
 ## The zanshin accent
 
 The 残心 magenta (`--zan: #ff4d8f`) became the game's brand colour: primary
