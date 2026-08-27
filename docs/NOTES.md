@@ -207,6 +207,22 @@ flat and the explosions look pasted on. Entity counts are capped, and
 The canvas stub in `tests/support/dom.js` grew the operations the scene needs
 (`createRadialGradient`, `stroke`, `strokeStyle`, `lineWidth`, `save`/`restore`).
 
+## Trading cards, and the void filled
+
+- **Hand cards are trading cards now**: 5:7 portrait proportions, the card's
+  sigil as art, the name at 0.6875rem centred beneath, and a tier · hull line.
+  The rules text is off the card entirely — it shows in the details panel the
+  moment the card is selected, in full behind the ⌕ badge, and as a hover
+  tooltip on desktop. `handtest` fails if the text comes back or the art goes.
+- **The compact layout's dead space is the combat log.** The stacked view had a
+  void between the details panel and the hand; the log (desktop's left rail)
+  now rides there as a third grid row taking the leftover height, so mobile
+  players get it too. The block that shows it sits *after* the desktop layer in
+  the stylesheet, because it has to beat the rail's default `display:none` on
+  cascade order.
+- The number-key badge moved onto the art box's corner, out of the tier line's
+  way, and the board's height budget grew to match the taller hand strip.
+
 ## Still open
 
 Carried over from the handoff, in the order it recommended.

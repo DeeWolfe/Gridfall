@@ -11,6 +11,7 @@ import {MISSIONS} from '../content/missions.js';
 import {MODS} from '../content/modifiers.js';
 import {DOCTRINE} from '../content/doctrines.js';
 import {TGNAME} from '../content/targeting-names.js';
+import {TIERNAME} from '../content/ranks.js';
 import {G, active, sel, mover, setSel, setMover} from '../state/session.js';
 import {costOf, gearOf, vetOf, leadOf} from '../save/progression.js';
 import {unitAt, foeAt, civAt, held, scorched, validTiles} from '../rules/board.js';
@@ -23,7 +24,7 @@ import {objText, abortMission} from '../rules/mission.js';
 import {forecastThreat, supportTargets, influenceCells, supportLabel} from '../rules/forecast.js';
 import {clog} from '../rules/log.js';
 import {$, show} from './dom.js';
-import {portrait} from './art.js';
+import {portrait, sigil} from './art.js';
 import {ask, notify} from './dialog.js';
 import {focusCard, focusEnemy, closeFocus} from './focus.js';
 import {renderMap} from './map.js';
@@ -312,13 +313,17 @@ export function drawHand() {
 
     const el = document.createElement('div');
     el.className = `hc t-${k.t} v${v.t}` + (unaffordable ? ' poor' : '') + (sel === cid ? ' sel' : '');
-    // Portrait card: cost in the top-left corner, name, then a clipped blurb —
-    // the full text lives in the details panel and behind the ⌕ badge.
+    // A trading card: cost in the corner, the sigil as art, name and tier
+    // beneath. No rules text — that lives in the details panel when the card
+    // is selected, and in full behind the ⌕ badge.
     el.innerHTML = `<div class="hcost">${cost}</div>
       ${index < 9 ? `<div class="hkey">${index + 1}</div>` : ''}
       <div class="zoom" data-z="${cid}">⌕</div>${v.t ? `<div class="hpips">${'◆'.repeat(v.t)}</div>` : ''}
+      <div class="hart">${sigil(cid, k.t, null, v.t >= 2 ? v.col : null)}</div>
       <div class="n">${k.n}</div>
-      <div class="d">${k.d}</div>${g ? `<div class="gtag">${g.n}</div>` : ''}`;
+      <div class="hsub">${TIERNAME[k.t]}${k.hp ? ' · ' + (k.hp + (g && g.hp ? g.hp : 0)) + ' hull' : ''}</div>
+      ${g ? `<div class="gtag">${g.n}</div>` : ''}`;
+    el.title = k.n + ' — ' + k.d;   // hover tooltip carries the rules text
     el.onclick = ev => {
       if (ev.target.dataset.z) { focusCard(cid, 'hand'); return; }
       if (unaffordable) return;

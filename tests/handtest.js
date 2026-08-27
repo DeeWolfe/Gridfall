@@ -68,7 +68,14 @@ const rule = sel => {
     if (!/width:\s*clamp\(/.test(card)) F.push('hand cards have no clamped width — they will not scale');
     if (!/flex:\s*0\s+0\s+auto/.test(card)) F.push('hand cards can shrink instead of scrolling');
     if (!/flex-direction:\s*column/.test(card)) F.push('hand cards are not upright');
+    if (!/aspect-ratio/.test(card)) F.push('hand cards lost their trading-card proportions');
   }
+
+  // The card face is art, name and tier — the rules text lives in the details
+  // panel and the focus view, never on the card itself.
+  const body = page.slice(page.indexOf('function drawHand'), page.indexOf('function drawAll'));
+  if (!body.includes('class="hart"')) F.push('hand cards carry no art');
+  if (/class="d"/.test(body)) F.push('rules text is back on the hand card');
 }
 
 // --- the details panel is the part of the rail that grows ---

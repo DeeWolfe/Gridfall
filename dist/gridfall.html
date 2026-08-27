@@ -688,31 +688,34 @@ body{font-size:1rem}
 .hcards::-webkit-scrollbar{height:4px}
 .hcards::-webkit-scrollbar-track{background:transparent}
 .hcards::-webkit-scrollbar-thumb{background:var(--line2)}
-.hc{flex:0 0 auto;width:clamp(94px,8.6vw,132px);scroll-snap-align:start;
-  display:flex;flex-direction:column;gap:2px;
+.hc{flex:0 0 auto;width:clamp(104px,9.2vw,140px);aspect-ratio:5/7;scroll-snap-align:start;
+  display:flex;flex-direction:column;gap:4px;align-items:center;
   background:linear-gradient(170deg,var(--panel2),var(--deep));
-  border:1px solid var(--line2);padding:1.3rem .45rem .5rem;
+  border:1px solid var(--line2);padding:1.5rem .4rem .45rem;
   cursor:pointer;transition:.1s;position:relative}
+.hart{width:100%;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--line);background:radial-gradient(ellipse at 50% 80%,rgba(77,232,255,.05),transparent 70%)}
+.hart svg{width:min(72%,64px);height:auto}
+.hsub{font-size:0.5rem;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
 .hc:hover{filter:brightness(1.18)}
 .hc.t-tech{border-color:var(--cyan-d)} .hc.t-special{border-color:#9a7420}
 .hc.sel{border-color:var(--green);box-shadow:0 0 16px rgba(93,255,160,.28)}
 .hc.poor{opacity:.3;cursor:not-allowed;filter:none}
-.hc .n{font-size:0.5312rem;font-weight:700;line-height:1.3;color:var(--txt);overflow-wrap:anywhere}
-.hcost{position:absolute;top:5px;left:6px;font-size:0.5938rem;font-weight:700;
+.hc .n{font-size:0.6875rem;font-weight:700;line-height:1.25;color:var(--txt);
+  text-align:center;overflow-wrap:anywhere}
+.hcost{position:absolute;top:6px;left:8px;font-size:0.8125rem;font-weight:700;
   line-height:1;color:var(--gold);letter-spacing:.04em}
-.hc .d{font-size:0.4375rem;color:var(--dim);line-height:1.45;
-  display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
 
 @media(min-width:1000px){
   .cbmain{grid-template-columns:minmax(0,1fr) clamp(212px,17vw,340px);overflow:hidden}
   .cbcol{overflow-y:auto}
   .cbcol.mid{overflow:hidden;justify-content:center}
-  .field{max-width:min(100%,calc((100vh - 21rem) * 1.62))}
+  .field{max-width:min(100%,calc((100vh - 24rem) * 1.62))}
   .cbfoot{grid-template-columns:minmax(0,1fr) clamp(240px,19vw,360px)}
 }
 @media(min-width:1800px){.cbmain{grid-template-columns:minmax(0,1fr) clamp(300px,17vw,420px)}}
 @media(max-width:999px){
-  .cbmain{overflow:auto;gap:7px;align-content:start}
+  .cbmain{overflow:auto;gap:7px}
   .cbcol{gap:7px}
   .cbfoot{grid-template-columns:minmax(0,1fr)}
   .cbhead{gap:7px;padding:8px 10px}
@@ -720,14 +723,16 @@ body{font-size:1rem}
   .incoming{order:3;width:100%;flex:0 0 auto}
   .cbhead .btn{padding:9px 15px}
 }
-@media(max-width:560px){.hc{width:clamp(88px,26vw,116px)}}
+@media(max-width:560px){.hc{width:clamp(104px,30vw,132px)}}
 /* ============ DESKTOP LAYOUT ============
    Applied when :root carries data-ui="pc". uimode.js resolves the player's
    "automatic" preference to a concrete value and stamps it, so this is the only
    place the desktop layout is described — there is no parallel media query to
    keep in step. Everything above is the compact, touch-first layout. */
 
-/* The intel rail only exists on desktop; compact has no room for it. */
+/* The intel rail: a full column on desktop, a stacked row between the details
+   panel and the hand in the compact layout, hidden only on a wide compact
+   window where the two-column board leaves it nowhere to go. */
 .cbcol.intel{display:none}
 .logbox{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
 .cblog{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:4px;
@@ -746,8 +751,9 @@ body{font-size:1rem}
 .logline .t{color:var(--cyan)}
 
 /* The number-key badge is a desktop affordance; hidden without a keyboard. */
-.hkey{display:none;position:absolute;bottom:4px;right:5px;font-size:0.4375rem;
-  letter-spacing:0;color:var(--dim);border:1px solid var(--line2);padding:0 3px;line-height:1.5}
+.hkey{display:none;position:absolute;top:1.65rem;left:.55rem;font-size:0.4688rem;
+  letter-spacing:0;color:var(--dim);border:1px solid var(--line2);padding:0 3px;line-height:1.5;
+  background:rgba(7,6,15,.72)}
 .uipick{display:flex;gap:5px;flex-wrap:wrap}
 .uipick .mini.on{color:var(--cyan);border-color:var(--cyan)}
 
@@ -760,14 +766,14 @@ body{font-size:1rem}
 :root[data-ui="pc"] .cbcol{overflow:hidden}
 :root[data-ui="pc"] .cbcol.mid{overflow:hidden;justify-content:center}
 :root[data-ui="pc"] .cbcol.side{overflow-y:auto}
-:root[data-ui="pc"] .field{max-width:min(100%,calc((100vh - 19rem) * 1.62));padding:clamp(7px,.7vw,12px)}
+:root[data-ui="pc"] .field{max-width:min(100%,calc((100vh - 23.5rem) * 1.62));padding:clamp(7px,.7vw,12px)}
 
 /* Denser chrome throughout — a mouse does not need 44px targets. */
 :root[data-ui="pc"] .cbhead{padding:6px clamp(9px,.9vw,15px);row-gap:4px}
 :root[data-ui="pc"] .box{padding:.5rem .62rem}
 :root[data-ui="pc"] .cbfoot{grid-template-columns:minmax(0,1fr) clamp(230px,18vw,330px);
   gap:clamp(6px,.6vw,10px);padding:0 clamp(7px,.7vw,12px) clamp(7px,.7vw,12px)}
-:root[data-ui="pc"] .hc{width:clamp(86px,7.4vw,116px);padding:1.2rem .4rem .45rem}
+:root[data-ui="pc"] .hc{width:clamp(94px,7.8vw,124px);padding:1.35rem .4rem .45rem}
 :root[data-ui="pc"] .cbacts .btn{padding:.62rem 1rem}
 :root[data-ui="pc"] .bstats{margin-top:6px;gap:13px}
 
@@ -777,8 +783,14 @@ body{font-size:1rem}
 :root[data-ui="pc"] .hc:hover{transform:translateY(-3px)}
 :root[data-ui="pc"] .row:hover{background:rgba(77,232,255,.045)}
 
-/* Compact keeps the two-column board even on a wide screen. */
-:root[data-ui="compact"] .cbcol.intel{display:none}
+
+/* Stacked: the combat log takes the leftover height between the details panel
+   and the hand — what used to be dead space. This block sits after the desktop
+   layer so it wins the cascade against the rail's default display:none. */
+@media(max-width:999px){
+  .cbmain{grid-template-rows:auto auto minmax(8rem,1fr)}
+  .cbcol.intel{display:flex;order:3;min-height:0}
+}
 
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -5148,13 +5160,17 @@ function drawHand() {
 
     const el = document.createElement('div');
     el.className = `hc t-${k.t} v${v.t}` + (unaffordable ? ' poor' : '') + (sel === cid ? ' sel' : '');
-    // Portrait card: cost in the top-left corner, name, then a clipped blurb —
-    // the full text lives in the details panel and behind the ⌕ badge.
+    // A trading card: cost in the corner, the sigil as art, name and tier
+    // beneath. No rules text — that lives in the details panel when the card
+    // is selected, and in full behind the ⌕ badge.
     el.innerHTML = `<div class="hcost">${cost}</div>
       ${index < 9 ? `<div class="hkey">${index + 1}</div>` : ''}
       <div class="zoom" data-z="${cid}">⌕</div>${v.t ? `<div class="hpips">${'◆'.repeat(v.t)}</div>` : ''}
+      <div class="hart">${sigil(cid, k.t, null, v.t >= 2 ? v.col : null)}</div>
       <div class="n">${k.n}</div>
-      <div class="d">${k.d}</div>${g ? `<div class="gtag">${g.n}</div>` : ''}`;
+      <div class="hsub">${TIERNAME[k.t]}${k.hp ? ' · ' + (k.hp + (g && g.hp ? g.hp : 0)) + ' hull' : ''}</div>
+      ${g ? `<div class="gtag">${g.n}</div>` : ''}`;
+    el.title = k.n + ' — ' + k.d;   // hover tooltip carries the rules text
     el.onclick = ev => {
       if (ev.target.dataset.z) { focusCard(cid, 'hand'); return; }
       if (unaffordable) return;
