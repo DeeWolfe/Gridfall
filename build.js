@@ -131,6 +131,21 @@ function bundle() {
   return {js: chunks.join('\n\n'), count: modules.length, names: seen.size};
 }
 
+/**
+ * A second output for hosts that supply their own document shell (the Artifact
+ * viewer among them): the same page with no doctype, <html>, <head> or <body>
+ * wrapper. Everything is still inline, so it stays one self-contained blob.
+ */
+function shellless(html) {
+  const title = (html.match(/<title>[\s\S]*?<\/title>/) || [''])[0];
+  const style = (html.match(/<style>[\s\S]*?<\/style>/) || [''])[0];
+  const bodyStart = html.indexOf('<body>') + '<body>'.length;
+  const body = html.slice(bodyStart, html.lastIndexOf('</body>')).trim();
+  return `${title}\n${style}\n${body}\n`;
+}
+
+const kb = s => (Buffer.byteLength(s) / 1024).toFixed(0);
+
 function main() {
   const {js, count, names} = bundle();
   const css = readFileSync(join(root, 'styles/gridfall.css'), 'utf8').trim();
@@ -145,11 +160,16 @@ function main() {
   }
 
   mkdirSync(join(root, 'dist'), {recursive: true});
-  const out = join(root, 'dist/gridfall.html');
-  writeFileSync(out, html);
+  writeFileSync(join(root, 'dist/gridfall.html'), html);
 
-  const kb = (Buffer.byteLength(html) / 1024).toFixed(0);
-  console.log(`built dist/gridfall.html — ${count} modules, ${names} top-level names, ${kb}KB`);
+  const embed = shellless(html);
+  if (/<\/?(?:html|head|body)[\s>]|<!DOCTYPE/i.test(embed)) {
+    throw new Error('embed build still carries a document shell');
+  }
+  writeFileSync(join(root, 'dist/gridfall-embed.html'), embed);
+
+  console.log(`built dist/gridfall.html — ${count} modules, ${names} top-level names, ${kb(html)}KB`);
+  console.log(`built dist/gridfall-embed.html — no document shell, ${kb(embed)}KB`);
 }
 
 try {
