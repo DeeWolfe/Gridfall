@@ -337,6 +337,26 @@ The first real piece — a Rifleman portrait — was offered but did not survive
 the upload (the file that arrived was a stale copy of an earlier screenshot),
 so `CARD_ART` ships empty until it lands.
 
+## Placeholder portraits
+
+Until real art arrives, every card now has a hand-authored vector portrait
+(`src/render/portraits.js`): a full-bleed 100×140 scene composed from shared
+parts — six helmet types on two torso weights for the humanoids, bespoke
+bodies for the emplacements, drones and devices, and a prop layer (rifle, bow,
+banner, twin blades, thrusters…) that makes each card readable at hand size.
+The accent colour is the tier's, and veterancy tint recolours it exactly as it
+did the sigils.
+
+`artFor()` now resolves best-available-first: a real image in `CARD_ART`, then
+the portrait, then the procedural sigil (still the fallback for hostiles, gear
+and anything without an entry). Portraits carry `class="artfill"` and crop to
+their frame with `preserveAspectRatio="slice"`, so the same drawing fills the
+hand card, the square collection tile, the focus panel and the pack reveal.
+
+`tests/arttest.js` guards the layer: full pool coverage, no two cards sharing
+a picture (it caught Rail Sniper and Marksman colliding on its first run),
+well-formed markup, and real art still beating the placeholder.
+
 ## The balance pass
 
 The three numeric problems the handoff flagged — the economy, Crystals, and
@@ -388,9 +408,9 @@ and paid accordingly — finally matches the numbers.
    mission stretches a defence thin by design. 45% is a floor a planning
    player beats, but if it needs another notch, the next lever is one extra
    endgame turn (`G.extra >= 4` for crystals only in `endgameCheck()`).
-2. **No card art yet.** Everything visual is procedural SVG
-   (`src/render/art.js`) and CSS. The embedding pipeline is built and proven
-   (see above); it is waiting on actual images.
+2. **No real card art yet.** The placeholder portraits stand in; the
+   embedding pipeline is built and proven (see above) and waits on actual
+   images, which replace a placeholder the moment they land in `CARD_ART`.
 3. **Every win rate above comes from a near-random bot.** It never plans, rarely
    repositions and never uses manual targeting. Treat the numbers as floors.
 

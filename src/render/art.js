@@ -7,6 +7,7 @@
 
 import {LEADS} from '../content/leads.js';
 import {CARD_ART} from '../content/card-art.js';
+import {cardPortrait, hasPortrait} from './portraits.js';
 
 /** Deterministic little PRNG seeded from a string id. */
 function seeded(id) {
@@ -18,13 +19,15 @@ function seeded(id) {
 const TIER_COLOUR = {special: '#ffc94d', tech: '#4de8ff'};
 
 /**
- * A card's face: real art where a piece exists, the procedural sigil where it
- * does not. Callers size the result through their container, so the img version
- * ignores `size` and `tint` (veterancy still shows through the frame's pips).
+ * A card's face, best available first: real art where a piece exists, then the
+ * vector placeholder portrait, then the procedural sigil. Callers size the
+ * result through their container, so the img and portrait versions ignore
+ * `size`; `tint` (veterancy) recolours the portrait's accent.
  */
 export function artFor(id, tier, size, tint) {
   const src = CARD_ART[id];
   if (src) return `<img class="artimg" src="${src}" alt="">`;
+  if (hasPortrait(id)) return cardPortrait(id, tint || TIER_COLOUR[tier] || '#9aa6c8');
   return sigil(id, tier, size, tint);
 }
 
