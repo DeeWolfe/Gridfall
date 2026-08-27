@@ -63,6 +63,7 @@ and every string in the game.
 ```sh
 npm run gen:content     # regenerate after editing the JSON
 npm run check:content   # prove the modules still match (runs as part of npm test)
+npm run gen:art         # embed card art from art/sources/ (dev-only; needs Pillow)
 ```
 
 Balance changes are one-line edits to the JSON. Do not hand-edit the generated

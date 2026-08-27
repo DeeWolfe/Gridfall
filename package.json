@@ -9,6 +9,7 @@
     "dev": "node tools/serve.js",
     "test": "node tests/run-all.js",
     "gen:content": "node tools/gen-content.js",
+    "gen:art": "python3 tools/gen-art.py",
     "check:content": "node tools/check-content.js"
   },
   "engines": {"node": ">=18"}

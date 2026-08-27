@@ -24,7 +24,7 @@ import {objText, abortMission} from '../rules/mission.js';
 import {forecastThreat, supportTargets, influenceCells, supportLabel} from '../rules/forecast.js';
 import {clog} from '../rules/log.js';
 import {$, show} from './dom.js';
-import {portrait, sigil} from './art.js';
+import {portrait, artFor} from './art.js';
 import {ask, notify} from './dialog.js';
 import {focusCard, focusEnemy, closeFocus} from './focus.js';
 import {renderMap} from './map.js';
@@ -321,7 +321,7 @@ export function drawHand() {
     el.innerHTML = `<div class="hcost">${cost}</div>
       ${index < 9 ? `<div class="hkey">${index + 1}</div>` : ''}
       <div class="zoom" data-z="${cid}">⌕</div>${v.t ? `<div class="hpips">${'◆'.repeat(v.t)}</div>` : ''}
-      <div class="hart">${sigil(cid, k.t, null, v.t >= 2 ? v.col : null)}</div>
+      <div class="hart">${artFor(cid, k.t, null, v.t >= 2 ? v.col : null)}</div>
       <div class="n">${k.n}</div>
       <div class="hsub">${TIERNAME[k.t]}${k.hp ? ' · ' + (k.hp + (g && g.hp ? g.hp : 0)) + ' hull' : ''}</div>
       ${g ? `<div class="gtag">${g.n}</div>` : ''}`;

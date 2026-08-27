@@ -6,6 +6,7 @@
 // caller wants an HTML string and does not care how it was made.
 
 import {LEADS} from '../content/leads.js';
+import {CARD_ART} from '../content/card-art.js';
 
 /** Deterministic little PRNG seeded from a string id. */
 function seeded(id) {
@@ -15,6 +16,17 @@ function seeded(id) {
 }
 
 const TIER_COLOUR = {special: '#ffc94d', tech: '#4de8ff'};
+
+/**
+ * A card's face: real art where a piece exists, the procedural sigil where it
+ * does not. Callers size the result through their container, so the img version
+ * ignores `size` and `tint` (veterancy still shows through the frame's pips).
+ */
+export function artFor(id, tier, size, tint) {
+  const src = CARD_ART[id];
+  if (src) return `<img class="artimg" src="${src}" alt="">`;
+  return sigil(id, tier, size, tint);
+}
 
 /** A card's mark: concentric rings, radial spokes and a polygon core. */
 export function sigil(id, tier, size, tint) {

@@ -5,7 +5,7 @@ import {POOL} from '../content/cards.js';
 import {TIERNAME} from '../content/ranks.js';
 import {active} from '../state/session.js';
 import {costOf, gearOf, vetOf} from '../save/progression.js';
-import {sigil} from './art.js';
+import {artFor} from './art.js';
 import {attr} from './dom.js';
 
 /**
@@ -45,7 +45,7 @@ export function cardEl(id, mode) {
     (k.mob || k.attach ? '' : ' · Anchored');
 
   return `<button class="gcard t-${k.t}${cls} v${v.t}" title="${attr(tip)}" data-focus="${id}" data-mode="${mode}">
-    <div class="gart">${sigil(id, k.t, null, v.t >= 2 ? v.col : null)}<div class="gcost">${costOf(id)}</div>
+    <div class="gart">${artFor(id, k.t, null, v.t >= 2 ? v.col : null)}<div class="gcost">${costOf(id)}</div>
       ${k.hp ? `<div class="ghp">${hull} HULL</div>` : ''}
       ${v.t ? `<div class="pips">${'◆'.repeat(v.t)}</div>` : ''}</div>
     <div class="gname">${k.n}</div>

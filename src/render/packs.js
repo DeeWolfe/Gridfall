@@ -8,7 +8,7 @@ import {packQueue} from '../state/session.js';
 import {costOf} from '../save/progression.js';
 import {packOffer, claimPack} from '../rules/packs.js';
 import {$} from './dom.js';
-import {sigil, bokehLayer} from './art.js';
+import {sigil, artFor, bokehLayer} from './art.js';
 import {sfx} from './sound.js';
 
 const BURST_MS = 260;
@@ -24,7 +24,7 @@ export const setAfterPacks = fn => { afterPacks = fn; };
 export function packArt(p) {
   if (p.kind === 'card') {
     const k = POOL[p.id];
-    return {title: k.n, sub: TIERNAME[k.t], body: k.d, art: sigil(p.id, k.t, 86),
+    return {title: k.n, sub: TIERNAME[k.t], body: k.d, art: artFor(p.id, k.t, 86),
       cost: costOf(p.id), hp: k.hp, tier: k.t};
   }
   if (p.kind === 'gear') {
@@ -35,7 +35,7 @@ export function packArt(p) {
     const k = POOL[p.id];
     return {title: k.n, sub: 'Field promotion',
       body: `+${p.amount} deployments logged — advances this card toward its next rank.`,
-      art: sigil(p.id, k.t, 86, '#9d6bff'), cost: '★', hp: 0, tier: 'special'};
+      art: artFor(p.id, k.t, 86, '#9d6bff'), cost: '★', hp: 0, tier: 'special'};
   }
   return {title: p.amount + ' Salvage', sub: 'Supplies', body: 'Raw materials for the Quartermaster.',
     art: sigil('salvage', 'tech', 86), cost: '◈', hp: 0, tier: 'tech'};

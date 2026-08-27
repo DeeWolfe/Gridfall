@@ -10,7 +10,7 @@ import {active, setSel, setMover} from '../state/session.js';
 import {commit} from '../save/profile.js';
 import {costOf, gearOf, vetOf} from '../save/progression.js';
 import {$} from './dom.js';
-import {sigil, bokehLayer} from './art.js';
+import {sigil, artFor, bokehLayer} from './art.js';
 
 // Set by wiring.js — breaks what would otherwise be a focus <-> panels cycle.
 let onAfterFocusAction = () => {};
@@ -99,7 +99,7 @@ export function focusCard(id, mode) {
   const progress = v.next ? Math.min(100, (v.u - VET[v.t].at) / (v.next - VET[v.t].at) * 100) : 100;
 
   $('fwrap').innerHTML = `<div class="fcard t-${k.t} v${v.t}">
-      <div class="fart">${sigil(id, k.t, 118, v.t >= 2 ? v.col : null)}<div class="fcost">${costOf(id)}</div>
+      <div class="fart">${artFor(id, k.t, 118, v.t >= 2 ? v.col : null)}<div class="fcost">${costOf(id)}</div>
         ${v.t ? `<div class="pips big">${'◆'.repeat(v.t)}</div>` : ''}
         ${k.hp ? `<div class="fhp">${k.hp + (g && g.hp ? g.hp : 0)} HULL</div>` : ''}</div>
       <div class="fname">${k.n}</div>

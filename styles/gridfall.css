@@ -693,6 +693,10 @@ body{font-size:1rem}
 .hart{width:100%;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;
   border:1px solid var(--line);background:radial-gradient(ellipse at 50% 80%,rgba(77,232,255,.05),transparent 70%)}
 .hart svg{width:min(72%,64px);height:auto}
+/* Real card art fills its frame; the bust sits high, so bias toward the head. */
+.artimg{width:100%;height:100%;object-fit:cover;object-position:50% 18%;display:block;
+  image-rendering:auto;pointer-events:none}
+.hart .artimg{border:none}
 .hsub{font-size:0.5rem;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
 .hc:hover{filter:brightness(1.18)}
 .hc.t-tech{border-color:var(--cyan-d)} .hc.t-special{border-color:#9a7420}

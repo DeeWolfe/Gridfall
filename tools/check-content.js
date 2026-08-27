@@ -15,6 +15,7 @@ import {OPS} from '../src/content/operations.js';
 import {DOCTRINE} from '../src/content/doctrines.js';
 import {TGNAME} from '../src/content/targeting-names.js';
 import * as C from '../src/state/constants.js';
+import {CARD_ART} from '../src/content/card-art.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const data = JSON.parse(readFileSync(join(root, 'reference/gridfall-data.json'), 'utf8'));
@@ -36,6 +37,11 @@ check('constants', {
   LANES: C.LANES, COLS: C.COLS, MAXDP: C.MAXDP, MAXBREACH: C.MAXBREACH,
   DECKSIZE: C.DECKSIZE, SAVE_VERSION: C.SAVE_VERSION, STARTER: C.STARTER,
 }, data.constants);
+
+Object.keys(CARD_ART).forEach(id => {
+  if (!POOL[id]) fails.push(`card-art: no card is named '${id}'`);
+  if (!/^data:image\//.test(CARD_ART[id])) fails.push(`card-art: ${id} is not an embedded image`);
+});
 
 if (fails.length) {
   console.log('CONTENT DRIFT in: ' + fails.join(', ') + '\nRun `npm run gen:content` to regenerate.');

@@ -311,6 +311,32 @@ the input fields' own caps.
 The bundler's duplicate-declaration guard caught `ctx` (sound vs battlefield)
 — seven catches now. `sndtest.js` covers both features end to end.
 
+## The card-art pipeline
+
+Real art now has a road in. Drop an image named after a card id into
+`art/sources/` and run `npm run gen:art` (a dev-only Pillow tool — the game
+itself stays zero-dependency):
+
+1. it crops to the artwork (bounding box of non-near-white content, padded and
+   squared), so a screenshot with margins works as well as a clean export;
+2. removes the white background with a flood fill from the borders — whites
+   *inside* the art (eye highlights, uniforms) survive — and feathers the alpha
+   edge so linework stays soft on the dark frames;
+3. downscales to 384px and embeds the smaller of WebP/PNG as a data URI in the
+   generated `src/content/card-art.js`.
+
+`artFor()` in `src/render/art.js` is the one seam: every card surface — hand,
+collection tile, focus card, requisition pack — asks it for a face and gets the
+photo when one exists, the procedural sigil when not. `check-content` verifies
+every art id names a real card and every entry is an embedded image. The
+pipeline is proven with `tests/support/fixture-portrait.png` (a white-background
+bust with an interior white highlight); copy it to `art/sources/rifle.png` and
+run `npm run gen:art` to see the whole path light up.
+
+The first real piece — a Rifleman portrait — was offered but did not survive
+the upload (the file that arrived was a stale copy of an earlier screenshot),
+so `CARD_ART` ships empty until it lands.
+
 ## Still open
 
 Carried over from the handoff, in the order it recommended.
