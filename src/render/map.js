@@ -100,12 +100,14 @@ export function renderMap() {
     `<div class="row locked"><span><b style="color:var(--gold)">⛒ ${n.l || 'Sealed route'}</b>
       <div style="font-size:0.5312rem;color:var(--dim);margin-top:4px;line-height:1.5">${n.reqText || 'Requirements not met.'}</div></span></div>`).join('');
 
-  $('mapbody').innerHTML = `<div class="mapwrap"><div class="mapsvg">
+  $('mapbody').innerHTML = `<div class="mapwrap"><div><div class="mapsvg">
     <svg viewBox="0 0 440 300" style="width:100%;display:block">
       <defs><pattern id="gr" width="8" height="8" patternUnits="userSpaceOnUse">
         <path d="M8 0H0V8" fill="none" stroke="#181340" stroke-width=".5"/></pattern></defs>
       <rect width="440" height="300" fill="#080714"/><rect width="440" height="300" fill="url(#gr)"/>
       ${zonesSvg()}${edgesSvg(run)}${nodesSvg(run)}</svg></div>
+    ${MAPDEF.lore ? `<div class="sect">状況 · Situation report</div>
+      <div class="oplore" style="border-color:${MAPDEF.col}">${MAPDEF.lore}</div>` : ''}</div>
     <div><div class="sect">Available — ${open.length}</div><div class="rows">${briefings}${gatedRows}</div>
     <div class="sect">Loadout</div><div class="rows">
       <div class="row"><span>Deck size</span><span class="r${active.loadout.deck.length < 6 ? '' : ' hot'}">${active.loadout.deck.length} cards</span></div>

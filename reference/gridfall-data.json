@@ -1081,7 +1081,8 @@
      "n3",
      "n6"
     ]
-   ]
+   ],
+   "lore": "The Delta Shelf yards built half the fleet that holds this sector, and three weeks ago the hive came up through the ore elevators mid-shift. The docks went silent between one bell and the next. Command wants the slipways back before the hulls on them are lost — the yards are worth more than the ground they stand on."
   },
   "blackmarrow": {
    "k": "blackmarrow",
@@ -1193,7 +1194,8 @@
      "n6",
      "n8"
     ]
-   ]
+   ],
+   "lore": "The Blackmarrow seams run deeper than any survey admits, and something has been hollowing them out from below. The last crew up sealed the winch station behind them and never said what they saw. The nest is confirmed. Burn it out — and mind the dark below the second gallery, where the power has been out for a month."
   },
   "sunderglass": {
    "k": "sunderglass",
@@ -1303,7 +1305,8 @@
      "n6",
      "n8"
     ]
-   ]
+   ],
+   "lore": "The Sunderglass flats grow the resonant crystal every jump drive in the sector depends on, and the hive grazes on them like cattle. Every day the fields sit contested, the harvest shatters a little more. Cut what can still be saved and get out before the glassing swallows the route home."
   },
   "lumenspire": {
    "k": "lumenspire",
@@ -1393,7 +1396,8 @@
      "n3",
      "n6"
     ]
-   ]
+   ],
+   "lore": "Meridian City evacuated in six hours; the Lumenspire research division never made the manifest. Whatever their labs were close to, command wants it badly enough to send a squad back into a dead city for it. The researchers barricaded in the dorms are listed as an optional objective. Their families have been told otherwise."
   },
   "crownring": {
    "k": "crownring",
@@ -1522,7 +1526,8 @@
      "n5",
      "n9"
     ]
-   ]
+   ],
+   "lore": "Once a year the Concordat factions meet under one roof to keep the alliance stitched together. This year the burrowers came up through the foundations mid-session — past every checkpoint, straight for the Summit Hall. If the delegations die in the wards, the alliance dies with them and the whole region tips. Walk them out. Whatever it costs."
   },
   "shallowhelm": {
    "k": "shallowhelm",
@@ -1639,7 +1644,8 @@
      "n1",
      "n8"
     ]
-   ]
+   ],
+   "lore": "Fortress Shallow Helm held the pass for forty years and never missed a check-in. Nine days ago it simply stopped — no distress call, no survivors on the walls, the gates sealed from the inside. Whatever is in there now wears the Helm like a shell. Put the fortress through its own Self-Cleanse, and come back out the way you went in."
   }
  },
  "doctrines": [

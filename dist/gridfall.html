@@ -342,6 +342,9 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .mapwrap{display:grid;grid-template-columns:1fr;gap:clamp(12px,1.4vw,24px)}
 @media(min-width:900px){.mapwrap{grid-template-columns:1.6fr 1fr;align-items:start}}
 .mapsvg{border:1px solid var(--line);background:#080714}
+/* The operation's situation report, under the map. Border tinted per op. */
+.oplore{border-left:2px solid var(--line2);padding:2px 0 2px 11px;margin-top:2px;
+  font-size:0.5938rem;color:var(--dim);line-height:1.7}
 
 /* ============ COMBAT ============ */
 #combat{background:var(--deep)}
@@ -1174,6 +1177,7 @@ const OPS = {
       ["n4", "n7"],
       ["n3", "n6"],
     ],
+    lore: "The Delta Shelf yards built half the fleet that holds this sector, and three weeks ago the hive came up through the ore elevators mid-shift. The docks went silent between one bell and the next. Command wants the slipways back before the hulls on them are lost — the yards are worth more than the ground they stand on.",
   },
   blackmarrow: {
     k: "blackmarrow",
@@ -1213,6 +1217,7 @@ const OPS = {
       ["n7", "n8"],
       ["n6", "n8"],
     ],
+    lore: "The Blackmarrow seams run deeper than any survey admits, and something has been hollowing them out from below. The last crew up sealed the winch station behind them and never said what they saw. The nest is confirmed. Burn it out — and mind the dark below the second gallery, where the power has been out for a month.",
   },
   sunderglass: {
     k: "sunderglass",
@@ -1245,6 +1250,7 @@ const OPS = {
       ["n7", "n8"],
       ["n6", "n8"],
     ],
+    lore: "The Sunderglass flats grow the resonant crystal every jump drive in the sector depends on, and the hive grazes on them like cattle. Every day the fields sit contested, the harvest shatters a little more. Cut what can still be saved and get out before the glassing swallows the route home.",
   },
   lumenspire: {
     k: "lumenspire",
@@ -1295,6 +1301,7 @@ const OPS = {
       ["n4", "n5"],
       ["n3", "n6"],
     ],
+    lore: "Meridian City evacuated in six hours; the Lumenspire research division never made the manifest. Whatever their labs were close to, command wants it badly enough to send a squad back into a dead city for it. The researchers barricaded in the dorms are listed as an optional objective. Their families have been told otherwise.",
   },
   crownring: {
     k: "crownring",
@@ -1346,6 +1353,7 @@ const OPS = {
       ["n4", "n9"],
       ["n5", "n9"],
     ],
+    lore: "Once a year the Concordat factions meet under one roof to keep the alliance stitched together. This year the burrowers came up through the foundations mid-session — past every checkpoint, straight for the Summit Hall. If the delegations die in the wards, the alliance dies with them and the whole region tips. Walk them out. Whatever it costs.",
   },
   shallowhelm: {
     k: "shallowhelm",
@@ -1415,6 +1423,7 @@ const OPS = {
       ["n6", "n7"],
       ["n1", "n8"],
     ],
+    lore: "Fortress Shallow Helm held the pass for forty years and never missed a check-in. Nine days ago it simply stopped — no distress call, no survivors on the walls, the gates sealed from the inside. Whatever is in there now wears the Helm like a shell. Put the fortress through its own Self-Cleanse, and come back out the way you went in.",
   },
 };
 
@@ -5631,12 +5640,14 @@ function renderMap() {
     `<div class="row locked"><span><b style="color:var(--gold)">⛒ ${n.l || 'Sealed route'}</b>
       <div style="font-size:0.5312rem;color:var(--dim);margin-top:4px;line-height:1.5">${n.reqText || 'Requirements not met.'}</div></span></div>`).join('');
 
-  $('mapbody').innerHTML = `<div class="mapwrap"><div class="mapsvg">
+  $('mapbody').innerHTML = `<div class="mapwrap"><div><div class="mapsvg">
     <svg viewBox="0 0 440 300" style="width:100%;display:block">
       <defs><pattern id="gr" width="8" height="8" patternUnits="userSpaceOnUse">
         <path d="M8 0H0V8" fill="none" stroke="#181340" stroke-width=".5"/></pattern></defs>
       <rect width="440" height="300" fill="#080714"/><rect width="440" height="300" fill="url(#gr)"/>
       ${zonesSvg()}${edgesSvg(run)}${nodesSvg(run)}</svg></div>
+    ${MAPDEF.lore ? `<div class="sect">状況 · Situation report</div>
+      <div class="oplore" style="border-color:${MAPDEF.col}">${MAPDEF.lore}</div>` : ''}</div>
     <div><div class="sect">Available — ${open.length}</div><div class="rows">${briefings}${gatedRows}</div>
     <div class="sect">Loadout</div><div class="rows">
       <div class="row"><span>Deck size</span><span class="r${active.loadout.deck.length < 6 ? '' : ' hot'}">${active.loadout.deck.length} cards</span></div>

@@ -14,6 +14,7 @@ for (const opKey of Object.keys(A.OPS)) {
   if (finals.length !== 1) F.push(`${opKey}: expected one final node, got ${finals.length}`);
   if (starts.length !== 1) F.push(`${opKey}: expected one start node, got ${starts.length}`);
   if (!map.nodes.some(n => n.role === 'side')) F.push(`${opKey}: no bonus side objective`);
+  if (!map.lore || map.lore.length < 60) F.push(`${opKey}: missing its situation report`);
   // Gates must point at real nodes.
   map.nodes.forEach(n => (n.req || []).forEach(q => {
     if (!map.nodes.some(x => x.id === q)) F.push(`${opKey}: ${n.id} requires unknown node ${q}`);

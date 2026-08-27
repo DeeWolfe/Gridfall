@@ -654,6 +654,11 @@ the Gatehouse, gated on the Cleanse Core: the way in is the way out.
 and heat-propagation checks across every op, and an exact wave-1 budget
 assertion for heat.
 
+Every operation then got a **situation report** — `operations[k].lore`, a
+three-or-four-sentence briefing rendered under the map SVG on the operation
+page (`.oplore`, left border tinted with the op's colour, headed 状況 ·
+Situation report). maptest treats a missing or thin report as a failure.
+
 ## The hold stopped wasting its lower half
 
 The menu column used to end at the four tiles, leaving a dead band the

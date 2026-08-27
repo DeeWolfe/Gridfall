@@ -335,6 +335,9 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .mapwrap{display:grid;grid-template-columns:1fr;gap:clamp(12px,1.4vw,24px)}
 @media(min-width:900px){.mapwrap{grid-template-columns:1.6fr 1fr;align-items:start}}
 .mapsvg{border:1px solid var(--line);background:#080714}
+/* The operation's situation report, under the map. Border tinted per op. */
+.oplore{border-left:2px solid var(--line2);padding:2px 0 2px 11px;margin-top:2px;
+  font-size:0.5938rem;color:var(--dim);line-height:1.7}
 
 /* ============ COMBAT ============ */
 #combat{background:var(--deep)}
