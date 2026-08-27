@@ -620,6 +620,29 @@ pulses once (`absorb`). State lives in `hold.js` (`toggleRoster`,
 only; the Quartermaster's grid never folds. The tiles stay in the DOM when
 folded (CSS `display:none`), which keeps the render guards honest.
 
+## The hold stopped wasting its lower half
+
+The menu column used to end at the four tiles, leaving a dead band the
+height of the tile grid on phones and half the sidebar on desktop. Two
+additions fill it:
+
+- **The current-deployment readout** (`#readout`, painted by `paintHold`) —
+  the active operation's mini-map (`opThumb`, moved to `hold.js` and shared
+  with the ops screen), nodes secured, the assigned lead with their perk,
+  and a two-pip requisition-drop meter. The whole card is a shortcut that
+  drops straight onto the active operation's sector map, skipping
+  modes → campaign → operation when you just want to continue.
+- **The service ticker** (`.tickline`, pinned with `margin-top:auto`) — a
+  slow 残心ネット crawl of flavor chatter plus two live lines (operation in
+  progress, commander on deck). Two copies of the line and a −50%
+  translate keyframe make the loop seamless.
+
+One trap worth remembering: the ticker's `white-space:nowrap` line blew the
+hold's `1fr` grid column out to 4300px on phones — grid items default to
+`min-width:auto`, so the nowrap content became the column's minimum. The fix
+is `min-width:0` on `.bay`; the desktop layout only survived because its
+column max (`32%`) is definite.
+
 ## The pop layer
 
 Violet stepped up from bit-part to third lead, and the palette stopped being

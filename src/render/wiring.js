@@ -90,6 +90,13 @@ function wireRecordScreen() {
 
 function wireNavigation() {
   $('gomap').onclick = () => { stopScene(); show('modes'); renderModes(); };
+  // The deployment readout jumps straight onto the active operation's map.
+  $('readout').onclick = () => {
+    stopScene();
+    if (!active.ops[active.op]) genRun();
+    show('map');
+    renderMap();
+  };
   $('renameship').onclick = e => { e.stopPropagation(); renameShip(); };
   $('modesback').onclick = () => { show('hold'); startScene(); paintHold(); };
   $('opsback').onclick = () => { show('modes'); renderModes(); };

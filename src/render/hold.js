@@ -12,6 +12,20 @@ import {portrait} from './art.js';
 import {startScene} from './battlefield.js';
 import {applyUiMode, uiModeLabel} from './uimode.js';
 
+/** A thumbnail of an operation's map: zones, edges, and cleared nodes. */
+export function opThumb(o, run) {
+  const node = id => o.nodes.find(n => n.id === id);
+  return `<svg viewBox="0 0 440 300" class="opmini">
+        ${o.zones.map(z => `<polygon points="${z.p}" fill="${o.col}" opacity=".10" stroke="${o.col}" stroke-width="2" stroke-opacity=".35"/>`).join('')}
+        ${o.edges.map(([a, b]) => {
+          const A = node(a);
+          const B = node(b);
+          return `<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="${o.col}" stroke-width="1.6" opacity=".4"/>`;
+        }).join('')}
+        ${o.nodes.map(n => `<circle cx="${n.x}" cy="${n.y}" r="7" fill="${run && run.cleared.includes(n.id) ? '#5dffa0' : '#0d0b1c'}" stroke="${o.col}" stroke-width="2.4"/>`).join('')}
+      </svg>`;
+}
+
 // The Squad roster stays folded into the lead's portrait until the portrait
 // is tapped; picking a lead folds it back in with a one-shot absorb pulse.
 let rosterOpen = false;
@@ -111,6 +125,56 @@ export function paintHold() {
   $('deploysub').textContent = left > 0
     ? `${MAPDEF.n} · ${left} mission${left > 1 ? 's' : ''} remaining. Choose another operation at any time.`
     : `${MAPDEF.n} complete. Select a new operation.`;
+
+  paintReadout();
+  paintTicker();
+}
+
+/**
+ * The current-deployment readout under the menu tiles: the active operation's
+ * map, who leads the squad, and how far off the next requisition drop is.
+ * The whole card is a shortcut straight onto the sector map (wired at boot).
+ */
+function paintReadout() {
+  const el = $('readout');
+  if (!el) return;
+  const run = opRun();
+  const id = (active.lead && LEADS[active.lead]) ? active.lead : 'ironbrand';
+  const L = LEADS[id];
+  const perk = L.passive ? L.passive.n : L.stratagem ? STRATAGEMS[L.stratagem].n : '';
+  const meter = active.progress.packMeter || 0;
+  el.innerHTML = `<span class="dmap">${opThumb(MAPDEF, run)}</span>
+    <span class="dinfo">
+      <span class="dhead">作戦 · Current deployment</span>
+      <span class="drow"><b>${MAPDEF.n}</b> · ${run.cleared.length} / ${MAPDEF.nodes.length} nodes secured</span>
+      <span class="drow"><span class="dpic">${portrait(id)}</span><b style="color:${L.col}">${L.call}</b> leads · ${perk}</span>
+      <span class="drow">Requisition drop · <b>${meter >= 1 ? 'one node out' : 'two nodes out'}</b>
+        <span class="pips"><span class="pip${meter >= 1 ? ' on' : ''}"></span><span class="pip"></span></span></span>
+      <span class="dgo">Open the sector map ▸</span>
+    </span>`;
+}
+
+// The service ticker: 残心ネット chatter crawling above the footer. Two copies
+// of the line and a −50% translate make the loop seamless.
+const TICKERPOOL = [
+  '残心ネット · uplink stable',
+  'zanshin protocol in effect — every action deliberate',
+  '警告 · hive activity rising across the shelf',
+  'quartermaster reports fresh requisition stock',
+  'descent vector locked · hull integrity nominal',
+  '通信 · listening posts report movement in the dark',
+  'hold the line — the grid remembers',
+];
+
+function paintTicker() {
+  const el = $('ticker');
+  if (!el) return;
+  const line = [
+    `operation ${MAPDEF.n.replace('OPERATION ', '')} in progress`,
+    `${active.callsign} on deck · rank ${active.progress.rank}`,
+    ...TICKERPOOL,
+  ].join('  ···  ') + '  ···  ';
+  el.textContent = line + line;
 }
 
 /** Take a profile into play and land on the hold screen. */

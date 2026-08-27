@@ -171,7 +171,7 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .portlabel{position:absolute;left:16px;bottom:14px;font-size:0.625rem;letter-spacing:.2em;
   color:var(--dim);text-transform:uppercase}
 .portlabel b{color:var(--zan)}
-.bay{display:flex;flex-direction:column;min-height:0;
+.bay{display:flex;flex-direction:column;min-height:0;min-width:0;
   background:linear-gradient(180deg,var(--panel) 0%,var(--deep) 50%)}
 .baytop{display:flex;justify-content:space-between;gap:12px;padding:16px 19px 13px;border-bottom:1px solid var(--line)}
 .who .cs{font-size:1.0625rem;font-weight:700;letter-spacing:.16em;color:var(--zan)}
@@ -200,6 +200,29 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .tile.db .tn{color:var(--mag)} .tile.rec .tn{color:var(--violet)}
 .bayfoot{display:flex;gap:7px;padding:11px 19px;border-top:1px solid var(--line);
   align-items:center;justify-content:space-between}
+/* The current-deployment readout fills the bay's dead space below the tiles:
+   the active op's map, the lead, the pack meter — and a shortcut to the map. */
+.dread{display:grid;grid-template-columns:clamp(96px,9vw,150px) 1fr;gap:13px;align-items:center;
+  text-align:left;background:var(--panel);border:1px solid var(--line);padding:12px 14px;
+  cursor:pointer;transition:.12s}
+.dread:hover{border-color:var(--violet);box-shadow:0 0 26px -8px var(--violet)}
+.dread .opmini{margin-top:0;border:1px solid var(--line);background:#080714}
+.dinfo{display:flex;flex-direction:column;gap:5px;min-width:0}
+.dhead{font-size:0.5312rem;letter-spacing:.22em;text-transform:uppercase;color:var(--violet)}
+.drow{font-size:0.5938rem;color:var(--dim);line-height:1.5}
+.drow b{color:var(--txt)}
+.dpic{display:inline-block;width:17px;height:17px;vertical-align:-4px;margin-right:6px;
+  border:1px solid var(--line2);overflow:hidden}
+.dpic svg{width:100%;height:100%;display:block}
+.pips{display:inline-flex;gap:3px;margin-left:6px;vertical-align:-1px}
+.pip{width:11px;height:6px;background:var(--panel2);border:1px solid var(--line2);display:inline-block}
+.pip.on{background:var(--gold);border-color:var(--gold)}
+.dgo{font-size:0.5625rem;letter-spacing:.16em;text-transform:uppercase;color:var(--zan);margin-top:2px}
+/* The service ticker hugs the bottom of whatever space is left. */
+.tickline{margin-top:auto;overflow:hidden;border-top:1px solid var(--line);padding-top:9px}
+.tickin{display:inline-block;white-space:nowrap;font-size:0.5312rem;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--dim);opacity:.8;animation:tickcrawl 70s linear infinite}
+@keyframes tickcrawl{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
 /* ============ PANEL ============ */
 #panel{position:fixed;inset:0;display:none;flex-direction:column;z-index:40;background:radial-gradient(ellipse 55% 38% at 90% 0%,rgba(157,107,255,.10),transparent 60%),radial-gradient(ellipse 50% 40% at 6% 100%,rgba(255,77,143,.08),transparent 60%),rgba(6,5,13,.97)}
@@ -1009,7 +1032,9 @@ body{font-size:1rem}
         <button class="tile sq" data-p="squad"><div class="tn">Squad</div><div class="td">Build the deck you deploy from.</div></button>
         <button class="tile qm" data-p="quartermaster"><div class="tn">Quartermaster</div><div class="td">Requisition new assets.</div></button>
         <button class="tile db" data-p="database"><div class="tn">Database</div><div class="td">Assets and hostiles on file.</div></button>
-        <button class="tile rec" data-p="record"><div class="tn">Service Record</div><div class="td">Deployments, losses, standing.</div></button></div></div>
+        <button class="tile rec" data-p="record"><div class="tn">Service Record</div><div class="td">Deployments, losses, standing.</div></button></div>
+      <button class="dread" id="readout"></button>
+      <div class="tickline"><div class="tickin" id="ticker"></div></div></div>
     <div class="bayfoot"><div style="font-size:0.5312rem;color:var(--dim)" id="saveflag">Saved</div>
       <div style="display:flex;gap:7px"><button class="mini" id="uiswap">UI</button>
         <button class="mini" data-p="settings">Settings</button>
@@ -5104,6 +5129,20 @@ function uiModeLabel() {
 /* ==== src/render/hold.js ============================================ */
 // The hold: the between-missions home screen.
 
+/** A thumbnail of an operation's map: zones, edges, and cleared nodes. */
+function opThumb(o, run) {
+  const node = id => o.nodes.find(n => n.id === id);
+  return `<svg viewBox="0 0 440 300" class="opmini">
+        ${o.zones.map(z => `<polygon points="${z.p}" fill="${o.col}" opacity=".10" stroke="${o.col}" stroke-width="2" stroke-opacity=".35"/>`).join('')}
+        ${o.edges.map(([a, b]) => {
+          const A = node(a);
+          const B = node(b);
+          return `<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="${o.col}" stroke-width="1.6" opacity=".4"/>`;
+        }).join('')}
+        ${o.nodes.map(n => `<circle cx="${n.x}" cy="${n.y}" r="7" fill="${run && run.cleared.includes(n.id) ? '#5dffa0' : '#0d0b1c'}" stroke="${o.col}" stroke-width="2.4"/>`).join('')}
+      </svg>`;
+}
+
 // The Squad roster stays folded into the lead's portrait until the portrait
 // is tapped; picking a lead folds it back in with a one-shot absorb pulse.
 let rosterOpen = false;
@@ -5203,6 +5242,56 @@ function paintHold() {
   $('deploysub').textContent = left > 0
     ? `${MAPDEF.n} · ${left} mission${left > 1 ? 's' : ''} remaining. Choose another operation at any time.`
     : `${MAPDEF.n} complete. Select a new operation.`;
+
+  paintReadout();
+  paintTicker();
+}
+
+/**
+ * The current-deployment readout under the menu tiles: the active operation's
+ * map, who leads the squad, and how far off the next requisition drop is.
+ * The whole card is a shortcut straight onto the sector map (wired at boot).
+ */
+function paintReadout() {
+  const el = $('readout');
+  if (!el) return;
+  const run = opRun();
+  const id = (active.lead && LEADS[active.lead]) ? active.lead : 'ironbrand';
+  const L = LEADS[id];
+  const perk = L.passive ? L.passive.n : L.stratagem ? STRATAGEMS[L.stratagem].n : '';
+  const meter = active.progress.packMeter || 0;
+  el.innerHTML = `<span class="dmap">${opThumb(MAPDEF, run)}</span>
+    <span class="dinfo">
+      <span class="dhead">作戦 · Current deployment</span>
+      <span class="drow"><b>${MAPDEF.n}</b> · ${run.cleared.length} / ${MAPDEF.nodes.length} nodes secured</span>
+      <span class="drow"><span class="dpic">${portrait(id)}</span><b style="color:${L.col}">${L.call}</b> leads · ${perk}</span>
+      <span class="drow">Requisition drop · <b>${meter >= 1 ? 'one node out' : 'two nodes out'}</b>
+        <span class="pips"><span class="pip${meter >= 1 ? ' on' : ''}"></span><span class="pip"></span></span></span>
+      <span class="dgo">Open the sector map ▸</span>
+    </span>`;
+}
+
+// The service ticker: 残心ネット chatter crawling above the footer. Two copies
+// of the line and a −50% translate make the loop seamless.
+const TICKERPOOL = [
+  '残心ネット · uplink stable',
+  'zanshin protocol in effect — every action deliberate',
+  '警告 · hive activity rising across the shelf',
+  'quartermaster reports fresh requisition stock',
+  'descent vector locked · hull integrity nominal',
+  '通信 · listening posts report movement in the dark',
+  'hold the line — the grid remembers',
+];
+
+function paintTicker() {
+  const el = $('ticker');
+  if (!el) return;
+  const line = [
+    `operation ${MAPDEF.n.replace('OPERATION ', '')} in progress`,
+    `${active.callsign} on deck · rank ${active.progress.rank}`,
+    ...TICKERPOOL,
+  ].join('  ···  ') + '  ···  ';
+  el.textContent = line + line;
 }
 
 /** Take a profile into play and land on the hold screen. */
@@ -5367,20 +5456,6 @@ function renderMap() {
 
 /* ==== src/render/ops.js ============================================= */
 // Operation select: three maps, each with its own progress.
-
-/** A thumbnail of an operation's map: zones, edges, and cleared nodes. */
-function opThumb(o, run) {
-  const node = id => o.nodes.find(n => n.id === id);
-  return `<svg viewBox="0 0 440 300" class="opmini">
-        ${o.zones.map(z => `<polygon points="${z.p}" fill="${o.col}" opacity=".10" stroke="${o.col}" stroke-width="2" stroke-opacity=".35"/>`).join('')}
-        ${o.edges.map(([a, b]) => {
-          const A = node(a);
-          const B = node(b);
-          return `<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="${o.col}" stroke-width="1.6" opacity=".4"/>`;
-        }).join('')}
-        ${o.nodes.map(n => `<circle cx="${n.x}" cy="${n.y}" r="7" fill="${run && run.cleared.includes(n.id) ? '#5dffa0' : '#0d0b1c'}" stroke="${o.col}" stroke-width="2.4"/>`).join('')}
-      </svg>`;
-}
 
 function renderOps() {
   if (!active) return;
@@ -7755,6 +7830,13 @@ function wireRecordScreen() {
 
 function wireNavigation() {
   $('gomap').onclick = () => { stopScene(); show('modes'); renderModes(); };
+  // The deployment readout jumps straight onto the active operation's map.
+  $('readout').onclick = () => {
+    stopScene();
+    if (!active.ops[active.op]) genRun();
+    show('map');
+    renderMap();
+  };
   $('renameship').onclick = e => { e.stopPropagation(); renameShip(); };
   $('modesback').onclick = () => { show('hold'); startScene(); paintHold(); };
   $('opsback').onclick = () => { show('modes'); renderModes(); };

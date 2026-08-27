@@ -48,6 +48,20 @@ function noUndef(id, label) {
 // 1. a fresh player walks in
 T('create', () => enter(A.blankProfile('PILOT')));
 T('hold', () => { paintHold(); noUndef('deploysub', 'hold'); noUndef('shipname', 'shipname'); });
+T('readout', () => {
+  noUndef('readout', 'deployment readout');
+  const html = get('readout')._html;
+  ['opmini', 'dhead', 'dpic', 'pips', 'dgo'].forEach(k => {
+    if (!html.includes(k)) throw new Error('readout missing ' + k);
+  });
+  if (!html.includes('IRONBRAND')) throw new Error('readout missing the assigned lead');
+});
+T('ticker', () => {
+  noUndef('ticker', 'service ticker');
+  const t = get('ticker')._text;
+  if (!t || t.length < 80) throw new Error('ticker line too short to crawl');
+  if (!t.includes('残心ネット')) throw new Error('ticker lost its zanshin-net chatter');
+});
 T('rename ship', () => {
   renameShip();
   dlgClose('VALKYRIE');
