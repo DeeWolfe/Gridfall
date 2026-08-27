@@ -1,6 +1,6 @@
 # Test suite
 
-30 guards and 3 balance harnesses. Run them all with `npm test`, one at a time
+34 guards and 3 balance harnesses. Run them all with `npm test`, one at a time
 with `node tests/run-all.js <name>`, or directly with `node tests/<name>.js`.
 
 The guards must pass. The balance harnesses only report — their numbers come
@@ -25,6 +25,10 @@ needing `install-dom.js`, something has leaked out of `src/render/`.
 | `zonetest` | Deployment zones (Forward Base, Minefield) and the mine's one-shot entry trigger |
 | `hecatetest` | Board-wide furthest targeting through blockers; the recharge cycle |
 | `cardtest` | Every card x every gear deployed in live missions; none may throw |
+| `stratagemtest` | Stratagems: seeded outside the deck, once per mission, DP cost, delayed resolution, markers |
+| `passivetest` | The five unlockable lead passives fire under their condition and stay silent otherwise |
+| `grappletest` | Grapple Net: clamped at the edge, blocked by bodies, never stacks two on a cell |
+| `breachtest` | Breaching Charge: kills at or below threshold, blockers and armour floors no protection |
 | `packtest` | Requisition packs: offers, fallback chain, full reveal flow |
 | `maptest` | Map roles: final is always Extraction, gates hold, side pay bonus, op completes on final; the uplink and blitz objectives |
 

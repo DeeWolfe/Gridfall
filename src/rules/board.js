@@ -71,7 +71,8 @@ export function validTiles(cid) {
   // `drop` and `anyGround` both ignore ownership; `zoneMin` additionally walls
   // off the columns before it (a Forward Base belongs forward, a Minefield in
   // the horde's path).
-  const ignoreOwnership = k.drop || k.anyGround;
+  // A Silent Insertion charge also ignores ownership while it lasts.
+  const ignoreOwnership = k.drop || k.anyGround || (G.freeDrop || 0) > 0;
   for (let l = 0; l < LANES; l++) for (let c = 0; c < COLS; c++) {
     if (G.ter[l][c] === 'x') continue;
     if (k.zoneMin && c < k.zoneMin) continue;

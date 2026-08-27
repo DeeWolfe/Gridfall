@@ -539,6 +539,42 @@ siblings (crystals 43%, specimens 48% in the same runs):
 eight generation rolls each, the Blackmarrow gate, completion-on-final, side
 bonus pay, and both new objectives' win-and-reset logic.
 
+## Leads and stratagems
+
+Five unlockable team leads joined the free three, each carrying a passive and
+a **stratagem** — a new card class from the leads brief. A stratagem is
+seeded into the mission at start (outside the deck), exists once, costs DP,
+and resolves at the START of the following turn with its cells marked in
+between. The delay is the class's whole identity — a prediction, not an
+undo — and the balancing lever if the tier proves strong.
+
+- Wildfire's old active (+4 DP button) converted to the Emergency
+  Requisition stratagem for consistency; the lead badge now reports the
+  call's state instead of an active's.
+- Effects: Duel Protocol (one unit +4 damage, untouchable a turn — but a
+  drop-fight on its cell still resolves as a fight; the field, not the
+  duel, decides landings), Field Refit (tech to full hull), Silent
+  Insertion (three deployments land anywhere), Breaching Charge (column
+  sweep, kills at or below 8 hull, blockers and armour floors no
+  protection), Grapple Net (lane dragged two cells back, clamped at the
+  edge, never stacking bodies).
+- Passives: Lone Edge (+2 isolated, outside the buff cap like pristine),
+  Field Fabrication (tech +2 hull, 1 repair/turn), Quietstep (drop/crush
+  cards cost 1 less, floor 1), Firebrand (+2 DP the turn after a loss),
+  Riptide (repositioned units take 1 less, floor 1 — the moved flag is
+  stashed before the turn reset so the enemy phase can read it).
+- Unlocks gate off the service record (rank, operations cleared — a new
+  `stats.opsCleared` counter — and Gauntlet clears); locked leads show
+  their requirement on the squad panel.
+- **Coronet and General Advance are shelved together**, per the brief: a
+  second action for every unit breaks the one-action rule the game rests
+  on. Revisit only if the tier reads weak in play.
+
+Guards: `stratagemtest` (seeding, once-per-mission, DP, delay, markers,
+expiry), `passivetest` (all five fire and stay silent), `grappletest` (drag
+in isolation), `breachtest` (threshold, blockers, floors), and `leadtest`
+updated for the conversion.
+
 ## The pop layer
 
 Violet stepped up from bit-part to third lead, and the palette stopped being

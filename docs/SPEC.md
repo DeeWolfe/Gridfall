@@ -123,11 +123,24 @@ answers to you; your rank ladder is Acting Commander through Marshal.
 
 ## Team leads
 
-| Lead | Role | Perk |
-|---|---|---|
-| VALE "IRONBRAND" | Line Commander | **Passive - Hardened Frames** Every unit you deploy arrives with +1 hull. |
-| KESTREL "WILDFIRE" | Strike Officer | **Active - Emergency Requisition** Once per mission: +4 deploy points immediately. |
-| SABLE "COLDWIRE" | Field Engineer | **Passive - Nanite Weave** All your units repair 1 hull at the end of every turn. |
+| Lead | Role | Perk | Stratagem | Unlock |
+|---|---|---|---|---|
+| VALE "IRONBRAND" | Line Commander | **Hardened Frames** Every unit deploys with +1 hull. | - | free |
+| KESTREL "WILDFIRE" | Strike Officer | - | **Emergency Requisition** (0 DP) +4 deploy points when the call lands. | free |
+| SABLE "COLDWIRE" | Field Engineer | **Nanite Weave** All units repair 1 hull per turn. | - | free |
+| GRAHAM "LONE EDGE" | Frontline Duelist | **Lone Edge** A unit with no adjacent friendly deals +2. | **Duel Protocol** (3 DP) One unit: +4 damage and untouchable for a turn. | rank 2 |
+| KUDELIA "SKUNKWORKS" | Field Engineer | **Field Fabrication** Tech deploys +2 hull, repairs 1/turn. | **Field Refit** (2 DP) Every Tech unit restored to full hull. | rank 3 |
+| ALLENBY "QUIETSTEP" | Infiltrator | **Quietstep** Cards that land on hostile ground cost 1 less, min 1. | **Silent Insertion** (2 DP) Next three deployments land anywhere. | 2 operations |
+| CAGALLI "FIREBRAND" | Saboteur | **Firebrand** +2 DP on any turn after you lost a unit. | **Breaching Charge** (3 DP) Destroy every hostile in a column at or below 8 hull. Ignores blockers. | Gauntlet clear |
+| YAZAN "RIPTIDE" | Skirmisher | **Riptide** Units that repositioned take 1 less damage. | **Grapple Net** (2 DP) Drag every hostile in a lane two cells back. | 1 operation |
+
+### Stratagems
+
+A stratagem is a card, not a button: seeded into the mission at start (outside
+the deck), one per mission, costs DP. Playing it commits the call; the effect
+resolves at the **start of the following turn**, with the affected cells
+marked in between - a prediction, not an undo. Coronet's General Advance is
+shelved: it breaks the one-action-per-unit rule everything else rests on.
 
 ## Missions
 

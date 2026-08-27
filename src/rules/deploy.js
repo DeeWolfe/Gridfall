@@ -21,6 +21,8 @@ import {drawCard} from './deck.js';
 /** Spend the card, bill the deploy points, and log any promotion it earned. */
 function consume(cid) {
   const k = POOL[cid];
+  // A Silent Insertion charge is spent by any deployment that lands a body.
+  if ((G.freeDrop || 0) > 0 && !k.instant && !k.attach) G.freeDrop--;
   active.usage = active.usage || {};
   const before = vetOf(cid).t;
   active.usage[cid] = (active.usage[cid] || 0) + 1;

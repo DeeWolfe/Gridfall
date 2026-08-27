@@ -340,6 +340,13 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .cell.movetgt:hover{background:#256349}
 .cell.swaptgt{box-shadow:inset 0 0 0 2px var(--cyan),0 0 12px rgba(77,232,255,.4);cursor:pointer}
 .cell.swaptgt:hover{filter:brightness(1.3)}
+/* The armed stratagem's telegraph, and the target picker while choosing. */
+.cell.stratmark{box-shadow:inset 0 0 0 2px var(--violet),0 0 16px rgba(157,107,255,.5);
+  animation:stratpulse 1.4s ease-in-out infinite;z-index:2}
+@keyframes stratpulse{0%,100%{box-shadow:inset 0 0 0 2px var(--violet),0 0 16px rgba(157,107,255,.5)}
+  50%{box-shadow:inset 0 0 0 2px var(--violet),0 0 4px rgba(157,107,255,.2)}}
+.cell.strattgt{cursor:pointer;box-shadow:inset 0 0 0 1px rgba(157,107,255,.55)}
+.cell.strattgt:hover{filter:brightness(1.35)}
 .cell.orderdest{box-shadow:inset 0 0 0 2px var(--green)}
 .cell.objtile{box-shadow:inset 0 0 0 2px var(--gold)}
 .cell.scorch{background:#4a2a12;box-shadow:inset 0 0 0 1px rgba(255,140,60,.5)}
@@ -750,6 +757,14 @@ body{font-size:1rem}
 .hart svg.artfill,.gart svg.artfill,.fart svg.artfill,.pcart svg.artfill{width:100%;height:100%;opacity:1}
 .hsub{font-size:0.5938rem;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
 .hc:hover{filter:brightness(1.18)}
+/* The one stratagem call: violet-framed, unmistakably not a deployable. */
+.hc.strat{border-color:var(--violet);box-shadow:0 0 22px -6px var(--violet)}
+.hc.strat .hcost{background:var(--violet);color:#160822}
+.hc.strat .n{color:var(--violet)}
+.stratmark-art{font-size:2.4rem;color:var(--violet);text-shadow:0 0 18px rgba(157,107,255,.8);
+  animation:tblink 2.2s ease-in-out infinite}
+.leadchip.locked{opacity:.45;cursor:not-allowed}
+.leadperk.strat b{color:var(--violet)}
 .hc.t-tech{border-color:var(--cyan-d)} .hc.t-special{border-color:#9a7420}
 .hc.sel{border-color:var(--green);box-shadow:0 0 16px rgba(93,255,160,.28)}
 .hc.poor{opacity:.3;cursor:not-allowed;filter:none}

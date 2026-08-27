@@ -817,10 +817,7 @@
    "role": "Strike Officer",
    "col": "#ff4d8f",
    "bio": "Three commendations, two demotions, one very expensive orbital incident. Fights fast and asks after.",
-   "active": {
-    "n": "Emergency Requisition",
-    "d": "Once per mission: +4 deploy points immediately."
-   }
+   "stratagem": "requisition"
   },
   "coldwire": {
    "n": "SABLE",
@@ -832,6 +829,66 @@
     "n": "Nanite Weave",
     "d": "All your units repair 1 hull at the end of every turn."
    }
+  },
+  "loneedge": {
+   "n": "GRAHAM",
+   "call": "LONE EDGE",
+   "role": "Frontline Duelist",
+   "col": "#4de8ff",
+   "bio": "Treats every engagement as a private duel. Plunges into the centre of a formation and trusts the squad to keep up or stay clear.",
+   "passive": {
+    "n": "Lone Edge",
+    "d": "A unit with no friendly in an adjacent cell deals +2 damage."
+   },
+   "stratagem": "duel"
+  },
+  "skunkworks": {
+   "n": "KUDELIA",
+   "call": "SKUNKWORKS",
+   "role": "Field Engineer",
+   "col": "#5dffa0",
+   "bio": "Ex-skunkworks, permanently caffeinated, trusts machines over orders. Treats the battlefield as a laboratory with inconvenient variables.",
+   "passive": {
+    "n": "Field Fabrication",
+    "d": "Tech units deploy with +2 hull and repair 1 hull every turn."
+   },
+   "stratagem": "refit"
+  },
+  "quietstep": {
+   "n": "ALLENBY",
+   "call": "QUIETSTEP",
+   "role": "Infiltrator",
+   "col": "#9d6bff",
+   "bio": "Soft-spoken until the unit initialises. Moves through a turn like a rumour and neutralises threats before they resolve.",
+   "passive": {
+    "n": "Quietstep",
+    "d": "Cards that deploy on hostile ground cost 1 less deploy point, minimum 1."
+   },
+   "stratagem": "insertion"
+  },
+  "firebrand": {
+   "n": "CAGALLI",
+   "call": "FIREBRAND",
+   "role": "Saboteur",
+   "col": "#ff4d8f",
+   "bio": "Walked away from a military pedigree to fight at the line. Argues with command, never with her squad.",
+   "passive": {
+    "n": "Firebrand",
+    "d": "+2 deploy points on any turn after you lost a unit."
+   },
+   "stratagem": "breach"
+  },
+  "riptide": {
+   "n": "YAZAN",
+   "call": "RIPTIDE",
+   "role": "Skirmisher",
+   "col": "#e07a35",
+   "bio": "Treats a firefight like a contact sport. No patience for planning, uncanny instinct for where the line is about to break.",
+   "passive": {
+    "n": "Riptide",
+    "d": "Units that repositioned this turn take 1 less damage."
+   },
+   "stratagem": "grapple"
   }
  },
  "missions": {
@@ -1316,5 +1373,65 @@
    "gauntlet": 0
   },
   "settings": {}
+ },
+ "stratagems": {
+  "duel": {
+   "n": "Duel Protocol",
+   "dp": 3,
+   "target": "friendly",
+   "d": "One unit gains +4 damage and takes no damage until your next turn."
+  },
+  "refit": {
+   "n": "Field Refit",
+   "dp": 2,
+   "target": "none",
+   "d": "Every Tech unit you control is restored to full hull."
+  },
+  "insertion": {
+   "n": "Silent Insertion",
+   "dp": 2,
+   "target": "none",
+   "d": "The next three units you deploy this turn may land on any tile, held or not."
+  },
+  "breach": {
+   "n": "Breaching Charge",
+   "dp": 3,
+   "target": "column",
+   "d": "Destroy every hostile in the chosen column that is at or below 8 hull."
+  },
+  "grapple": {
+   "n": "Grapple Net",
+   "dp": 2,
+   "target": "lane",
+   "d": "Drag every hostile in the chosen lane two cells back toward their edge."
+  },
+  "requisition": {
+   "n": "Emergency Requisition",
+   "dp": 0,
+   "target": "none",
+   "d": "+4 deploy points when the call lands."
+  }
+ },
+ "leadUnlocks": {
+  "loneedge": {
+   "req": "rank",
+   "value": 2
+  },
+  "skunkworks": {
+   "req": "rank",
+   "value": 3
+  },
+  "riptide": {
+   "req": "operationsCleared",
+   "value": 1
+  },
+  "quietstep": {
+   "req": "operationsCleared",
+   "value": 2
+  },
+  "firebrand": {
+   "req": "gauntletClears",
+   "value": 1
+  }
  }
 }

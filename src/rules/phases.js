@@ -21,6 +21,7 @@ import {drawCard} from './deck.js';
 import {finish} from './mission.js';
 import {clog} from './log.js';
 import {tapeBegin, tapeEnd, tapeMark, tapeEvent} from './tape.js';
+import {resolveStratagem} from './stratagems.js';
 
 /** Step 2, then reset every unit for the turn ahead. */
 export function playerPhase() {
@@ -33,8 +34,12 @@ export function playerPhase() {
   });
 
   const nanites = leadOf().passive && leadOf().passive.n === 'Nanite Weave';
+  const fabrication = leadOf().passive && leadOf().passive.n === 'Field Fabrication';
   G.units.forEach(u => {
     u.acted = false;
+    // Riptide reads last turn's repositioning during the coming enemy phase,
+    // so the flag is stashed before the reset clears it.
+    u.repositioned = u.moved;
     u.moved = false;
     u.fresh = false;
     if (u.tgt && !G.enemies.some(e => e.uid === u.tgt)) u.tgt = null;   // stale lock
@@ -43,6 +48,7 @@ export function playerPhase() {
     if (u.stun > 0) u.stun--;
     if (u.regenTicks > 0) { u.hp = Math.min(u.max, u.hp + 2); u.regenTicks--; }
     if (nanites) u.hp = Math.min(u.max, u.hp + 1);
+    if (fabrication && u.tech) u.hp = Math.min(u.max, u.hp + 1);
     if (u.regen) u.shield = Math.max(u.shield, u.shieldMax || 1);
   });
 
@@ -234,6 +240,7 @@ function endgameCheck() {
 export function endTurn() {
   if (!G || G.over || !active || replaying) return;
 
+  const lostBefore = G.lost;     // Firebrand pays out on blood spilt this cycle
   tapeBegin();
   playerPhase();
   enemyPhase();
@@ -277,7 +284,13 @@ export function endTurn() {
   }
 
   G.dp = MAXDP;
+  if (leadOf().passive && leadOf().passive.n === 'Firebrand' && G.lost > lostBefore) {
+    G.dp += 2;
+    clog('<span class="g">Firebrand</span> — losses answered with +2 deploy points.', 'order');
+  }
   for (let i = 0; i < 2; i++) drawCard();
+  // The new turn has begun: last turn's call resolves, short effects expire.
+  resolveStratagem();
   clearSelection();
   // The tape goes to whoever presents the game; the default hook declines and
   // we fall back to the plain redraw every harness expects.

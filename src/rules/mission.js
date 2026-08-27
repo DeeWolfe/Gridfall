@@ -19,6 +19,7 @@ import {wave, rollDoctrine, predictSpawns} from './waves.js';
 import {opRun, genRun, opComplete} from './run.js';
 import {queuePack} from './packs.js';
 import {tapeEnd} from './tape.js';
+import {seedStratagem} from './stratagems.js';
 import {clog} from './log.js';
 
 /** Hostile types that can be set as an Acquire Specimens quota. */
@@ -64,6 +65,7 @@ export function launchSpec(nd) {
     logs: [], kills: 0, lost: 0, extra: 0, doctrine: 'probe', leadUsed: false,
     civ: [], crystals: [], quota: 0, quotaK: null, quotaHit: 0,
     uplinkAt: null, uplinkHeld: 0,
+    strat: null, freeDrop: 0,
     predict: [], held: [], result: null,
   });
 
@@ -83,6 +85,7 @@ export function launchSpec(nd) {
   if (G.type === 'blitz') G.quota = 10;
 
   for (let i = 0; i < Math.min(5, G.deck.length); i++) G.hand.push(G.deck.pop());
+  seedStratagem();               // the lead's one call, outside the deck
   G.manifest = wave(1);
   G.doctrine = rollDoctrine();
   predictSpawns();
@@ -249,7 +252,10 @@ function settleCampaign(win, why) {
       active.progress.packMeter = 0;
       queuePack('standard', 'Node secured');
     }
-    if (opComplete()) queuePack('specialist', MAPDEF.n + ' complete');
+    if (opComplete()) {
+      active.stats.opsCleared = (active.stats.opsCleared || 0) + 1;
+      queuePack('specialist', MAPDEF.n + ' complete');
+    }
   } else {
     active.stats.lost++;
     if (active.ironman) { genRun(); clog('Ironman — operation reset.'); }

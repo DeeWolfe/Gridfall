@@ -7,12 +7,14 @@
 
 export {blankProfile, migrate, loadAll, saveAll, commit, initProfiles} from '../../src/save/profile.js';
 export {store, KEY} from '../../src/save/store.js';
-export {rankName, ago, vetOf, gearOf, costOf, leadOf} from '../../src/save/progression.js';
+export {rankName, ago, vetOf, gearOf, costOf, leadOf, leadUnlocked, leadGateText} from '../../src/save/progression.js';
 
 export {POOL} from '../../src/content/cards.js';
 export {GEAR} from '../../src/content/gear.js';
 export {BEST} from '../../src/content/hostiles.js';
 export {LEADS} from '../../src/content/leads.js';
+export {STRATAGEMS} from '../../src/content/stratagems.js';
+export {LEADGATES} from '../../src/content/lead-unlocks.js';
 export {MISSIONS} from '../../src/content/missions.js';
 export {MODS} from '../../src/content/modifiers.js';
 export {OPS} from '../../src/content/operations.js';
@@ -35,7 +37,8 @@ export {
   cellPassable, validTiles,
 } from '../../src/rules/board.js';
 export {wave, laneScore, rollDoctrine, predictSpawns} from '../../src/rules/waves.js';
-export {mkUnit, buffOf, dmgPreview} from '../../src/rules/units.js';
+export {mkUnit, buffOf, dmgPreview, leadBonus} from '../../src/rules/units.js';
+export {seedStratagem, stratReady, canPlayStratagem, playStratagem, stratMarkers, resolveStratagem, BREACH_HULL} from '../../src/rules/stratagems.js';
 export {laneJammed, laneFloor, laneAhead, geomFor, candidatesFor, targetsFor} from '../../src/rules/targeting.js';
 export {dampenIn, dmgEnemy, blast, dmgUnit, fire, healPass} from '../../src/rules/combat.js';
 export {useAbility} from '../../src/rules/abilities.js';

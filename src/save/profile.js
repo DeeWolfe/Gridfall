@@ -88,6 +88,7 @@ export function migrate(p) {
   });
 
   p.stats = p.stats || {deployments: 0, held: 0, lost: 0, breaches: 0, kills: 0, unitsLost: 0};
+  p.stats.opsCleared = p.stats.opsCleared || 0;
   p.ops = p.ops || {};
   p.op = OPS[p.op] ? p.op : 'ironveil';
   p.mode = p.mode || 'campaign';

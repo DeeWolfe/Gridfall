@@ -19,10 +19,10 @@ const firstNode = () => Object.keys(A.opRun().nodes)[0];
 A.enterProfile(unlockAll(A.blankProfile('LD'), Object.keys(A.POOL).slice(0, 12)));
 
 // --- leads exist, render, and are switchable ---
-if (Object.keys(A.LEADS).length !== 3) F.push('expected 3 team leads');
+if (Object.keys(A.LEADS).length !== 8) F.push('expected 8 team leads');
 Object.keys(A.LEADS).forEach(id => {
   const L = A.LEADS[id];
-  if (!L.passive && !L.active) F.push(id + ' has neither passive nor active');
+  if (!L.passive && !L.stratagem) F.push(id + ' has neither passive nor stratagem');
   const svg = portrait(id);
   if (!svg.startsWith('<svg') || svg.length < 200) F.push(id + ' portrait did not render');
 });
@@ -64,23 +64,24 @@ A.launch(firstNode());
   if (u.hp > u.max) F.push('repair overhealed past max');
 }
 
-// --- Wildfire's active is once per mission, and the badge says so ---
+// --- Wildfire's call is once per mission, and the badge says so ---
 A.active.lead = 'wildfire';
 A.launch(firstNode());
 {
-  if (A.G.leadUsed) F.push('lead active should start unspent');
+  if (!A.G.strat || A.G.strat.k !== 'requisition') F.push('Wildfire mission did not seed her stratagem');
+  if (A.G.strat.played) F.push('the call should start unspent');
   drawAll();
   const badge = get('leadbadge');
-  if (!badge._html.includes('READY')) F.push('badge should show READY for an active lead');
-  A.G.leadUsed = true;
+  if (!badge._html.includes('READY')) F.push('badge should show CALL READY while unspent');
+  A.G.strat.played = true;
   drawAll();
-  if (!badge._html.includes('SPENT')) F.push('badge should show SPENT once used');
+  if (!badge._html.includes('SPENT')) F.push('badge should show SPENT once called');
 }
 A.active.lead = 'ironbrand';
 drawAll();
 {
   const badge = get('leadbadge')._html;
-  if (badge.includes('READY') || badge.includes('SPENT')) F.push('passive lead should not show an active tag');
+  if (badge.includes('READY') || badge.includes('SPENT')) F.push('a lead without a stratagem should show no call tag');
 }
 
 // --- Drop Pod gear: crushes a Common hostile, cannot touch a Specialist ---

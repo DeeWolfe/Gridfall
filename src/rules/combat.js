@@ -4,7 +4,8 @@ import {LANES, COLS} from '../state/constants.js';
 import {POOL} from '../content/cards.js';
 import {BEST} from '../content/hostiles.js';
 import {G, active} from '../state/session.js';
-import {buffOf} from './units.js';
+import {buffOf, leadBonus} from './units.js';
+import {leadOf} from '../save/progression.js';
 import {targetsFor, laneFloor} from './targeting.js';
 import {clog} from './log.js';
 import {tapeEvent} from './tape.js';
@@ -50,9 +51,16 @@ export function blast(l, c, d, src) {
  */
 export function dmgUnit(u, d, src, attacker) {
   d = Math.max(1, d - dampenIn(u.lane));
+  // Riptide: a unit that repositioned last turn rides the blow, to a floor of 1.
+  if (d > 1 && u.repositioned && leadOf().passive && leadOf().passive.n === 'Riptide') d -= 1;
 
   if (u.riposte && attacker && attacker.hp > 0) {
     dmgEnemy(attacker, u.riposte, u.n + ' riposte', false);
+  }
+  // Duel Protocol: the duelist cannot be touched until the player's next turn.
+  if (u.dueled) {
+    clog(`${u.n} slips the blow — Duel Protocol holds.`, 'info');
+    return;
   }
   if (u.shield > 0) {
     u.shield--;
@@ -87,7 +95,7 @@ export function fire(u, onPlay) {
   const k = POOL[u.id];
   const pristine = u.pristine && u.hp >= u.max ? u.pristine : 0;
   const gearBonus = u.dmg - (k.dmg || 0);
-  const base = (onPlay && k.burst ? k.burst + gearBonus : u.dmg) + buffOf(u) + pristine;
+  const base = (onPlay && k.burst ? k.burst + gearBonus : u.dmg) + buffOf(u) + leadBonus(u) + pristine;
 
   for (let shot = 0; shot < (u.att.cannon ? 2 : 1); shot++) {
     const ts = targetsFor(u);

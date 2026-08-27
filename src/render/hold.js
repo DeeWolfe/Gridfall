@@ -1,9 +1,10 @@
 // The hold: the between-missions home screen.
 
 import {LEADS} from '../content/leads.js';
+import {STRATAGEMS} from '../content/stratagems.js';
 import {OPS} from '../content/operations.js';
 import {active, MAPDEF, setMapdef} from '../state/session.js';
-import {rankName} from '../save/progression.js';
+import {rankName, leadUnlocked, leadGateText} from '../save/progression.js';
 import {enterProfile, opRun} from '../rules/run.js';
 import {$, show} from './dom.js';
 import {portrait} from './art.js';
@@ -14,18 +15,22 @@ import {applyUiMode, uiModeLabel} from './uimode.js';
 export function leadCardHTML() {
   const id = (active.lead && LEADS[active.lead]) ? active.lead : 'ironbrand';
   const L = LEADS[id];
-  const perk = L.passive || L.active;
+  const def = L.stratagem ? STRATAGEMS[L.stratagem] : null;
 
   return `<div class="leadcard" style="--lc:${L.col}">
     <div class="leadpic">${portrait(id)}<div class="leadname">${L.call}</div></div>
     <div class="leadinfo">
       <div class="leadrole">${L.role} <span>·</span> ${L.n}</div>
       <div class="leadbio">${L.bio}</div>
-      <div class="leadperk"><b>${L.passive ? 'Passive' : 'Active'} · ${perk.n}</b>${perk.d}</div>
+      ${L.passive ? `<div class="leadperk"><b>Passive · ${L.passive.n}</b>${L.passive.d}</div>` : ''}
+      ${def ? `<div class="leadperk strat"><b>Stratagem · ${def.n} · ${def.dp} DP</b>${def.d} Once per mission; resolves at the start of the following turn.</div>` : ''}
       <div class="leadchain">Runs the squad. Reports to <b>${active.callsign}</b> · ${rankName(active.progress.rank)}</div>
       <div class="leadswap">${Object.keys(LEADS).map(k => {
         const o = LEADS[k];
-        return `<button class="leadchip${k === id ? ' on' : ''}" data-lead="${k}" style="--lc:${o.col}">${o.call}</button>`;
+        const open = leadUnlocked(k);
+        return `<button class="leadchip${k === id ? ' on' : ''}${open ? '' : ' locked'}"
+          data-lead="${k}" style="--lc:${o.col}"
+          title="${open ? o.call : 'Locked — ' + leadGateText(k)}">${open ? o.call : '🔒 ' + o.call}</button>`;
       }).join('')}</div>
     </div></div>`;
 }

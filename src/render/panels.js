@@ -11,7 +11,7 @@ import {TIERNAME} from '../content/ranks.js';
 import {active, profiles} from '../state/session.js';
 import {store} from '../save/store.js';
 import {commit, migrate, saveAll} from '../save/profile.js';
-import {rankName, costOf, vetOf} from '../save/progression.js';
+import {rankName, costOf, vetOf, leadUnlocked, leadGateText} from '../save/progression.js';
 import {genRun} from '../rules/run.js';
 import {purchasePack, PACK_PRICE} from '../rules/packs.js';
 import {$, attr} from './dom.js';
@@ -269,7 +269,13 @@ export function openPanel(key) {
   $('panel').classList.add('on');
 
   const each = (sel, fn) => document.querySelectorAll('#pbody ' + sel).forEach(el => { el.onclick = () => fn(el); });
-  each('[data-lead]', el => { active.lead = el.dataset.lead; commit(); openPanel('squad'); });
+  each('[data-lead]', el => {
+    const k = el.dataset.lead;
+    if (!leadUnlocked(k)) { notify('Locked', leadGateText(k) + ' to bring this lead aboard.'); return; }
+    active.lead = k;
+    commit();
+    openPanel('squad');
+  });
   each('[data-focus]', el => focusCard(el.dataset.focus, el.dataset.mode));
   each('[data-foe]', el => focusEnemy(el.dataset.foe));
   each('[data-gear]', el => focusGear(el.dataset.gear));

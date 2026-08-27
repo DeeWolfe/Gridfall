@@ -31,6 +31,10 @@ export const setSel = id => { sel = id; };
 export let mover = null;
 export const setMover = u => { mover = u; };
 
+/** True while the mission's stratagem is selected and awaiting a target. */
+export let stratSel = false;
+export const setStratSel = v => { stratSel = !!v; };
+
 /** Requisition packs owed to the player, oldest first. */
 export let packQueue = [];
 export const setPackQueue = q => { packQueue = q; };
@@ -47,4 +51,5 @@ export const nextUid = () => ++uid;
 export function clearSelection() {
   sel = null;
   mover = null;
+  stratSel = false;
 }
