@@ -150,7 +150,8 @@ export function focusEnemy(id) {
   wireFocus();
 }
 
-export function focusGear(gi) {
+/** `viewOnly` shows the piece without buy actions — used over a pack offer. */
+export function focusGear(gi, viewOnly) {
   const g = GEAR[gi];
   const owned = active.unlocks.gear.includes(gi);
   const affordable = active.progress.salvage >= g.cost;
@@ -161,7 +162,8 @@ export function focusGear(gi) {
       <div class="ftxt">${g.d}</div>
       <div class="fstats"><div class="fstat"><span class="k">Cost</span><span class="v">${g.cost} salvage</span></div>
       <div class="fstat"><span class="k">Owned</span><span class="v">${owned ? 'Yes' : 'No'}</span></div></div>
-    </div><div class="facts">${owned ? '<button class="btn ghost" data-close="1">Owned — fit it in Squad</button>'
+    </div><div class="facts">${viewOnly ? '<button class="btn ghost" data-close="1">Close</button>'
+    : owned ? '<button class="btn ghost" data-close="1">Owned — fit it in Squad</button>'
       : affordable ? `<button class="btn" data-fgear="${gi}">Buy · ${g.cost} salvage</button><button class="btn ghost" data-close="1">Close</button>`
         : `<button class="btn ghost" data-close="1">Need ${g.cost} salvage</button>`}</div>`;
   $('fbg').innerHTML = bokehLayer(['#4de8ff', '#5dffa0', '#9d6bff']);

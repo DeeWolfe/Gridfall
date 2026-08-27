@@ -118,6 +118,17 @@ A.enterProfile(p);
   const revealed = (get('packstage')._html.match(/data-pick=/g) || []).length;
   if (revealed !== 3) F.push('expected 3 revealed cards, got ' + revealed);
 
+  // The ⌕ badge inspects without committing: the focus view opens over the
+  // pack, nothing is claimed, and the pick is still live afterwards.
+  const zoomBtn = document.querySelectorAll('#packstage [data-pick]')[0];
+  if (!get('packstage')._html.includes('data-zoom')) F.push('no inspect badge on the pack cards');
+  const ownedBefore = [...q.unlocks.cards];
+  zoomBtn.onclick({target: {dataset: {zoom: '0'}}});
+  if (!get('focus')._cls.has('on')) F.push('inspect did not open the details view');
+  if (q.unlocks.cards.length !== ownedBefore.length) F.push('inspecting a pick claimed it');
+  if (!packPicks.length) F.push('inspecting cleared the offer');
+  get('focus')._cls.delete('on');
+
   const owned = [...q.unlocks.cards];
   const firstKind = packPicks[0].kind;
   takePack(0);

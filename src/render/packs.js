@@ -9,6 +9,7 @@ import {costOf} from '../save/progression.js';
 import {packOffer, claimPack} from '../rules/packs.js';
 import {$} from './dom.js';
 import {sigil, artFor, bokehLayer} from './art.js';
+import {focusCard, focusGear} from './focus.js';
 import {sfx} from './sound.js';
 
 const BURST_MS = 260;
@@ -85,7 +86,8 @@ export function burstPack() {
       const a = packArt(p);
       return `<button class="packcard t-${a.tier}" data-pick="${i}" style="animation-delay:${i * 110}ms">
         <span class="pcart">${a.art}<span class="pccost">${a.cost}</span>
-          ${a.hp ? `<span class="pchp">${a.hp} HULL</span>` : ''}</span>
+          ${a.hp ? `<span class="pchp">${a.hp} HULL</span>` : ''}
+          ${p.kind !== 'salvage' ? `<span class="zoom" data-zoom="${i}">⌕</span>` : ''}</span>
         <span class="pcname">${a.title}</span>
         <span class="pcsub">${a.sub}</span>
         <span class="pctxt">${a.body}</span>
@@ -93,9 +95,23 @@ export function burstPack() {
       </button>`;
     }).join('')}</div>`;
     document.querySelectorAll('#packstage [data-pick]').forEach(b => {
-      b.onclick = () => takePack(+b.dataset.pick);
+      // The ⌕ badge inspects without committing; anywhere else keeps the pick.
+      b.onclick = ev => {
+        if (ev && ev.target && ev.target.dataset && ev.target.dataset.zoom !== undefined) {
+          inspectPick(packPicks[+ev.target.dataset.zoom]);
+          return;
+        }
+        takePack(+b.dataset.pick);
+      };
     });
   }, BURST_MS);
+}
+
+/** Open the full details view over the pack, read-only — nothing is claimed. */
+function inspectPick(p) {
+  if (!p) return;
+  if (p.kind === 'gear') focusGear(p.id, true);
+  else if (p.id) focusCard(p.id, 'info');
 }
 
 export function takePack(i) {
