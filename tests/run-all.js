@@ -17,7 +17,7 @@ const GUARDS = [
   'acttest', 'movetest', 'aimtest', 'hltest', 'clashtest', 'spawntest',
   'opentest', 'leadtest', 'packtest', 'cardtest', 'repro',
   'playtest', 'actbar', 'csstest', 'cssdup', 'headtest', 'navtest', 'scaletest',
-  'buildtest',
+  'handtest', 'buildtest',
 ];
 const BALANCE = ['test', 'mtest', 'onstest'];
 

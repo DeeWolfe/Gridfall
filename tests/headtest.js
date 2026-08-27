@@ -43,6 +43,27 @@ if (!header) {
 if (!page.includes('id="c-doc"')) F.push('doctrine line missing from markup');
 if (!page.includes("$('c-doc')")) F.push('doctrine line never populated');
 
+// The inbound strip has to be reachable when the wave does not fit: it scrolls
+// sideways, its chips keep their own width rather than squashing, and nothing
+// hides the scrollbar that says so.
+{
+  const strip = rule('\\.incoming');
+  if (!strip) {
+    F.push('.incoming rule missing');
+  } else {
+    if (!/overflow-x:\s*auto/.test(strip)) F.push('inbound strip does not scroll sideways');
+    if (/scrollbar-width:\s*none/.test(strip)) F.push('inbound strip hides its scrollbar');
+  }
+  if (/\.incoming::-webkit-scrollbar\s*\{[^}]*display\s*:\s*none/.test(css)) {
+    F.push('inbound strip hides its webkit scrollbar');
+  }
+  const chip = rule('\\.incp');
+  if (!chip) F.push('.incp rule missing');
+  else if (!/flex:\s*0\s+0\s+auto|flex-shrink:\s*0/.test(chip)) {
+    F.push('inbound chips can shrink — the strip squashes instead of scrolling');
+  }
+}
+
 {
   const order = [head.indexOf('id="c-title"'), head.indexOf('id="c-doc"'), head.indexOf('id="man"')];
   if (order.some(i => i < 0)) F.push('a header element is missing');

@@ -96,6 +96,36 @@ All 18 harnesses transferred, plus one new one.
 - The three balance harnesses share one bot (`tests/support/bot.js`) instead of
   carrying three copies of the same loop.
 
+## Combat layout pass
+
+Play-testing feedback, actioned:
+
+- **The hand is a row of upright cards across the bottom.** It was a stack of
+  wide horizontal bars in the side rail, two to a row, each mostly empty space.
+  It is now a full-width strip of portrait cards that scrolls sideways —
+  roughly nine visible at 1440px, eight at 820px. The card shows cost, name and
+  a four-line blurb; the full text lives in the details panel and behind the ⌕
+  badge.
+- **The details panel moved beside the board.** With the hand out of the rail,
+  the rail carries only the selection panel, so it sits directly next to the
+  grid and grows into the space the hand used to take. In the stacked layout
+  the grid rows no longer stretch (`align-content:start`), so the panel sits
+  tight under the board rather than floating in a gap. The rail also narrowed
+  from `clamp(260px,21vw,520px)` to `clamp(212px,17vw,340px)`, giving the board
+  the width back.
+- **The inbound wave strip is properly scrollable.** It always had
+  `overflow-x:auto`, but the CSS explicitly hid the scrollbar
+  (`scrollbar-width:none` plus a `::-webkit-scrollbar{display:none}`), so there
+  was no sign the rest of the wave was there. The scrollbar is now a slim
+  styled bar, and the chips carry `flex:0 0 auto` so a long wave overflows and
+  scrolls instead of squashing.
+
+`tests/handtest.js` is new and guards the layout contract: the footer holds the
+hand and the action bar, the details panel sits in the main area before it, the
+hand is a flex row of clamped-width upright cards, and the details panel is the
+element that grows. `headtest.js` gained the matching checks for the inbound
+strip. Both were verified to fail when the old rules are put back.
+
 ## Still open
 
 Carried over from the handoff, in the order it recommended.

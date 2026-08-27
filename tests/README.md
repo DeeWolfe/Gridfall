@@ -1,6 +1,6 @@
 # Test suite
 
-19 guards and 3 balance harnesses. Run them all with `npm test`, one at a time
+20 guards and 3 balance harnesses. Run them all with `npm test`, one at a time
 with `node tests/run-all.js <name>`, or directly with `node tests/<name>.js`.
 
 The guards must pass. The balance harnesses only report — their numbers come
@@ -54,6 +54,7 @@ visible while all 39 playability checks passed.
 | `headtest` | Combat header cannot overlap; title and lead badge share a row |
 | `navtest` | Every screen's navigation sits after its body |
 | `scaletest` | Root clamp scales 1.6x+; no fixed font sizes; components stay viewport-relative |
+| `handtest` | Combat layout: hand is a scrolling row of upright cards in the footer, details panel beside the board |
 | `buildtest` | The bundle evaluates and plays a mission through |
 
 ## Balance — informational, no pass/fail

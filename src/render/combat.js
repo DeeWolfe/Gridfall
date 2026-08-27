@@ -298,8 +298,11 @@ export function drawHand() {
 
     const el = document.createElement('div');
     el.className = `hc t-${k.t} v${v.t}` + (unaffordable ? ' poor' : '') + (sel === cid ? ' sel' : '');
-    el.innerHTML = `<div class="zoom" data-z="${cid}">⌕</div>${v.t ? `<div class="hpips">${'◆'.repeat(v.t)}</div>` : ''}
-      <div class="n"><span>${k.n}</span><span>${cost}</span></div>
+    // Portrait card: cost in the top-left corner, name, then a clipped blurb —
+    // the full text lives in the details panel and behind the ⌕ badge.
+    el.innerHTML = `<div class="hcost">${cost}</div>
+      <div class="zoom" data-z="${cid}">⌕</div>${v.t ? `<div class="hpips">${'◆'.repeat(v.t)}</div>` : ''}
+      <div class="n">${k.n}</div>
       <div class="d">${k.d}</div>${g ? `<div class="gtag">${g.n}</div>` : ''}`;
     el.onclick = ev => {
       if (ev.target.dataset.z) { focusCard(cid, 'hand'); return; }
