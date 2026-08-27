@@ -19,7 +19,7 @@ import {renderModes} from './modes.js';
 import {renderOps} from './ops.js';
 import {renderMap} from './map.js';
 import {drawAll, drawBoard} from './combat.js';
-import {openPanel, renameShip} from './panels.js';
+import {openPanel, renameShip, importRecordFlow} from './panels.js';
 import {showPack, setAfterPacks} from './packs.js';
 import {showResult} from './result.js';
 import {applyUiMode, cycleUiMode, uiModeLabel, uiPreference} from './uimode.js';
@@ -53,6 +53,16 @@ function wireResultButton() {
     setAfterPacks(go);
     if (!showPack()) go();
   };
+}
+
+/** The splash: tap anywhere for the login console; import stays separate. */
+function wireTitleScreen() {
+  $('title').onclick = ev => {
+    if (ev && ev.target && ev.target.id === 'titleimport') return;
+    renderSlots();
+    show('boot');
+  };
+  $('titleimport').onclick = () => importRecordFlow(() => renderSlots());
 }
 
 function wireRecordScreen() {
@@ -187,6 +197,7 @@ export function boot() {
   applyUiMode();
   enableTape();
   wireCrashGuard();
+  wireTitleScreen();
   wireRecordScreen();
   wireNavigation();
   wireDialog();

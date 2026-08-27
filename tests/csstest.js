@@ -41,9 +41,9 @@ const {head, body} = pageParts(page);
   const screenIds = [...head.matchAll(/class="scr[^"]*"\s+id="(\w+)"/g)].map(m => m[1]);
   const initiallyOn = [...head.matchAll(/class="scr on"\s+id="(\w+)"/g)].map(m => m[1]);
   console.log('screens:', screenIds.join(', '));
-  console.log('visible at load (should be exactly [boot]):', initiallyOn);
-  if (initiallyOn.length !== 1 || initiallyOn[0] !== 'boot') {
-    F.push('markup does not start with exactly the boot screen visible');
+  console.log('visible at load (should be exactly [title]):', initiallyOn);
+  if (initiallyOn.length !== 1 || initiallyOn[0] !== 'title') {
+    F.push('markup does not start with exactly the title screen visible');
   }
   if (screenIds.join(',') !== SCREENS.join(',')) {
     F.push(`markup screens (${screenIds}) do not match SCREENS (${SCREENS})`);

@@ -233,6 +233,35 @@ export function renameShip(after) {
     {input: active.ship || 'ANVIL-7', ok: 'Commit'});
 }
 
+/**
+ * Paste-and-import an exported record. Reachable from the title screen and
+ * from Settings; `after` runs once a record lands, e.g. to refresh the slots.
+ */
+export function importRecordFlow(after) {
+  ask('Import record',
+    'Paste the exported JSON. The record is repaired to the current version on import.',
+    raw => {
+      if (!raw || typeof raw !== 'string' || !raw.trim()) return;
+      let p = null;
+      try { p = migrate(JSON.parse(raw)); } catch { p = null; }
+      if (!p) { notify('Import failed', 'That is not a readable record.'); return; }
+
+      const i = profiles.findIndex(x => x.id === p.id);
+      if (i >= 0) profiles[i] = p;
+      else if (profiles.length >= 3) {
+        notify('No free slot', 'All three record slots hold commanders. Erase one from the login screen first.');
+        return;
+      } else {
+        profiles.push(p);
+      }
+      saveAll(profiles);
+      // Importing over the record being played swaps it in live.
+      if (active && active.id === p.id) enter(p);
+      notify('Record imported', `<b style="color:var(--cyan)">${p.callsign}</b> is on file.`);
+      if (after) after(p);
+    }, {paste: true, ok: 'Import'});
+}
+
 export function openPanel(key) {
   if (!active || !PANELS[key]) return;
   $('ptitle').textContent = TITLES[key] || key;
@@ -270,29 +299,7 @@ export function openPanel(key) {
   if (soundRow) soundRow.onclick = () => { toggleSound(); openPanel('settings'); };
 
   const importRow = $('impo');
-  if (importRow) {
-    importRow.onclick = () => ask('Import record',
-      'Paste the exported JSON. The record is repaired to the current version on import.',
-      raw => {
-        if (!raw || typeof raw !== 'string' || !raw.trim()) return;
-        let p = null;
-        try { p = migrate(JSON.parse(raw)); } catch { p = null; }
-        if (!p) { notify('Import failed', 'That is not a readable record.'); return; }
-
-        const i = profiles.findIndex(x => x.id === p.id);
-        if (i >= 0) profiles[i] = p;
-        else if (profiles.length >= 3) {
-          notify('No free slot', 'All three record slots hold commanders. Erase one from the login screen first.');
-          return;
-        } else {
-          profiles.push(p);
-        }
-        saveAll(profiles);
-        // Importing over the record being played swaps it in live.
-        if (active && active.id === p.id) enter(p);
-        notify('Record imported', `<b style="color:var(--cyan)">${p.callsign}</b> is on file.`);
-      }, {paste: true, ok: 'Import'});
-  }
+  if (importRow) importRow.onclick = () => importRecordFlow();
 
   const tutRow = $('tutreplay');
   if (tutRow) {
