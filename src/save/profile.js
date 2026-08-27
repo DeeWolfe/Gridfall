@@ -91,6 +91,7 @@ export function migrate(p) {
   p.gaunt = p.gaunt || null;
   p.ship = p.ship || 'ANVIL-7';
   p.usage = p.usage || {};
+  p.settings = p.settings || {};
   p.lead = LEADS[p.lead] ? p.lead : 'ironbrand';
   return p;
 }

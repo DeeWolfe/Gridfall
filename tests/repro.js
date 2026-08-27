@@ -102,6 +102,7 @@ for (const [name, data] of cases) {
       F.push(name + ': gear still references something missing');
     }
     if (!A.OPS[p.op]) F.push(name + ': unknown operation survived migration');
+    if (!p.settings || typeof p.settings !== 'object') F.push(name + ': migration left no settings object');
 
     console.log(`ok   ${name} -> op: ${p.op} deck: ${p.loadout.deck.length}`);
   } catch (e) {
