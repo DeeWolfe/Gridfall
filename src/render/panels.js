@@ -20,7 +20,7 @@ import {sigil} from './art.js';
 import {ask, notify} from './dialog.js';
 import {cardEl} from './card-html.js';
 import {focusCard, focusEnemy, focusGear} from './focus.js';
-import {leadCardHTML, leadTilesHTML, paintHold, enter} from './hold.js';
+import {leadCardHTML, leadTilesHTML, toggleRoster, foldRoster, paintHold, enter} from './hold.js';
 import {showPack, setAfterPacks} from './packs.js';
 import {soundOn, toggleSound} from './sound.js';
 import {UI_MODES, UI_LABELS, uiPreference, uiModeLabel, setUiMode} from './uimode.js';
@@ -37,7 +37,7 @@ function squadPanel() {
   const deck = active.loadout.deck;
   const reserve = active.unlocks.cards.filter(c => !deck.includes(c));
   return `<div class="sect">Team lead — answers to you</div>${leadCardHTML()}
-   <div class="sect">Roster</div>${leadTilesHTML('squad')}
+   ${leadTilesHTML('squad')}
    <div class="sect">Deck</div>
    <div class="bar"><div><b>${deck.length}</b> / ${DECKSIZE} in deck · <b style="color:var(--cyan)">${Object.keys(active.loadout.gear).length}</b> geared</div>
      <div style="color:var(--dim);font-size:0.5625rem">Tap any card to enlarge it — inspect, fit gear, add or remove</div></div>
@@ -273,12 +273,13 @@ export function openPanel(key) {
   $('panel').classList.add('on');
 
   const each = (sel, fn) => document.querySelectorAll('#pbody ' + sel).forEach(el => { el.onclick = () => fn(el); });
+  each('[data-rosterbtn]', () => { toggleRoster(); openPanel('squad'); });
   each('[data-lead]', el => {
     const k = el.dataset.lead;
     if (!leadUnlocked(k)) { notify('Not on the roster', 'Recruit this lead at the Quartermaster — ' + leadGateText(k) + '.'); return; }
     active.lead = k;
     commit();
-    openPanel('squad');
+    foldRoster('#pbody', () => openPanel('squad'));
   });
   each('[data-leadbuy]', el => {
     const k = el.dataset.leadbuy;

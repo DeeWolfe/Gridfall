@@ -478,6 +478,21 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .ltfoot{margin-top:auto;font-size:0.5625rem;letter-spacing:.12em;text-transform:uppercase;
   color:var(--green);border-top:1px solid var(--line);width:100%;padding-top:6px}
 .ltfoot.price{color:var(--gold)}
+/* On Squad the roster folds behind the lead portrait: the portrait toggles it
+   open (tiles flow out, staggered) and picking a lead sucks them back in. */
+.leadpic[data-rosterbtn]{cursor:pointer}
+.leadpic[data-rosterbtn]:hover{box-shadow:0 0 18px -4px var(--lc)}
+.lswap{position:absolute;top:0;right:0;width:17px;height:17px;display:grid;place-items:center;
+  font-size:0.5625rem;font-weight:700;color:#0b0918;background:var(--lc);opacity:.92}
+.leadpic.absorb{animation:absorb .38s cubic-bezier(.2,.9,.3,1.4)}
+@keyframes absorb{0%{transform:scale(1.16);filter:brightness(1.6)}100%{transform:none;filter:none}}
+.leadroster{display:none}
+.leadroster.open{display:block}
+.leadroster.open .leadtile{animation:ltflow .3s cubic-bezier(.2,.9,.3,1.15) backwards;
+  animation-delay:calc(var(--i,0)*40ms)}
+@keyframes ltflow{from{opacity:0;transform:translateY(-16px) scale(.55)}to{opacity:1;transform:none}}
+.leadroster.closing .leadtile{animation:ltsuck .2s ease-in forwards;animation-delay:calc(var(--i,0)*16ms)}
+@keyframes ltsuck{to{opacity:0;transform:translateY(-18px) scale(.45)}}
 @media(max-width:560px){.leadcard{grid-template-columns:48px 1fr;gap:9px;padding:9px}
   .leadbio{display:none}}
 
@@ -5089,14 +5104,43 @@ function uiModeLabel() {
 /* ==== src/render/hold.js ============================================ */
 // The hold: the between-missions home screen.
 
-/** The team lead card, with the swap chips. Shared with the operations screen. */
+// The Squad roster stays folded into the lead's portrait until the portrait
+// is tapped; picking a lead folds it back in with a one-shot absorb pulse.
+let rosterOpen = false;
+let rosterPulse = false;
+
+function toggleRoster() { rosterOpen = !rosterOpen; }
+function closeRoster(pulse) { rosterOpen = false; rosterPulse = !!pulse; }
+
+/**
+ * Play the suck-back animation on an open roster, then fold it and repaint
+ * via `then`. Falls straight through when there is nothing to animate.
+ */
+function foldRoster(scope, then) {
+  const r = document.querySelectorAll(scope + ' .leadroster')[0];
+  if (r && r.classList && r.classList.contains('open')) {
+    if (r.classList.contains('closing')) return;
+    r.classList.add('closing');
+    setTimeout(() => { closeRoster(true); then(); }, 230);
+  } else {
+    closeRoster(true);
+    then();
+  }
+}
+
+/** The team lead card; its portrait doubles as the roster toggle. */
 function leadCardHTML() {
   const id = (active.lead && LEADS[active.lead]) ? active.lead : 'ironbrand';
   const L = LEADS[id];
   const def = L.stratagem ? STRATAGEMS[L.stratagem] : null;
+  const pulse = rosterPulse;
+  rosterPulse = false;
 
   return `<div class="leadcard" style="--lc:${L.col}">
-    <div class="leadpic">${portrait(id)}<div class="leadname">${L.call}</div></div>
+    <div class="leadpic${pulse ? ' absorb' : ''}" data-rosterbtn role="button" tabindex="0"
+      title="${rosterOpen ? 'Fold the roster away' : 'Tap to open the roster and swap leads'}">
+      ${portrait(id)}<div class="leadname">${L.call}</div>
+      <div class="lswap">${rosterOpen ? '✕' : '⇄'}</div></div>
     <div class="leadinfo">
       <div class="leadrole">${L.role} <span>·</span> ${L.n}</div>
       <div class="leadbio">${L.bio}</div>
@@ -5108,11 +5152,12 @@ function leadCardHTML() {
 
 /**
  * The lead roster as a tile grid — the same tiles serve the Squad panel
- * (assigning) and the Quartermaster (buying); `mode` decides the action.
+ * (assigning, folded behind the portrait) and the Quartermaster (buying,
+ * always spread out); `mode` decides both the action and the wrapper.
  */
 function leadTilesHTML(mode) {
   const current = (active.lead && LEADS[active.lead]) ? active.lead : 'ironbrand';
-  return `<div class="leadgrid">${Object.keys(LEADS).map(k => {
+  const grid = `<div class="leadgrid">${Object.keys(LEADS).map((k, i) => {
     const o = LEADS[k];
     const open = leadUnlocked(k);
     const def = o.stratagem ? STRATAGEMS[o.stratagem] : null;
@@ -5122,7 +5167,7 @@ function leadTilesHTML(mode) {
       : (k === current ? 'Assigned' : open ? 'Tap to assign' : leadPrice(k) + ' cr · Quartermaster');
     const attr = mode === 'shop' ? (open ? '' : ` data-leadbuy="${k}"`) : ` data-lead="${k}"`;
     return `<button class="leadtile${mode === 'squad' && k === current ? ' on' : ''}${open ? '' : ' locked'}"
-        ${attr} style="--lc:${o.col}" title="${o.call} — ${o.role}. ${o.bio}">
+        ${attr} style="--lc:${o.col};--i:${i}" title="${o.call} — ${o.role}. ${o.bio}">
       <span class="ltpic">${portrait(k)}</span>
       <span class="ltname">${open ? '' : '🔒 '}${o.call}</span>
       <span class="ltrole">${o.role}</span>
@@ -5130,6 +5175,9 @@ function leadTilesHTML(mode) {
       <span class="ltfoot${open ? '' : ' price'}">${foot}</span>
     </button>`;
   }).join('')}</div>`;
+  if (mode === 'shop') return grid;
+  return `<div class="leadroster${rosterOpen ? ' open' : ''}">
+    <div class="sect">Roster — tap a lead to assign</div>${grid}</div>`;
 }
 
 /** Refresh the hold's readouts from the active profile. */
@@ -5338,8 +5386,7 @@ function renderOps() {
   if (!active) return;
   active.ops = active.ops || {};
 
-  $('opsbody').innerHTML = leadCardHTML() +
-    `<div class="sect" style="margin-top:12px">Roster</div>` + leadTilesHTML('squad') +
+  $('opsbody').innerHTML = leadCardHTML() + leadTilesHTML('squad') +
     `<div class="sect" style="margin-top:16px">Select an operation</div>
   <div class="opgrid">${Object.values(OPS).map(o => {
     const run = active.ops[o.k];
@@ -5353,6 +5400,9 @@ function renderOps() {
   }).join('')}</div>
   <div class="mnote">Each operation is its own map with its own missions. Progress is tracked separately — switch between them freely.</div>`;
 
+  document.querySelectorAll('#opsbody [data-rosterbtn]').forEach(b => {
+    b.onclick = () => { toggleRoster(); renderOps(); };
+  });
   document.querySelectorAll('#opsbody [data-lead]').forEach(b => {
     b.onclick = () => {
       const k = b.dataset.lead;
@@ -5362,7 +5412,7 @@ function renderOps() {
       }
       active.lead = k;
       commit();
-      renderOps();
+      foldRoster('#opsbody', renderOps);
     };
   });
   document.querySelectorAll('#opsbody [data-op]').forEach(b => {
@@ -7042,7 +7092,7 @@ function squadPanel() {
   const deck = active.loadout.deck;
   const reserve = active.unlocks.cards.filter(c => !deck.includes(c));
   return `<div class="sect">Team lead — answers to you</div>${leadCardHTML()}
-   <div class="sect">Roster</div>${leadTilesHTML('squad')}
+   ${leadTilesHTML('squad')}
    <div class="sect">Deck</div>
    <div class="bar"><div><b>${deck.length}</b> / ${DECKSIZE} in deck · <b style="color:var(--cyan)">${Object.keys(active.loadout.gear).length}</b> geared</div>
      <div style="color:var(--dim);font-size:0.5625rem">Tap any card to enlarge it — inspect, fit gear, add or remove</div></div>
@@ -7278,12 +7328,13 @@ function openPanel(key) {
   $('panel').classList.add('on');
 
   const each = (sel, fn) => document.querySelectorAll('#pbody ' + sel).forEach(el => { el.onclick = () => fn(el); });
+  each('[data-rosterbtn]', () => { toggleRoster(); openPanel('squad'); });
   each('[data-lead]', el => {
     const k = el.dataset.lead;
     if (!leadUnlocked(k)) { notify('Not on the roster', 'Recruit this lead at the Quartermaster — ' + leadGateText(k) + '.'); return; }
     active.lead = k;
     commit();
-    openPanel('squad');
+    foldRoster('#pbody', () => openPanel('squad'));
   });
   each('[data-leadbuy]', el => {
     const k = el.dataset.leadbuy;

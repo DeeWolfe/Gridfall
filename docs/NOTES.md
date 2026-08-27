@@ -610,6 +610,16 @@ three): pooled floors now stronghold 69%, retake ~66%, extract 93%,
 civilians 95%, crystals 46%, specimens 42%, uplink 44%, blitz 58%,
 Onslaught median 10, Gauntlet about 1-in-11.
 
+**The roster then folded away.** With eight tiles the grid dominated Squad
+and the operations screen, so outside the store it now hides behind the lead
+portrait: the portrait is the toggle (a ⇄ chip marks it), tapping it fans
+the tiles out with a staggered flow-in, and picking a lead plays a suck-back
+animation before the grid folds into the newly assigned portrait, which
+pulses once (`absorb`). State lives in `hold.js` (`toggleRoster`,
+`closeRoster`, `foldRoster`) and the wrapper is `.leadroster` — squad mode
+only; the Quartermaster's grid never folds. The tiles stay in the DOM when
+folded (CSS `display:none`), which keeps the render guards honest.
+
 ## The pop layer
 
 Violet stepped up from bit-part to third lead, and the palette stopped being

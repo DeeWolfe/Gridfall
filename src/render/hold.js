@@ -12,14 +12,43 @@ import {portrait} from './art.js';
 import {startScene} from './battlefield.js';
 import {applyUiMode, uiModeLabel} from './uimode.js';
 
-/** The team lead card, with the swap chips. Shared with the operations screen. */
+// The Squad roster stays folded into the lead's portrait until the portrait
+// is tapped; picking a lead folds it back in with a one-shot absorb pulse.
+let rosterOpen = false;
+let rosterPulse = false;
+
+export function toggleRoster() { rosterOpen = !rosterOpen; }
+export function closeRoster(pulse) { rosterOpen = false; rosterPulse = !!pulse; }
+
+/**
+ * Play the suck-back animation on an open roster, then fold it and repaint
+ * via `then`. Falls straight through when there is nothing to animate.
+ */
+export function foldRoster(scope, then) {
+  const r = document.querySelectorAll(scope + ' .leadroster')[0];
+  if (r && r.classList && r.classList.contains('open')) {
+    if (r.classList.contains('closing')) return;
+    r.classList.add('closing');
+    setTimeout(() => { closeRoster(true); then(); }, 230);
+  } else {
+    closeRoster(true);
+    then();
+  }
+}
+
+/** The team lead card; its portrait doubles as the roster toggle. */
 export function leadCardHTML() {
   const id = (active.lead && LEADS[active.lead]) ? active.lead : 'ironbrand';
   const L = LEADS[id];
   const def = L.stratagem ? STRATAGEMS[L.stratagem] : null;
+  const pulse = rosterPulse;
+  rosterPulse = false;
 
   return `<div class="leadcard" style="--lc:${L.col}">
-    <div class="leadpic">${portrait(id)}<div class="leadname">${L.call}</div></div>
+    <div class="leadpic${pulse ? ' absorb' : ''}" data-rosterbtn role="button" tabindex="0"
+      title="${rosterOpen ? 'Fold the roster away' : 'Tap to open the roster and swap leads'}">
+      ${portrait(id)}<div class="leadname">${L.call}</div>
+      <div class="lswap">${rosterOpen ? '✕' : '⇄'}</div></div>
     <div class="leadinfo">
       <div class="leadrole">${L.role} <span>·</span> ${L.n}</div>
       <div class="leadbio">${L.bio}</div>
@@ -31,11 +60,12 @@ export function leadCardHTML() {
 
 /**
  * The lead roster as a tile grid — the same tiles serve the Squad panel
- * (assigning) and the Quartermaster (buying); `mode` decides the action.
+ * (assigning, folded behind the portrait) and the Quartermaster (buying,
+ * always spread out); `mode` decides both the action and the wrapper.
  */
 export function leadTilesHTML(mode) {
   const current = (active.lead && LEADS[active.lead]) ? active.lead : 'ironbrand';
-  return `<div class="leadgrid">${Object.keys(LEADS).map(k => {
+  const grid = `<div class="leadgrid">${Object.keys(LEADS).map((k, i) => {
     const o = LEADS[k];
     const open = leadUnlocked(k);
     const def = o.stratagem ? STRATAGEMS[o.stratagem] : null;
@@ -45,7 +75,7 @@ export function leadTilesHTML(mode) {
       : (k === current ? 'Assigned' : open ? 'Tap to assign' : leadPrice(k) + ' cr · Quartermaster');
     const attr = mode === 'shop' ? (open ? '' : ` data-leadbuy="${k}"`) : ` data-lead="${k}"`;
     return `<button class="leadtile${mode === 'squad' && k === current ? ' on' : ''}${open ? '' : ' locked'}"
-        ${attr} style="--lc:${o.col}" title="${o.call} — ${o.role}. ${o.bio}">
+        ${attr} style="--lc:${o.col};--i:${i}" title="${o.call} — ${o.role}. ${o.bio}">
       <span class="ltpic">${portrait(k)}</span>
       <span class="ltname">${open ? '' : '🔒 '}${o.call}</span>
       <span class="ltrole">${o.role}</span>
@@ -53,6 +83,9 @@ export function leadTilesHTML(mode) {
       <span class="ltfoot${open ? '' : ' price'}">${foot}</span>
     </button>`;
   }).join('')}</div>`;
+  if (mode === 'shop') return grid;
+  return `<div class="leadroster${rosterOpen ? ' open' : ''}">
+    <div class="sect">Roster — tap a lead to assign</div>${grid}</div>`;
 }
 
 /** Refresh the hold's readouts from the active profile. */

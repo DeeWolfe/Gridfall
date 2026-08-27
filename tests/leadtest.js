@@ -5,7 +5,7 @@ import {get} from './support/dom.js';
 import {failures, builtPage, pageParts} from './support/harness.js';
 import {spawnFoe, clearBoard, unlockAll} from './support/fixtures.js';
 import {portrait} from '../src/render/art.js';
-import {leadCardHTML, leadTilesHTML} from '../src/render/hold.js';
+import {leadCardHTML, leadTilesHTML, toggleRoster, closeRoster} from '../src/render/hold.js';
 import {renderOps} from '../src/render/ops.js';
 import {openPanel} from '../src/render/panels.js';
 import {drawAll} from '../src/render/combat.js';
@@ -160,6 +160,20 @@ drawAll();
   }
   if (!tiles.includes('leadtile')) F.push('roster grid missing its tiles');
   if (/undefined|NaN|\[object/.test(tiles)) F.push('roster grid artefact');
+
+  // The roster folds behind the portrait: closed by default, the portrait is
+  // the toggle, and the Quartermaster's grid never folds at all.
+  if (!card.includes('data-rosterbtn')) F.push('lead portrait is not the roster toggle');
+  if (!card.includes('lswap')) F.push('portrait missing its swap chip');
+  if (!tiles.includes('leadroster')) F.push('squad roster missing its fold wrapper');
+  if (tiles.includes('leadroster open')) F.push('roster should start folded');
+  toggleRoster();
+  if (!leadTilesHTML('squad').includes('leadroster open')) F.push('toggle did not open the roster');
+  closeRoster(true);
+  if (leadTilesHTML('squad').includes('leadroster open')) F.push('closeRoster left the roster open');
+  if (!leadCardHTML().includes('absorb')) F.push('assigning should pulse the portrait');
+  if (leadCardHTML().includes('absorb')) F.push('the absorb pulse should be one-shot');
+  if (leadTilesHTML('shop').includes('leadroster')) F.push('the shop grid should not fold');
 
   openPanel('squad');
   const squad = get('pbody')._html;

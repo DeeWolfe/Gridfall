@@ -5,7 +5,7 @@ import {active, setMapdef} from '../state/session.js';
 import {commit} from '../save/profile.js';
 import {genRun} from '../rules/run.js';
 import {$, show} from './dom.js';
-import {leadCardHTML, leadTilesHTML} from './hold.js';
+import {leadCardHTML, leadTilesHTML, toggleRoster, foldRoster} from './hold.js';
 import {leadUnlocked, leadGateText} from '../save/progression.js';
 import {notify} from './dialog.js';
 import {renderMap} from './map.js';
@@ -28,8 +28,7 @@ export function renderOps() {
   if (!active) return;
   active.ops = active.ops || {};
 
-  $('opsbody').innerHTML = leadCardHTML() +
-    `<div class="sect" style="margin-top:12px">Roster</div>` + leadTilesHTML('squad') +
+  $('opsbody').innerHTML = leadCardHTML() + leadTilesHTML('squad') +
     `<div class="sect" style="margin-top:16px">Select an operation</div>
   <div class="opgrid">${Object.values(OPS).map(o => {
     const run = active.ops[o.k];
@@ -43,6 +42,9 @@ export function renderOps() {
   }).join('')}</div>
   <div class="mnote">Each operation is its own map with its own missions. Progress is tracked separately — switch between them freely.</div>`;
 
+  document.querySelectorAll('#opsbody [data-rosterbtn]').forEach(b => {
+    b.onclick = () => { toggleRoster(); renderOps(); };
+  });
   document.querySelectorAll('#opsbody [data-lead]').forEach(b => {
     b.onclick = () => {
       const k = b.dataset.lead;
@@ -52,7 +54,7 @@ export function renderOps() {
       }
       active.lead = k;
       commit();
-      renderOps();
+      foldRoster('#opsbody', renderOps);
     };
   });
   document.querySelectorAll('#opsbody [data-op]').forEach(b => {
