@@ -539,6 +539,18 @@ siblings (crystals 43%, specimens 48% in the same runs):
 eight generation rolls each, the Blackmarrow gate, completion-on-final, side
 bonus pay, and both new objectives' win-and-reset logic.
 
+## The zanshin accent
+
+The 残心 magenta (`--zan: #ff4d8f`) became the game's brand colour: primary
+buttons, screen and panel titles, the console chrome, tabs, dialog titles,
+callsigns, the OPERATIONS launcher, log headers, map briefing names. The
+battlefield's tactical language is deliberately untouched — cyan still means
+yours (tiles, unit chips, hull bars, deploy targets) and the hostile tint
+still marks theirs — and cyan also stays on tech-tier cards and the salvage
+currency, where it is semantic. Danger buttons (abort, cancel placement)
+moved to true red (`--red`) so the brand and the warning never share a hue
+on the same screen.
+
 ## Still open
 
 1. **Crystals still loses to "Three breaches"** more than anything else — the

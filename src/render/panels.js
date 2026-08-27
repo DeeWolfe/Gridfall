@@ -79,7 +79,7 @@ const dbTabs = () => `<div class="tabs">
 // way: name, what it does, and the one number that matters on the right.
 const dbRow = ({label, body, right, hot, locked, attrs}) =>
   `<div class="row${locked ? ' locked' : ''}"${attrs || ''} style="cursor:pointer">
-     <span><b style="color:${locked ? 'var(--dim)' : 'var(--cyan)'}">${label}</b>
+     <span><b style="color:${locked ? 'var(--dim)' : 'var(--zan)'}">${label}</b>
      <div style="font-size:0.5312rem;color:var(--dim);margin-top:4px;line-height:1.5">${body}</div></span>
      <span class="r${hot ? ' hot' : ''}">${right}</span></div>`;
 
@@ -171,7 +171,7 @@ function recordPanel() {
   }).join('');
 
   return `
-   <div class="bar"><div>${active.callsign} · <b style="color:var(--cyan)">${rankName(active.progress.rank)}</b></div>
+   <div class="bar"><div>${active.callsign} · <b style="color:var(--zan)">${rankName(active.progress.rank)}</b></div>
      <div style="color:var(--dim);font-size:0.5625rem">Task force command · XP ${active.progress.xp}</div></div>
    <div class="sect">Field record</div><div class="rows">${fieldRecord}</div>
    <div class="sect">Veteran roster</div><div class="rows">${veterans}</div>
@@ -257,7 +257,7 @@ export function importRecordFlow(after) {
       saveAll(profiles);
       // Importing over the record being played swaps it in live.
       if (active && active.id === p.id) enter(p);
-      notify('Record imported', `<b style="color:var(--cyan)">${p.callsign}</b> is on file.`);
+      notify('Record imported', `<b style="color:var(--zan)">${p.callsign}</b> is on file.`);
       if (after) after(p);
     }, {paste: true, ok: 'Import'});
 }

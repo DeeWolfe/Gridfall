@@ -23,7 +23,7 @@ export function renderSlots() {
         <div style="display:flex;align-items:center;gap:8px"><span style="font-size:0.5625rem;color:var(--dim)">0${i + 1}</span><span class="del" data-del="1">DEL</span></div>`;
       b.onclick = ev => {
         if (ev.target.dataset.del) {
-          ask('Erase record', `Permanently delete <b style="color:var(--cyan)">${p.callsign}</b>? This cannot be undone.`,
+          ask('Erase record', `Permanently delete <b style="color:var(--zan)">${p.callsign}</b>? This cannot be undone.`,
             ok => {
               if (!ok) return;
               setProfiles(profiles.filter(x => x.id !== p.id));
