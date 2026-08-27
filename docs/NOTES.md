@@ -164,6 +164,49 @@ No save-version bump was needed. `migrate()` strips the now-missing `dropod`
 card id out of decks and collections on load, which is exactly the case
 `repro.js` covers; the gear id of the same name is new, so nothing collides.
 
+## Two layouts, and a battlefield
+
+**A desktop layout, chosen by the player.** `compact` is the touch-first layout
+that stacks and scrolls; `pc` is a denser three-column board — combat log on the
+left, board centre, selection panel right, hand strip across the bottom — with
+hover states, tighter chrome and number-key deployment (1–9 pick the nth card,
+Enter joins Space for end turn).
+
+The preference has three values (`auto` / `pc` / `compact`) and lives in
+`active.settings.ui`, but **the DOM only ever carries a concrete one**:
+`src/render/uimode.js` resolves `auto` against
+`(min-width:1200px) and (pointer:fine)` and stamps `data-ui="pc"` or
+`data-ui="compact"` on the root. That is a deliberate call — it keeps the
+stylesheet to a single set of `:root[data-ui="pc"]` blocks rather than a media
+query and an attribute selector that have to be kept identical by hand, which is
+exactly the kind of drift `cssdup` exists to catch. `auto` re-resolves on resize.
+
+Two swap controls: a chip in the hold footer that cycles, and a three-way picker
+in Settings that also reports which layout is in force. `uitest.js` covers the
+round trip through storage, the cycle, both controls, and the shape of the
+desktop layer.
+
+**The combat log finally has a home.** The engine has kept `G.logs` since the
+reference build and nothing ever rendered it. It fills the desktop layout's left
+rail, colour-coded by category, and is hidden in compact where there is no room.
+
+**The hold screen is a battlefield.** `src/render/sky.js` became
+`src/render/battlefield.js`. Over the same parallax ridgelines: gunships cross
+the horizon and release bombs that fall under gravity, tracer fire climbs from
+the ridge and bursts into flak, and shells land out on the plain — each with a
+flash, a shock ring and smoke that rises and thins.
+
+Two things make it read rather than just move. It is **event-driven**: each of
+the three events waits out a randomised cooldown (sorties every 7–16s, ground
+fire every 1.6–4.5s, shelling every 2.2–6s), so the horizon is quiet often
+enough that a strike registers. And the **nearest ridge is painted last**, so it
+occludes the base of everything happening behind it — without that the scene is
+flat and the explosions look pasted on. Entity counts are capped, and
+`prefers-reduced-motion` gets the terrain held still.
+
+The canvas stub in `tests/support/dom.js` grew the operations the scene needs
+(`createRadialGradient`, `stroke`, `strokeStyle`, `lineWidth`, `save`/`restore`).
+
 ## Still open
 
 Carried over from the handoff, in the order it recommended.

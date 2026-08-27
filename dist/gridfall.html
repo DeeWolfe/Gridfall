@@ -721,6 +721,65 @@ body{font-size:1rem}
   .cbhead .btn{padding:9px 15px}
 }
 @media(max-width:560px){.hc{width:clamp(88px,26vw,116px)}}
+/* ============ DESKTOP LAYOUT ============
+   Applied when :root carries data-ui="pc". uimode.js resolves the player's
+   "automatic" preference to a concrete value and stamps it, so this is the only
+   place the desktop layout is described — there is no parallel media query to
+   keep in step. Everything above is the compact, touch-first layout. */
+
+/* The intel rail only exists on desktop; compact has no room for it. */
+.cbcol.intel{display:none}
+.logbox{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.cblog{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:4px;
+  scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+.cblog::-webkit-scrollbar{width:4px}
+.cblog::-webkit-scrollbar-track{background:transparent}
+.cblog::-webkit-scrollbar-thumb{background:var(--line2)}
+.logline{font-size:0.4688rem;line-height:1.55;color:var(--dim);padding-left:7px;
+  border-left:2px solid var(--line)}
+.logline.l-kill{border-left-color:var(--green);color:#9fd9b6}
+.logline.l-loss{border-left-color:var(--mag);color:#e5a3bd}
+.logline.l-wave{border-left-color:var(--violet);color:#b7a4e8}
+.logline.l-order{border-left-color:var(--cyan-d)}
+.logline .g{color:var(--green)}
+.logline .d{color:var(--mag)}
+.logline .t{color:var(--cyan)}
+
+/* The number-key badge is a desktop affordance; hidden without a keyboard. */
+.hkey{display:none;position:absolute;bottom:4px;right:5px;font-size:0.4375rem;
+  letter-spacing:0;color:var(--dim);border:1px solid var(--line2);padding:0 3px;line-height:1.5}
+.uipick{display:flex;gap:5px;flex-wrap:wrap}
+.uipick .mini.on{color:var(--cyan);border-color:var(--cyan)}
+
+:root[data-ui="pc"] .cbcol.intel{display:flex}
+:root[data-ui="pc"] .hkey{display:block}
+
+/* Three columns: what has happened, where it is happening, what you can do. */
+:root[data-ui="pc"] .cbmain{grid-template-columns:clamp(190px,15vw,290px) minmax(0,1fr) clamp(212px,16vw,320px);
+  overflow:hidden;gap:clamp(7px,.7vw,12px);padding:clamp(7px,.7vw,12px);align-content:stretch}
+:root[data-ui="pc"] .cbcol{overflow:hidden}
+:root[data-ui="pc"] .cbcol.mid{overflow:hidden;justify-content:center}
+:root[data-ui="pc"] .cbcol.side{overflow-y:auto}
+:root[data-ui="pc"] .field{max-width:min(100%,calc((100vh - 19rem) * 1.62));padding:clamp(7px,.7vw,12px)}
+
+/* Denser chrome throughout — a mouse does not need 44px targets. */
+:root[data-ui="pc"] .cbhead{padding:6px clamp(9px,.9vw,15px);row-gap:4px}
+:root[data-ui="pc"] .box{padding:.5rem .62rem}
+:root[data-ui="pc"] .cbfoot{grid-template-columns:minmax(0,1fr) clamp(230px,18vw,330px);
+  gap:clamp(6px,.6vw,10px);padding:0 clamp(7px,.7vw,12px) clamp(7px,.7vw,12px)}
+:root[data-ui="pc"] .hc{width:clamp(86px,7.4vw,116px);padding:1.2rem .4rem .45rem}
+:root[data-ui="pc"] .cbacts .btn{padding:.62rem 1rem}
+:root[data-ui="pc"] .bstats{margin-top:6px;gap:13px}
+
+/* Hover states, which only make sense with a pointer. */
+:root[data-ui="pc"] .cell.clickable:hover{box-shadow:inset 0 0 0 2px var(--cyan-d)}
+:root[data-ui="pc"] .cell.valid:hover{box-shadow:inset 0 0 0 2px var(--green)}
+:root[data-ui="pc"] .hc:hover{transform:translateY(-3px)}
+:root[data-ui="pc"] .row:hover{background:rgba(77,232,255,.045)}
+
+/* Compact keeps the two-column board even on a wide screen. */
+:root[data-ui="compact"] .cbcol.intel{display:none}
+
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -788,7 +847,8 @@ body{font-size:1rem}
         <button class="tile db" data-p="database"><div class="tn">Database</div><div class="td">Assets and hostiles on file.</div></button>
         <button class="tile rec" data-p="record"><div class="tn">Service Record</div><div class="td">Deployments, losses, standing.</div></button></div></div>
     <div class="bayfoot"><div style="font-size:0.5312rem;color:var(--dim)" id="saveflag">Saved</div>
-      <div style="display:flex;gap:7px"><button class="mini" data-p="settings">Settings</button>
+      <div style="display:flex;gap:7px"><button class="mini" id="uiswap">UI</button>
+        <button class="mini" data-p="settings">Settings</button>
         <button class="mini" id="switch">Switch record</button></div></div>
   </div></div></div></div>
 
@@ -825,6 +885,12 @@ body{font-size:1rem}
     <button class="leadbadge" id="leadbadge"></button>
   </div>
   <div class="cbmain">
+    <div class="cbcol intel">
+      <div class="box logbox">
+        <h3>Combat log</h3>
+        <div class="cblog" id="cblog"></div>
+      </div>
+    </div>
     <div class="cbcol mid">
       <div class="field">
         <div class="board" id="board"></div>
@@ -1020,85 +1086,6 @@ function clearSelection() {
   sel = null;
   mover = null;
 }
-
-/* ==== src/state/hooks.js ============================================ */
-// The seam between the rules and whatever is presenting them.
-//
-// Rules code never touches the DOM. When something happens that the player
-// should see, it calls a hook. The renderer installs real implementations at
-// boot; under test they stay no-ops, which is why every logic harness runs in
-// plain Node with no DOM stub at all.
-
-const hooks = {
-  /** The board state changed — redraw the combat screen. */
-  invalidate() {},
-  /** A mission just started — switch to the combat screen. */
-  enterCombat() {},
-  /** The mission ended. `G.result` holds what to show. */
-  showResult() {},
-  /** A message with no decision attached. */
-  notify(_title, _msg) {},
-  /** A yes/no (or text-entry) prompt. Default answer is "no". */
-  ask(_title, _msg, cb) { if (cb) cb(false); },
-  /** The active profile was just written to storage. */
-  saved() {},
-};
-
-/** Install presentation hooks. Called once, by the renderer's boot(). */
-function setHooks(impl) {
-  Object.assign(hooks, impl);
-}
-
-/* ==== src/save/store.js ============================================= */
-// Persistence shim.
-//
-// localStorage throws outright in some privacy modes, so every access is
-// guarded and falls back to an in-memory map for the session. `ephemeral` tells
-// the UI to say "session only" rather than claiming a save that will not
-// survive the tab. Swapping this for a network-backed store is the whole of the
-// work for cloud saves — nothing above it knows where the bytes go.
-
-const KEY = 'gridfall.profiles.v4';
-
-const memory = {};
-let usable = true;
-try {
-  localStorage.setItem('__gridfall_probe', '1');
-  localStorage.removeItem('__gridfall_probe');
-} catch {
-  usable = false;
-}
-
-const store = {
-  ephemeral: !usable,
-  get(k) {
-    try {
-      return usable ? localStorage.getItem(k) : (memory[k] ?? null);
-    } catch {
-      return memory[k] ?? null;
-    }
-  },
-  set(k, v) {
-    try {
-      if (usable) localStorage.setItem(k, v); else memory[k] = v;
-    } catch {
-      memory[k] = v;
-    }
-  },
-};
-
-/* ==== src/state/constants.js ======================================== */
-// GENERATED by tools/gen-content.js from reference/gridfall-data.json.
-// Edit the JSON and re-run `npm run gen:content` — do not edit this file by hand.
-// Board, economy and save constants.
-
-const LANES = 5;
-const COLS = 8;
-const MAXDP = 6;
-const MAXBREACH = 3;
-const DECKSIZE = 12;
-const SAVE_VERSION = 4;
-const STARTER = ["scout", "rifle", "marks", "wall", "medic", "turret", "lancer", "bulwark", "assassin"];
 
 /* ==== src/content/cards.js ========================================== */
 // GENERATED by tools/gen-content.js from reference/gridfall-data.json.
@@ -1671,6 +1658,147 @@ const LEADS = {
   },
 };
 
+/* ==== src/content/ranks.js ========================================== */
+// Progression vocabulary: card tiers, commander ranks, and card veterancy.
+// Not part of gridfall-data.json — these are presentation ladders rather than
+// balance numbers, and nothing outside the UI reads them.
+
+const TIERNAME = {common: 'Common', tech: 'Tech', special: 'Specialist'};
+
+// The player commands the whole task force; a team lead runs the squad under
+// them. The ladder therefore starts at command tier, not at enlisted ranks.
+const RANKS = ['Acting Commander', 'Commander', 'Senior Commander',
+  'Task Force Commander', 'Operations Director', 'Marshal'];
+
+// A card's rank climbs with how many times it has been deployed across the
+// whole profile. `at` is the deployment count that unlocks the tier.
+const VET = [
+  {n: 'Standard', at: 0, col: '#8d9bbd'},
+  {n: 'Veteran', at: 10, col: '#b8c4dd'},
+  {n: 'Elite', at: 30, col: '#ffc94d'},
+  {n: 'Legend', at: 75, col: '#9d6bff'},
+];
+
+/* ==== src/save/progression.js ======================================= */
+// Derived readings of the active profile: what a card costs right now, what
+// gear is bolted to it, how far up the veterancy ladder it has climbed.
+
+const rankName = r => RANKS[Math.min(r - 1, RANKS.length - 1)];
+
+/** Human-readable age of a timestamp, for the record-select screen. */
+const ago = t => {
+  const d = Math.floor((Date.now() - t) / 864e5);
+  return d < 1 ? 'today' : d === 1 ? 'yesterday' : d + ' days ago';
+};
+
+/** Veterancy standing of a card across this profile's whole career. */
+function vetOf(id) {
+  const u = (active && active.usage && active.usage[id]) || 0;
+  let t = 0;
+  for (let i = VET.length - 1; i >= 0; i--) {
+    if (u >= VET[i].at) { t = i; break; }
+  }
+  return {t, u, n: VET[t].n, col: VET[t].col, next: t < VET.length - 1 ? VET[t + 1].at : null};
+}
+
+/** The gear fitted to a card, or null. */
+function gearOf(id) {
+  if (!active || !active.loadout || !active.loadout.gear) return null;
+  return GEAR[active.loadout.gear[id]] || null;
+}
+
+/** Deploy-point cost including any gear discount. Never below 1. */
+function costOf(id) {
+  const k = POOL[id];
+  if (!k) return 99;
+  const g = gearOf(id);
+  return Math.max(1, k.dp + (g && g.dp ? g.dp : 0));
+}
+
+/** The active profile's team lead, defaulting to Ironbrand. */
+function leadOf() {
+  return LEADS[(active && active.lead) || 'ironbrand'] || LEADS.ironbrand;
+}
+
+/* ==== src/state/hooks.js ============================================ */
+// The seam between the rules and whatever is presenting them.
+//
+// Rules code never touches the DOM. When something happens that the player
+// should see, it calls a hook. The renderer installs real implementations at
+// boot; under test they stay no-ops, which is why every logic harness runs in
+// plain Node with no DOM stub at all.
+
+const hooks = {
+  /** The board state changed — redraw the combat screen. */
+  invalidate() {},
+  /** A mission just started — switch to the combat screen. */
+  enterCombat() {},
+  /** The mission ended. `G.result` holds what to show. */
+  showResult() {},
+  /** A message with no decision attached. */
+  notify(_title, _msg) {},
+  /** A yes/no (or text-entry) prompt. Default answer is "no". */
+  ask(_title, _msg, cb) { if (cb) cb(false); },
+  /** The active profile was just written to storage. */
+  saved() {},
+};
+
+/** Install presentation hooks. Called once, by the renderer's boot(). */
+function setHooks(impl) {
+  Object.assign(hooks, impl);
+}
+
+/* ==== src/save/store.js ============================================= */
+// Persistence shim.
+//
+// localStorage throws outright in some privacy modes, so every access is
+// guarded and falls back to an in-memory map for the session. `ephemeral` tells
+// the UI to say "session only" rather than claiming a save that will not
+// survive the tab. Swapping this for a network-backed store is the whole of the
+// work for cloud saves — nothing above it knows where the bytes go.
+
+const KEY = 'gridfall.profiles.v4';
+
+const memory = {};
+let usable = true;
+try {
+  localStorage.setItem('__gridfall_probe', '1');
+  localStorage.removeItem('__gridfall_probe');
+} catch {
+  usable = false;
+}
+
+const store = {
+  ephemeral: !usable,
+  get(k) {
+    try {
+      return usable ? localStorage.getItem(k) : (memory[k] ?? null);
+    } catch {
+      return memory[k] ?? null;
+    }
+  },
+  set(k, v) {
+    try {
+      if (usable) localStorage.setItem(k, v); else memory[k] = v;
+    } catch {
+      memory[k] = v;
+    }
+  },
+};
+
+/* ==== src/state/constants.js ======================================== */
+// GENERATED by tools/gen-content.js from reference/gridfall-data.json.
+// Edit the JSON and re-run `npm run gen:content` — do not edit this file by hand.
+// Board, economy and save constants.
+
+const LANES = 5;
+const COLS = 8;
+const MAXDP = 6;
+const MAXBREACH = 3;
+const DECKSIZE = 12;
+const SAVE_VERSION = 4;
+const STARTER = ["scout", "rifle", "marks", "wall", "medic", "turret", "lancer", "bulwark", "assassin"];
+
 /* ==== src/save/profile.js =========================================== */
 // Profile creation, migration and persistence.
 //
@@ -2050,68 +2178,6 @@ const BEST = {
     d: "Moves every other turn. Every tile it crosses becomes hostile ground permanently.",
   },
 };
-
-/* ==== src/content/ranks.js ========================================== */
-// Progression vocabulary: card tiers, commander ranks, and card veterancy.
-// Not part of gridfall-data.json — these are presentation ladders rather than
-// balance numbers, and nothing outside the UI reads them.
-
-const TIERNAME = {common: 'Common', tech: 'Tech', special: 'Specialist'};
-
-// The player commands the whole task force; a team lead runs the squad under
-// them. The ladder therefore starts at command tier, not at enlisted ranks.
-const RANKS = ['Acting Commander', 'Commander', 'Senior Commander',
-  'Task Force Commander', 'Operations Director', 'Marshal'];
-
-// A card's rank climbs with how many times it has been deployed across the
-// whole profile. `at` is the deployment count that unlocks the tier.
-const VET = [
-  {n: 'Standard', at: 0, col: '#8d9bbd'},
-  {n: 'Veteran', at: 10, col: '#b8c4dd'},
-  {n: 'Elite', at: 30, col: '#ffc94d'},
-  {n: 'Legend', at: 75, col: '#9d6bff'},
-];
-
-/* ==== src/save/progression.js ======================================= */
-// Derived readings of the active profile: what a card costs right now, what
-// gear is bolted to it, how far up the veterancy ladder it has climbed.
-
-const rankName = r => RANKS[Math.min(r - 1, RANKS.length - 1)];
-
-/** Human-readable age of a timestamp, for the record-select screen. */
-const ago = t => {
-  const d = Math.floor((Date.now() - t) / 864e5);
-  return d < 1 ? 'today' : d === 1 ? 'yesterday' : d + ' days ago';
-};
-
-/** Veterancy standing of a card across this profile's whole career. */
-function vetOf(id) {
-  const u = (active && active.usage && active.usage[id]) || 0;
-  let t = 0;
-  for (let i = VET.length - 1; i >= 0; i--) {
-    if (u >= VET[i].at) { t = i; break; }
-  }
-  return {t, u, n: VET[t].n, col: VET[t].col, next: t < VET.length - 1 ? VET[t + 1].at : null};
-}
-
-/** The gear fitted to a card, or null. */
-function gearOf(id) {
-  if (!active || !active.loadout || !active.loadout.gear) return null;
-  return GEAR[active.loadout.gear[id]] || null;
-}
-
-/** Deploy-point cost including any gear discount. Never below 1. */
-function costOf(id) {
-  const k = POOL[id];
-  if (!k) return 99;
-  const g = gearOf(id);
-  return Math.max(1, k.dp + (g && g.dp ? g.dp : 0));
-}
-
-/** The active profile's team lead, defaulting to Ironbrand. */
-function leadOf() {
-  return LEADS[(active && active.lead) || 'ironbrand'] || LEADS.ironbrand;
-}
 
 /* ==== src/rules/board.js ============================================ */
 // Reading the board: what occupies a cell, who owns what, where you may build.
@@ -3038,26 +3104,55 @@ function wireFocus() {
   });
 }
 
-/* ==== src/render/sky.js ============================================= */
-// The dropship viewport on the hold screen: a parallax canvas of stars,
-// horizon glow and scrolling terrain, plus the descent clock.
+/* ==== src/render/battlefield.js ===================================== */
+// The view from the dropship on the way down: a night battlefield.
 //
-// Purely decorative. It runs only while the hold screen is up and is stopped
-// on every navigation away, so nothing animates behind a screen nobody sees.
+// Everything here is atmosphere — nothing it draws feeds back into the game.
+// It runs only while the hold screen is up and stops on every navigation away,
+// so nothing animates behind a screen nobody is looking at.
+//
+// The scene is event-driven rather than a loop of constant motion: each of the
+// four events (a sortie, a bomb, ground fire, a distant shell) waits out a
+// randomised cooldown, so the horizon is quiet often enough that a strike
+// registers when it comes.
 
 const DESCENT_SECONDS = 214;
 
+// Seconds between events, picked fresh from each range every time one fires.
+const CADENCE = {
+  sortie: [7, 16],
+  groundFire: [1.6, 4.5],
+  shelling: [2.2, 6],
+};
+
+// Nothing may grow without bound if the tab is left open for an hour.
+const LIMITS = {aircraft: 3, bombs: 14, tracers: 26, blasts: 12, smoke: 40};
+
 let raf = null;
 let t = 0;
+let last = 0;
 let W = 0;
 let H = 0;
-let layers = [];
-let stars = [];
-let last = 0;
 let canvas = null;
 let ctx = null;
+let reduced = false;
 
-function sizeSky() {
+let ridges = [];
+let stars = [];
+let aircraft = [];
+let bombs = [];
+let tracers = [];
+let blasts = [];
+let smoke = [];
+let timers = {};
+
+const rand = (a, b) => a + Math.random() * (b - a);
+const cool = key => { timers[key] = rand(...CADENCE[key]); };
+
+/** The ground line, as a fraction of canvas height. */
+const GROUND = 0.78;
+
+function sizeScene() {
   if (!canvas) return;
   const r = canvas.getBoundingClientRect();
   const dpr = Math.min(devicePixelRatio || 1, 2);
@@ -3066,31 +3161,158 @@ function sizeSky() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   W = r.width;
   H = r.height;
-  buildSky();
+  buildTerrain();
 }
 
-function buildSky() {
-  layers = [];
+function buildTerrain() {
+  ridges = [];
   stars = [];
-  [{y: 0.60, a: 0.055, s: 0.10, c: '#0e0d24'},
+  [{y: 0.62, a: 0.055, s: 0.10, c: '#0e0d24'},
     {y: 0.72, a: 0.075, s: 0.22, c: '#141130'},
     {y: 0.86, a: 0.10, s: 0.46, c: '#1c1740'}].forEach(o => {
     const pts = [];
     for (let i = 0; i < 28; i++) pts.push(Math.random());
-    layers.push({...o, pts, off: Math.random() * 900});
+    ridges.push({...o, pts, off: Math.random() * 900});
   });
   for (let i = 0; i < 90; i++) {
-    stars.push({x: Math.random(), y: Math.random() * 0.55, a: 0.15 + Math.random() * 0.6, tw: Math.random() * 6.3});
+    stars.push({x: Math.random(), y: Math.random() * 0.5, a: 0.15 + Math.random() * 0.6, tw: Math.random() * 6.3});
+  }
+  aircraft = [];
+  bombs = [];
+  tracers = [];
+  blasts = [];
+  smoke = [];
+  Object.keys(CADENCE).forEach(cool);
+}
+
+// --- events ----------------------------------------------------------------
+
+/** A gunship crosses the horizon, high and unhurried. */
+function launchSortie() {
+  if (aircraft.length >= LIMITS.aircraft) return;
+  const dir = Math.random() < 0.5 ? 1 : -1;
+  aircraft.push({
+    dir,
+    x: dir > 0 ? -0.08 : 1.08,
+    y: rand(0.18, 0.38),
+    speed: rand(0.055, 0.1),
+    drops: Math.random() < 0.7 ? (Math.random() < 0.35 ? 3 : 2) : 0,
+    nextDrop: rand(0.3, 0.55),   // as a fraction of the crossing
+    trail: [],
+  });
+}
+
+/** A bomb released from `plane`, falling under gravity with its inherited run. */
+function releaseBomb(plane) {
+  if (bombs.length >= LIMITS.bombs) return;
+  bombs.push({x: plane.x, y: plane.y, vx: plane.speed * plane.dir * 0.55, vy: 0.04});
+}
+
+/** Tracer fire climbing from the ridge, bursting into flak near the top. */
+function openGroundFire() {
+  const shots = 2 + ((Math.random() * 4) | 0);
+  const originX = Math.random();
+  for (let i = 0; i < shots && tracers.length < LIMITS.tracers; i++) {
+    tracers.push({
+      x: originX + rand(-0.02, 0.02),
+      y: GROUND - 0.01,
+      vx: rand(-0.05, 0.05),
+      vy: -rand(0.32, 0.5),
+      life: 1,
+      burstAt: rand(0.2, 0.42),
+    });
   }
 }
 
-function drawSky(dt) {
-  t += dt;
+/** Something lands out on the horizon. Flash, ring, then smoke. */
+function detonate(x, y, power) {
+  if (blasts.length >= LIMITS.blasts) return;
+  blasts.push({x, y, r: 0, max: power, life: 1});
+  const puffs = 2 + ((power * 90) | 0);
+  for (let i = 0; i < puffs && smoke.length < LIMITS.smoke; i++) {
+    smoke.push({
+      x: x + rand(-power, power),
+      y: y - rand(0, power * 0.6),
+      r: rand(2, 6),
+      rise: rand(0.012, 0.03),
+      life: 1,
+      fade: rand(0.2, 0.4),
+    });
+  }
+}
 
+function shellHorizon() {
+  detonate(Math.random(), GROUND - rand(0, 0.02), rand(0.01, 0.022));
+}
+
+// --- simulation ------------------------------------------------------------
+
+function step(dt) {
+  Object.keys(CADENCE).forEach(key => { timers[key] -= dt; });
+  if (timers.sortie <= 0) { launchSortie(); cool('sortie'); }
+  if (timers.groundFire <= 0) { openGroundFire(); cool('groundFire'); }
+  if (timers.shelling <= 0) { shellHorizon(); cool('shelling'); }
+
+  aircraft = aircraft.filter(p => {
+    const before = p.x;
+    p.x += p.speed * p.dir * dt;
+    p.trail.push(p.x);
+    if (p.trail.length > 26) p.trail.shift();
+
+    const crossed = p.dir > 0 ? (before < p.nextDrop && p.x >= p.nextDrop)
+      : (before > p.nextDrop && p.x <= p.nextDrop);
+    if (p.drops > 0 && crossed) {
+      releaseBomb(p);
+      p.drops--;
+      p.nextDrop += p.dir * rand(0.04, 0.09);
+    }
+    return p.x > -0.2 && p.x < 1.2;
+  });
+
+  bombs = bombs.filter(b => {
+    b.vy += 0.16 * dt;              // gravity, in canvas fractions
+    b.x += b.vx * dt;
+    b.y += b.vy * dt;
+    if (b.y >= GROUND) {
+      detonate(b.x, GROUND, rand(0.018, 0.03));
+      return false;
+    }
+    return b.x > -0.1 && b.x < 1.1;
+  });
+
+  tracers = tracers.filter(s => {
+    s.x += s.vx * dt;
+    s.y += s.vy * dt;
+    s.vy += 0.1 * dt;               // rounds arc over as they climb
+    s.life -= dt * 0.6;
+    if (s.life > 0 && s.y <= s.burstAt) {
+      detonate(s.x, s.y, rand(0.006, 0.012));
+      return false;
+    }
+    return s.life > 0;
+  });
+
+  blasts = blasts.filter(b => {
+    b.r += (b.max * 2.4 - b.r) * Math.min(1, dt * 7);
+    b.life -= dt * 1.5;
+    return b.life > 0;
+  });
+
+  smoke = smoke.filter(s => {
+    s.y -= s.rise * dt;
+    s.r += 4 * dt;
+    s.life -= s.fade * dt;
+    return s.life > 0;
+  });
+}
+
+// --- painting --------------------------------------------------------------
+
+function paintSky() {
   const g = ctx.createLinearGradient(0, 0, 0, H);
   g.addColorStop(0, '#04030b');
-  g.addColorStop(0.4, '#0a0820');
-  g.addColorStop(0.66, '#191138');
+  g.addColorStop(0.38, '#0a0820');
+  g.addColorStop(0.64, '#191138');
   g.addColorStop(1, '#3a1436');
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, H);
@@ -3100,14 +3322,16 @@ function drawSky(dt) {
     ctx.fillRect(s.x * W, s.y * H, 1.2, 1.2);
   });
 
-  const hz = ctx.createLinearGradient(0, H * 0.5, 0, H * 0.74);
-  hz.addColorStop(0, 'rgba(255,77,143,0)');
-  hz.addColorStop(1, 'rgba(255,77,143,.13)');
-  ctx.fillStyle = hz;
-  ctx.fillRect(0, H * 0.5, W, H * 0.24);
+  // The fighting itself lights the horizon from below.
+  const glow = ctx.createLinearGradient(0, H * 0.52, 0, H * GROUND);
+  glow.addColorStop(0, 'rgba(255,77,143,0)');
+  glow.addColorStop(1, 'rgba(255,120,60,.17)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, H * 0.52, W, H * (GROUND - 0.52));
+}
 
-  layers.forEach(L => {
-    L.off += dt * L.s * W * 0.14;
+function paintRidges(from, to) {
+  ridges.slice(from, to).forEach(L => {
     ctx.beginPath();
     ctx.moveTo(0, H);
     const n = L.pts.length;
@@ -3122,54 +3346,231 @@ function drawSky(dt) {
     ctx.fillStyle = L.c;
     ctx.fill();
   });
+}
 
-  // A running light on the hull, blinking.
-  const px = (Math.sin(t * 2.2) + 1) / 2;
-  ctx.fillStyle = `rgba(77,232,255,${0.25 + px * 0.65})`;
-  ctx.fillRect(W * 0.78, H * 0.7, 2, 2);
-  ctx.fillStyle = `rgba(77,232,255,${0.05 + px * 0.1})`;
-  ctx.beginPath();
-  ctx.arc(W * 0.78 + 1, H * 0.7 + 1, 9 + px * 6, 0, 6.283);
-  ctx.fill();
+function paintAircraft() {
+  aircraft.forEach(p => {
+    const y = p.y * H;
 
-  // Engine vibration, and the descent clock counting down on a loop.
+    // Contrail: a thinning line back along the run.
+    for (let i = 0; i < p.trail.length - 1; i++) {
+      const a = (i / p.trail.length) * 0.16;
+      ctx.fillStyle = `rgba(190,205,235,${a.toFixed(3)})`;
+      ctx.fillRect(p.trail[i] * W, y - 0.5, 2, 1);
+    }
+
+    // Silhouette: a swept delta, nose in the direction of travel.
+    const x = p.x * W;
+    const d = p.dir;
+    ctx.beginPath();
+    ctx.moveTo(x + 9 * d, y);
+    ctx.lineTo(x - 4 * d, y - 3);
+    ctx.lineTo(x - 6 * d, y);
+    ctx.lineTo(x - 4 * d, y + 3);
+    ctx.closePath();
+    ctx.fillStyle = '#0a0916';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(x - 1 * d, y - 1);
+    ctx.lineTo(x - 9 * d, y - 6);
+    ctx.lineTo(x - 7 * d, y);
+    ctx.lineTo(x - 9 * d, y + 6);
+    ctx.closePath();
+    ctx.fillStyle = '#111029';
+    ctx.fill();
+
+    // Engine glow.
+    ctx.fillStyle = `rgba(255,150,70,${(0.5 + 0.3 * Math.sin(t * 22)).toFixed(2)})`;
+    ctx.fillRect(x - 7 * d, y - 0.8, 2.2, 1.6);
+  });
+}
+
+function paintOrdnance() {
+  bombs.forEach(b => {
+    ctx.fillStyle = '#d9dcf0';
+    ctx.fillRect(b.x * W - 1, b.y * H - 2.5, 2, 5);
+  });
+
+  tracers.forEach(s => {
+    const x = s.x * W;
+    const y = s.y * H;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x - s.vx * W * 0.11, y - s.vy * H * 0.11);
+    ctx.strokeStyle = `rgba(255,208,120,${Math.max(0, s.life).toFixed(2)})`;
+    ctx.lineWidth = 1.6;
+    ctx.stroke();
+  });
+}
+
+function paintBlasts() {
+  smoke.forEach(s => {
+    ctx.beginPath();
+    ctx.arc(s.x * W, s.y * H, s.r, 0, 6.283);
+    ctx.fillStyle = `rgba(34,28,46,${(s.life * 0.38).toFixed(3)})`;
+    ctx.fill();
+  });
+
+  blasts.forEach(b => {
+    const x = b.x * W;
+    const y = b.y * H;
+    const r = b.r * W;
+
+    // Core flash.
+    const flash = ctx.createRadialGradient(x, y, 0, x, y, Math.max(1, r));
+    flash.addColorStop(0, `rgba(255,240,190,${(b.life * 0.95).toFixed(2)})`);
+    flash.addColorStop(0.35, `rgba(255,150,60,${(b.life * 0.6).toFixed(2)})`);
+    flash.addColorStop(1, 'rgba(255,90,40,0)');
+    ctx.fillStyle = flash;
+    ctx.beginPath();
+    ctx.arc(x, y, Math.max(1, r), 0, 6.283);
+    ctx.fill();
+
+    // Shock ring, expanding ahead of the flash and fading faster.
+    ctx.beginPath();
+    ctx.arc(x, y, Math.max(1, r * 1.3), 0, 6.283);
+    ctx.strokeStyle = `rgba(255,176,96,${(b.life * 0.22).toFixed(2)})`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  });
+}
+
+/** Engine vibration on the hold screen, and the descent clock. */
+function paintChrome() {
   const vibe = $('vibe');
   if (vibe) {
     const shake = ((Math.sin(t * 23) + Math.sin(t * 37)) * 0.32).toFixed(2);
     vibe.style.transform = `translate3d(0,${shake}px,0)`;
   }
   const left = Math.max(0, DESCENT_SECONDS - Math.floor(t) % DESCENT_SECONDS);
-  $('eta').textContent = 'T−' + Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0');
+  const eta = $('eta');
+  if (eta) eta.textContent = 'T−' + Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0');
 }
 
-function loop(ts) {
+function paint() {
+  paintSky();
+  paintRidges(0, 2);
+  paintAircraft();
+  paintOrdnance();
+  paintBlasts();
+  paintRidges(2);        // the near ridge sits in front of the fighting
+  paintChrome();
+}
+
+function frame(ts) {
   const dt = Math.min(0.05, (ts - last) / 1000 || 0);
   last = ts;
-  drawSky(dt);
-  raf = requestAnimationFrame(loop);
+  t += dt;
+  step(dt);
+  paint();
+  raf = requestAnimationFrame(frame);
 }
 
-function startSky() {
+function startScene() {
   if (!canvas) {
     canvas = $('sky');
     ctx = canvas.getContext('2d');
+    try {
+      reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    } catch { reduced = false; }
   }
-  sizeSky();
+  sizeScene();
+
+  // Reduced motion gets the terrain and the sky, held still.
+  if (reduced) {
+    paintSky();
+    paintRidges(0);
+    paintChrome();
+    return;
+  }
   if (!raf) {
     last = performance.now();
-    raf = requestAnimationFrame(loop);
+    raf = requestAnimationFrame(frame);
   }
 }
 
-function stopSky() {
+function stopScene() {
   if (raf) {
     cancelAnimationFrame(raf);
     raf = null;
   }
 }
 
-/** True while the sky is animating — the resize handler needs to know. */
-const skyRunning = () => raf !== null;
+/** True while the scene is animating — the resize handler needs to know. */
+const sceneRunning = () => raf !== null;
+
+/* ==== src/render/uimode.js ========================================== */
+// Which interface the player gets.
+//
+// Two layouts ship: `compact`, the touch-first one that stacks and scrolls, and
+// `pc`, a denser three-column desktop layout with a combat log, hover states
+// and number-key deployment.
+//
+// The stored preference has three values, but the DOM only ever carries a
+// concrete one: `auto` is resolved here and stamped as `pc` or `compact`. That
+// keeps the stylesheet to a single set of `:root[data-ui="pc"]` blocks instead
+// of duplicating every rule between a media query and an attribute selector.
+
+/** What the player can choose. `auto` follows the display. */
+const UI_MODES = ['auto', 'pc', 'compact'];
+
+const UI_LABELS = {auto: 'Automatic', pc: 'Desktop', compact: 'Compact'};
+
+// A pointing device and room to use it. Touch laptops report `coarse` for the
+// primary pointer, so `any-pointer` would be too generous here.
+const DESKTOP_QUERY = '(min-width: 1200px) and (pointer: fine)';
+
+/** The player's stored preference, defaulting to `auto`. */
+function uiPreference() {
+  const stored = active && active.settings && active.settings.ui;
+  return UI_MODES.includes(stored) ? stored : 'auto';
+}
+
+/** What `auto` resolves to on this display right now. */
+function detectMode() {
+  try {
+    return typeof matchMedia === 'function' && matchMedia(DESKTOP_QUERY).matches ? 'pc' : 'compact';
+  } catch {
+    return 'compact';
+  }
+}
+
+/** The layout actually in force. */
+function resolvedMode() {
+  const pref = uiPreference();
+  return pref === 'auto' ? detectMode() : pref;
+}
+
+/** Stamp the resolved layout onto the document. Safe to call repeatedly. */
+function applyUiMode() {
+  const root = typeof document !== 'undefined' && document.documentElement;
+  if (!root) return resolvedMode();
+  const mode = resolvedMode();
+  if (root.dataset) root.dataset.ui = mode;
+  return mode;
+}
+
+/** Record a new preference and apply it. */
+function setUiMode(pref) {
+  if (!UI_MODES.includes(pref) || !active) return;
+  active.settings = active.settings || {};
+  active.settings.ui = pref;
+  commit();
+  applyUiMode();
+}
+
+/** Step through the three preferences — the shortcut and the hold-screen chip. */
+function cycleUiMode() {
+  const next = UI_MODES[(UI_MODES.indexOf(uiPreference()) + 1) % UI_MODES.length];
+  setUiMode(next);
+  return next;
+}
+
+/** "Automatic · Desktop" — the preference, and what it resolved to. */
+function uiModeLabel() {
+  const pref = uiPreference();
+  return pref === 'auto' ? `Automatic · ${UI_LABELS[resolvedMode()]}` : UI_LABELS[pref];
+}
 
 /* ==== src/render/hold.js ============================================ */
 // The hold: the between-missions home screen.
@@ -3208,6 +3609,11 @@ function paintHold() {
   $('sectorname').textContent = MAPDEF.n.replace('OPERATION ', '');
   $('shipname').textContent = 'DS ' + (p.ship || 'ANVIL-7');
 
+  // The profile carries the interface preference, so re-apply it on entry.
+  applyUiMode();
+  const chip = $('uiswap');
+  if (chip) chip.textContent = 'UI · ' + uiModeLabel();
+
   const left = MAPDEF.nodes.length - opRun().cleared.length;
   $('deploysub').textContent = left > 0
     ? `${MAPDEF.n} · ${left} mission${left > 1 ? 's' : ''} remaining. Choose another operation at any time.`
@@ -3219,7 +3625,7 @@ function enter(p) {
   enterProfile(p);
   show('hold');
   paintHold();
-  startSky();
+  startScene();
 }
 
 /* ==== src/render/boot-screen.js ===================================== */
@@ -4460,6 +4866,7 @@ function supportLabel(u) {
 // why the rules layer only has to say "something changed".
 
 const LEAD_DP_BONUS = 4;
+const LOG_LINES = 40;
 
 /** Leaving combat: back to the map, or to mode select for endless/gauntlet. */
 function leaveCombat() {
@@ -4715,11 +5122,24 @@ function drawBoard() {
     `<i class="e" style="width:${theirs / total * 100}%"></i>`;
 }
 
+/**
+ * The combat log. The engine has always kept it; until the desktop layout there
+ * was nowhere to put it. Newest first, capped to what the rail can show.
+ */
+function drawLog() {
+  const el = $('cblog');
+  if (!el) return;
+  const entries = G.logs.slice(0, LOG_LINES);
+  el.innerHTML = entries.length
+    ? entries.map(e => `<div class="logline l-${e.c}">${e.h}</div>`).join('')
+    : '<div class="logline l-info">Awaiting contact.</div>';
+}
+
 function drawHand() {
   const h = $('hcards');
   h.innerHTML = '';
 
-  G.hand.forEach(cid => {
+  G.hand.forEach((cid, index) => {
     const k = POOL[cid];
     const cost = costOf(cid);
     const unaffordable = cost > G.dp || G.over;
@@ -4731,6 +5151,7 @@ function drawHand() {
     // Portrait card: cost in the top-left corner, name, then a clipped blurb —
     // the full text lives in the details panel and behind the ⌕ badge.
     el.innerHTML = `<div class="hcost">${cost}</div>
+      ${index < 9 ? `<div class="hkey">${index + 1}</div>` : ''}
       <div class="zoom" data-z="${cid}">⌕</div>${v.t ? `<div class="hpips">${'◆'.repeat(v.t)}</div>` : ''}
       <div class="n">${k.n}</div>
       <div class="d">${k.d}</div>${g ? `<div class="gtag">${g.n}</div>` : ''}`;
@@ -4782,6 +5203,7 @@ function drawAll() {
   drawHand();
   drawSel();
   drawActions();
+  drawLog();
 }
 
 /* ==== src/render/card-html.js ======================================= */
@@ -4991,14 +5413,22 @@ function recordPanel() {
    <div class="sect">Operations</div><div class="rows">${operations}</div>`;
 }
 
-const settingsPanel = () => `<div class="sect">System</div><div class="rows">
+const settingsPanel = () => `<div class="sect">Interface</div><div class="rows">
+   <div class="row"><span>Layout<div style="font-size:0.5312rem;color:var(--dim);margin-top:4px;line-height:1.5">
+     Desktop is a denser three-column board with a combat log and number-key deployment.
+     Compact stacks and scrolls. Automatic picks by display.</div></span>
+     <span class="uipick">${UI_MODES.map(m =>
+       `<button class="mini${uiPreference() === m ? ' on' : ''}" data-ui="${m}">${UI_LABELS[m]}</button>`).join('')}</span></div>
+   <div class="row"><span>In force</span><span class="r hot">${uiModeLabel()}</span></div></div>
+   <div class="sect">System</div><div class="rows">
    <div class="row"><span>Storage</span><span class="r">${store.ephemeral ? 'Blocked — session only' : 'This device'}</span></div>
    <div class="row"><span>Save version</span><span class="r">v${active.version}</span></div>
    <div class="row" id="shipren" style="cursor:pointer"><span>Dropship name</span><span class="r hot">DS ${active.ship || 'ANVIL-7'}</span></div>
    <div class="row" id="expo" style="cursor:pointer"><span>Export save</span><span class="r hot">Copy JSON</span></div>
    <div class="row" id="newrun" style="cursor:pointer"><span>Regenerate current operation</span><span class="r" style="color:var(--mag)">Reroll missions</span></div></div>
    <div class="sect">Controls</div><div class="rows">
-   <div class="row"><span>End turn</span><span class="r">Space</span></div>
+   <div class="row"><span>End turn</span><span class="r">Space · Enter</span></div>
+   <div class="row"><span>Deploy the nth card in hand</span><span class="r">1 – 9</span></div>
    <div class="row"><span>Deselect / close</span><span class="r">Escape</span></div>
    <div class="row"><span>Inspect a hand card</span><span class="r">⌕ badge</span></div></div>`;
 
@@ -5040,6 +5470,7 @@ function openPanel(key) {
   each('[data-foe]', el => focusEnemy(el.dataset.foe));
   each('[data-gear]', el => focusGear(el.dataset.gear));
   each('[data-tab]', el => { dbTab = el.dataset.tab; openPanel('database'); });
+  each('[data-ui]', el => { setUiMode(el.dataset.ui); paintHold(); openPanel('settings'); });
 
   const exportRow = $('expo');
   if (exportRow) {
@@ -5236,13 +5667,20 @@ function wireRecordScreen() {
     enter(p);
   };
   $('callsign').addEventListener('keydown', e => { if (e.key === 'Enter') $('create').click(); });
-  $('switch').onclick = () => { commit(); stopSky(); setActive(null); show('boot'); renderSlots(); };
+  $('switch').onclick = () => { commit(); stopScene(); setActive(null); show('boot'); renderSlots(); };
+  // A visible swap on the hold screen, mirroring the Settings row.
+  const uiChip = $('uiswap');
+  if (uiChip) {
+    const label = () => { uiChip.textContent = 'UI · ' + uiModeLabel(); };
+    uiChip.onclick = () => { cycleUiMode(); label(); };
+    label();
+  }
 }
 
 function wireNavigation() {
-  $('gomap').onclick = () => { stopSky(); show('modes'); renderModes(); };
+  $('gomap').onclick = () => { stopScene(); show('modes'); renderModes(); };
   $('renameship').onclick = e => { e.stopPropagation(); renameShip(); };
-  $('modesback').onclick = () => { show('hold'); startSky(); paintHold(); };
+  $('modesback').onclick = () => { show('hold'); startScene(); paintHold(); };
   $('opsback').onclick = () => { show('modes'); renderModes(); };
   $('mapback').onclick = () => { show('ops'); renderOps(); };
   $('pclose').onclick = () => $('panel').classList.remove('on');
@@ -5257,9 +5695,20 @@ function wireDialog() {
   $('dlginput').addEventListener('keydown', e => { if (e.key === 'Enter') $('dlgok').click(); });
 }
 
+/** Number keys pick the nth card in hand — the desktop deployment path. */
+function selectHandCard(index) {
+  const cid = G.hand[index];
+  if (!cid || G.over || costOf(cid) > G.dp) return;
+  setSel(sel === cid ? null : cid);
+  setMover(null);
+  drawAll();
+}
+
 function wireKeyboard() {
   addEventListener('resize', () => {
-    if (skyRunning()) sizeSky();
+    // `auto` follows the display, so a resize can change which layout applies.
+    if (uiPreference() === 'auto') applyUiMode();
+    if (sceneRunning()) sizeScene();
     if (G && $('combat').classList.contains('on')) drawBoard();
   });
   addEventListener('keydown', e => {
@@ -5268,11 +5717,12 @@ function wireKeyboard() {
       return;
     }
     if ($('combat').classList.contains('on') && G) {
-      if (e.key === ' ') {
+      if (e.key === ' ' || e.key === 'Enter') {
         e.preventDefault();
         const p = $('actPrimary');
         if (p && !p.disabled && p.onclick) p.onclick();
       }
+      if (e.key >= '1' && e.key <= '9') selectHandCard(Number(e.key) - 1);
       if (e.key === 'Escape') { setSel(null); setMover(null); drawAll(); }
       return;
     }
@@ -5317,6 +5767,7 @@ function boot() {
   setFocusFollowUp(panel => (panel ? openPanel(panel) : drawAll()));
 
   initProfiles();
+  applyUiMode();
   wireCrashGuard();
   wireRecordScreen();
   wireNavigation();

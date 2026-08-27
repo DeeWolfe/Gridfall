@@ -1,7 +1,9 @@
 // Boot: install the presentation hooks, wire the shell's fixed controls, and
 // put the record-select screen up.
 
-import {G, active, profiles, setActive, setG, setSel, setMover, MAPDEF} from '../state/session.js';
+import {G, active, profiles, sel, setActive, setG, setSel, setMover, MAPDEF} from '../state/session.js';
+import {POOL} from '../content/cards.js';
+import {costOf} from '../save/progression.js';
 import {setHooks} from '../state/hooks.js';
 import {store} from '../save/store.js';
 import {blankProfile, saveAll, commit, initProfiles} from '../save/profile.js';
@@ -12,7 +14,7 @@ import {ask, notify, dlgClose} from './dialog.js';
 import {closeFocus, setFocusFollowUp} from './focus.js';
 import {renderSlots} from './boot-screen.js';
 import {enter, paintHold} from './hold.js';
-import {startSky, stopSky, sizeSky, skyRunning} from './sky.js';
+import {startScene, stopScene, sizeScene, sceneRunning} from './battlefield.js';
 import {renderModes} from './modes.js';
 import {renderOps} from './ops.js';
 import {renderMap} from './map.js';
@@ -20,6 +22,7 @@ import {drawAll, drawBoard} from './combat.js';
 import {openPanel, renameShip} from './panels.js';
 import {showPack, setAfterPacks} from './packs.js';
 import {showResult} from './result.js';
+import {applyUiMode, cycleUiMode, uiModeLabel, uiPreference} from './uimode.js';
 
 const AUTOSAVE_MS = 20000;
 
@@ -61,13 +64,20 @@ function wireRecordScreen() {
     enter(p);
   };
   $('callsign').addEventListener('keydown', e => { if (e.key === 'Enter') $('create').click(); });
-  $('switch').onclick = () => { commit(); stopSky(); setActive(null); show('boot'); renderSlots(); };
+  $('switch').onclick = () => { commit(); stopScene(); setActive(null); show('boot'); renderSlots(); };
+  // A visible swap on the hold screen, mirroring the Settings row.
+  const uiChip = $('uiswap');
+  if (uiChip) {
+    const label = () => { uiChip.textContent = 'UI · ' + uiModeLabel(); };
+    uiChip.onclick = () => { cycleUiMode(); label(); };
+    label();
+  }
 }
 
 function wireNavigation() {
-  $('gomap').onclick = () => { stopSky(); show('modes'); renderModes(); };
+  $('gomap').onclick = () => { stopScene(); show('modes'); renderModes(); };
   $('renameship').onclick = e => { e.stopPropagation(); renameShip(); };
-  $('modesback').onclick = () => { show('hold'); startSky(); paintHold(); };
+  $('modesback').onclick = () => { show('hold'); startScene(); paintHold(); };
   $('opsback').onclick = () => { show('modes'); renderModes(); };
   $('mapback').onclick = () => { show('ops'); renderOps(); };
   $('pclose').onclick = () => $('panel').classList.remove('on');
@@ -82,9 +92,20 @@ function wireDialog() {
   $('dlginput').addEventListener('keydown', e => { if (e.key === 'Enter') $('dlgok').click(); });
 }
 
+/** Number keys pick the nth card in hand — the desktop deployment path. */
+function selectHandCard(index) {
+  const cid = G.hand[index];
+  if (!cid || G.over || costOf(cid) > G.dp) return;
+  setSel(sel === cid ? null : cid);
+  setMover(null);
+  drawAll();
+}
+
 function wireKeyboard() {
   addEventListener('resize', () => {
-    if (skyRunning()) sizeSky();
+    // `auto` follows the display, so a resize can change which layout applies.
+    if (uiPreference() === 'auto') applyUiMode();
+    if (sceneRunning()) sizeScene();
     if (G && $('combat').classList.contains('on')) drawBoard();
   });
   addEventListener('keydown', e => {
@@ -93,11 +114,12 @@ function wireKeyboard() {
       return;
     }
     if ($('combat').classList.contains('on') && G) {
-      if (e.key === ' ') {
+      if (e.key === ' ' || e.key === 'Enter') {
         e.preventDefault();
         const p = $('actPrimary');
         if (p && !p.disabled && p.onclick) p.onclick();
       }
+      if (e.key >= '1' && e.key <= '9') selectHandCard(Number(e.key) - 1);
       if (e.key === 'Escape') { setSel(null); setMover(null); drawAll(); }
       return;
     }
@@ -142,6 +164,7 @@ export function boot() {
   setFocusFollowUp(panel => (panel ? openPanel(panel) : drawAll()));
 
   initProfiles();
+  applyUiMode();
   wireCrashGuard();
   wireRecordScreen();
   wireNavigation();

@@ -34,10 +34,18 @@ src/
   save/       storage shim, profile migration, derived profile readings
   rules/      the game itself. no DOM, anywhere in here
   render/     screens, panels, overlays, and the boot wiring
-tests/        23 harnesses; see tests/README.md
+tests/        24 harnesses; see tests/README.md
 tools/        content generator, content check, dev server
 reference/    the original single-file build and its extracted data
 ```
+
+## Two layouts
+
+`compact` stacks and scrolls; `pc` is a denser three-column desktop board with a
+combat log, hover states and number-key deployment. The player picks in Settings
+or from the chip in the hold footer, and `auto` follows the display.
+`src/render/uimode.js` resolves the choice and stamps `data-ui` on the root, so
+the stylesheet describes the desktop layout exactly once.
 
 **The rules layer touches no DOM.** Combat maths, targeting, spawning, packs and
 save migration are all plain functions over plain objects; when something
@@ -86,7 +94,7 @@ node tests/run-all.js --no-build
 node tests/run-all.js acttest # one harness
 ```
 
-20 guards must pass. Three balance harnesses report win rates and never fail —
+21 guards must pass. Three balance harnesses report win rates and never fail —
 their numbers come from a bot that plays close to randomly, so read every figure
 as a floor rather than a measurement.
 

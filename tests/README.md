@@ -1,6 +1,6 @@
 # Test suite
 
-20 guards and 3 balance harnesses. Run them all with `npm test`, one at a time
+21 guards and 3 balance harnesses. Run them all with `npm test`, one at a time
 with `node tests/run-all.js <name>`, or directly with `node tests/<name>.js`.
 
 The guards must pass. The balance harnesses only report — their numbers come
@@ -56,6 +56,12 @@ visible while all 39 playability checks passed.
 | `scaletest` | Root clamp scales 1.6x+; no fixed font sizes; components stay viewport-relative |
 | `handtest` | Combat layout; "hull" never rendered as "HP"; the Database's three tabs share one row format |
 | `buildtest` | The bundle evaluates and plays a mission through |
+
+## Interface
+
+| Harness | Guards against |
+|---|---|
+| `uitest` | The desktop/compact swap: preference round trip, both swap controls, the stamped desktop layer, the combat log |
 
 ## Balance — informational, no pass/fail
 

@@ -19,6 +19,7 @@ import {ask} from './dialog.js';
 import {cardEl} from './card-html.js';
 import {focusCard, focusEnemy, focusGear} from './focus.js';
 import {leadCardHTML, paintHold} from './hold.js';
+import {UI_MODES, UI_LABELS, uiPreference, uiModeLabel, setUiMode} from './uimode.js';
 
 const TIERS = ['common', 'special', 'tech'];
 let dbTab = 'cards';
@@ -174,14 +175,22 @@ function recordPanel() {
    <div class="sect">Operations</div><div class="rows">${operations}</div>`;
 }
 
-const settingsPanel = () => `<div class="sect">System</div><div class="rows">
+const settingsPanel = () => `<div class="sect">Interface</div><div class="rows">
+   <div class="row"><span>Layout<div style="font-size:0.5312rem;color:var(--dim);margin-top:4px;line-height:1.5">
+     Desktop is a denser three-column board with a combat log and number-key deployment.
+     Compact stacks and scrolls. Automatic picks by display.</div></span>
+     <span class="uipick">${UI_MODES.map(m =>
+       `<button class="mini${uiPreference() === m ? ' on' : ''}" data-ui="${m}">${UI_LABELS[m]}</button>`).join('')}</span></div>
+   <div class="row"><span>In force</span><span class="r hot">${uiModeLabel()}</span></div></div>
+   <div class="sect">System</div><div class="rows">
    <div class="row"><span>Storage</span><span class="r">${store.ephemeral ? 'Blocked — session only' : 'This device'}</span></div>
    <div class="row"><span>Save version</span><span class="r">v${active.version}</span></div>
    <div class="row" id="shipren" style="cursor:pointer"><span>Dropship name</span><span class="r hot">DS ${active.ship || 'ANVIL-7'}</span></div>
    <div class="row" id="expo" style="cursor:pointer"><span>Export save</span><span class="r hot">Copy JSON</span></div>
    <div class="row" id="newrun" style="cursor:pointer"><span>Regenerate current operation</span><span class="r" style="color:var(--mag)">Reroll missions</span></div></div>
    <div class="sect">Controls</div><div class="rows">
-   <div class="row"><span>End turn</span><span class="r">Space</span></div>
+   <div class="row"><span>End turn</span><span class="r">Space · Enter</span></div>
+   <div class="row"><span>Deploy the nth card in hand</span><span class="r">1 – 9</span></div>
    <div class="row"><span>Deselect / close</span><span class="r">Escape</span></div>
    <div class="row"><span>Inspect a hand card</span><span class="r">⌕ badge</span></div></div>`;
 
@@ -223,6 +232,7 @@ export function openPanel(key) {
   each('[data-foe]', el => focusEnemy(el.dataset.foe));
   each('[data-gear]', el => focusGear(el.dataset.gear));
   each('[data-tab]', el => { dbTab = el.dataset.tab; openPanel('database'); });
+  each('[data-ui]', el => { setUiMode(el.dataset.ui); paintHold(); openPanel('settings'); });
 
   const exportRow = $('expo');
   if (exportRow) {

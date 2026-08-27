@@ -7,7 +7,8 @@ import {rankName} from '../save/progression.js';
 import {enterProfile, opRun} from '../rules/run.js';
 import {$, show} from './dom.js';
 import {portrait} from './art.js';
-import {startSky} from './sky.js';
+import {startScene} from './battlefield.js';
+import {applyUiMode, uiModeLabel} from './uimode.js';
 
 /** The team lead card, with the swap chips. Shared with the operations screen. */
 export function leadCardHTML() {
@@ -43,6 +44,11 @@ export function paintHold() {
   $('sectorname').textContent = MAPDEF.n.replace('OPERATION ', '');
   $('shipname').textContent = 'DS ' + (p.ship || 'ANVIL-7');
 
+  // The profile carries the interface preference, so re-apply it on entry.
+  applyUiMode();
+  const chip = $('uiswap');
+  if (chip) chip.textContent = 'UI · ' + uiModeLabel();
+
   const left = MAPDEF.nodes.length - opRun().cleared.length;
   $('deploysub').textContent = left > 0
     ? `${MAPDEF.n} · ${left} mission${left > 1 ? 's' : ''} remaining. Choose another operation at any time.`
@@ -54,5 +60,5 @@ export function enter(p) {
   enterProfile(p);
   show('hold');
   paintHold();
-  startSky();
+  startScene();
 }

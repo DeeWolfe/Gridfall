@@ -30,6 +30,7 @@ import {renderMap} from './map.js';
 import {renderModes} from './modes.js';
 
 const LEAD_DP_BONUS = 4;
+const LOG_LINES = 40;
 
 /** Leaving combat: back to the map, or to mode select for endless/gauntlet. */
 export function leaveCombat() {
@@ -285,11 +286,24 @@ export function drawBoard() {
     `<i class="e" style="width:${theirs / total * 100}%"></i>`;
 }
 
+/**
+ * The combat log. The engine has always kept it; until the desktop layout there
+ * was nowhere to put it. Newest first, capped to what the rail can show.
+ */
+export function drawLog() {
+  const el = $('cblog');
+  if (!el) return;
+  const entries = G.logs.slice(0, LOG_LINES);
+  el.innerHTML = entries.length
+    ? entries.map(e => `<div class="logline l-${e.c}">${e.h}</div>`).join('')
+    : '<div class="logline l-info">Awaiting contact.</div>';
+}
+
 export function drawHand() {
   const h = $('hcards');
   h.innerHTML = '';
 
-  G.hand.forEach(cid => {
+  G.hand.forEach((cid, index) => {
     const k = POOL[cid];
     const cost = costOf(cid);
     const unaffordable = cost > G.dp || G.over;
@@ -301,6 +315,7 @@ export function drawHand() {
     // Portrait card: cost in the top-left corner, name, then a clipped blurb —
     // the full text lives in the details panel and behind the ⌕ badge.
     el.innerHTML = `<div class="hcost">${cost}</div>
+      ${index < 9 ? `<div class="hkey">${index + 1}</div>` : ''}
       <div class="zoom" data-z="${cid}">⌕</div>${v.t ? `<div class="hpips">${'◆'.repeat(v.t)}</div>` : ''}
       <div class="n">${k.n}</div>
       <div class="d">${k.d}</div>${g ? `<div class="gtag">${g.n}</div>` : ''}`;
@@ -352,4 +367,5 @@ export function drawAll() {
   drawHand();
   drawSel();
   drawActions();
+  drawLog();
 }

@@ -38,9 +38,13 @@ function makeElement(id) {
     querySelectorAll(sel) { return scan(this._html, sel); },
     getBoundingClientRect: () => ({width: 900, height: 500}),
     getContext: () => ({
-      setTransform() {}, createLinearGradient: () => ({addColorStop() {}}), fillRect() {},
-      beginPath() {}, moveTo() {}, lineTo() {}, closePath() {}, fill() {}, arc() {},
-      set fillStyle(_v) {},
+      setTransform() {}, save() {}, restore() {},
+      createLinearGradient: () => ({addColorStop() {}}),
+      createRadialGradient: () => ({addColorStop() {}}),
+      fillRect() {}, clearRect() {}, beginPath() {}, moveTo() {}, lineTo() {},
+      quadraticCurveTo() {}, closePath() {}, fill() {}, stroke() {}, arc() {},
+      set fillStyle(_v) {}, set strokeStyle(_v) {}, set lineWidth(_v) {},
+      set globalAlpha(_v) {}, set lineCap(_v) {},
     }),
     addEventListener() {},
     focus() {},
@@ -142,6 +146,8 @@ function define(name, value) {
 /** Install the globals the renderer expects. Call before importing src/render. */
 export function installDom() {
   globalThis.document = {
+    documentElement: makeElement('html'),
+    body: makeElement('body'),
     getElementById: get,
     querySelectorAll: queryAll,
     createElement: () => makeElement('n'),

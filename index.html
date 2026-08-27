@@ -70,7 +70,8 @@
         <button class="tile db" data-p="database"><div class="tn">Database</div><div class="td">Assets and hostiles on file.</div></button>
         <button class="tile rec" data-p="record"><div class="tn">Service Record</div><div class="td">Deployments, losses, standing.</div></button></div></div>
     <div class="bayfoot"><div style="font-size:0.5312rem;color:var(--dim)" id="saveflag">Saved</div>
-      <div style="display:flex;gap:7px"><button class="mini" data-p="settings">Settings</button>
+      <div style="display:flex;gap:7px"><button class="mini" id="uiswap">UI</button>
+        <button class="mini" data-p="settings">Settings</button>
         <button class="mini" id="switch">Switch record</button></div></div>
   </div></div></div></div>
 
@@ -107,6 +108,12 @@
     <button class="leadbadge" id="leadbadge"></button>
   </div>
   <div class="cbmain">
+    <div class="cbcol intel">
+      <div class="box logbox">
+        <h3>Combat log</h3>
+        <div class="cblog" id="cblog"></div>
+      </div>
+    </div>
     <div class="cbcol mid">
       <div class="field">
         <div class="board" id="board"></div>

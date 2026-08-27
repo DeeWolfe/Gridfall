@@ -714,4 +714,63 @@ body{font-size:1rem}
   .cbhead .btn{padding:9px 15px}
 }
 @media(max-width:560px){.hc{width:clamp(88px,26vw,116px)}}
+/* ============ DESKTOP LAYOUT ============
+   Applied when :root carries data-ui="pc". uimode.js resolves the player's
+   "automatic" preference to a concrete value and stamps it, so this is the only
+   place the desktop layout is described — there is no parallel media query to
+   keep in step. Everything above is the compact, touch-first layout. */
+
+/* The intel rail only exists on desktop; compact has no room for it. */
+.cbcol.intel{display:none}
+.logbox{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.cblog{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:4px;
+  scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+.cblog::-webkit-scrollbar{width:4px}
+.cblog::-webkit-scrollbar-track{background:transparent}
+.cblog::-webkit-scrollbar-thumb{background:var(--line2)}
+.logline{font-size:0.4688rem;line-height:1.55;color:var(--dim);padding-left:7px;
+  border-left:2px solid var(--line)}
+.logline.l-kill{border-left-color:var(--green);color:#9fd9b6}
+.logline.l-loss{border-left-color:var(--mag);color:#e5a3bd}
+.logline.l-wave{border-left-color:var(--violet);color:#b7a4e8}
+.logline.l-order{border-left-color:var(--cyan-d)}
+.logline .g{color:var(--green)}
+.logline .d{color:var(--mag)}
+.logline .t{color:var(--cyan)}
+
+/* The number-key badge is a desktop affordance; hidden without a keyboard. */
+.hkey{display:none;position:absolute;bottom:4px;right:5px;font-size:0.4375rem;
+  letter-spacing:0;color:var(--dim);border:1px solid var(--line2);padding:0 3px;line-height:1.5}
+.uipick{display:flex;gap:5px;flex-wrap:wrap}
+.uipick .mini.on{color:var(--cyan);border-color:var(--cyan)}
+
+:root[data-ui="pc"] .cbcol.intel{display:flex}
+:root[data-ui="pc"] .hkey{display:block}
+
+/* Three columns: what has happened, where it is happening, what you can do. */
+:root[data-ui="pc"] .cbmain{grid-template-columns:clamp(190px,15vw,290px) minmax(0,1fr) clamp(212px,16vw,320px);
+  overflow:hidden;gap:clamp(7px,.7vw,12px);padding:clamp(7px,.7vw,12px);align-content:stretch}
+:root[data-ui="pc"] .cbcol{overflow:hidden}
+:root[data-ui="pc"] .cbcol.mid{overflow:hidden;justify-content:center}
+:root[data-ui="pc"] .cbcol.side{overflow-y:auto}
+:root[data-ui="pc"] .field{max-width:min(100%,calc((100vh - 19rem) * 1.62));padding:clamp(7px,.7vw,12px)}
+
+/* Denser chrome throughout — a mouse does not need 44px targets. */
+:root[data-ui="pc"] .cbhead{padding:6px clamp(9px,.9vw,15px);row-gap:4px}
+:root[data-ui="pc"] .box{padding:.5rem .62rem}
+:root[data-ui="pc"] .cbfoot{grid-template-columns:minmax(0,1fr) clamp(230px,18vw,330px);
+  gap:clamp(6px,.6vw,10px);padding:0 clamp(7px,.7vw,12px) clamp(7px,.7vw,12px)}
+:root[data-ui="pc"] .hc{width:clamp(86px,7.4vw,116px);padding:1.2rem .4rem .45rem}
+:root[data-ui="pc"] .cbacts .btn{padding:.62rem 1rem}
+:root[data-ui="pc"] .bstats{margin-top:6px;gap:13px}
+
+/* Hover states, which only make sense with a pointer. */
+:root[data-ui="pc"] .cell.clickable:hover{box-shadow:inset 0 0 0 2px var(--cyan-d)}
+:root[data-ui="pc"] .cell.valid:hover{box-shadow:inset 0 0 0 2px var(--green)}
+:root[data-ui="pc"] .hc:hover{transform:translateY(-3px)}
+:root[data-ui="pc"] .row:hover{background:rgba(77,232,255,.045)}
+
+/* Compact keeps the two-column board even on a wide screen. */
+:root[data-ui="compact"] .cbcol.intel{display:none}
+
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
