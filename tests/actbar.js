@@ -5,6 +5,7 @@ import {get} from './support/dom.js';
 import {failures} from './support/harness.js';
 import {spawnUnit, unlockAll} from './support/fixtures.js';
 import {drawAll} from '../src/render/combat.js';
+import {dlgClose} from '../src/render/dialog.js';
 
 const F = failures();
 const primary = () => get('actPrimary');
@@ -49,11 +50,28 @@ if (primary().textContent !== 'End turn') F.push('bar did not revert after cance
   if (A.mover !== null) F.push('deselect did not clear the selection');
 }
 
-// mission over: End turn is disabled
+// abort asks first — the mission survives until the player confirms
 A.setMover(null);
 A.setSel(null);
+drawAll();
+secondary().onclick();
+if (!get('dlg')._cls.has('on')) F.push('Abort should open a confirmation dialog');
+if (!A.G) F.push('Abort left the mission before the player confirmed');
+dlgClose(false);
+if (!A.G) F.push('cancelling the abort dialog should stay in the mission');
+if (get('dlg')._cls.has('on')) F.push('cancel should close the abort dialog');
+drawAll();
+secondary().onclick();
+dlgClose(true);
+if (A.G) F.push('confirmed abort should leave the mission');
+
+// mission over: End turn is disabled, and Abort leaves without asking
+A.launch(Object.keys(A.opRun().nodes)[0]);
 A.G.over = true;
 drawAll();
 if (!primary().disabled) F.push('End turn should be disabled once the mission is over');
+secondary().onclick();
+if (get('dlg')._cls.has('on')) F.push('Abort after the mission is over should not ask');
+if (A.G) F.push('Abort after the mission is over should leave immediately');
 
 F.report('action bar: all checks pass');

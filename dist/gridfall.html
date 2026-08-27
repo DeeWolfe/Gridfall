@@ -5422,6 +5422,18 @@ function leaveCombat() {
   renderMap();
 }
 
+/** Abort is irreversible, so it asks first — with the stakes for this mode. */
+function confirmAbort() {
+  if (G.over) return leaveCombat();
+  const stakes = G.gauntlet
+    ? 'The gauntlet chain is forfeit — legs already cleared keep their pay, but the run ends here.'
+    : G.endless
+      ? 'Onslaught pays out only when your line falls. Abort now and the run pays nothing.'
+      : 'Progress on this mission is lost. The node stays open to try again.';
+  ask('Abort mission', stakes + '<br><br>Leave the field?',
+    ok => { if (ok) leaveCombat(); }, {ok: 'Abort'});
+}
+
 /** The team-lead badge, and its once-per-mission active. */
 function drawLeadBadge() {
   const L = leadOf();
@@ -5482,7 +5494,7 @@ function drawActions() {
   primary.disabled = G.over || replaying;
   secondary.className = 'btn ghost';
   secondary.textContent = 'Abort';
-  secondary.onclick = leaveCombat;
+  secondary.onclick = confirmAbort;
   secondary.disabled = replaying;
 }
 
