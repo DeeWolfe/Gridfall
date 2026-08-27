@@ -1955,7 +1955,7 @@ const LEADS = {
   skunkworks: {
     n: "KUDELIA",
     call: "SKUNKWORKS",
-    role: "Field Engineer",
+    role: "R&D Officer",
     col: "#5dffa0",
     bio: "Ex-skunkworks, permanently caffeinated, trusts machines over orders. Treats the battlefield as a laboratory with inconvenient variables.",
     passive: {
@@ -7125,8 +7125,8 @@ function quartermasterPanel() {
      <div style="color:var(--dim);font-size:0.5625rem;margin-top:3px">Three offers, keep one — duplicates promote the card instead. Now and then one arrives as a priority requisition.</div></div>
      <button class="btn${canBuyPack ? '' : ' ghost'}" id="buypack"${canBuyPack ? '' : ' disabled'}>Buy pack · ${PACK_PRICE} cr</button></div>
    ${TIERS.map(tier).join('')}
-   <div class="sect">Team leads — credits</div>${leadTilesHTML('shop')}
-   ${gearGrid}`;
+   ${gearGrid}
+   <div class="sect">Team leads — credits</div>${leadTilesHTML('shop')}`;
 }
 
 const dbTabs = () => `<div class="tabs">

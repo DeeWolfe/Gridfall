@@ -70,8 +70,8 @@ function quartermasterPanel() {
      <div style="color:var(--dim);font-size:0.5625rem;margin-top:3px">Three offers, keep one — duplicates promote the card instead. Now and then one arrives as a priority requisition.</div></div>
      <button class="btn${canBuyPack ? '' : ' ghost'}" id="buypack"${canBuyPack ? '' : ' disabled'}>Buy pack · ${PACK_PRICE} cr</button></div>
    ${TIERS.map(tier).join('')}
-   <div class="sect">Team leads — credits</div>${leadTilesHTML('shop')}
-   ${gearGrid}`;
+   ${gearGrid}
+   <div class="sect">Team leads — credits</div>${leadTilesHTML('shop')}`;
 }
 
 const dbTabs = () => `<div class="tabs">

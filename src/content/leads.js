@@ -39,7 +39,7 @@ export const LEADS = {
   skunkworks: {
     n: "KUDELIA",
     call: "SKUNKWORKS",
-    role: "Field Engineer",
+    role: "R&D Officer",
     col: "#5dffa0",
     bio: "Ex-skunkworks, permanently caffeinated, trusts machines over orders. Treats the battlefield as a laboratory with inconvenient variables.",
     passive: {
