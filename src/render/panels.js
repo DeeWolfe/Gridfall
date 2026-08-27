@@ -13,7 +13,7 @@ import {store} from '../save/store.js';
 import {commit, migrate, saveAll} from '../save/profile.js';
 import {rankName, costOf, vetOf} from '../save/progression.js';
 import {genRun} from '../rules/run.js';
-import {queuePack, PACK_PRICE} from '../rules/packs.js';
+import {purchasePack, PACK_PRICE} from '../rules/packs.js';
 import {$, attr} from './dom.js';
 import {sigil} from './art.js';
 import {ask, notify} from './dialog.js';
@@ -65,7 +65,7 @@ function quartermasterPanel() {
   return `<div class="bar"><div>Credits <b>${active.progress.credits}</b> · Salvage <b style="color:var(--cyan)">${active.progress.salvage}</b></div>
      <div style="color:var(--dim);font-size:0.5625rem">Tap a card to enlarge and buy. Credits buy cards, salvage buys gear.</div></div>
    <div class="bar"><div><b>Requisition drop</b>
-     <div style="color:var(--dim);font-size:0.5625rem;margin-top:3px">A standard pack — three offers, keep one. Duplicates promote the card instead.</div></div>
+     <div style="color:var(--dim);font-size:0.5625rem;margin-top:3px">Three offers, keep one — duplicates promote the card instead. Now and then one arrives as a priority requisition.</div></div>
      <button class="btn${canBuyPack ? '' : ' ghost'}" id="buypack"${canBuyPack ? '' : ' disabled'}>Buy pack · ${PACK_PRICE} cr</button></div>
    ${TIERS.map(tier).join('')}${gearGrid}`;
 }
@@ -250,10 +250,7 @@ export function openPanel(key) {
   const buyPack = $('buypack');
   if (buyPack) {
     buyPack.onclick = () => {
-      if (active.progress.credits < PACK_PRICE) return;
-      active.progress.credits -= PACK_PRICE;
-      commit();
-      queuePack('standard', 'Requisitioned drop');
+      if (!purchasePack()) return;
       setAfterPacks(() => openPanel('quartermaster'));
       showPack();
     };

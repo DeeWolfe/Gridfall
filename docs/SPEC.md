@@ -171,7 +171,7 @@ Shields absorb one blow each. Riposte adds to your side. Armour floors reduce wh
 | Gauntlet leg cleared | Standard |
 | Gauntlet full clear | Specialist |
 | Onslaught | One per 5 waves survived |
-| Bought at the Quartermaster - 150 cr | Standard |
+| Bought at the Quartermaster - 100 cr | Standard, ~1 in 8 upgrades to Specialist |
 
 Three items offered, keep one. Standard packs draw Commons and Tech only - Specialists come from specialist packs or the shop. One slot guarantees an unowned card while any remains; the other slots may draw duplicates, offered as field promotions (+12 deployments toward that card's next rank). Once cards run out the guaranteed slot degrades to unowned gear, then promotions, then salvage. The pack never opens empty.
 

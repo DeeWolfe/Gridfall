@@ -422,8 +422,8 @@ Four changes, one design:
   card's next veterancy rank — instead of being filtered out.
 - **The campaign drip halved**: a standard pack every second node secured
   (`progress.packMeter`, repaired by `migrate()` for old saves).
-- **Credits got a permanent sink**: the Quartermaster sells a standard pack
-  for 150 cr, which stays worth buying forever through the promotion chain.
+- **Credits got a permanent sink**: the Quartermaster sells a standard pack,
+  which stays worth buying forever through the promotion chain.
 
 Re-simulated careers: ten missions in, a buy-cheap player now holds ~22 cards
 and has met zero or one Specialist; a player saving for Specialists has three
@@ -431,6 +431,30 @@ or four of them but half the breadth — the strategies finally diverge. Banked
 credits at mission 60 fell from ~3,200 to ~200–400, a never-spending player
 is still only at 28/38 after 60 missions, and the full collection lands
 around mission 50–60 instead of 25.
+
+### Singles vs packs: the certainty premium
+
+The first cut priced the bought pack at 150 cr — above the ~115 cr average
+unowned Common/Tech single, meaning the gamble cost more than certainty, and
+the career sim confirmed rational players bought singles first and packs only
+with leftovers. That's the paper-Magic trap (packs surviving on lottery
+psychology alone); the healthy structure is Hearthstone's, where the random
+stream is the budget play and crafting the exact card carries a ~4x certainty
+premium.
+
+Two tunings flip Gridfall to that structure:
+
+- **The bought pack costs 100 cr** — below the average single. Breadth players
+  gamble cheaply with a choice of three; the exact card at 115–160 cr is the
+  certainty premium; Specialist singles at 280–400 cr stay the saving goals.
+- **Roughly one bought pack in eight arrives as a priority requisition** — a
+  Specialist pack — the jackpot only packs can offer (`PRIORITY_CHANCE` in
+  `src/rules/packs.js`, exercised statistically by packtest).
+
+Re-simulated: the breadth player now buys ~33 packs and ~12 singles per
+60-mission career (packs went from leftover spending to the main channel),
+the saver still shops singles first and converts spare credits to packs after
+— both styles viable, same overall pacing.
 
 ## Still open
 

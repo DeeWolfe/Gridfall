@@ -13,15 +13,35 @@ import {DECKSIZE} from '../state/constants.js';
 import {POOL} from '../content/cards.js';
 import {GEAR} from '../content/gear.js';
 import {active, packQueue} from '../state/session.js';
-import {takeOne} from '../state/rng.js';
+import {takeOne, chance} from '../state/rng.js';
 import {commit} from '../save/profile.js';
 
 const OFFER_SIZE = 3;
 const PROMOTION_DEPLOYMENTS = 12;
 const CONSOLATION_SALVAGE = 40;
 
-/** What a bought standard pack costs at the Quartermaster. */
-export const PACK_PRICE = 150;
+// Priced BELOW the average unowned Common/Tech single (~115 cr): the pack is
+// the budget gamble, the exact card is the certainty premium — the structure
+// that keeps both purchases sometimes-correct. See docs/NOTES.md.
+export const PACK_PRICE = 100;
+
+/** Chance a bought pack arrives upgraded to a Specialist pack. */
+export const PRIORITY_CHANCE = 0.125;
+
+/**
+ * Buy a standard pack at the Quartermaster. Roughly one in eight arrives as a
+ * priority requisition — a Specialist pack — the jackpot only packs can give.
+ * Returns false (and changes nothing) when credits fall short.
+ */
+export function purchasePack() {
+  if (!active || active.progress.credits < PACK_PRICE) return false;
+  active.progress.credits -= PACK_PRICE;
+  const priority = chance(PRIORITY_CHANCE);
+  queuePack(priority ? 'specialist' : 'standard',
+    priority ? 'Priority requisition' : 'Requisitioned drop');
+  commit();
+  return true;
+}
 
 /**
  * Roll an offer.

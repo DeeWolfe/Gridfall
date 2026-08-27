@@ -47,6 +47,6 @@ export {playerPhase, enemyPhase, strike, territoryPhase, endTurn} from '../../sr
 export {
   launch, launchSpec, launchOnslaught, launchGauntlet, abortMission, objText, finish,
 } from '../../src/rules/mission.js';
-export {packOffer, claimPack, queuePack} from '../../src/rules/packs.js';
+export {packOffer, claimPack, queuePack, purchasePack, PACK_PRICE, PRIORITY_CHANCE} from '../../src/rules/packs.js';
 export {forecastThreat, supportTargets, influenceCells, supportLabel} from '../../src/rules/forecast.js';
 export {clog} from '../../src/rules/log.js';

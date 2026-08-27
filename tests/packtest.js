@@ -145,7 +145,34 @@ A.enterProfile(p);
   if (get('packlabel')._text !== 'one') F.push('wrong pack shown first');
 }
 
-// 7. campaign packs arrive every SECOND node secured
+// 7. buying a pack: deducts the price, refuses when broke, and roughly one
+//    in eight arrives upgraded to a Specialist priority requisition
+{
+  const q = A.blankProfile('BUY');
+  A.enterProfile(q);
+  A.setPackQueue([]);
+
+  q.progress.credits = A.PACK_PRICE - 1;
+  if (A.purchasePack()) F.push('purchase should refuse when credits fall short');
+  if (q.progress.credits !== A.PACK_PRICE - 1) F.push('refused purchase still took credits');
+  if (A.packQueue.length) F.push('refused purchase still queued a pack');
+
+  const TRIES = 200;
+  q.progress.credits = A.PACK_PRICE * TRIES;
+  for (let i = 0; i < TRIES; i++) {
+    if (!A.purchasePack()) F.push('purchase failed with credits available');
+  }
+  if (q.progress.credits !== 0) F.push('purchases did not deduct exactly the pack price');
+  if (A.packQueue.length !== TRIES) F.push('each purchase should queue exactly one pack');
+  const priority = A.packQueue.filter(x => x.tier === 'specialist').length;
+  // Binomial(200, .125): mean 25, sd ~4.7 — 8..45 is comfortably 4 sigma.
+  if (priority < 8 || priority > 45) {
+    F.push(`priority upgrades far from 1-in-8: ${priority}/${TRIES}`);
+  }
+  A.setPackQueue([]);
+}
+
+// 8. campaign packs arrive every SECOND node secured
 {
   const q = A.blankProfile('METER');
   A.enterProfile(q);

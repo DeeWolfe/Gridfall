@@ -2475,8 +2475,28 @@ const OFFER_SIZE = 3;
 const PROMOTION_DEPLOYMENTS = 12;
 const CONSOLATION_SALVAGE = 40;
 
-/** What a bought standard pack costs at the Quartermaster. */
-const PACK_PRICE = 150;
+// Priced BELOW the average unowned Common/Tech single (~115 cr): the pack is
+// the budget gamble, the exact card is the certainty premium — the structure
+// that keeps both purchases sometimes-correct. See docs/NOTES.md.
+const PACK_PRICE = 100;
+
+/** Chance a bought pack arrives upgraded to a Specialist pack. */
+const PRIORITY_CHANCE = 0.125;
+
+/**
+ * Buy a standard pack at the Quartermaster. Roughly one in eight arrives as a
+ * priority requisition — a Specialist pack — the jackpot only packs can give.
+ * Returns false (and changes nothing) when credits fall short.
+ */
+function purchasePack() {
+  if (!active || active.progress.credits < PACK_PRICE) return false;
+  active.progress.credits -= PACK_PRICE;
+  const priority = chance(PRIORITY_CHANCE);
+  queuePack(priority ? 'specialist' : 'standard',
+    priority ? 'Priority requisition' : 'Requisitioned drop');
+  commit();
+  return true;
+}
 
 /**
  * Roll an offer.
@@ -5988,7 +6008,7 @@ function quartermasterPanel() {
   return `<div class="bar"><div>Credits <b>${active.progress.credits}</b> · Salvage <b style="color:var(--cyan)">${active.progress.salvage}</b></div>
      <div style="color:var(--dim);font-size:0.5625rem">Tap a card to enlarge and buy. Credits buy cards, salvage buys gear.</div></div>
    <div class="bar"><div><b>Requisition drop</b>
-     <div style="color:var(--dim);font-size:0.5625rem;margin-top:3px">A standard pack — three offers, keep one. Duplicates promote the card instead.</div></div>
+     <div style="color:var(--dim);font-size:0.5625rem;margin-top:3px">Three offers, keep one — duplicates promote the card instead. Now and then one arrives as a priority requisition.</div></div>
      <button class="btn${canBuyPack ? '' : ' ghost'}" id="buypack"${canBuyPack ? '' : ' disabled'}>Buy pack · ${PACK_PRICE} cr</button></div>
    ${TIERS.map(tier).join('')}${gearGrid}`;
 }
@@ -6173,10 +6193,7 @@ function openPanel(key) {
   const buyPack = $('buypack');
   if (buyPack) {
     buyPack.onclick = () => {
-      if (active.progress.credits < PACK_PRICE) return;
-      active.progress.credits -= PACK_PRICE;
-      commit();
-      queuePack('standard', 'Requisitioned drop');
+      if (!purchasePack()) return;
       setAfterPacks(() => openPanel('quartermaster'));
       showPack();
     };
