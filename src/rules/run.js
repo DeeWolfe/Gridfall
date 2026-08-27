@@ -15,26 +15,42 @@ export function genRun() {
   active.op = active.op || 'ironveil';
   if (!OPS[active.op]) active.op = 'ironveil';
 
-  const types = Object.keys(MISSIONS);
+  // Extraction is reserved for the final node — the way out is always the way
+  // out. Side objectives draw from the objective pool, Helldivers-style.
+  const mainPool = Object.keys(MISSIONS).filter(t => t !== 'extract');
+  const sidePool = ['crystals', 'specimens', 'uplink', 'blitz'].filter(t => MISSIONS[t]);
   const mods = Object.keys(MODS);
   const map = OPS[active.op];
   const nodes = {};
 
-  map.nodes.forEach((n, i) => {
+  map.nodes.forEach(n => {
+    const role = n.role || 'main';
     nodes[n.id] = {
       // The first node of an operation is always a straight Defend Stronghold,
       // so a new player meets the base rules before any variant.
-      type: i === 0 ? 'stronghold' : types[randInt(types.length)],
+      type: role === 'start' ? 'stronghold'
+        : role === 'final' ? 'extract'
+          : role === 'side' ? sidePool[randInt(sidePool.length)]
+            : mainPool[randInt(mainPool.length)],
       mod: chance(0.45) ? mods[1 + randInt(mods.length - 1)] : 'none',
       reward: 70 + randInt(5) * 20,
       salv: 5 + randInt(5),
     };
   });
 
-  // The two objective missions are markedly harder; pay accordingly.
+  // The objective missions are markedly harder; pay accordingly.
   Object.values(nodes).forEach(nd => {
     if (nd.type === 'crystals') { nd.reward = Math.round(nd.reward * 1.85) + 40; nd.salv += 4; }
     if (nd.type === 'specimens') { nd.reward = Math.round(nd.reward * 1.55); nd.salv += 2; }
+    if (nd.type === 'uplink') { nd.reward = Math.round(nd.reward * 1.4); nd.salv += 2; }
+    if (nd.type === 'blitz') { nd.reward = Math.round(nd.reward * 1.25); nd.salv += 2; }
+  });
+
+  // A bonus side objective is a detour — it pays like one.
+  map.nodes.forEach(n => {
+    if (n.role !== 'side') return;
+    nodes[n.id].reward = Math.round(nodes[n.id].reward * 1.5);
+    nodes[n.id].salv += 3;
   });
 
   active.ops[active.op] = {cleared: [], nodes};
@@ -52,15 +68,44 @@ export function opRun() {
 
 /**
  * 'clear' | 'open' | 'locked'. A node opens once any node joined to it by an
- * edge has been cleared; the first node of the map is open from the start.
+ * edge has been cleared AND its gate requirements (node.req) are met; the
+ * first node of the map is open from the start.
  */
 export function nodeState(id) {
   if (!active) return 'locked';
   const r = opRun();
   if (r.cleared.includes(id)) return 'clear';
+  const def = MAPDEF.nodes.find(n => n.id === id);
+  if (def && def.req && def.req.some(q => !r.cleared.includes(q))) return 'locked';
   if (!r.cleared.length) return id === MAPDEF.nodes[0].id ? 'open' : 'locked';
   return MAPDEF.edges.some(([a, b]) =>
     (r.cleared.includes(a) && b === id) || (r.cleared.includes(b) && a === id)) ? 'open' : 'locked';
+}
+
+/**
+ * A node that adjacency alone would open, held shut only by its gate — the
+ * map lists these with their reqText so the player knows what to go fix.
+ */
+export function reqBlocked(id) {
+  if (!active) return false;
+  const r = opRun();
+  if (r.cleared.includes(id)) return false;
+  const def = MAPDEF.nodes.find(n => n.id === id);
+  if (!def || !def.req || !def.req.some(q => !r.cleared.includes(q))) return false;
+  return MAPDEF.edges.some(([a, b]) =>
+    (r.cleared.includes(a) && b === id) || (r.cleared.includes(b) && a === id));
+}
+
+/**
+ * The operation is complete when its final node is cleared — bonus side
+ * objectives are exactly that. Maps without a marked final (none ship, but
+ * imported saves may carry odd data) fall back to all-nodes-cleared.
+ */
+export function opComplete() {
+  if (!active) return false;
+  const fin = MAPDEF.nodes.find(n => n.role === 'final');
+  const r = opRun();
+  return fin ? r.cleared.includes(fin.id) : r.cleared.length >= MAPDEF.nodes.length;
 }
 
 /**

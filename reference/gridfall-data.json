@@ -864,6 +864,16 @@
    "n": "Extraction",
    "waves": 6,
    "d": "Short and heavy. Survive to extraction."
+  },
+  "uplink": {
+   "n": "Establish Uplink",
+   "waves": 7,
+   "d": "A relay tile sits in contested ground. Hold it three turns in a row to bring the uplink online."
+  },
+  "blitz": {
+   "n": "Eradication Blitz",
+   "waves": 6,
+   "d": "Purge the zone. Destroy ten hostiles before the wave count runs out."
   }
  },
  "modifiers": {
@@ -916,7 +926,9 @@
     {
      "id": "n1",
      "x": 96,
-     "y": 96
+     "y": 96,
+     "role": "start",
+     "l": "Beachhead"
     },
     {
      "id": "n2",
@@ -941,12 +953,16 @@
     {
      "id": "n6",
      "x": 352,
-     "y": 170
+     "y": 170,
+     "role": "final",
+     "l": "Extraction Point"
     },
     {
      "id": "n7",
      "x": 236,
-     "y": 250
+     "y": 250,
+     "role": "side",
+     "l": "Zone C Cache"
     }
    ],
    "edges": [
@@ -1003,7 +1019,9 @@
     {
      "id": "n1",
      "x": 70,
-     "y": 80
+     "y": 80,
+     "role": "start",
+     "l": "Winch Station"
     },
     {
      "id": "n2",
@@ -1018,27 +1036,41 @@
     {
      "id": "n4",
      "x": 300,
-     "y": 150
+     "y": 150,
+     "role": "main",
+     "l": "The Throat",
+     "req": [
+      "n7"
+     ],
+     "reqText": "Power offline — reset the Power Junction in the Deep Shaft"
     },
     {
      "id": "n5",
      "x": 362,
-     "y": 180
+     "y": 180,
+     "role": "final",
+     "l": "Extraction Point"
     },
     {
      "id": "n6",
      "x": 190,
-     "y": 200
+     "y": 200,
+     "role": "main",
+     "l": "Shaft Descent"
     },
     {
      "id": "n7",
      "x": 110,
-     "y": 228
+     "y": 228,
+     "role": "main",
+     "l": "Power Junction"
     },
     {
      "id": "n8",
      "x": 200,
-     "y": 256
+     "y": 256,
+     "role": "side",
+     "l": "Old Vault"
     }
    ],
    "edges": [
@@ -1099,7 +1131,9 @@
     {
      "id": "n1",
      "x": 70,
-     "y": 150
+     "y": 150,
+     "role": "start",
+     "l": "Landing Site"
     },
     {
      "id": "n2",
@@ -1114,12 +1148,16 @@
     {
      "id": "n4",
      "x": 330,
-     "y": 95
+     "y": 95,
+     "role": "main",
+     "l": "Prism Ridge"
     },
     {
      "id": "n5",
      "x": 392,
-     "y": 145
+     "y": 145,
+     "role": "final",
+     "l": "Extraction Point"
     },
     {
      "id": "n6",
@@ -1129,12 +1167,16 @@
     {
      "id": "n7",
      "x": 200,
-     "y": 235
+     "y": 235,
+     "role": "side",
+     "l": "Glass Floor"
     },
     {
      "id": "n8",
      "x": 305,
-     "y": 252
+     "y": 252,
+     "role": "side",
+     "l": "Shatter Field"
     }
    ],
    "edges": [

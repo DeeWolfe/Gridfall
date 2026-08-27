@@ -7,7 +7,7 @@ const F = failures();
 const cell = (l, c) => l * A.COLS + c;
 
 A.enterProfile(unlockAll(A.blankProfile('PU'), ['outrider', 'rifle', 'marks', 'wall']));
-A.launch(Object.keys(A.opRun().nodes)[0]);
+A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0, salv: 0});
 clearBoard();
 
 // A: charge offers two cells forward, but only through a clear path

@@ -1028,13 +1028,13 @@ const OPS = {
       {l: "ZONE C", p: "214,168 358,168 404,214 358,262 236,262 190,214"},
     ],
     nodes: [
-      {id: "n1", x: 96, y: 96},
+      {id: "n1", x: 96, y: 96, role: "start", l: "Beachhead"},
       {id: "n2", x: 170, y: 118},
       {id: "n3", x: 250, y: 92},
       {id: "n4", x: 206, y: 172},
       {id: "n5", x: 278, y: 196},
-      {id: "n6", x: 352, y: 170},
-      {id: "n7", x: 236, y: 250},
+      {id: "n6", x: 352, y: 170, role: "final", l: "Extraction Point"},
+      {id: "n7", x: 236, y: 250, role: "side", l: "Zone C Cache"},
     ],
     edges: [
       ["n1", "n2"],
@@ -1057,14 +1057,22 @@ const OPS = {
       {l: "DEEP SHAFT", p: "60,180 190,190 230,250 170,278 70,265 30,220"},
     ],
     nodes: [
-      {id: "n1", x: 70, y: 80},
+      {id: "n1", x: 70, y: 80, role: "start", l: "Winch Station"},
       {id: "n2", x: 150, y: 60},
       {id: "n3", x: 220, y: 110},
-      {id: "n4", x: 300, y: 150},
-      {id: "n5", x: 362, y: 180},
-      {id: "n6", x: 190, y: 200},
-      {id: "n7", x: 110, y: 228},
-      {id: "n8", x: 200, y: 256},
+      {
+        id: "n4",
+        x: 300,
+        y: 150,
+        role: "main",
+        l: "The Throat",
+        req: ["n7"],
+        reqText: "Power offline — reset the Power Junction in the Deep Shaft",
+      },
+      {id: "n5", x: 362, y: 180, role: "final", l: "Extraction Point"},
+      {id: "n6", x: 190, y: 200, role: "main", l: "Shaft Descent"},
+      {id: "n7", x: 110, y: 228, role: "main", l: "Power Junction"},
+      {id: "n8", x: 200, y: 256, role: "side", l: "Old Vault"},
     ],
     edges: [
       ["n1", "n2"],
@@ -1088,14 +1096,14 @@ const OPS = {
       {l: "THE GLASSING", p: "140,200 300,200 350,250 280,282 160,275"},
     ],
     nodes: [
-      {id: "n1", x: 70, y: 150},
+      {id: "n1", x: 70, y: 150, role: "start", l: "Landing Site"},
       {id: "n2", x: 150, y: 105},
       {id: "n3", x: 245, y: 120},
-      {id: "n4", x: 330, y: 95},
-      {id: "n5", x: 392, y: 145},
+      {id: "n4", x: 330, y: 95, role: "main", l: "Prism Ridge"},
+      {id: "n5", x: 392, y: 145, role: "final", l: "Extraction Point"},
       {id: "n6", x: 300, y: 185},
-      {id: "n7", x: 200, y: 235},
-      {id: "n8", x: 305, y: 252},
+      {id: "n7", x: 200, y: 235, role: "side", l: "Glass Floor"},
+      {id: "n8", x: 305, y: 252, role: "side", l: "Shatter Field"},
     ],
     edges: [
       ["n1", "n2"],
@@ -2140,6 +2148,16 @@ const MISSIONS = {
     d: "Hold 3 or more tiles in the hostile half when the last wave clears. Bring something that deploys behind their line.",
   },
   extract: {n: "Extraction", waves: 6, d: "Short and heavy. Survive to extraction."},
+  uplink: {
+    n: "Establish Uplink",
+    waves: 7,
+    d: "A relay tile sits in contested ground. Hold it three turns in a row to bring the uplink online.",
+  },
+  blitz: {
+    n: "Eradication Blitz",
+    waves: 6,
+    d: "Purge the zone. Destroy ten hostiles before the wave count runs out.",
+  },
 };
 
 /* ==== src/content/modifiers.js ====================================== */
@@ -2189,26 +2207,42 @@ function genRun() {
   active.op = active.op || 'ironveil';
   if (!OPS[active.op]) active.op = 'ironveil';
 
-  const types = Object.keys(MISSIONS);
+  // Extraction is reserved for the final node — the way out is always the way
+  // out. Side objectives draw from the objective pool, Helldivers-style.
+  const mainPool = Object.keys(MISSIONS).filter(t => t !== 'extract');
+  const sidePool = ['crystals', 'specimens', 'uplink', 'blitz'].filter(t => MISSIONS[t]);
   const mods = Object.keys(MODS);
   const map = OPS[active.op];
   const nodes = {};
 
-  map.nodes.forEach((n, i) => {
+  map.nodes.forEach(n => {
+    const role = n.role || 'main';
     nodes[n.id] = {
       // The first node of an operation is always a straight Defend Stronghold,
       // so a new player meets the base rules before any variant.
-      type: i === 0 ? 'stronghold' : types[randInt(types.length)],
+      type: role === 'start' ? 'stronghold'
+        : role === 'final' ? 'extract'
+          : role === 'side' ? sidePool[randInt(sidePool.length)]
+            : mainPool[randInt(mainPool.length)],
       mod: chance(0.45) ? mods[1 + randInt(mods.length - 1)] : 'none',
       reward: 70 + randInt(5) * 20,
       salv: 5 + randInt(5),
     };
   });
 
-  // The two objective missions are markedly harder; pay accordingly.
+  // The objective missions are markedly harder; pay accordingly.
   Object.values(nodes).forEach(nd => {
     if (nd.type === 'crystals') { nd.reward = Math.round(nd.reward * 1.85) + 40; nd.salv += 4; }
     if (nd.type === 'specimens') { nd.reward = Math.round(nd.reward * 1.55); nd.salv += 2; }
+    if (nd.type === 'uplink') { nd.reward = Math.round(nd.reward * 1.4); nd.salv += 2; }
+    if (nd.type === 'blitz') { nd.reward = Math.round(nd.reward * 1.25); nd.salv += 2; }
+  });
+
+  // A bonus side objective is a detour — it pays like one.
+  map.nodes.forEach(n => {
+    if (n.role !== 'side') return;
+    nodes[n.id].reward = Math.round(nodes[n.id].reward * 1.5);
+    nodes[n.id].salv += 3;
   });
 
   active.ops[active.op] = {cleared: [], nodes};
@@ -2226,15 +2260,44 @@ function opRun() {
 
 /**
  * 'clear' | 'open' | 'locked'. A node opens once any node joined to it by an
- * edge has been cleared; the first node of the map is open from the start.
+ * edge has been cleared AND its gate requirements (node.req) are met; the
+ * first node of the map is open from the start.
  */
 function nodeState(id) {
   if (!active) return 'locked';
   const r = opRun();
   if (r.cleared.includes(id)) return 'clear';
+  const def = MAPDEF.nodes.find(n => n.id === id);
+  if (def && def.req && def.req.some(q => !r.cleared.includes(q))) return 'locked';
   if (!r.cleared.length) return id === MAPDEF.nodes[0].id ? 'open' : 'locked';
   return MAPDEF.edges.some(([a, b]) =>
     (r.cleared.includes(a) && b === id) || (r.cleared.includes(b) && a === id)) ? 'open' : 'locked';
+}
+
+/**
+ * A node that adjacency alone would open, held shut only by its gate — the
+ * map lists these with their reqText so the player knows what to go fix.
+ */
+function reqBlocked(id) {
+  if (!active) return false;
+  const r = opRun();
+  if (r.cleared.includes(id)) return false;
+  const def = MAPDEF.nodes.find(n => n.id === id);
+  if (!def || !def.req || !def.req.some(q => !r.cleared.includes(q))) return false;
+  return MAPDEF.edges.some(([a, b]) =>
+    (r.cleared.includes(a) && b === id) || (r.cleared.includes(b) && a === id));
+}
+
+/**
+ * The operation is complete when its final node is cleared — bonus side
+ * objectives are exactly that. Maps without a marked final (none ship, but
+ * imported saves may carry odd data) fall back to all-nodes-cleared.
+ */
+function opComplete() {
+  if (!active) return false;
+  const fin = MAPDEF.nodes.find(n => n.role === 'final');
+  const r = opRun();
+  return fin ? r.cleared.includes(fin.id) : r.cleared.length >= MAPDEF.nodes.length;
 }
 
 /**
@@ -2813,6 +2876,7 @@ function launchSpec(nd) {
     deck: shuffle([...deck]), hand: [], units: [], enemies: [],
     logs: [], kills: 0, lost: 0, extra: 0, doctrine: 'probe', leadUsed: false,
     civ: [], crystals: [], quota: 0, quotaK: null, quotaHit: 0,
+    uplinkAt: null, uplinkHeld: 0,
     predict: [], held: [], result: null,
   });
 
@@ -2826,6 +2890,10 @@ function launchSpec(nd) {
     G.quotaK = QUOTA_TYPES[randInt(QUOTA_TYPES.length)];
     G.quota = BEST[G.quotaK].threat <= 2 ? 4 : 3;
   }
+  // The relay tile sits in the neutral band, middle lanes — contested by
+  // definition, and reachable without holding hostile ground.
+  if (G.type === 'uplink') G.uplinkAt = {l: 1 + randInt(3), c: 4};
+  if (G.type === 'blitz') G.quota = 10;
 
   for (let i = 0; i < Math.min(5, G.deck.length); i++) G.hand.push(G.deck.pop());
   G.manifest = wave(1);
@@ -2835,6 +2903,8 @@ function launchSpec(nd) {
 
   clog(`<span class="t">${m.n.toUpperCase()}</span> — ${m.d}`);
   if (G.type === 'specimens') clog(`Quota: destroy <span class="d">${G.quota} ${BEST[G.quotaK].n}</span>.`);
+  if (G.type === 'uplink') clog(`Relay tile marked — lane ${G.uplinkAt.l + 1}, col ${G.uplinkAt.c}. Hold it three turns running.`);
+  if (G.type === 'blitz') clog(`Quota: <span class="d">${G.quota}</span> hostiles destroyed before the waves run out.`);
   if (G.mod !== 'none') clog(`Modifier: <span style="color:var(--violet)">${MODS[G.mod].n}</span> ${MODS[G.mod].d}`);
   if (G.endless) clog('<span class="t">ONSLAUGHT</span> — the waves do not stop. See how far you get.');
   if (G.gauntlet) clog(`<span class="t">GAUNTLET ${active.gaunt.i + 1} of ${GAUNTLET_LEGS}</span> — one loss ends the chain.`);
@@ -2898,6 +2968,8 @@ function objText() {
   if (G.type === 'retake') return `Hostile tiles held: ${heldEnemyHalf()} / 3`;
   if (G.type === 'crystals') return `Crystal nodes held: ${crystalsHeld()} / 4 — need 3`;
   if (G.type === 'specimens') return `${BEST[G.quotaK].n} destroyed: ${G.quotaHit} / ${G.quota}`;
+  if (G.type === 'uplink') return `Uplink held: ${G.uplinkHeld} / 3 turns running`;
+  if (G.type === 'blitz') return `Hostiles destroyed: ${G.kills} / ${G.quota}`;
   if (G.type === 'civilians') return `Civilian pods alive: ${G.civ.filter(v => v.hp > 0).length} / 3`;
   return m.d;
 }
@@ -2990,7 +3062,7 @@ function settleCampaign(win, why) {
       active.progress.packMeter = 0;
       queuePack('standard', 'Node secured');
     }
-    if (opRun().cleared.length >= MAPDEF.nodes.length) queuePack('specialist', MAPDEF.n + ' complete');
+    if (opComplete()) queuePack('specialist', MAPDEF.n + ' complete');
   } else {
     active.stats.lost++;
     if (active.ironman) { genRun(); clog('Ironman — operation reset.'); }
@@ -4309,10 +4381,13 @@ function edgesSvg(run) {
   }).join('');
 }
 
+const GOLD = '#ffc94d';
+
 function nodesSvg(run) {
   return MAPDEF.nodes.map(n => {
     const st = nodeState(n.id);
     const m = MISSIONS[run.nodes[n.id].type];
+    const gated = reqBlocked(n.id);
     // Open nodes get a breathing ring so the eye lands on what is playable.
     const pulse = st === 'open'
       ? `<circle cx="${n.x}" cy="${n.y}" r="14" fill="none" stroke="${MAPDEF.col}" stroke-width="1" opacity=".5">
@@ -4322,11 +4397,24 @@ function nodesSvg(run) {
     const tick = st === 'clear'
       ? `<path d="M${n.x - 4.5},${n.y} l3.4,3.4 l5.6,-6.6" stroke="#0d0b1c" stroke-width="2.2" fill="none"/>`
       : '';
-    return `<g data-n="${n.id}" style="cursor:${st === 'open' ? 'pointer' : 'default'};opacity:${st === 'locked' ? 0.45 : 1}">
-      ${pulse}
-      <circle cx="${n.x}" cy="${n.y}" r="10" fill="${st === 'clear' ? CLEARED : '#0d0b1c'}" stroke="${st === 'clear' ? '#9dffc6' : st === 'open' ? MAPDEF.col : DARK}" stroke-width="2.4"/>
-      ${tick}
-      <text x="${n.x}" y="${n.y + 23}" fill="${st === 'locked' ? '#4a4477' : '#d3d0ea'}" font-size="7" text-anchor="middle" letter-spacing="1.1" font-family="ui-monospace,monospace">${m.n.toUpperCase()}</text></g>`;
+    // Role markers: the extraction point wears gold, side objectives a dashed
+    // halo, and a gate held shut shows its bar.
+    const halo = n.role === 'final'
+      ? `<circle cx="${n.x}" cy="${n.y}" r="14.5" fill="none" stroke="${GOLD}" stroke-width="1.4" opacity=".85"/>`
+      : n.role === 'side'
+        ? `<circle cx="${n.x}" cy="${n.y}" r="14" fill="none" stroke="${MAPDEF.col}" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/>`
+        : '';
+    const gate = gated
+      ? `<path d="M${n.x - 4},${n.y - 1} h8 M${n.x},${n.y - 5} v8" stroke="${GOLD}" stroke-width="1.6" transform="rotate(45 ${n.x} ${n.y})"/>`
+      : '';
+    const line1 = (n.l || m.n).toUpperCase();
+    const line2 = n.l ? m.n.toUpperCase() : n.role === 'side' ? 'BONUS' : '';
+    return `<g data-n="${n.id}" style="cursor:${st === 'open' ? 'pointer' : 'default'};opacity:${st === 'locked' && !gated ? 0.45 : 1}">
+      ${pulse}${halo}
+      <circle cx="${n.x}" cy="${n.y}" r="10" fill="${st === 'clear' ? CLEARED : '#0d0b1c'}" stroke="${st === 'clear' ? '#9dffc6' : st === 'open' ? MAPDEF.col : n.role === 'final' ? GOLD : DARK}" stroke-width="2.4"/>
+      ${tick}${gate}
+      <text x="${n.x}" y="${n.y + 23}" fill="${st === 'locked' ? '#4a4477' : '#d3d0ea'}" font-size="7" text-anchor="middle" letter-spacing="1.1" font-family="ui-monospace,monospace">${line1}</text>
+      ${line2 ? `<text x="${n.x}" y="${n.y + 31}" fill="${n.role === 'side' && !n.l ? GOLD : '#6a63a0'}" font-size="6" text-anchor="middle" letter-spacing="1.4" font-family="ui-monospace,monospace">${line2}</text>` : ''}</g>`;
   }).join('');
 }
 
@@ -4355,11 +4443,18 @@ function renderMap() {
     const nd = run.nodes[n.id];
     const m = MISSIONS[nd.type];
     const md = MODS[nd.mod];
+    const tag = n.role === 'final' ? ' <span style="color:var(--gold)">· EXTRACTION — ends the operation</span>'
+      : n.role === 'side' ? ' <span style="color:var(--gold)">· BONUS OBJECTIVE</span>' : '';
     return `<div class="row" data-go="${n.id}" style="cursor:pointer">
-        <span><b style="color:var(--cyan)">${m.n}</b>${nd.mod !== 'none' ? ` <span style="color:var(--violet)">· ${md.n}</span>` : ''}
+        <span><b style="color:var(--cyan)">${n.l ? n.l + ' — ' : ''}${m.n}</b>${nd.mod !== 'none' ? ` <span style="color:var(--violet)">· ${md.n}</span>` : ''}${tag}
         <div style="font-size:0.5312rem;color:var(--dim);margin-top:4px;line-height:1.5">${m.d}${md.d ? ' ' + md.d : ''}</div></span>
         <span class="r hot">${nd.reward} cr · ${nd.salv} sv ▸</span></div>`;
   }).join('') || '<div class="row"><span style="color:var(--dim)">Operation complete.</span></div>';
+
+  // Gated nodes the player could otherwise reach: say what is holding them.
+  const gatedRows = MAPDEF.nodes.filter(n => reqBlocked(n.id)).map(n =>
+    `<div class="row locked"><span><b style="color:var(--gold)">⛒ ${n.l || 'Sealed route'}</b>
+      <div style="font-size:0.5312rem;color:var(--dim);margin-top:4px;line-height:1.5">${n.reqText || 'Requirements not met.'}</div></span></div>`).join('');
 
   $('mapbody').innerHTML = `<div class="mapwrap"><div class="mapsvg">
     <svg viewBox="0 0 440 300" style="width:100%;display:block">
@@ -4367,7 +4462,7 @@ function renderMap() {
         <path d="M8 0H0V8" fill="none" stroke="#181340" stroke-width=".5"/></pattern></defs>
       <rect width="440" height="300" fill="#080714"/><rect width="440" height="300" fill="url(#gr)"/>
       ${zonesSvg()}${edgesSvg(run)}${nodesSvg(run)}</svg></div>
-    <div><div class="sect">Available — ${open.length}</div><div class="rows">${briefings}</div>
+    <div><div class="sect">Available — ${open.length}</div><div class="rows">${briefings}${gatedRows}</div>
     <div class="sect">Loadout</div><div class="rows">
       <div class="row"><span>Deck size</span><span class="r${active.loadout.deck.length < 6 ? '' : ' hot'}">${active.loadout.deck.length} cards</span></div>
       <div class="row"><span>Gear fitted</span><span class="r">${Object.keys(active.loadout.gear).length}</span></div>
@@ -5499,6 +5594,16 @@ function endgameCheck() {
     if (G.extra >= 3) return {win: false, why: `Quota short — ${G.quotaHit} of ${G.quota}.`};
     return null;
   }
+  if (G.type === 'uplink') {
+    if (G.uplinkHeld >= 3) return {win: true};
+    if (G.extra >= 3) return {win: false, why: 'The uplink never came online.'};
+    return null;
+  }
+  if (G.type === 'blitz') {
+    if (G.kills >= G.quota) return {win: true};
+    if (G.extra >= 3) return {win: false, why: `Purge incomplete — ${G.kills} of ${G.quota} destroyed.`};
+    return null;
+  }
   if (!G.enemies.length || G.extra >= 2) return {win: true};
   return null;
 }
@@ -5515,6 +5620,20 @@ function endTurn() {
   const lost = lossCheck();
   if (lost) return finish(false, lost);
   if (G.type === 'specimens' && G.quotaHit >= G.quota) return finish(true);
+  if (G.type === 'blitz' && G.kills >= G.quota) return finish(true);
+
+  // The uplink counts CONSECUTIVE turns held — losing the tile resets it.
+  if (G.type === 'uplink' && G.uplinkAt) {
+    if (G.ter[G.uplinkAt.l][G.uplinkAt.c] === 'p') {
+      G.uplinkHeld++;
+      clog(G.uplinkHeld >= 3 ? '<span class="g">UPLINK ONLINE.</span>'
+        : `<span class="g">Uplink charging</span> — ${G.uplinkHeld} of 3 turns held.`, 'order');
+      if (G.uplinkHeld >= 3) return finish(true);
+    } else if (G.uplinkHeld) {
+      G.uplinkHeld = 0;
+      clog('<span class="d">Relay tile lost — uplink charge reset.</span>', 'loss');
+    }
+  }
 
   const wasLast = G.turn >= G.waves;
   spawnPhase();                      // deliver exactly what the markers promised
@@ -5991,6 +6110,7 @@ function drawBoard() {
     let cls = 'cell ' + (owner === 'p' ? 't-p' : owner === 'e' ? 't-e' : owner === 'x' ? 't-x' : 't-n');
     if (scorched(l, c)) cls += ' scorch';
     if (G.crystals.some(x => x.l === l && x.c === c)) cls += ' objtile';
+    if (G.uplinkAt && G.uplinkAt.l === l && G.uplinkAt.c === c) cls += ' objtile';
     if (valid.includes(i)) cls += ' valid';
     if (moves.includes(i)) cls += ' movetgt';
     if (swaps.includes(i)) cls += ' swaptgt';
@@ -6898,8 +7018,9 @@ function afterMission(wasEndless, wasGauntlet, cleared) {
   if (wasEndless || (wasGauntlet && !cleared)) { show('modes'); renderModes(); return; }
   if (wasGauntlet && active.gaunt && active.gaunt.i < GAUNTLET_LEGS) { launchGauntlet(); return; }
   if (wasGauntlet) { show('modes'); renderModes(); return; }
-  // A finished operation rolls a fresh set of missions to come back to.
-  if (opRun().cleared.length >= MAPDEF.nodes.length) genRun();
+  // A finished operation — final node cleared — rolls fresh missions to
+  // come back to; uncollected side objectives are forfeit with it.
+  if (opComplete()) genRun();
   show('map');
   renderMap();
 }

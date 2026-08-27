@@ -16,7 +16,7 @@ import {hooks} from '../state/hooks.js';
 import {commit} from '../save/profile.js';
 import {held, heldEnemyHalf, crystalsHeld} from './board.js';
 import {wave, rollDoctrine, predictSpawns} from './waves.js';
-import {opRun, genRun} from './run.js';
+import {opRun, genRun, opComplete} from './run.js';
 import {queuePack} from './packs.js';
 import {tapeEnd} from './tape.js';
 import {clog} from './log.js';
@@ -63,6 +63,7 @@ export function launchSpec(nd) {
     deck: shuffle([...deck]), hand: [], units: [], enemies: [],
     logs: [], kills: 0, lost: 0, extra: 0, doctrine: 'probe', leadUsed: false,
     civ: [], crystals: [], quota: 0, quotaK: null, quotaHit: 0,
+    uplinkAt: null, uplinkHeld: 0,
     predict: [], held: [], result: null,
   });
 
@@ -76,6 +77,10 @@ export function launchSpec(nd) {
     G.quotaK = QUOTA_TYPES[randInt(QUOTA_TYPES.length)];
     G.quota = BEST[G.quotaK].threat <= 2 ? 4 : 3;
   }
+  // The relay tile sits in the neutral band, middle lanes — contested by
+  // definition, and reachable without holding hostile ground.
+  if (G.type === 'uplink') G.uplinkAt = {l: 1 + randInt(3), c: 4};
+  if (G.type === 'blitz') G.quota = 10;
 
   for (let i = 0; i < Math.min(5, G.deck.length); i++) G.hand.push(G.deck.pop());
   G.manifest = wave(1);
@@ -85,6 +90,8 @@ export function launchSpec(nd) {
 
   clog(`<span class="t">${m.n.toUpperCase()}</span> — ${m.d}`);
   if (G.type === 'specimens') clog(`Quota: destroy <span class="d">${G.quota} ${BEST[G.quotaK].n}</span>.`);
+  if (G.type === 'uplink') clog(`Relay tile marked — lane ${G.uplinkAt.l + 1}, col ${G.uplinkAt.c}. Hold it three turns running.`);
+  if (G.type === 'blitz') clog(`Quota: <span class="d">${G.quota}</span> hostiles destroyed before the waves run out.`);
   if (G.mod !== 'none') clog(`Modifier: <span style="color:var(--violet)">${MODS[G.mod].n}</span> ${MODS[G.mod].d}`);
   if (G.endless) clog('<span class="t">ONSLAUGHT</span> — the waves do not stop. See how far you get.');
   if (G.gauntlet) clog(`<span class="t">GAUNTLET ${active.gaunt.i + 1} of ${GAUNTLET_LEGS}</span> — one loss ends the chain.`);
@@ -148,6 +155,8 @@ export function objText() {
   if (G.type === 'retake') return `Hostile tiles held: ${heldEnemyHalf()} / 3`;
   if (G.type === 'crystals') return `Crystal nodes held: ${crystalsHeld()} / 4 — need 3`;
   if (G.type === 'specimens') return `${BEST[G.quotaK].n} destroyed: ${G.quotaHit} / ${G.quota}`;
+  if (G.type === 'uplink') return `Uplink held: ${G.uplinkHeld} / 3 turns running`;
+  if (G.type === 'blitz') return `Hostiles destroyed: ${G.kills} / ${G.quota}`;
   if (G.type === 'civilians') return `Civilian pods alive: ${G.civ.filter(v => v.hp > 0).length} / 3`;
   return m.d;
 }
@@ -240,7 +249,7 @@ function settleCampaign(win, why) {
       active.progress.packMeter = 0;
       queuePack('standard', 'Node secured');
     }
-    if (opRun().cleared.length >= MAPDEF.nodes.length) queuePack('specialist', MAPDEF.n + ' complete');
+    if (opComplete()) queuePack('specialist', MAPDEF.n + ' complete');
   } else {
     active.stats.lost++;
     if (active.ironman) { genRun(); clog('Ironman — operation reset.'); }

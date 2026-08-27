@@ -136,9 +136,29 @@ answers to you; your rank ladder is Acting Commander through Marshal.
 | Defend Stronghold | 8 | Hold the line through every wave. Three breaches ends it. |
 | Protect Civilians | 7 | Three civilian pods sit on your ground. Lose all three and the operation fails. |
 | Acquire Specimens | 7 | Destroy the marked hostile type to fill the quota. |
-| Fight for Crystals | 7 | Four crystal nodes on the field. Hold three when the last wave clears. |
+| Fight for Crystals | 6 | Four crystal nodes on the field. Hold three when the last wave clears. |
 | Retake Ground | 7 | Hold 3 or more tiles in the hostile half when the last wave clears. Bring something that deploys behind their line. |
-| Extraction | 6 | Short and heavy. Survive to extraction. |
+| Extraction | 6 | Short and heavy. Survive to extraction. Reserved for the final node of every operation. |
+| Establish Uplink | 7 | A marked relay tile in the neutral band. Hold it three turns IN A ROW - losing it resets the charge. |
+| Eradication Blitz | 6 | Destroy ten hostiles before the wave count runs out. |
+
+## Campaign map structure
+
+Nodes carry a role. The `start` node is always Defend Stronghold and the
+`final` node is always Extraction - clearing it completes the operation and
+rerolls the map; side objectives not collected by then are forfeit. `side`
+nodes are optional bonus objectives: they draw from the objective pool
+(Crystals, Specimens, Uplink, Blitz) and pay 1.5x reward plus extra salvage.
+A node may also carry `req`, a gate: it stays locked - whatever adjacency
+says - until the named nodes are cleared, with its `reqText` shown on the
+map ("Power offline - reset the Power Junction in the Deep Shaft").
+
+- **Ironveil** - a split route converging on the Extraction Point; the
+  Zone C Cache is a bonus spur.
+- **Blackmarrow** - the way out runs through The Throat, but that approach
+  is gated on the Power Junction down in the Deep Shaft.
+- **Sunderglass** - twin routes over Prism Ridge; The Glassing is a
+  two-node bonus chain.
 
 ## Modifiers
 

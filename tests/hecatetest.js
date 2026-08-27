@@ -7,7 +7,7 @@ import {spawnUnit, spawnFoe, clearBoard, unlockAll} from './support/fixtures.js'
 const F = failures();
 
 A.enterProfile(unlockAll(A.blankProfile('HC'), ['hecate', 'rifle', 'wall', 'marks']));
-A.launch(Object.keys(A.opRun().nodes)[0]);
+A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0, salv: 0});
 clearBoard();
 
 // A: targets the highest column anywhere — not its own lane's first hostile

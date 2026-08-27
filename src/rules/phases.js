@@ -217,6 +217,16 @@ function endgameCheck() {
     if (G.extra >= 3) return {win: false, why: `Quota short — ${G.quotaHit} of ${G.quota}.`};
     return null;
   }
+  if (G.type === 'uplink') {
+    if (G.uplinkHeld >= 3) return {win: true};
+    if (G.extra >= 3) return {win: false, why: 'The uplink never came online.'};
+    return null;
+  }
+  if (G.type === 'blitz') {
+    if (G.kills >= G.quota) return {win: true};
+    if (G.extra >= 3) return {win: false, why: `Purge incomplete — ${G.kills} of ${G.quota} destroyed.`};
+    return null;
+  }
   if (!G.enemies.length || G.extra >= 2) return {win: true};
   return null;
 }
@@ -233,6 +243,20 @@ export function endTurn() {
   const lost = lossCheck();
   if (lost) return finish(false, lost);
   if (G.type === 'specimens' && G.quotaHit >= G.quota) return finish(true);
+  if (G.type === 'blitz' && G.kills >= G.quota) return finish(true);
+
+  // The uplink counts CONSECUTIVE turns held — losing the tile resets it.
+  if (G.type === 'uplink' && G.uplinkAt) {
+    if (G.ter[G.uplinkAt.l][G.uplinkAt.c] === 'p') {
+      G.uplinkHeld++;
+      clog(G.uplinkHeld >= 3 ? '<span class="g">UPLINK ONLINE.</span>'
+        : `<span class="g">Uplink charging</span> — ${G.uplinkHeld} of 3 turns held.`, 'order');
+      if (G.uplinkHeld >= 3) return finish(true);
+    } else if (G.uplinkHeld) {
+      G.uplinkHeld = 0;
+      clog('<span class="d">Relay tile lost — uplink charge reset.</span>', 'loss');
+    }
+  }
 
   const wasLast = G.turn >= G.waves;
   spawnPhase();                      // deliver exactly what the markers promised

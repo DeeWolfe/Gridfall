@@ -29,4 +29,14 @@ export const MISSIONS = {
     d: "Hold 3 or more tiles in the hostile half when the last wave clears. Bring something that deploys behind their line.",
   },
   extract: {n: "Extraction", waves: 6, d: "Short and heavy. Survive to extraction."},
+  uplink: {
+    n: "Establish Uplink",
+    waves: 7,
+    d: "A relay tile sits in contested ground. Hold it three turns in a row to bring the uplink online.",
+  },
+  blitz: {
+    n: "Eradication Blitz",
+    waves: 6,
+    d: "Purge the zone. Destroy ten hostiles before the wave count runs out.",
+  },
 };

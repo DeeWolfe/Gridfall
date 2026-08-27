@@ -1,6 +1,6 @@
 # Test suite
 
-29 guards and 3 balance harnesses. Run them all with `npm test`, one at a time
+30 guards and 3 balance harnesses. Run them all with `npm test`, one at a time
 with `node tests/run-all.js <name>`, or directly with `node tests/<name>.js`.
 
 The guards must pass. The balance harnesses only report — their numbers come
@@ -26,6 +26,7 @@ needing `install-dom.js`, something has leaked out of `src/render/`.
 | `hecatetest` | Board-wide furthest targeting through blockers; the recharge cycle |
 | `cardtest` | Every card x every gear deployed in live missions; none may throw |
 | `packtest` | Requisition packs: offers, fallback chain, full reveal flow |
+| `maptest` | Map roles: final is always Extraction, gates hold, side pay bonus, op completes on final; the uplink and blitz objectives |
 
 `packtest` and `aimtest` do install the stub for their final render checks.
 

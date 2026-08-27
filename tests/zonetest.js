@@ -8,7 +8,7 @@ const F = failures();
 const cell = (l, c) => l * A.COLS + c;
 
 A.enterProfile(unlockAll(A.blankProfile('ZN'), ['fob', 'mine', 'rifle', 'wall']));
-A.launch(Object.keys(A.opRun().nodes)[0]);
+A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0, salv: 0});
 clearBoard();
 
 // The fresh board: columns 0-2 yours, 3-4 neutral, 5-7 hostile.

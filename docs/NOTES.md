@@ -502,6 +502,43 @@ states, every combination played live). The brief's shelved card — Requiem
 Sage, rebuild-a-destroyed-unit — stays shelved until permanent attrition has
 been felt in play.
 
+## Campaign maps got a structure
+
+Operations used to be a bag of random nodes you cleared exhaustively. Now the
+map itself tells a story, Helldivers-style: main objectives on the route,
+bonus side objectives off it, and the way out always at the end.
+
+- **Roles on nodes** (`role` in the operations data): the `start` node is
+  always Defend Stronghold, the `final` node is always Extraction — clearing
+  it completes the operation (specialist pack, fresh map), and side
+  objectives left uncollected are forfeit with it. `side` nodes draw from the
+  objective pool and pay 1.5x plus salvage. Extract never appears off the
+  final node.
+- **Gates** (`req` + `reqText`): a node adjacency would open can be held shut
+  until specific nodes are cleared. Blackmarrow uses it for its story beat:
+  The Throat — the route to extraction — is dark until the Power Junction in
+  the Deep Shaft is reset. The map lists the gate with its reason
+  ("Power offline — reset the Power Junction in the Deep Shaft").
+- **The three ops now read as places**: Ironveil's split converges on the
+  Extraction Point with the Zone C Cache as a spur; Blackmarrow descends
+  through the gate; Sunderglass runs twin routes over Prism Ridge with a
+  two-node bonus chain in the Glassing. Nodes carry place names, and the map
+  draws the roles — gold halo for extraction, dashed for bonus, a gold bar on
+  a sealed gate.
+
+Two new mission types joined the objective pool, floors measured beside their
+siblings (crystals 43%, specimens 48% in the same runs):
+
+- **Establish Uplink** (41%) — a marked relay tile in the neutral band; hold
+  it three turns IN A ROW, losing it resets the charge. The radar-station
+  hold.
+- **Eradication Blitz** (46%) — destroy ten hostiles before the wave count
+  runs out. First cut at twelve measured 24% and was retuned.
+
+`maptest` (guard 30) pins all of it: role invariants across every op and
+eight generation rolls each, the Blackmarrow gate, completion-on-final, side
+bonus pay, and both new objectives' win-and-reset logic.
+
 ## Still open
 
 1. **Crystals still loses to "Three breaches"** more than anything else — the

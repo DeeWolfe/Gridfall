@@ -250,6 +250,7 @@ export function drawBoard() {
     let cls = 'cell ' + (owner === 'p' ? 't-p' : owner === 'e' ? 't-e' : owner === 'x' ? 't-x' : 't-n');
     if (scorched(l, c)) cls += ' scorch';
     if (G.crystals.some(x => x.l === l && x.c === c)) cls += ' objtile';
+    if (G.uplinkAt && G.uplinkAt.l === l && G.uplinkAt.c === c) cls += ' objtile';
     if (valid.includes(i)) cls += ' valid';
     if (moves.includes(i)) cls += ' movetgt';
     if (swaps.includes(i)) cls += ' swaptgt';
