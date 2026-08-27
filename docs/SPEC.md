@@ -166,13 +166,14 @@ Shields absorb one blow each. Riposte adds to your side. Armour floors reduce wh
 
 | When | Pack |
 |---|---|
-| Campaign node cleared | Standard |
+| Every second campaign node secured | Standard |
 | Operation completed | Specialist |
 | Gauntlet leg cleared | Standard |
 | Gauntlet full clear | Specialist |
 | Onslaught | One per 5 waves survived |
+| Bought at the Quartermaster - 150 cr | Standard |
 
-Three items offered, keep one. Fallback chain when the collection fills: unowned cards -> unowned gear -> field promotion (+12 deployments) -> salvage. The pack never opens empty.
+Three items offered, keep one. Standard packs draw Commons and Tech only - Specialists come from specialist packs or the shop. One slot guarantees an unowned card while any remains; the other slots may draw duplicates, offered as field promotions (+12 deployments toward that card's next rank). Once cards run out the guaranteed slot degrades to unowned gear, then promotions, then salvage. The pack never opens empty.
 
 ## Modes
 

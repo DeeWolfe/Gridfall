@@ -67,6 +67,10 @@ visible while all 39 playability checks passed.
 | `sndtest` | Sound is a silent no-op without WebAudio and a persistent switch; import repairs, replaces by id, refuses overflow |
 | `arttest` | Every card has a placeholder portrait, no two cards share one, real art still wins |
 
+`packtest` also pins the economy rules: standard packs are Commons/Tech only,
+one slot guarantees an unowned card, duplicates arrive as +12-deployment
+promotions, and the campaign drip is one pack per two nodes secured.
+
 ## Balance — informational, no pass/fail
 
 | Harness | Reports |

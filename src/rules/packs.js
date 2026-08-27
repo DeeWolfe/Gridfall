@@ -1,10 +1,13 @@
 // Requisition packs: three items offered, keep one.
 //
-// The fallback chain matters more than it looks. As a collection fills, the
-// pool of unowned cards empties, then unowned gear, then there is nothing
-// left to give — so the chain degrades through field promotions to raw
-// salvage. The pack NEVER opens empty; a player who owns everything still
-// gets something for clearing a node.
+// Standard packs draw Commons and Tech only — Specialists come from the shop
+// or from specialist packs (operation complete, gauntlet complete), so their
+// price tags are real saving goals rather than lottery noise. One slot
+// guarantees an unowned card while any remains; the other slots draw from the
+// whole pool, and a duplicate is offered as a field promotion instead — the
+// deployments it grants advance that card toward its next veterancy rank.
+// Once the cards run out the guaranteed slot degrades to unowned gear, then
+// promotions, then raw salvage. The pack NEVER opens empty.
 
 import {DECKSIZE} from '../state/constants.js';
 import {POOL} from '../content/cards.js';
@@ -17,6 +20,9 @@ const OFFER_SIZE = 3;
 const PROMOTION_DEPLOYMENTS = 12;
 const CONSOLATION_SALVAGE = 40;
 
+/** What a bought standard pack costs at the Quartermaster. */
+export const PACK_PRICE = 150;
+
 /**
  * Roll an offer.
  * @param {'standard'|'specialist'} tier  specialist draws Specialist cards only
@@ -24,29 +30,32 @@ const CONSOLATION_SALVAGE = 40;
  */
 export function packOffer(tier) {
   const owned = active.unlocks.cards || [];
-  const cards = Object.keys(POOL).filter(id =>
-    !owned.includes(id) && (tier === 'specialist' ? POOL[id].t === 'special' : true));
+  const pool = Object.keys(POOL).filter(id =>
+    tier === 'specialist' ? POOL[id].t === 'special' : POOL[id].t !== 'special');
 
   const out = [];
-  const draw = pool => {
-    const c = [...pool];
-    while (out.length < OFFER_SIZE && c.length) out.push({kind: 'card', id: takeOne(c)});
-  };
-  if (cards.length) draw(cards);
 
-  if (out.length < OFFER_SIZE) {
+  // The guaranteed-progress slot: an unowned card from this pack's pool,
+  // else a piece of unowned gear, else nothing special — the dupe slots below
+  // take over.
+  const unowned = pool.filter(id => !owned.includes(id));
+  if (unowned.length) {
+    out.push({kind: 'card', id: takeOne(unowned)});
+  } else {
     const gear = Object.keys(GEAR).filter(k => !(active.unlocks.gear || []).includes(k));
-    const c = [...gear];
-    while (out.length < OFFER_SIZE && c.length) out.push({kind: 'gear', id: takeOne(c)});
+    if (gear.length) out.push({kind: 'gear', id: takeOne(gear)});
   }
 
-  if (out.length < OFFER_SIZE) {
-    const c = (active.loadout.deck || []).filter(id => POOL[id]);
-    while (out.length < OFFER_SIZE && c.length) {
-      out.push({kind: 'vet', id: takeOne(c), amount: PROMOTION_DEPLOYMENTS});
-    }
-    while (out.length < OFFER_SIZE) out.push({kind: 'salvage', amount: CONSOLATION_SALVAGE});
+  // The remaining slots draw from the whole pool, owned or not. A duplicate
+  // becomes a promotion for that card rather than a blank.
+  const rest = pool.filter(id => !out.some(o => o.id === id));
+  while (out.length < OFFER_SIZE && rest.length) {
+    const id = takeOne(rest);
+    out.push(owned.includes(id)
+      ? {kind: 'vet', id, amount: PROMOTION_DEPLOYMENTS}
+      : {kind: 'card', id});
   }
+  while (out.length < OFFER_SIZE) out.push({kind: 'salvage', amount: CONSOLATION_SALVAGE});
   return out;
 }
 

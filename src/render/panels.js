@@ -13,12 +13,14 @@ import {store} from '../save/store.js';
 import {commit, migrate, saveAll} from '../save/profile.js';
 import {rankName, costOf, vetOf} from '../save/progression.js';
 import {genRun} from '../rules/run.js';
+import {queuePack, PACK_PRICE} from '../rules/packs.js';
 import {$, attr} from './dom.js';
 import {sigil} from './art.js';
 import {ask, notify} from './dialog.js';
 import {cardEl} from './card-html.js';
 import {focusCard, focusEnemy, focusGear} from './focus.js';
 import {leadCardHTML, paintHold, enter} from './hold.js';
+import {showPack, setAfterPacks} from './packs.js';
 import {soundOn, toggleSound} from './sound.js';
 import {UI_MODES, UI_LABELS, uiPreference, uiModeLabel, setUiMode} from './uimode.js';
 
@@ -59,8 +61,12 @@ function quartermasterPanel() {
          <div class="gfoot ${owned ? 'own' : affordable ? 'buy' : 'no'}">${owned ? 'Owned' : g.cost + ' sv'}</div></button>`;
      }).join('')}</div>`;
 
+  const canBuyPack = active.progress.credits >= PACK_PRICE;
   return `<div class="bar"><div>Credits <b>${active.progress.credits}</b> · Salvage <b style="color:var(--cyan)">${active.progress.salvage}</b></div>
      <div style="color:var(--dim);font-size:0.5625rem">Tap a card to enlarge and buy. Credits buy cards, salvage buys gear.</div></div>
+   <div class="bar"><div><b>Requisition drop</b>
+     <div style="color:var(--dim);font-size:0.5625rem;margin-top:3px">A standard pack — three offers, keep one. Duplicates promote the card instead.</div></div>
+     <button class="btn${canBuyPack ? '' : ' ghost'}" id="buypack"${canBuyPack ? '' : ' disabled'}>Buy pack · ${PACK_PRICE} cr</button></div>
    ${TIERS.map(tier).join('')}${gearGrid}`;
 }
 
@@ -240,6 +246,18 @@ export function openPanel(key) {
   each('[data-gear]', el => focusGear(el.dataset.gear));
   each('[data-tab]', el => { dbTab = el.dataset.tab; openPanel('database'); });
   each('[data-ui]', el => { setUiMode(el.dataset.ui); paintHold(); openPanel('settings'); });
+
+  const buyPack = $('buypack');
+  if (buyPack) {
+    buyPack.onclick = () => {
+      if (active.progress.credits < PACK_PRICE) return;
+      active.progress.credits -= PACK_PRICE;
+      commit();
+      queuePack('standard', 'Requisitioned drop');
+      setAfterPacks(() => openPanel('quartermaster'));
+      showPack();
+    };
+  }
 
   const exportRow = $('expo');
   if (exportRow) {

@@ -11,23 +11,52 @@ const F = failures();
 const p = A.blankProfile('PK');
 A.enterProfile(p);
 
-// 1. a standard offer is three unowned cards
+// 1. a standard offer: three distinct items, no Specialists, at least one
+//    unowned card, and owned draws arrive as promotions rather than blanks
 {
   const offer = packOffer('standard');
   if (offer.length !== 3) F.push('offer should hold 3 items, got ' + offer.length);
   offer.forEach(x => {
     if (x.kind === 'card' && p.unlocks.cards.includes(x.id)) F.push('offered a card already owned');
+    if (x.kind === 'vet' && !p.unlocks.cards.includes(x.id)) F.push('offered a promotion for an unowned card');
+    if ((x.kind === 'card' || x.kind === 'vet') && A.POOL[x.id].t === 'special') {
+      F.push('standard pack offered a Specialist (' + x.id + ')');
+    }
   });
+  if (!offer.some(x => x.kind === 'card')) F.push('no unowned card offered while plenty remain');
   if (new Set(offer.map(x => x.id)).size !== 3) F.push('offer contains duplicates');
 }
 
 // 2. a specialist offer is Specialist-tier only
 {
   packOffer('specialist').forEach(x => {
-    if (x.kind === 'card' && A.POOL[x.id].t !== 'special') {
+    if ((x.kind === 'card' || x.kind === 'vet') && A.POOL[x.id].t !== 'special') {
       F.push('specialist pack offered a ' + A.POOL[x.id].t + ' card');
     }
   });
+}
+
+// 2b. one common left unowned: the offer guarantees it, and the other slots
+//     are duplicates offered as +12-deployment promotions
+{
+  const q = A.blankProfile('DUP');
+  A.enterProfile(q);
+  const nonSpecial = Object.keys(A.POOL).filter(id => A.POOL[id].t !== 'special');
+  q.unlocks.cards = nonSpecial.slice(1);
+  const offer = packOffer('standard');
+  const cards = offer.filter(x => x.kind === 'card');
+  const vets = offer.filter(x => x.kind === 'vet');
+  if (cards.length !== 1 || cards[0].id !== nonSpecial[0]) {
+    F.push('the last unowned card was not guaranteed a slot');
+  }
+  if (vets.length !== 2) F.push('duplicates should be offered as promotions, got ' + vets.length);
+  vets.forEach(v => {
+    if (v.amount !== 12) F.push('promotion should log 12 deployments, got ' + v.amount);
+  });
+  const before = (q.usage && q.usage[vets[0].id]) || 0;
+  A.claimPack(vets[0]);
+  if (((q.usage || {})[vets[0].id] || 0) !== before + 12) F.push('claimed promotion did not add deployments');
+  A.enterProfile(p);
 }
 
 // 3. claiming adds the card and slots it into the deck if there is room
@@ -114,6 +143,26 @@ A.enterProfile(p);
   showPack();
   if (A.packQueue.length !== 1) F.push('showPack should consume one pack at a time');
   if (get('packlabel')._text !== 'one') F.push('wrong pack shown first');
+}
+
+// 7. campaign packs arrive every SECOND node secured
+{
+  const q = A.blankProfile('METER');
+  A.enterProfile(q);
+  A.setPackQueue([]);
+  for (let win = 1; win <= 4; win++) {
+    const open = Object.keys(A.opRun().nodes).filter(id => A.nodeState(id) === 'open');
+    A.launch(open[0]);
+    A.finish(true, '');
+    A.setG(null);
+    const expected = Math.floor(win / 2);
+    // Completing the whole operation also queues a specialist pack; only count
+    // the standard drip here.
+    const standard = A.packQueue.filter(x => x.tier === 'standard').length;
+    if (standard !== expected) {
+      F.push(`after ${win} wins expected ${expected} standard packs, got ${standard}`);
+    }
+  }
 }
 
 F.report('requisition packs: all checks pass');

@@ -402,6 +402,36 @@ Onslaught median 10–13 waves (untouched); Gauntlet about 1 in 7. The intended
 shape — the two objective missions markedly harder than the defensive four,
 and paid accordingly — finally matches the numbers.
 
+## The collection economy rework
+
+A career simulation (40 full 60-mission progressions per spending style,
+played by the balance bot, claiming packs and shopping like a player) showed
+the loop the mission-level pass could not: a buy-cheap player owned 28 of 38
+cards after ten missions, standard packs handed out free Specialists like
+commons, and once the collection filled — around mission 25 — credits became
+a dead currency, ending careers with 3,000+ banked and nothing to buy.
+
+Four changes, one design:
+
+- **Standard packs draw Commons and Tech only.** Specialists come from
+  specialist packs (operation complete, gauntlet complete) or the shop, so a
+  340–400 cr price tag is a real saving goal of three or four wins.
+- **Duplicates are worth keeping.** One pack slot guarantees an unowned card
+  while any remains; the others draw from the whole pool, and a card you
+  already own is offered as a field promotion — +12 deployments toward that
+  card's next veterancy rank — instead of being filtered out.
+- **The campaign drip halved**: a standard pack every second node secured
+  (`progress.packMeter`, repaired by `migrate()` for old saves).
+- **Credits got a permanent sink**: the Quartermaster sells a standard pack
+  for 150 cr, which stays worth buying forever through the promotion chain.
+
+Re-simulated careers: ten missions in, a buy-cheap player now holds ~22 cards
+and has met zero or one Specialist; a player saving for Specialists has three
+or four of them but half the breadth — the strategies finally diverge. Banked
+credits at mission 60 fell from ~3,200 to ~200–400, a never-spending player
+is still only at 28/38 after 60 missions, and the full collection lands
+around mission 50–60 instead of 25.
+
 ## Still open
 
 1. **Crystals still loses to "Three breaches"** more than anything else — the

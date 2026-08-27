@@ -71,6 +71,7 @@ export function migrate(p) {
   }
 
   p.progress = p.progress || {rank: 1, xp: 0, credits: 300, salvage: 120};
+  p.progress.packMeter = p.progress.packMeter || 0;
   p.unlocks = p.unlocks || {};
   p.unlocks.cards = p.unlocks.cards || [...STARTER];
   p.unlocks.enemies = p.unlocks.enemies || [];

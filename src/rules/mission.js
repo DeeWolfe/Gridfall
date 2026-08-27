@@ -233,7 +233,13 @@ function settleCampaign(win, why) {
     active.stats.held++;
     active.progress.xp += 20;
     if (active.progress.xp >= active.progress.rank * 60) active.progress.rank++;
-    queuePack('standard', 'Node secured');
+    // A pack every second node secured — the drip that filled the collection
+    // in a weekend when it came with every win.
+    active.progress.packMeter = (active.progress.packMeter || 0) + 1;
+    if (active.progress.packMeter >= 2) {
+      active.progress.packMeter = 0;
+      queuePack('standard', 'Node secured');
+    }
     if (opRun().cleared.length >= MAPDEF.nodes.length) queuePack('specialist', MAPDEF.n + ' complete');
   } else {
     active.stats.lost++;

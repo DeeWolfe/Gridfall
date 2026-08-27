@@ -1932,6 +1932,7 @@ function migrate(p) {
   }
 
   p.progress = p.progress || {rank: 1, xp: 0, credits: 300, salvage: 120};
+  p.progress.packMeter = p.progress.packMeter || 0;
   p.unlocks = p.unlocks || {};
   p.unlocks.cards = p.unlocks.cards || [...STARTER];
   p.unlocks.enemies = p.unlocks.enemies || [];
@@ -2454,15 +2455,21 @@ function predictSpawns() {
 /* ==== src/rules/packs.js ============================================ */
 // Requisition packs: three items offered, keep one.
 //
-// The fallback chain matters more than it looks. As a collection fills, the
-// pool of unowned cards empties, then unowned gear, then there is nothing
-// left to give — so the chain degrades through field promotions to raw
-// salvage. The pack NEVER opens empty; a player who owns everything still
-// gets something for clearing a node.
+// Standard packs draw Commons and Tech only — Specialists come from the shop
+// or from specialist packs (operation complete, gauntlet complete), so their
+// price tags are real saving goals rather than lottery noise. One slot
+// guarantees an unowned card while any remains; the other slots draw from the
+// whole pool, and a duplicate is offered as a field promotion instead — the
+// deployments it grants advance that card toward its next veterancy rank.
+// Once the cards run out the guaranteed slot degrades to unowned gear, then
+// promotions, then raw salvage. The pack NEVER opens empty.
 
 const OFFER_SIZE = 3;
 const PROMOTION_DEPLOYMENTS = 12;
 const CONSOLATION_SALVAGE = 40;
+
+/** What a bought standard pack costs at the Quartermaster. */
+const PACK_PRICE = 150;
 
 /**
  * Roll an offer.
@@ -2471,29 +2478,32 @@ const CONSOLATION_SALVAGE = 40;
  */
 function packOffer(tier) {
   const owned = active.unlocks.cards || [];
-  const cards = Object.keys(POOL).filter(id =>
-    !owned.includes(id) && (tier === 'specialist' ? POOL[id].t === 'special' : true));
+  const pool = Object.keys(POOL).filter(id =>
+    tier === 'specialist' ? POOL[id].t === 'special' : POOL[id].t !== 'special');
 
   const out = [];
-  const draw = pool => {
-    const c = [...pool];
-    while (out.length < OFFER_SIZE && c.length) out.push({kind: 'card', id: takeOne(c)});
-  };
-  if (cards.length) draw(cards);
 
-  if (out.length < OFFER_SIZE) {
+  // The guaranteed-progress slot: an unowned card from this pack's pool,
+  // else a piece of unowned gear, else nothing special — the dupe slots below
+  // take over.
+  const unowned = pool.filter(id => !owned.includes(id));
+  if (unowned.length) {
+    out.push({kind: 'card', id: takeOne(unowned)});
+  } else {
     const gear = Object.keys(GEAR).filter(k => !(active.unlocks.gear || []).includes(k));
-    const c = [...gear];
-    while (out.length < OFFER_SIZE && c.length) out.push({kind: 'gear', id: takeOne(c)});
+    if (gear.length) out.push({kind: 'gear', id: takeOne(gear)});
   }
 
-  if (out.length < OFFER_SIZE) {
-    const c = (active.loadout.deck || []).filter(id => POOL[id]);
-    while (out.length < OFFER_SIZE && c.length) {
-      out.push({kind: 'vet', id: takeOne(c), amount: PROMOTION_DEPLOYMENTS});
-    }
-    while (out.length < OFFER_SIZE) out.push({kind: 'salvage', amount: CONSOLATION_SALVAGE});
+  // The remaining slots draw from the whole pool, owned or not. A duplicate
+  // becomes a promotion for that card rather than a blank.
+  const rest = pool.filter(id => !out.some(o => o.id === id));
+  while (out.length < OFFER_SIZE && rest.length) {
+    const id = takeOne(rest);
+    out.push(owned.includes(id)
+      ? {kind: 'vet', id, amount: PROMOTION_DEPLOYMENTS}
+      : {kind: 'card', id});
   }
+  while (out.length < OFFER_SIZE) out.push({kind: 'salvage', amount: CONSOLATION_SALVAGE});
   return out;
 }
 
@@ -2829,7 +2839,13 @@ function settleCampaign(win, why) {
     active.stats.held++;
     active.progress.xp += 20;
     if (active.progress.xp >= active.progress.rank * 60) active.progress.rank++;
-    queuePack('standard', 'Node secured');
+    // A pack every second node secured — the drip that filled the collection
+    // in a weekend when it came with every win.
+    active.progress.packMeter = (active.progress.packMeter || 0) + 1;
+    if (active.progress.packMeter >= 2) {
+      active.progress.packMeter = 0;
+      queuePack('standard', 'Node secured');
+    }
     if (opRun().cleared.length >= MAPDEF.nodes.length) queuePack('specialist', MAPDEF.n + ' complete');
   } else {
     active.stats.lost++;
@@ -5809,6 +5825,116 @@ function cardEl(id, mode) {
     <div class="gtxt">${k.d}</div>${g ? `<div class="gtag">◈ ${g.n}</div>` : ''}${foot}</button>`;
 }
 
+/* ==== src/render/packs.js =========================================== */
+// Requisition pack presentation: the sealed box, the burst, and the fan of
+// three cards to choose from.
+
+const BURST_MS = 260;
+
+let packPicks = [];
+let packOpen = false;
+
+/** Runs once the whole queue has been worked through. Set by wiring.js. */
+let afterPacks = () => {};
+const setAfterPacks = fn => { afterPacks = fn; };
+
+/** Everything the pack card needs to render one offer. */
+function packArt(p) {
+  if (p.kind === 'card') {
+    const k = POOL[p.id];
+    return {title: k.n, sub: TIERNAME[k.t], body: k.d, art: artFor(p.id, k.t, 86),
+      cost: costOf(p.id), hp: k.hp, tier: k.t};
+  }
+  if (p.kind === 'gear') {
+    const g = GEAR[p.id];
+    return {title: g.n, sub: 'Gear', body: g.d, art: sigil(p.id, 'tech', 86), cost: '◈', hp: 0, tier: 'tech'};
+  }
+  if (p.kind === 'vet') {
+    const k = POOL[p.id];
+    return {title: k.n, sub: 'Field promotion',
+      body: `+${p.amount} deployments logged — advances this card toward its next rank.`,
+      art: artFor(p.id, k.t, 86, '#9d6bff'), cost: '★', hp: 0, tier: 'special'};
+  }
+  return {title: p.amount + ' Salvage', sub: 'Supplies', body: 'Raw materials for the Quartermaster.',
+    art: sigil('salvage', 'tech', 86), cost: '◈', hp: 0, tier: 'tech'};
+}
+
+/** Present the next owed pack. Returns false when the queue is empty. */
+function showPack() {
+  if (!packQueue.length) { packPicks = []; return false; }
+  const job = packQueue.shift();
+  packPicks = packOffer(job.tier);
+  packOpen = false;
+
+  const specialist = job.tier === 'specialist';
+  $('packlabel').textContent = job.label || 'Requisition';
+  $('packhint').textContent = 'Tap the pack to open';
+  $('packbg').innerHTML = bokehLayer(specialist
+    ? ['#ffc94d', '#9d6bff', '#ff4d8f']
+    : ['#4de8ff', '#9d6bff', '#5dffa0']);
+  $('packfoot').innerHTML = '';
+  $('packstage').innerHTML = `<button class="packbox${specialist ? ' spec' : ''}" id="packbox">
+      <span class="pbglow"></span>
+      <span class="pbseal">${specialist ? 'SPECIALIST' : 'STANDARD'}</span>
+      <span class="pbmark">◆</span>
+      <span class="pbsub">Requisition Pack</span>
+    </button>`;
+  $('packbox').onclick = burstPack;
+  $('pack').classList.add('on');
+  return true;
+}
+
+function burstPack() {
+  if (packOpen) return;
+  packOpen = true;
+  sfx('pack');
+
+  const flash = $('packflash');
+  flash.classList.remove('go');
+  void flash.offsetWidth;          // force a reflow so the animation replays
+  flash.classList.add('go');
+
+  const box = $('packbox');
+  if (box) box.classList.add('burst');
+  $('packhint').textContent = 'Choose one to keep — the others are returned';
+
+  setTimeout(() => {
+    $('packstage').innerHTML = `<div class="packfan">${packPicks.map((p, i) => {
+      const a = packArt(p);
+      return `<button class="packcard t-${a.tier}" data-pick="${i}" style="animation-delay:${i * 110}ms">
+        <span class="pcart">${a.art}<span class="pccost">${a.cost}</span>
+          ${a.hp ? `<span class="pchp">${a.hp} HULL</span>` : ''}</span>
+        <span class="pcname">${a.title}</span>
+        <span class="pcsub">${a.sub}</span>
+        <span class="pctxt">${a.body}</span>
+        <span class="pctake">Keep this</span>
+      </button>`;
+    }).join('')}</div>`;
+    document.querySelectorAll('#packstage [data-pick]').forEach(b => {
+      b.onclick = () => takePack(+b.dataset.pick);
+    });
+  }, BURST_MS);
+}
+
+function takePack(i) {
+  const p = packPicks[i];
+  if (!p) return;
+  claimPack(p);
+  const a = packArt(p);
+
+  document.querySelectorAll('#packstage [data-pick]').forEach(b => {
+    b.classList.add(+b.dataset.pick === i ? 'taken' : 'returned');
+    b.onclick = null;
+  });
+  $('packhint').textContent = '';
+  $('packfoot').innerHTML = `<div class="packgot"><b>${a.title}</b> added to your collection</div>
+    <button class="btn" id="packnext">${packQueue.length ? 'Next pack' : 'Continue'}</button>`;
+  $('packnext').onclick = () => {
+    $('pack').classList.remove('on');
+    setTimeout(() => { if (!showPack()) afterPacks(); }, 120);
+  };
+}
+
 /* ==== src/render/panels.js ========================================== */
 // The four hold panels — Squad, Quartermaster, Database, Service Record —
 // plus Settings. Each is a function returning markup; openPanel() drops it in
@@ -5851,8 +5977,12 @@ function quartermasterPanel() {
          <div class="gfoot ${owned ? 'own' : affordable ? 'buy' : 'no'}">${owned ? 'Owned' : g.cost + ' sv'}</div></button>`;
      }).join('')}</div>`;
 
+  const canBuyPack = active.progress.credits >= PACK_PRICE;
   return `<div class="bar"><div>Credits <b>${active.progress.credits}</b> · Salvage <b style="color:var(--cyan)">${active.progress.salvage}</b></div>
      <div style="color:var(--dim);font-size:0.5625rem">Tap a card to enlarge and buy. Credits buy cards, salvage buys gear.</div></div>
+   <div class="bar"><div><b>Requisition drop</b>
+     <div style="color:var(--dim);font-size:0.5625rem;margin-top:3px">A standard pack — three offers, keep one. Duplicates promote the card instead.</div></div>
+     <button class="btn${canBuyPack ? '' : ' ghost'}" id="buypack"${canBuyPack ? '' : ' disabled'}>Buy pack · ${PACK_PRICE} cr</button></div>
    ${TIERS.map(tier).join('')}${gearGrid}`;
 }
 
@@ -6033,6 +6163,18 @@ function openPanel(key) {
   each('[data-tab]', el => { dbTab = el.dataset.tab; openPanel('database'); });
   each('[data-ui]', el => { setUiMode(el.dataset.ui); paintHold(); openPanel('settings'); });
 
+  const buyPack = $('buypack');
+  if (buyPack) {
+    buyPack.onclick = () => {
+      if (active.progress.credits < PACK_PRICE) return;
+      active.progress.credits -= PACK_PRICE;
+      commit();
+      queuePack('standard', 'Requisitioned drop');
+      setAfterPacks(() => openPanel('quartermaster'));
+      showPack();
+    };
+  }
+
   const exportRow = $('expo');
   if (exportRow) {
     exportRow.onclick = () => {
@@ -6093,116 +6235,6 @@ function openPanel(key) {
         $('panel').classList.remove('on');
       }, {ok: 'Reroll'});
   }
-}
-
-/* ==== src/render/packs.js =========================================== */
-// Requisition pack presentation: the sealed box, the burst, and the fan of
-// three cards to choose from.
-
-const BURST_MS = 260;
-
-let packPicks = [];
-let packOpen = false;
-
-/** Runs once the whole queue has been worked through. Set by wiring.js. */
-let afterPacks = () => {};
-const setAfterPacks = fn => { afterPacks = fn; };
-
-/** Everything the pack card needs to render one offer. */
-function packArt(p) {
-  if (p.kind === 'card') {
-    const k = POOL[p.id];
-    return {title: k.n, sub: TIERNAME[k.t], body: k.d, art: artFor(p.id, k.t, 86),
-      cost: costOf(p.id), hp: k.hp, tier: k.t};
-  }
-  if (p.kind === 'gear') {
-    const g = GEAR[p.id];
-    return {title: g.n, sub: 'Gear', body: g.d, art: sigil(p.id, 'tech', 86), cost: '◈', hp: 0, tier: 'tech'};
-  }
-  if (p.kind === 'vet') {
-    const k = POOL[p.id];
-    return {title: k.n, sub: 'Field promotion',
-      body: `+${p.amount} deployments logged — advances this card toward its next rank.`,
-      art: artFor(p.id, k.t, 86, '#9d6bff'), cost: '★', hp: 0, tier: 'special'};
-  }
-  return {title: p.amount + ' Salvage', sub: 'Supplies', body: 'Raw materials for the Quartermaster.',
-    art: sigil('salvage', 'tech', 86), cost: '◈', hp: 0, tier: 'tech'};
-}
-
-/** Present the next owed pack. Returns false when the queue is empty. */
-function showPack() {
-  if (!packQueue.length) { packPicks = []; return false; }
-  const job = packQueue.shift();
-  packPicks = packOffer(job.tier);
-  packOpen = false;
-
-  const specialist = job.tier === 'specialist';
-  $('packlabel').textContent = job.label || 'Requisition';
-  $('packhint').textContent = 'Tap the pack to open';
-  $('packbg').innerHTML = bokehLayer(specialist
-    ? ['#ffc94d', '#9d6bff', '#ff4d8f']
-    : ['#4de8ff', '#9d6bff', '#5dffa0']);
-  $('packfoot').innerHTML = '';
-  $('packstage').innerHTML = `<button class="packbox${specialist ? ' spec' : ''}" id="packbox">
-      <span class="pbglow"></span>
-      <span class="pbseal">${specialist ? 'SPECIALIST' : 'STANDARD'}</span>
-      <span class="pbmark">◆</span>
-      <span class="pbsub">Requisition Pack</span>
-    </button>`;
-  $('packbox').onclick = burstPack;
-  $('pack').classList.add('on');
-  return true;
-}
-
-function burstPack() {
-  if (packOpen) return;
-  packOpen = true;
-  sfx('pack');
-
-  const flash = $('packflash');
-  flash.classList.remove('go');
-  void flash.offsetWidth;          // force a reflow so the animation replays
-  flash.classList.add('go');
-
-  const box = $('packbox');
-  if (box) box.classList.add('burst');
-  $('packhint').textContent = 'Choose one to keep — the others are returned';
-
-  setTimeout(() => {
-    $('packstage').innerHTML = `<div class="packfan">${packPicks.map((p, i) => {
-      const a = packArt(p);
-      return `<button class="packcard t-${a.tier}" data-pick="${i}" style="animation-delay:${i * 110}ms">
-        <span class="pcart">${a.art}<span class="pccost">${a.cost}</span>
-          ${a.hp ? `<span class="pchp">${a.hp} HULL</span>` : ''}</span>
-        <span class="pcname">${a.title}</span>
-        <span class="pcsub">${a.sub}</span>
-        <span class="pctxt">${a.body}</span>
-        <span class="pctake">Keep this</span>
-      </button>`;
-    }).join('')}</div>`;
-    document.querySelectorAll('#packstage [data-pick]').forEach(b => {
-      b.onclick = () => takePack(+b.dataset.pick);
-    });
-  }, BURST_MS);
-}
-
-function takePack(i) {
-  const p = packPicks[i];
-  if (!p) return;
-  claimPack(p);
-  const a = packArt(p);
-
-  document.querySelectorAll('#packstage [data-pick]').forEach(b => {
-    b.classList.add(+b.dataset.pick === i ? 'taken' : 'returned');
-    b.onclick = null;
-  });
-  $('packhint').textContent = '';
-  $('packfoot').innerHTML = `<div class="packgot"><b>${a.title}</b> added to your collection</div>
-    <button class="btn" id="packnext">${packQueue.length ? 'Next pack' : 'Continue'}</button>`;
-  $('packnext').onclick = () => {
-    $('pack').classList.remove('on');
-    setTimeout(() => { if (!showPack()) afterPacks(); }, 120);
-  };
 }
 
 /* ==== src/render/result.js ========================================== */
