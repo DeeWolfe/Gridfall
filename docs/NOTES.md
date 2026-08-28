@@ -2025,12 +2025,69 @@ each for Ironveil and Shallowhelm put their signature modifier on
 Grid Overclock at ~58% of its triggered events against ~6% each for the
 rest. Full 37-guard suite passes.
 
+## Crystals: an extra turn and a second breach, both crystals-only
+
+First item off the Still Open list. Two small, targeted levers, both gated
+to `G.type === 'crystals'` so nothing else in the roster moves:
+
+- **One extra endgame turn.** `endgameCheck()`'s crystals branch now waits
+  for `G.extra >= 4` instead of the `>= 3` every other objective type uses
+  — one more turn to consolidate a hold on a fourth node before the clock
+  calls it. Safe by construction: no new wave spawns during endgame turns
+  (`G.manifest` is already null by then), so it only ever gives the player
+  more time against hostiles already on the board, never more of them.
+- **A second tolerated breach.** New `breachAllowance(type)` in `board.js`
+  — `MAXBREACH + 1` for crystals, `MAXBREACH` (still 1) for everything
+  else. `lossCheck()`'s breach check and the `c-br` HUD readout both read
+  it instead of the raw constant, so the counter on screen always matches
+  what actually ends the mission.
+
+**Why breach specifically:** Crystals asks you to hold ground at four
+separate points instead of one contiguous line, which is the mission's
+whole identity — but it means every lane runs thinner than any other
+mission type asks for, and the existing one-breach allowance (already
+generous with the Last-Stand grid charge soaking the first breach per
+lane) was punishing that spread as if it were a mistake instead of the
+point.
+
+**Measured with a direct 300-run sample per heat level** (`launchSpec`
+straight to a crystals mission, bypassing the campaign map so the sample
+isn't diluted by other mission types) rather than trusting the noisy
+per-type numbers `mtest.js` gives on ~10 runs per operation:
+
+| Heat | Before | After |
+|---|---|---|
+| 0 | 65% | 62% (flat, within noise) |
+| 1 | 33% | 38% |
+| 2 | 24% | 29% |
+| 3 | 21% | 25% |
+
+Breach-driven losses dropped meaningfully at every heat level (roughly
+30-40% fewer breach losses at heat 2-3), and win rate climbed 4-5 points
+at heat 1-3 where it mattered. Heat 0 stayed flat, as expected — a
+mission that already wins 65% of the time rarely has a lane thin enough
+to need the second breach. Full 37-guard suite passes.
+
+**What this doesn't fix:** heat 2-3 are still hard — 29% and 25% — and by
+then "Only N of 4 held" is the dominant loss reason again, not breaches.
+That's `wave()` taxing every mission type the same flat amount per heat
+point with no discount for Crystals' built-in spread; see the rewritten
+Still Open item below.
+
 ## Still open
 
-1. **Crystals still loses to "Three breaches"** more than anything else — the
-   mission stretches a defence thin by design. 45% is a floor a planning
-   player beats, but if it needs another notch, the next lever is one extra
-   endgame turn (`G.extra >= 4` for crystals only in `endgameCheck()`).
+1. **Crystals' breach rate is down, not gone.** Two levers landed (see the
+   entry below): an extra endgame turn and a second tolerated breach, both
+   crystals-only. Breach losses dropped meaningfully at every heat level,
+   but heat 2-3 are still rough — 29% and 25% win rate on a 300-run direct
+   sample, and by then "Only N of 4 held" outpaces breaches as the loss
+   reason again. That's a heat-scaling problem now, not a breach one:
+   `wave()` taxes every mission type the same flat amount per heat point,
+   with no discount for a mission that's already paying for its spread
+   across four points. Shallowhelm already works around this by pinning
+   its one guaranteed Crystals node to heat 1 instead of the operation's
+   heat 3 — the honest fix is probably the same idea applied generally,
+   not another breach-side tweak.
 2. **No real card art yet.** The placeholder portraits stand in; the
    embedding pipeline is built and proven (see above) and waits on actual
    images, which replace a placeholder the moment they land in `CARD_ART`.

@@ -3211,6 +3211,11 @@ function heldEnemyHalf() {
 /** Crystal nodes standing on ground you hold. */
 const crystalsHeld = () => G.crystals.filter(x => G.ter[x.l][x.c] === 'p').length;
 
+/** Breaches tolerated before the mission is lost. Crystals spreads a defence
+ * across four points by design — one lane inevitably runs thinner than the
+ * rest, so it gets one more before the line calling it is calling it fair. */
+const breachAllowance = type => type === 'crystals' ? MAXBREACH + 1 : MAXBREACH;
+
 /** Lingering plasma. Burns hostiles moving through and denies capture. */
 const scorched = (l, c) => (G.scorch[l + ',' + c] || 0) > 0;
 
@@ -7521,8 +7526,9 @@ function lossCheck() {
     const bld = G.civ.find(v => v.building);
     if (!bld || bld.hp <= 0) return 'The shelter was destroyed.';
   }
-  if (G.breaches >= MAXBREACH) {
-    return MAXBREACH === 1 ? 'The line was breached.' : MAXBREACH + ' breaches.';
+  const allow = breachAllowance(G.type);
+  if (G.breaches >= allow) {
+    return allow === 1 ? 'The line was breached.' : allow + ' breaches.';
   }
   if (held() < 6) return 'Ground lost — no viable deployment line.';
   return null;
@@ -7540,7 +7546,10 @@ function endgameCheck() {
   }
   if (G.type === 'crystals') {
     if (crystalsHeld() >= 3) return {win: true};
-    if (G.extra >= 3) return {win: false, why: `Only ${crystalsHeld()} of 4 crystal nodes held.`};
+    // One extra endgame turn over every other objective type — the mission
+    // spreads a defence across four points by design, so it earns a beat
+    // longer to consolidate a hold before the clock calls it.
+    if (G.extra >= 4) return {win: false, why: `Only ${crystalsHeld()} of 4 crystal nodes held.`};
     return null;
   }
   if (G.type === 'specimens') {
@@ -8999,7 +9008,7 @@ function drawAll() {
   $('c-obj').textContent = objText();
   $('c-dp').textContent = G.dp;
   $('c-ter').textContent = held();
-  $('c-br').innerHTML = G.breaches + '<span class="of">/' + MAXBREACH + '</span>';
+  $('c-br').innerHTML = G.breaches + '<span class="of">/' + breachAllowance(G.type) + '</span>';
   $('c-deck').textContent = G.deck.length;
 
   // Field events ride at the front of the incoming strip: the live one bright,

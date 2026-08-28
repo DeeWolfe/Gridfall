@@ -4,7 +4,7 @@
 // rebuilds the screen from scratch each time rather than patching it, which is
 // why the rules layer only has to say "something changed".
 
-import {LANES, COLS, MAXBREACH} from '../state/constants.js';
+import {LANES, COLS} from '../state/constants.js';
 import {POOL} from '../content/cards.js';
 import {BEST} from '../content/hostiles.js';
 import {MISSIONS} from '../content/missions.js';
@@ -15,7 +15,7 @@ import {G, active, sel, mover, replaying, stratSel, handOpen, setSel, setMover, 
 import {STRATAGEMS} from '../content/stratagems.js';
 import {stratReady, canPlayStratagem, playStratagem, stratMarkers} from '../rules/stratagems.js';
 import {costOf, gearOf, vetOf, leadOf} from '../save/progression.js';
-import {unitAt, foeAt, civAt, held, scorched, validTiles} from '../rules/board.js';
+import {unitAt, foeAt, civAt, held, scorched, validTiles, breachAllowance} from '../rules/board.js';
 import {geomFor, candidatesFor, targetsFor} from '../rules/targeting.js';
 import {buffOf, dmgPreview} from '../rules/units.js';
 import {moveTargets, doMove, doAttack, doAbility, swapTargets, doSwap} from '../rules/actions.js';
@@ -483,7 +483,7 @@ export function drawAll() {
   $('c-obj').textContent = objText();
   $('c-dp').textContent = G.dp;
   $('c-ter').textContent = held();
-  $('c-br').innerHTML = G.breaches + '<span class="of">/' + MAXBREACH + '</span>';
+  $('c-br').innerHTML = G.breaches + '<span class="of">/' + breachAllowance(G.type) + '</span>';
   $('c-deck').textContent = G.deck.length;
 
   // Field events ride at the front of the incoming strip: the live one bright,

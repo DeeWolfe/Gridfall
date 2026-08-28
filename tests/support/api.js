@@ -34,7 +34,7 @@ export {
 export {genRun, opRun, nodeState, enterProfile, reqBlocked, opComplete} from '../../src/rules/run.js';
 export {
   unitAt, foeAt, civAt, held, heldEnemyHalf, crystalsHeld, scorched,
-  cellPassable, validTiles,
+  cellPassable, validTiles, breachAllowance,
 } from '../../src/rules/board.js';
 export {wave, laneScore, rollDoctrine, predictSpawns} from '../../src/rules/waves.js';
 export {mkUnit, buffOf, dmgPreview, leadBonus} from '../../src/rules/units.js';

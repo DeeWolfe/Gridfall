@@ -4,7 +4,7 @@
 // 'e' (theirs), 'n' (neutral) or 'x' (impassable). You may only deploy onto
 // tiles you hold, so every other system is ultimately competing for these.
 
-import {LANES, COLS} from '../state/constants.js';
+import {LANES, COLS, MAXBREACH} from '../state/constants.js';
 import {POOL} from '../content/cards.js';
 import {BEST} from '../content/hostiles.js';
 import {G} from '../state/session.js';
@@ -31,6 +31,11 @@ export function heldEnemyHalf() {
 
 /** Crystal nodes standing on ground you hold. */
 export const crystalsHeld = () => G.crystals.filter(x => G.ter[x.l][x.c] === 'p').length;
+
+/** Breaches tolerated before the mission is lost. Crystals spreads a defence
+ * across four points by design — one lane inevitably runs thinner than the
+ * rest, so it gets one more before the line calling it is calling it fair. */
+export const breachAllowance = type => type === 'crystals' ? MAXBREACH + 1 : MAXBREACH;
 
 /** Lingering plasma. Burns hostiles moving through and denies capture. */
 export const scorched = (l, c) => (G.scorch[l + ',' + c] || 0) > 0;

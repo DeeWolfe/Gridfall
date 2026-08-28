@@ -8,13 +8,13 @@
 //   6. the previewed wave spawns in its promised lane
 //   7. the next wave is rolled and previewed
 
-import {LANES, COLS, MAXDP, MAXBREACH} from '../state/constants.js';
+import {LANES, COLS, MAXDP} from '../state/constants.js';
 import {BEST} from '../content/hostiles.js';
 import {G, active, nextUid, clearSelection, replaying} from '../state/session.js';
 import {hooks} from '../state/hooks.js';
 import {randInt} from '../state/rng.js';
 import {leadOf} from '../save/progression.js';
-import {unitAt, foeAt, civAt, held, heldEnemyHalf, crystalsHeld, scorched} from './board.js';
+import {unitAt, foeAt, civAt, held, heldEnemyHalf, crystalsHeld, scorched, breachAllowance} from './board.js';
 import {fire, healPass, dmgUnit, dmgEnemy, breachAt} from './combat.js';
 import {eventTick, eventStrikeMalus} from './events.js';
 import {wave, rollDoctrine, predictSpawns} from './waves.js';
@@ -393,8 +393,9 @@ function lossCheck() {
     const bld = G.civ.find(v => v.building);
     if (!bld || bld.hp <= 0) return 'The shelter was destroyed.';
   }
-  if (G.breaches >= MAXBREACH) {
-    return MAXBREACH === 1 ? 'The line was breached.' : MAXBREACH + ' breaches.';
+  const allow = breachAllowance(G.type);
+  if (G.breaches >= allow) {
+    return allow === 1 ? 'The line was breached.' : allow + ' breaches.';
   }
   if (held() < 6) return 'Ground lost — no viable deployment line.';
   return null;
@@ -412,7 +413,10 @@ function endgameCheck() {
   }
   if (G.type === 'crystals') {
     if (crystalsHeld() >= 3) return {win: true};
-    if (G.extra >= 3) return {win: false, why: `Only ${crystalsHeld()} of 4 crystal nodes held.`};
+    // One extra endgame turn over every other objective type — the mission
+    // spreads a defence across four points by design, so it earns a beat
+    // longer to consolidate a hold before the clock calls it.
+    if (G.extra >= 4) return {win: false, why: `Only ${crystalsHeld()} of 4 crystal nodes held.`};
     return null;
   }
   if (G.type === 'specimens') {
