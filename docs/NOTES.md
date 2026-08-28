@@ -839,6 +839,41 @@ wiring.js's `drawhome` handler since they had no reachable caller with
 the tab gone. Net diff on the revert was negative — this is why the
 combat screen doesn't get a drawer: it doesn't need one.
 
+## Ticker clipping fix, and the corner squares that aren't ours
+
+Two things flagged from a real screenshot. **The service ticker was
+clipping the tops of its characters** — mainly visible on the CJK
+entries (残心ネット, 通信, 警告), less so on plain Latin. Root cause:
+`.tickin` never set an explicit `line-height` (so it computed `normal`),
+and `.tickline` had no `flex-shrink:0` in its `.baymain` flex column —
+between an implicit line box sized off the UI's Latin monospace stack
+and a CJK fallback font (the stack has none of its own CJK glyphs) whose
+natural line box commonly runs taller, `overflow:hidden` had a real
+chance of slicing the fallback glyphs' ascent depending on the viewer's
+OS/font substitution. Fixed with an explicit generous `line-height:1.8`
+on `.tickin`, `flex-shrink:0` plus a touch more padding on `.tickline` so
+the row never gets squeezed by its flex siblings either. Verified with
+IPAGothic (this sandbox's installed CJK fallback) that the 通信 entry
+renders with full, unclipped glyphs at the new line-height — the exact
+before/after repro was inconclusive in this environment specifically
+(this sandbox's font substitution didn't visibly clip either way), but
+the fix addresses the actual mechanism (implicit line-height across a
+font fallback boundary, inside a shrinkable overflow:hidden box) rather
+than papering over one symptom.
+
+**The gold + violet squares in the bottom-right corner are not part of
+the game.** Confirmed by querying `document.elementFromPoint()` across
+that entire corner region in a real render — every point resolves to
+`.bayfoot`/`.baymain` with a fully transparent background; nothing in
+Gridfall's CSS paints anything gold there, and the only screen-corner UI
+Gridfall owns (the pull-up drawer tab) is bottom-*centre*, not right, and
+grey/teal. The squares also appear identically in a bare Playwright
+Chromium loading the raw file with no Claude viewer involved, which
+rules out the artifact host chrome too — leaving the browser/OS's own
+native UI (most likely a scrollbar-corner or zoom control) as the
+explanation. Nothing to fix in the game; noted here so it isn't
+re-investigated from scratch later.
+
 ## Design direction on file: the Tech tier
 
 For future card work: **Tech should lean into items, placements and

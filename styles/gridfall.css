@@ -213,10 +213,17 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .pip{width:11px;height:6px;background:var(--panel2);border:1px solid var(--line2);display:inline-block}
 .pip.on{background:var(--gold);border-color:var(--gold)}
 .dgo{font-size:0.625rem;letter-spacing:.16em;text-transform:uppercase;color:var(--zan);margin-top:2px}
-/* The service ticker hugs the bottom of whatever space is left. */
-.tickline{margin-top:auto;overflow:hidden;border-top:1px solid var(--line);padding-top:9px}
-.tickin{display:inline-block;white-space:nowrap;font-size:0.5938rem;letter-spacing:.2em;
-  text-transform:uppercase;color:var(--dim);opacity:.8;animation:tickcrawl 70s linear infinite}
+/* The service ticker hugs the bottom of whatever space is left. Its line
+   mixes the UI's monospace stack with a CJK fallback (残心ネット etc.) for
+   glyphs the stack doesn't cover — that fallback's natural line box can run
+   taller than the Latin one, so line-height stays generous and explicit
+   (never `normal`) and the row never shrinks, or the CJK glyphs' tops clip
+   against the overflow:hidden edge that a tight, implicit box would leave. */
+.tickline{margin-top:auto;flex-shrink:0;overflow:hidden;border-top:1px solid var(--line);
+  padding:9px 0 4px}
+.tickin{display:inline-block;white-space:nowrap;font-size:0.5938rem;line-height:1.8;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--dim);opacity:.8;
+  animation:tickcrawl 70s linear infinite}
 @keyframes tickcrawl{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
 /* ============ PANEL ============ */
