@@ -5,16 +5,15 @@ import {active, setMapdef} from '../state/session.js';
 import {commit} from '../save/profile.js';
 import {genRun} from '../rules/run.js';
 import {$, show} from './dom.js';
-import {leadCardHTML, leadTilesHTML, toggleRoster, foldRoster, opThumb} from './hold.js';
-import {leadUnlocked, leadGateText} from '../save/progression.js';
-import {notify} from './dialog.js';
+import {leadCardHTML, leadTilesHTML, toggleRoster, opThumb} from './hold.js';
+import {focusLead} from './focus.js';
 import {renderMap} from './map.js';
 
 export function renderOps() {
   if (!active) return;
   active.ops = active.ops || {};
 
-  $('opsbody').innerHTML = leadCardHTML() + leadTilesHTML('squad') +
+  $('opsbody').innerHTML = leadCardHTML() + leadTilesHTML('squad', 'ops') +
     `<div class="sect" style="margin-top:16px">Select an operation</div>
   <div class="opgrid">${Object.values(OPS).map(o => {
     const run = active.ops[o.k];
@@ -32,17 +31,8 @@ export function renderOps() {
   document.querySelectorAll('#opsbody [data-rosterbtn]').forEach(b => {
     b.onclick = () => { toggleRoster(); renderOps(); };
   });
-  document.querySelectorAll('#opsbody [data-lead]').forEach(b => {
-    b.onclick = () => {
-      const k = b.dataset.lead;
-      if (!leadUnlocked(k)) {
-        notify('Not on the roster', 'Recruit this lead at the Quartermaster — ' + leadGateText(k) + '.');
-        return;
-      }
-      active.lead = k;
-      commit();
-      foldRoster('#opsbody', renderOps);
-    };
+  document.querySelectorAll('#opsbody [data-leadfocus]').forEach(b => {
+    b.onclick = () => focusLead(b.dataset.leadfocus, b.dataset.lctx);
   });
   document.querySelectorAll('#opsbody [data-op]').forEach(b => {
     b.onclick = () => {

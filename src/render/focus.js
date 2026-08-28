@@ -4,17 +4,25 @@ import {DECKSIZE} from '../state/constants.js';
 import {POOL} from '../content/cards.js';
 import {GEAR} from '../content/gear.js';
 import {BEST} from '../content/hostiles.js';
+import {LEADS} from '../content/leads.js';
+import {STRATAGEMS} from '../content/stratagems.js';
 import {TGNAME} from '../content/targeting-names.js';
 import {TIERNAME, VET} from '../content/ranks.js';
 import {active, setSel, setMover} from '../state/session.js';
 import {commit} from '../save/profile.js';
-import {costOf, gearOf, vetOf} from '../save/progression.js';
+import {costOf, gearOf, vetOf, leadUnlocked, leadPrice, leadGateText} from '../save/progression.js';
 import {$} from './dom.js';
-import {sigil, artFor, bokehLayer} from './art.js';
+import {sigil, artFor, portrait, bokehLayer} from './art.js';
+import {notify} from './dialog.js';
 
 // Set by wiring.js — breaks what would otherwise be a focus <-> panels cycle.
 let onAfterFocusAction = () => {};
 export const setFocusFollowUp = fn => { onAfterFocusAction = fn; };
+
+// Also set by wiring.js: what to re-render after a lead is assigned or
+// recruited from the focus view — each roster surface folds its own way.
+let onLeadDone = () => {};
+export const setLeadFollowUp = fn => { onLeadDone = fn; };
 
 export function closeFocus() {
   $('focus').classList.remove('on');
@@ -171,6 +179,40 @@ export function focusGear(gi, viewOnly) {
   wireFocus();
 }
 
+/** The enlarged team-lead view: the dossier, both perks, and the same
+ * assign/recruit actions the tiles used to carry inline. `ctx` names the
+ * surface the popup opened from ('squad' | 'shop' | 'ops') so the follow-up
+ * can fold and re-render the right roster. */
+export function focusLead(k, ctx) {
+  const L = LEADS[k];
+  if (!L) return;
+  const def = L.stratagem ? STRATAGEMS[L.stratagem] : null;
+  const open = leadUnlocked(k);
+  const assigned = ((active.lead && LEADS[active.lead]) ? active.lead : 'ironbrand') === k;
+  const price = leadPrice(k);
+  const affordable = active.progress.credits >= price;
+  const close = '<button class="btn ghost" data-close="1">Close</button>';
+
+  const acts = assigned ? '<button class="btn ghost" data-close="1">Assigned — close</button>'
+    : open ? `<button class="btn" data-fassign="${k}" data-fctx="${ctx}">Assign lead</button>${close}`
+      : affordable ? `<button class="btn gold" data-frecruit="${k}" data-fctx="${ctx}">Recruit · ${price} cr</button>${close}`
+        : `<button class="btn ghost" data-close="1">Need ${price} cr</button>`;
+
+  $('fwrap').innerHTML = `<div class="fcard flead" style="border-color:${L.col}">
+      <div class="fart">${portrait(k)}</div>
+      <div class="fname" style="color:${L.col}">${open ? '' : '🔒 '}${L.call}</div>
+      <div class="ftype">${L.role} · ${L.n}</div>
+      <div class="ftxt">${L.bio}</div>
+      ${L.passive ? `<div class="fab"><b>Passive · ${L.passive.n}</b>${L.passive.d}</div>` : ''}
+      ${def ? `<div class="fab"><b>Stratagem · ${def.n} · ${def.dp} DP</b>${def.d} Once per mission; resolves at the start of the following turn.</div>` : ''}
+      <div class="fstats"><div class="fstat"><span class="k">Status</span>
+        <span class="v">${assigned ? 'Assigned' : open ? 'On the roster' : leadGateText(k)}</span></div></div>
+    </div><div class="facts">${acts}</div>`;
+  $('fbg').innerHTML = bokehLayer([L.col, '#9d6bff', '#4de8ff']);
+  $('focus').classList.add('on');
+  wireFocus();
+}
+
 const each = (attrName, fn) =>
   document.querySelectorAll('#fwrap [' + attrName + ']').forEach(b => { b.onclick = () => fn(b); });
 
@@ -197,6 +239,27 @@ function wireFocus() {
     commit();
     closeFocus();
     onAfterFocusAction('quartermaster');
+  });
+
+  each('data-fassign', b => {
+    const k = b.dataset.fassign;
+    if (!leadUnlocked(k)) return;
+    active.lead = k;
+    commit();
+    closeFocus();
+    onLeadDone(b.dataset.fctx, 'assign');
+  });
+
+  each('data-frecruit', b => {
+    const k = b.dataset.frecruit;
+    const price = leadPrice(k);
+    if (leadUnlocked(k) || active.progress.credits < price) return;
+    active.progress.credits -= price;
+    active.unlocks.leads.push(k);
+    commit();
+    closeFocus();
+    notify('Aboard', `<b style="color:var(--zan)">${LEADS[k].call}</b> has joined the task force. Assign them from their card.`);
+    onLeadDone(b.dataset.fctx, 'recruit');
   });
 
   each('data-fitgear', b => {

@@ -77,8 +77,9 @@ export function leadCardHTML() {
  * (assigning, folded behind the portrait) and the Quartermaster (buying,
  * always spread out); `mode` decides both the action and the wrapper.
  */
-export function leadTilesHTML(mode) {
+export function leadTilesHTML(mode, ctx) {
   const current = (active.lead && LEADS[active.lead]) ? active.lead : 'ironbrand';
+  const surface = ctx || mode;
   const grid = `<div class="leadgrid">${Object.keys(LEADS).map((k, i) => {
     const o = LEADS[k];
     const open = leadUnlocked(k);
@@ -87,10 +88,9 @@ export function leadTilesHTML(mode) {
       .filter(Boolean).join(' · ');
     const foot = mode === 'shop'
       ? (open ? (LEADGATES[k] ? 'Owned' : 'Standard issue') : leadPrice(k) + ' cr')
-      : (k === current ? 'Assigned' : open ? 'Tap to assign' : leadPrice(k) + ' cr');
-    const attr = mode === 'shop' ? (open ? '' : ` data-leadbuy="${k}"`) : ` data-lead="${k}"`;
+      : (k === current ? 'Assigned' : open ? 'On the roster' : leadPrice(k) + ' cr');
     return `<button class="leadtile${mode === 'squad' && k === current ? ' on' : ''}${open ? '' : ' locked'}"
-        ${attr} style="--lc:${o.col};--i:${i}"
+        data-leadfocus="${k}" data-lctx="${surface}" style="--lc:${o.col};--i:${i}"
         title="${o.call} — ${o.role}.${perk ? ' ' + perk + '.' : ''} ${o.bio}">
       ${open ? '' : '<span class="ltlock">🔒</span>'}
       <span class="ltcore"><span class="ltname">${o.call}</span>

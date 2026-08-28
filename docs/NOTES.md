@@ -705,6 +705,20 @@ the roster folds into, not a card. The 1700px-wide `.cgrid` override drops
 from 196px to 108px columns so chips stay chip-sized on big screens; the
 `.gart`/`.gname`/`.gcost` era CSS is finally deleted outright.
 
+Leads then joined the tap-for-details contract: `focusLead(id, ctx)` in
+focus.js renders the dossier popup — portrait in the art frame, callsign
+in the lead's colour, role, bio, passive and stratagem blocks, a status
+row — with the assign/recruit actions that used to fire inline on the
+tiles (assign folds whichever roster it came from; recruit deducts and
+notifies right in the popup, no ask() round-trip). Every lead tile in all
+three roster surfaces (Squad panel, Quartermaster, ops screen) now
+carries `data-leadfocus` + `data-lctx` instead of the old
+`data-lead`/`data-leadbuy` split, and wiring.js owns the per-surface
+follow-up via `setLeadFollowUp` so focus.js stays free of hold/ops
+imports. Locked leads open the same popup with the gate as status and
+Recruit (or "Need N cr") as the action — the "Not on the roster" notify
+is gone.
+
 ## The fun patch — variety, drama, and honest enemies
 
 Built from the game-loop review: a near-random bot was winning most missions,

@@ -4567,6 +4567,11 @@ function bokehLayer(tint) {
 let onAfterFocusAction = () => {};
 const setFocusFollowUp = fn => { onAfterFocusAction = fn; };
 
+// Also set by wiring.js: what to re-render after a lead is assigned or
+// recruited from the focus view — each roster surface folds its own way.
+let onLeadDone = () => {};
+const setLeadFollowUp = fn => { onLeadDone = fn; };
+
 function closeFocus() {
   $('focus').classList.remove('on');
   $('fwrap').innerHTML = '';
@@ -4722,6 +4727,40 @@ function focusGear(gi, viewOnly) {
   wireFocus();
 }
 
+/** The enlarged team-lead view: the dossier, both perks, and the same
+ * assign/recruit actions the tiles used to carry inline. `ctx` names the
+ * surface the popup opened from ('squad' | 'shop' | 'ops') so the follow-up
+ * can fold and re-render the right roster. */
+function focusLead(k, ctx) {
+  const L = LEADS[k];
+  if (!L) return;
+  const def = L.stratagem ? STRATAGEMS[L.stratagem] : null;
+  const open = leadUnlocked(k);
+  const assigned = ((active.lead && LEADS[active.lead]) ? active.lead : 'ironbrand') === k;
+  const price = leadPrice(k);
+  const affordable = active.progress.credits >= price;
+  const close = '<button class="btn ghost" data-close="1">Close</button>';
+
+  const acts = assigned ? '<button class="btn ghost" data-close="1">Assigned — close</button>'
+    : open ? `<button class="btn" data-fassign="${k}" data-fctx="${ctx}">Assign lead</button>${close}`
+      : affordable ? `<button class="btn gold" data-frecruit="${k}" data-fctx="${ctx}">Recruit · ${price} cr</button>${close}`
+        : `<button class="btn ghost" data-close="1">Need ${price} cr</button>`;
+
+  $('fwrap').innerHTML = `<div class="fcard flead" style="border-color:${L.col}">
+      <div class="fart">${portrait(k)}</div>
+      <div class="fname" style="color:${L.col}">${open ? '' : '🔒 '}${L.call}</div>
+      <div class="ftype">${L.role} · ${L.n}</div>
+      <div class="ftxt">${L.bio}</div>
+      ${L.passive ? `<div class="fab"><b>Passive · ${L.passive.n}</b>${L.passive.d}</div>` : ''}
+      ${def ? `<div class="fab"><b>Stratagem · ${def.n} · ${def.dp} DP</b>${def.d} Once per mission; resolves at the start of the following turn.</div>` : ''}
+      <div class="fstats"><div class="fstat"><span class="k">Status</span>
+        <span class="v">${assigned ? 'Assigned' : open ? 'On the roster' : leadGateText(k)}</span></div></div>
+    </div><div class="facts">${acts}</div>`;
+  $('fbg').innerHTML = bokehLayer([L.col, '#9d6bff', '#4de8ff']);
+  $('focus').classList.add('on');
+  wireFocus();
+}
+
 const each = (attrName, fn) =>
   document.querySelectorAll('#fwrap [' + attrName + ']').forEach(b => { b.onclick = () => fn(b); });
 
@@ -4748,6 +4787,27 @@ function wireFocus() {
     commit();
     closeFocus();
     onAfterFocusAction('quartermaster');
+  });
+
+  each('data-fassign', b => {
+    const k = b.dataset.fassign;
+    if (!leadUnlocked(k)) return;
+    active.lead = k;
+    commit();
+    closeFocus();
+    onLeadDone(b.dataset.fctx, 'assign');
+  });
+
+  each('data-frecruit', b => {
+    const k = b.dataset.frecruit;
+    const price = leadPrice(k);
+    if (leadUnlocked(k) || active.progress.credits < price) return;
+    active.progress.credits -= price;
+    active.unlocks.leads.push(k);
+    commit();
+    closeFocus();
+    notify('Aboard', `<b style="color:var(--zan)">${LEADS[k].call}</b> has joined the task force. Assign them from their card.`);
+    onLeadDone(b.dataset.fctx, 'recruit');
   });
 
   each('data-fitgear', b => {
@@ -5325,8 +5385,9 @@ function leadCardHTML() {
  * (assigning, folded behind the portrait) and the Quartermaster (buying,
  * always spread out); `mode` decides both the action and the wrapper.
  */
-function leadTilesHTML(mode) {
+function leadTilesHTML(mode, ctx) {
   const current = (active.lead && LEADS[active.lead]) ? active.lead : 'ironbrand';
+  const surface = ctx || mode;
   const grid = `<div class="leadgrid">${Object.keys(LEADS).map((k, i) => {
     const o = LEADS[k];
     const open = leadUnlocked(k);
@@ -5335,10 +5396,9 @@ function leadTilesHTML(mode) {
       .filter(Boolean).join(' · ');
     const foot = mode === 'shop'
       ? (open ? (LEADGATES[k] ? 'Owned' : 'Standard issue') : leadPrice(k) + ' cr')
-      : (k === current ? 'Assigned' : open ? 'Tap to assign' : leadPrice(k) + ' cr');
-    const attr = mode === 'shop' ? (open ? '' : ` data-leadbuy="${k}"`) : ` data-lead="${k}"`;
+      : (k === current ? 'Assigned' : open ? 'On the roster' : leadPrice(k) + ' cr');
     return `<button class="leadtile${mode === 'squad' && k === current ? ' on' : ''}${open ? '' : ' locked'}"
-        ${attr} style="--lc:${o.col};--i:${i}"
+        data-leadfocus="${k}" data-lctx="${surface}" style="--lc:${o.col};--i:${i}"
         title="${o.call} — ${o.role}.${perk ? ' ' + perk + '.' : ''} ${o.bio}">
       ${open ? '' : '<span class="ltlock">🔒</span>'}
       <span class="ltcore"><span class="ltname">${o.call}</span>
@@ -5595,7 +5655,7 @@ function renderOps() {
   if (!active) return;
   active.ops = active.ops || {};
 
-  $('opsbody').innerHTML = leadCardHTML() + leadTilesHTML('squad') +
+  $('opsbody').innerHTML = leadCardHTML() + leadTilesHTML('squad', 'ops') +
     `<div class="sect" style="margin-top:16px">Select an operation</div>
   <div class="opgrid">${Object.values(OPS).map(o => {
     const run = active.ops[o.k];
@@ -5613,17 +5673,8 @@ function renderOps() {
   document.querySelectorAll('#opsbody [data-rosterbtn]').forEach(b => {
     b.onclick = () => { toggleRoster(); renderOps(); };
   });
-  document.querySelectorAll('#opsbody [data-lead]').forEach(b => {
-    b.onclick = () => {
-      const k = b.dataset.lead;
-      if (!leadUnlocked(k)) {
-        notify('Not on the roster', 'Recruit this lead at the Quartermaster — ' + leadGateText(k) + '.');
-        return;
-      }
-      active.lead = k;
-      commit();
-      foldRoster('#opsbody', renderOps);
-    };
+  document.querySelectorAll('#opsbody [data-leadfocus]').forEach(b => {
+    b.onclick = () => focusLead(b.dataset.leadfocus, b.dataset.lctx);
   });
   document.querySelectorAll('#opsbody [data-op]').forEach(b => {
     b.onclick = () => {
@@ -7596,33 +7647,7 @@ function openPanel(key) {
 
   const each = (sel, fn) => document.querySelectorAll('#pbody ' + sel).forEach(el => { el.onclick = () => fn(el); });
   each('[data-rosterbtn]', () => { toggleRoster(); openPanel('squad'); });
-  each('[data-lead]', el => {
-    const k = el.dataset.lead;
-    if (!leadUnlocked(k)) { notify('Not on the roster', 'Recruit this lead at the Quartermaster — ' + leadGateText(k) + '.'); return; }
-    active.lead = k;
-    commit();
-    foldRoster('#pbody', () => openPanel('squad'));
-  });
-  each('[data-leadbuy]', el => {
-    const k = el.dataset.leadbuy;
-    const L = LEADS[k];
-    const price = leadPrice(k);
-    if (leadUnlocked(k)) return;
-    if (active.progress.credits < price) {
-      notify('Insufficient credits', `${L.call} signs on for ${price} cr. You hold ${active.progress.credits}.`);
-      return;
-    }
-    ask(`Recruit ${L.call}`,
-      `${L.n} — ${L.role}.<br>${L.bio}<br><br>Sign on for <b style="color:var(--gold)">${price} cr</b>?`,
-      ok => {
-        if (!ok) return;
-        active.progress.credits -= price;
-        active.unlocks.leads.push(k);
-        commit();
-        notify('Aboard', `<b style="color:var(--zan)">${L.call}</b> has joined the task force. Assign them in Squad.`);
-        openPanel('quartermaster');
-      }, {ok: 'Recruit'});
-  });
+  each('[data-leadfocus]', el => focusLead(el.dataset.leadfocus, el.dataset.lctx));
   each('[data-focus]', el => focusCard(el.dataset.focus, el.dataset.mode));
   each('[data-foe]', el => focusEnemy(el.dataset.foe));
   each('[data-gear]', el => focusGear(el.dataset.gear));
@@ -8133,6 +8158,17 @@ function boot() {
 
   // Focus-overlay actions reopen the panel they came from, or redraw combat.
   setFocusFollowUp(panel => (panel ? openPanel(panel) : drawAll()));
+  // A lead assigned from the focus view folds whichever roster it came from;
+  // a recruit just repaints the surface so the tile unlocks in place.
+  setLeadFollowUp((ctx, action) => {
+    if (ctx === 'ops') {
+      if (action === 'assign') foldRoster('#opsbody', renderOps);
+      else renderOps();
+    } else if (ctx === 'squad') {
+      if (action === 'assign') foldRoster('#pbody', () => openPanel('squad'));
+      else openPanel('squad');
+    } else openPanel('quartermaster');
+  });
 
   initProfiles();
   applyUiMode();

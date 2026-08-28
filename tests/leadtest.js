@@ -160,7 +160,7 @@ drawAll();
 
   // The roster grid carries the switching; every lead gets a tile.
   const tiles = leadTilesHTML('squad');
-  if ((tiles.match(/data-lead=/g) || []).length !== Object.keys(A.LEADS).length) {
+  if ((tiles.match(/data-leadfocus=/g) || []).length !== Object.keys(A.LEADS).length) {
     F.push('roster grid does not offer every lead');
   }
   if (!tiles.includes('leadtile')) F.push('roster grid missing its tiles');

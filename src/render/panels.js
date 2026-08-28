@@ -9,18 +9,17 @@ import {BEST} from '../content/hostiles.js';
 import {OPS} from '../content/operations.js';
 import {TIERNAME} from '../content/ranks.js';
 import {active, profiles} from '../state/session.js';
-import {LEADS} from '../content/leads.js';
 import {store} from '../save/store.js';
 import {commit, migrate, saveAll} from '../save/profile.js';
-import {rankName, costOf, vetOf, leadUnlocked, leadGateText, leadPrice} from '../save/progression.js';
+import {rankName, costOf, vetOf} from '../save/progression.js';
 import {genRun} from '../rules/run.js';
 import {purchasePack, PACK_PRICE} from '../rules/packs.js';
 import {$, attr} from './dom.js';
 import {sigil} from './art.js';
 import {ask, notify} from './dialog.js';
 import {cardEl} from './card-html.js';
-import {focusCard, focusEnemy, focusGear} from './focus.js';
-import {leadCardHTML, leadTilesHTML, toggleRoster, foldRoster, paintHold, enter} from './hold.js';
+import {focusCard, focusEnemy, focusGear, focusLead} from './focus.js';
+import {leadCardHTML, leadTilesHTML, toggleRoster, paintHold, enter} from './hold.js';
 import {showPack, setAfterPacks} from './packs.js';
 import {soundOn, toggleSound} from './sound.js';
 import {UI_MODES, UI_LABELS, uiPreference, uiModeLabel, setUiMode} from './uimode.js';
@@ -274,33 +273,7 @@ export function openPanel(key) {
 
   const each = (sel, fn) => document.querySelectorAll('#pbody ' + sel).forEach(el => { el.onclick = () => fn(el); });
   each('[data-rosterbtn]', () => { toggleRoster(); openPanel('squad'); });
-  each('[data-lead]', el => {
-    const k = el.dataset.lead;
-    if (!leadUnlocked(k)) { notify('Not on the roster', 'Recruit this lead at the Quartermaster — ' + leadGateText(k) + '.'); return; }
-    active.lead = k;
-    commit();
-    foldRoster('#pbody', () => openPanel('squad'));
-  });
-  each('[data-leadbuy]', el => {
-    const k = el.dataset.leadbuy;
-    const L = LEADS[k];
-    const price = leadPrice(k);
-    if (leadUnlocked(k)) return;
-    if (active.progress.credits < price) {
-      notify('Insufficient credits', `${L.call} signs on for ${price} cr. You hold ${active.progress.credits}.`);
-      return;
-    }
-    ask(`Recruit ${L.call}`,
-      `${L.n} — ${L.role}.<br>${L.bio}<br><br>Sign on for <b style="color:var(--gold)">${price} cr</b>?`,
-      ok => {
-        if (!ok) return;
-        active.progress.credits -= price;
-        active.unlocks.leads.push(k);
-        commit();
-        notify('Aboard', `<b style="color:var(--zan)">${L.call}</b> has joined the task force. Assign them in Squad.`);
-        openPanel('quartermaster');
-      }, {ok: 'Recruit'});
-  });
+  each('[data-leadfocus]', el => focusLead(el.dataset.leadfocus, el.dataset.lctx));
   each('[data-focus]', el => focusCard(el.dataset.focus, el.dataset.mode));
   each('[data-foe]', el => focusEnemy(el.dataset.foe));
   each('[data-gear]', el => focusGear(el.dataset.gear));

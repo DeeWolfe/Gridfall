@@ -11,9 +11,9 @@ import {opRun, genRun, opComplete} from '../rules/run.js';
 import {launchGauntlet, GAUNTLET_LEGS} from '../rules/mission.js';
 import {$, show} from './dom.js';
 import {ask, notify, dlgClose} from './dialog.js';
-import {closeFocus, setFocusFollowUp} from './focus.js';
+import {closeFocus, setFocusFollowUp, setLeadFollowUp} from './focus.js';
 import {renderSlots} from './boot-screen.js';
-import {enter, paintHold} from './hold.js';
+import {enter, paintHold, foldRoster} from './hold.js';
 import {startScene, stopScene, sizeScene, sceneRunning} from './battlefield.js';
 import {renderModes} from './modes.js';
 import {renderOps} from './ops.js';
@@ -199,6 +199,17 @@ export function boot() {
 
   // Focus-overlay actions reopen the panel they came from, or redraw combat.
   setFocusFollowUp(panel => (panel ? openPanel(panel) : drawAll()));
+  // A lead assigned from the focus view folds whichever roster it came from;
+  // a recruit just repaints the surface so the tile unlocks in place.
+  setLeadFollowUp((ctx, action) => {
+    if (ctx === 'ops') {
+      if (action === 'assign') foldRoster('#opsbody', renderOps);
+      else renderOps();
+    } else if (ctx === 'squad') {
+      if (action === 'assign') foldRoster('#pbody', () => openPanel('squad'));
+      else openPanel('squad');
+    } else openPanel('quartermaster');
+  });
 
   initProfiles();
   applyUiMode();
