@@ -40,7 +40,7 @@ function squadPanel() {
    ${leadTilesHTML('squad')}
    <div class="sect">Deck</div>
    <div class="bar"><div><b>${deck.length}</b> / ${DECKSIZE} in deck · <b style="color:var(--cyan)">${Object.keys(active.loadout.gear).length}</b> geared</div>
-     <div style="color:var(--dim);font-size:0.5625rem">Tap any card to enlarge it — inspect, fit gear, add or remove</div></div>
+     <div style="color:var(--dim);font-size:0.625rem">Tap any card to enlarge it — inspect, fit gear, add or remove</div></div>
    <div class="sect">Active deck</div>
    ${deck.length ? cardGrid(deck, 'gear') : cardGridEmpty('Empty.')}
    <div class="sect">Reserve — ${reserve.length}</div>
@@ -65,9 +65,9 @@ function quartermasterPanel() {
 
   const canBuyPack = active.progress.credits >= PACK_PRICE;
   return `<div class="bar"><div>Credits <b>${active.progress.credits}</b> · Salvage <b style="color:var(--cyan)">${active.progress.salvage}</b></div>
-     <div style="color:var(--dim);font-size:0.5625rem">Tap a card to enlarge and buy. Credits buy cards, salvage buys gear.</div></div>
+     <div style="color:var(--dim);font-size:0.625rem">Tap a card to enlarge and buy. Credits buy cards, salvage buys gear.</div></div>
    <div class="bar"><div><b>Requisition drop</b>
-     <div style="color:var(--dim);font-size:0.5625rem;margin-top:3px">Three offers, keep one — duplicates promote the card instead. Now and then one arrives as a priority requisition.</div></div>
+     <div style="color:var(--dim);font-size:0.625rem;margin-top:3px">Three offers, keep one — duplicates promote the card instead. Now and then one arrives as a priority requisition.</div></div>
      <button class="btn${canBuyPack ? '' : ' ghost'}" id="buypack"${canBuyPack ? '' : ' disabled'}>Buy pack · ${PACK_PRICE} cr</button></div>
    ${TIERS.map(tier).join('')}
    ${gearGrid}
@@ -84,7 +84,7 @@ const dbTabs = () => `<div class="tabs">
 const dbRow = ({label, body, right, hot, locked, attrs}) =>
   `<div class="row${locked ? ' locked' : ''}"${attrs || ''} style="cursor:pointer">
      <span><b style="color:${locked ? 'var(--dim)' : 'var(--zan)'}">${label}</b>
-     <div style="font-size:0.5312rem;color:var(--dim);margin-top:4px;line-height:1.5">${body}</div></span>
+     <div style="font-size:0.5938rem;color:var(--dim);margin-top:4px;line-height:1.5">${body}</div></span>
      <span class="r${hot ? ' hot' : ''}">${right}</span></div>`;
 
 function databasePanel() {
@@ -107,7 +107,7 @@ function databasePanel() {
         `<div class="rows">${rows}</div>`;
     };
     return `<div class="bar"><div>Assets on file <b>${Object.keys(POOL).length}</b></div>
-       <div style="color:var(--dim);font-size:0.5625rem">Tap an entry to enlarge — full stats, targeting and abilities</div></div>${dbTabs()}
+       <div style="color:var(--dim);font-size:0.625rem">Tap an entry to enlarge — full stats, targeting and abilities</div></div>${dbTabs()}
        ${TIERS.map(tier).join('')}`;
   }
 
@@ -125,7 +125,7 @@ function databasePanel() {
       });
     }).join('');
     return `<div class="bar"><div>Gear on file <b>${Object.keys(GEAR).length}</b></div>
-     <div style="color:var(--dim);font-size:0.5625rem">One slot per card, bought with salvage</div></div>${dbTabs()}
+     <div style="color:var(--dim);font-size:0.625rem">One slot per card, bought with salvage</div></div>${dbTabs()}
      <div class="sect">Field gear</div><div class="rows">${rows}</div>`;
   }
 
@@ -147,7 +147,7 @@ function databasePanel() {
      <div class="rows">${rows}</div>`;
   };
   return `<div class="bar"><div>Hostiles logged <b>${seen.length}</b> / ${Object.keys(BEST).length}</div>
-     <div style="color:var(--dim);font-size:0.5625rem">Entries unlock on first kill</div></div>${dbTabs()}
+     <div style="color:var(--dim);font-size:0.625rem">Entries unlock on first kill</div></div>${dbTabs()}
      ${TIERS.map(tier).join('')}`;
 }
 
@@ -164,7 +164,7 @@ function recordPanel() {
     .map(id => {
       const v = vetOf(id);
       return `<div class="row"><span>${POOL[id] ? POOL[id].n : id}
-       <span style="color:${v.col};font-size:0.5625rem"> · ${v.n}</span></span>
+       <span style="color:${v.col};font-size:0.625rem"> · ${v.n}</span></span>
        <span class="r">${v.u} deployments</span></div>`;
     }).join('') || '<div class="row"><span style="color:var(--dim)">No deployments logged yet.</span></div>';
 
@@ -176,7 +176,7 @@ function recordPanel() {
 
   return `
    <div class="bar"><div>${active.callsign} · <b style="color:var(--zan)">${rankName(active.progress.rank)}</b></div>
-     <div style="color:var(--dim);font-size:0.5625rem">Task force command · XP ${active.progress.xp}</div></div>
+     <div style="color:var(--dim);font-size:0.625rem">Task force command · XP ${active.progress.xp}</div></div>
    <div class="sect">Field record</div><div class="rows">${fieldRecord}</div>
    <div class="sect">Veteran roster</div><div class="rows">${veterans}</div>
    <div class="sect">Modes</div><div class="rows">
@@ -187,23 +187,23 @@ function recordPanel() {
 }
 
 const settingsPanel = () => `<div class="sect">Interface</div><div class="rows">
-   <div class="row"><span>Layout<div style="font-size:0.5312rem;color:var(--dim);margin-top:4px;line-height:1.5">
+   <div class="row"><span>Layout<div style="font-size:0.5938rem;color:var(--dim);margin-top:4px;line-height:1.5">
      Desktop is a denser three-column board with a combat log and number-key deployment.
      Compact stacks and scrolls. Automatic picks by display.</div></span>
      <span class="uipick">${UI_MODES.map(m =>
        `<button class="mini${uiPreference() === m ? ' on' : ''}" data-ui="${m}">${UI_LABELS[m]}</button>`).join('')}</span></div>
    <div class="row"><span>In force</span><span class="r hot">${uiModeLabel()}</span></div>
-   <div class="row" id="sndrow" style="cursor:pointer"><span>Sound effects<div style="font-size:0.5312rem;color:var(--dim);margin-top:4px">All synthesized — nothing to download.</div></span>
+   <div class="row" id="sndrow" style="cursor:pointer"><span>Sound effects<div style="font-size:0.5938rem;color:var(--dim);margin-top:4px">All synthesized — nothing to download.</div></span>
      <span class="r hot">${soundOn() ? 'On' : 'Off'}</span></div></div>
    <div class="sect">System</div><div class="rows">
    <div class="row"><span>Storage</span><span class="r">${store.ephemeral ? 'Blocked — session only' : 'This device'}</span></div>
    <div class="row"><span>Save version</span><span class="r">v${active.version}</span></div>
    <div class="row" id="shipren" style="cursor:pointer"><span>Dropship name</span><span class="r hot">DS ${active.ship || 'ANVIL-7'}</span></div>
    <div class="row" id="expo" style="cursor:pointer"><span>Export save</span><span class="r hot">Copy JSON</span></div>
-   <div class="row" id="impo" style="cursor:pointer"><span>Import save<div style="font-size:0.5312rem;color:var(--dim);margin-top:4px">Paste an exported record — it is repaired to the current version on the way in.</div></span>
+   <div class="row" id="impo" style="cursor:pointer"><span>Import save<div style="font-size:0.5938rem;color:var(--dim);margin-top:4px">Paste an exported record — it is repaired to the current version on the way in.</div></span>
      <span class="r hot">Paste JSON</span></div>
    <div class="row" id="newrun" style="cursor:pointer"><span>Regenerate current operation</span><span class="r" style="color:var(--mag)">Reroll missions</span></div>
-   <div class="row" id="tutreplay" style="cursor:pointer"><span>Combat briefing<div style="font-size:0.5312rem;color:var(--dim);margin-top:4px">Runs at the start of your next campaign mission.</div></span>
+   <div class="row" id="tutreplay" style="cursor:pointer"><span>Combat briefing<div style="font-size:0.5938rem;color:var(--dim);margin-top:4px">Runs at the start of your next campaign mission.</div></span>
      <span class="r hot">${active.settings.tutorial === 'replay' ? 'Queued' : 'Replay'}</span></div></div>
    <div class="sect">Controls</div><div class="rows">
    <div class="row"><span>End turn</span><span class="r">Space · Enter</span></div>

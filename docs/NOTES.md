@@ -620,6 +620,27 @@ pulses once (`absorb`). State lives in `hold.js` (`toggleRoster`,
 only; the Quartermaster's grid never folds. The tiles stay in the DOM when
 folded (CSS `display:none`), which keeps the render guards honest.
 
+## The readability pass
+
+Players reported the text still read busy and small. The root cause was
+arithmetic: the root clamps to its floor on phones, and the body-copy tier
+sat at 0.5312rem — **6.9px** at the old 13px floor. The fix was systemic,
+not spot edits:
+
+- The whole micro type scale moved up one tier (0.5312→0.5938,
+  0.5625→0.625, 0.5938→0.6562, chip tiers likewise), in the stylesheet and
+  every inline style, keeping the hierarchy intact.
+- The root floor rose 13px→14px (the clamp still spans 1.7×, which
+  scaletest requires).
+- `--dim` lightened #7a74a8→#948ec4 — most prose is dim-on-panel, and the
+  old pairing sat near 3.9:1 contrast at tiny sizes.
+- The map SVG labels went up a unit each (nodes 7→8, subs 6→7, zones 8→9)
+  with the same contrast lift.
+
+Net effect on a phone: the smallest prose went from ~6.9px to ~8.3px and
+brightened, with every screen verified overflow-free at 390px (the combat
+hand, header and action bar included).
+
 ## Three deep-zone operations
 
 The campaign doubled: **Lumenspire**, **Crownring** and **Shallowhelm**, each

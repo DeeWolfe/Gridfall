@@ -427,7 +427,7 @@ export function drawHand() {
   });
 
   if (!G.hand.length && !def) {
-    h.innerHTML = '<div style="font-size:0.5625rem;color:var(--dim)">Hand empty — hold with what is on the board.</div>';
+    h.innerHTML = '<div style="font-size:0.625rem;color:var(--dim)">Hand empty — hold with what is on the board.</div>';
   }
 }
 

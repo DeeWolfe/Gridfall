@@ -57,8 +57,8 @@ function nodesSvg(run) {
       ${pulse}${halo}
       <circle cx="${n.x}" cy="${n.y}" r="10" fill="${st === 'clear' ? CLEARED : '#0d0b1c'}" stroke="${st === 'clear' ? '#9dffc6' : st === 'open' ? MAPDEF.col : n.role === 'final' ? GOLD : DARK}" stroke-width="2.4"/>
       ${tick}${gate}
-      <text x="${n.x}" y="${n.y + 23}" fill="${st === 'locked' ? '#4a4477' : '#d3d0ea'}" font-size="7" text-anchor="middle" letter-spacing="1.1" font-family="ui-monospace,monospace">${line1}</text>
-      ${line2 ? `<text x="${n.x}" y="${n.y + 31}" fill="${n.role === 'side' && !n.l ? GOLD : '#6a63a0'}" font-size="6" text-anchor="middle" letter-spacing="1.4" font-family="ui-monospace,monospace">${line2}</text>` : ''}</g>`;
+      <text x="${n.x}" y="${n.y + 23}" fill="${st === 'locked' ? '#4a4477' : '#d3d0ea'}" font-size="8" text-anchor="middle" letter-spacing="1" font-family="ui-monospace,monospace">${line1}</text>
+      ${line2 ? `<text x="${n.x}" y="${n.y + 31}" fill="${n.role === 'side' && !n.l ? GOLD : '#8d86bd'}" font-size="7" text-anchor="middle" letter-spacing="1.2" font-family="ui-monospace,monospace">${line2}</text>` : ''}</g>`;
   }).join('');
 }
 
@@ -69,7 +69,7 @@ function zonesSvg() {
     const coords = z.p.split(' ');
     const xs = coords.map(q => +q.split(',')[0]);
     const ys = coords.map(q => +q.split(',')[1]);
-    return `<text x="${Math.min(...xs) + 14}" y="${Math.max(...ys) - 9}" fill="#6a5fae" font-size="8" letter-spacing="2.4" font-family="ui-monospace,monospace">${z.l}</text>`;
+    return `<text x="${Math.min(...xs) + 14}" y="${Math.max(...ys) - 9}" fill="#847cb8" font-size="9" letter-spacing="2.2" font-family="ui-monospace,monospace">${z.l}</text>`;
   }).join('');
   return shapes + labels;
 }
@@ -91,14 +91,14 @@ export function renderMap() {
       : n.role === 'side' ? ' <span style="color:var(--gold)">· BONUS OBJECTIVE</span>' : '';
     return `<div class="row" data-go="${n.id}" style="cursor:pointer">
         <span><b style="color:var(--zan)">${n.l ? n.l + ' — ' : ''}${m.n}</b>${nd.mod !== 'none' ? ` <span style="color:var(--violet)">· ${md.n}</span>` : ''}${tag}
-        <div style="font-size:0.5312rem;color:var(--dim);margin-top:4px;line-height:1.5">${n.lore ? n.lore + ' ' : ''}${m.d}${md.d ? ' ' + md.d : ''}</div></span>
+        <div style="font-size:0.5938rem;color:var(--dim);margin-top:4px;line-height:1.5">${n.lore ? n.lore + ' ' : ''}${m.d}${md.d ? ' ' + md.d : ''}</div></span>
         <span class="r hot">${nd.reward} cr · ${nd.salv} sv ▸</span></div>`;
   }).join('') || '<div class="row"><span style="color:var(--dim)">Operation complete.</span></div>';
 
   // Gated nodes the player could otherwise reach: say what is holding them.
   const gatedRows = MAPDEF.nodes.filter(n => reqBlocked(n.id)).map(n =>
     `<div class="row locked"><span><b style="color:var(--gold)">⛒ ${n.l || 'Sealed route'}</b>
-      <div style="font-size:0.5312rem;color:var(--dim);margin-top:4px;line-height:1.5">${n.reqText || 'Requirements not met.'}</div></span></div>`).join('');
+      <div style="font-size:0.5938rem;color:var(--dim);margin-top:4px;line-height:1.5">${n.reqText || 'Requirements not met.'}</div></span></div>`).join('');
 
   $('mapbody').innerHTML = `<div class="mapwrap"><div><div class="mapsvg">
     <svg viewBox="0 0 440 300" style="width:100%;display:block">
