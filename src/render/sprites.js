@@ -4,10 +4,12 @@
 // with a two-frame bob; visor and glint pixels (v/G/f) blink on their own
 // slower clock.
 //
-// Contrast rule (the reason these exist in this palette): token bodies are
-// light silver with near-black outlines so they pop off the dark cyan
-// friendly tiles, and every accent is warm — gold, white, ember — never
-// cyan-on-cyan. Hostiles keep their glyph chips; these are ours.
+// Palette: muted, tactical tones — a war story, not a toy chest. Standard
+// Issue (the free default) is dark olive drab; every purchasable scheme is
+// an equally desaturated colour, never a bright primary. The contrast rule
+// still holds: a body dark enough to blur into the near-black outline (Onyx,
+// Cobalt) gets its own lighter outline override (`o` in SCHEMES) so the
+// silhouette never disappears into the tile behind it.
 //
 // Map legend:  . empty   o outline   b body   s shade   w weapon
 //              g gold    W white     v visor glint   G gold glint   f flame
@@ -387,23 +389,25 @@ const PIXMAP = {
 // a light outline to hold the silhouette); weapons, gold trim and white stay.
 
 export const SCHEMES = {
-  standard: {n: 'Standard Issue', price: 0, b: '#ccd3ea', s: '#8b93b6', v: '#ffd970'},
-  crimson: {n: 'Crimson', price: 150, b: '#e04f4f', s: '#8f2626', v: '#ffd970'},
-  cobalt: {n: 'Cobalt', price: 150, b: '#5578f0', s: '#2d3f96', v: '#ffd970'},
-  emerald: {n: 'Emerald', price: 150, b: '#4fd070', s: '#237a3c', v: '#f4f6ff'},
-  rose: {n: 'Rose', price: 200, b: '#ff7ab8', s: '#a83e70', v: '#fff0f6'},
-  onyx: {n: 'Onyx', price: 200, b: '#383b4f', s: '#181a26', v: '#ff5b5b', o: '#d4d9ec'},
+  standard: {n: 'Standard Issue', price: 0, b: '#4a6b4a', s: '#2c402c', v: '#ffd970'},
+  crimson: {n: 'Crimson', price: 150, b: '#7a3232', s: '#4a1c1c', v: '#ffd970'},
+  cobalt: {n: 'Cobalt', price: 150, b: '#3c5490', s: '#243568', v: '#ffd970', o: '#aebde0'},
+  slate: {n: 'Slate', price: 150, b: '#4a4f5c', s: '#2c2f38', v: '#ffd970'},
+  plum: {n: 'Plum', price: 200, b: '#5c3358', s: '#371f36', v: '#ffd970'},
+  onyx: {n: 'Onyx', price: 200, b: '#23252f', s: '#121319', v: '#ff5b5b', o: '#8890a8'},
 };
 
 export const hasSprite = id => !!PIXMAP[id];
 export const spriteIds = () => Object.keys(PIXMAP);
 
 // -- hostile tokens -----------------------------------------------------------
-// The hive is bone and chitin: pale bodies, near-black outlines, venom-green
-// glow pixels — hot-light on the maroon tiles, never magenta-on-maroon.
+// The hive reads as a colour, not a shape: violet chitin, near-black
+// outlines, venom-green glow pixels — bright enough against every hostile
+// tile tier (unit/tech/special) to never blur into the ground behind it.
+// Green army, purple hive: the two forces are unmistakable at a glance.
 
 const PXE_COLOR = {
-  o: '#1a0d16', b: '#e6d4c4', s: '#a8907e', w: '#6b4e52',
+  o: '#170a20', b: '#8a5cc9', s: '#5c3a86', w: '#4a3563',
   g: '#ffc94d', W: '#f4f6ff', x: '#cdf24c',
 };
 

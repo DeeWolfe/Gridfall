@@ -799,6 +799,48 @@ confirm-and-refit dialog), the `unlocks.schemes`/`loadout.scheme`
 persistence, and the migration/blank-profile wiring are all unchanged —
 only the palette moved.
 
+## Tactical palette pass: darker tones, green vs purple, drawer in combat
+
+Three follow-ups from the same review.
+
+**Palette.** The uniform schemes read "toy story" — bright saturated
+primaries. Repainted the whole `SCHEMES` table to muted, desaturated
+military tones: **Standard Issue** (the free default) is now dark olive
+drab, replacing silver as the army's main colour — the user's call, so
+the default soldier is green rather than neutral. The paid schemes
+became Crimson (oxblood), Cobalt (steel navy), Slate (grey; replaces the
+old Emerald key since green now belongs to Standard), Plum (replaces
+Rose), and Onyx (near-black). The safeguard the user asked for — "if too
+dark and blends in with the background, add an outline" — was already
+half-built (Onyx's `o` override from the first pass); Cobalt picked up
+the same treatment (`o: '#aebde0'`, pale steel) since a dark navy body
+sat too close to the friendly tile's own navy background. Every other
+scheme's body stays comfortably brighter than the tile behind it, so the
+default near-black outline holds without an override. The hive got the
+mirror treatment: `PXE_COLOR` body/shade moved from bone-tan to a
+mid-bright violet (#8a5cc9/#5c3a86), keeping the venom-green glint —
+green army, purple hive, unmistakable at a glance. pixtest is
+data-driven off `Object.keys(SCHEMES)` so the key rename needed no test
+changes; it still asserts every scheme (including the new optional `o`)
+avoids the faction tile colours.
+
+**Menu in combat.** The pull-up drawer only lived on the hold/ops/map/
+modes screens — combat was excluded because its bottom edge is already
+the hand and action bar. It's now reachable there too, repositioned: a
+small tab docks into the top-right corner next to the lead badge (a ~2px
+nudge into the badge's top edge reads as one docked control, not a
+collision — measured and screenshotted to confirm), and the menu drops
+down instead of rising up. `dom.js#show()` now resets the drawer (closed,
+correct resting arrow) on every screen change, so a menu left open on
+one screen never reopens mispositioned on the next; `paintDrawer()` in
+wiring.js is combat-aware so the arrow points the right direction in
+either position. The one real hazard — "Title screen" mid-mission — is
+guarded: tapping it while a mission is in progress asks for confirmation
+(same stakes as the in-combat Abort button) and, on confirm, routes
+through `leaveCombat()` before signing out, so mission-abort bookkeeping
+(stats, gauntlet/onslaught state) still runs instead of the game state
+being cut away from mid-board.
+
 ## Design direction on file: the Tech tier
 
 For future card work: **Tech should lean into items, placements and

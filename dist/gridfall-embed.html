@@ -960,11 +960,14 @@ body{font-size:1rem}
   color:var(--dim);font-size:0.625rem;line-height:1.65;max-width:64ch}
 
 /* ============ PULL-UP DRAWER ============ */
-/* One tab on every out-of-combat screen: tap, the menu slides up; tap again,
-   it slides back down. Sibling selectors hide it where it has no business. */
+/* One tab on every screen but title/boot: tap, the menu slides open; tap
+   again, it slides back away. On the hold/ops/map/modes screens it sits
+   bottom-centre and the menu rises; in combat — where the bottom edge is
+   already the hand and action bar — it moves to the top-right corner next
+   to the lead badge and the menu drops down instead. */
 #drawer{position:fixed;left:50%;transform:translateX(-50%);bottom:0;z-index:60;
   display:flex;flex-direction:column;align-items:center}
-#title.on ~ #drawer,#boot.on ~ #drawer,#combat.on ~ #drawer{display:none}
+#title.on ~ #drawer,#boot.on ~ #drawer{display:none}
 #drawtab{width:52px;height:20px;border:1px solid var(--line2);border-bottom:none;
   background:var(--panel2);color:var(--dim);font-size:0.5938rem;cursor:pointer;
   clip-path:polygon(9px 0,calc(100% - 9px) 0,100% 100%,0 100%);transition:.15s}
@@ -977,6 +980,13 @@ body{font-size:1rem}
 #drawer.up .drawmenu{transform:none;opacity:1;pointer-events:auto}
 .drawmenu .mini{text-align:left;white-space:nowrap}
 @media (prefers-reduced-motion: reduce){.drawmenu{transition:none}}
+
+#combat.on ~ #drawer{left:auto;right:12px;bottom:auto;top:0;transform:none;
+  align-items:flex-end;z-index:35}
+#combat.on ~ #drawer #drawtab{clip-path:polygon(9px 100%,calc(100% - 9px) 100%,100% 0,0 0);
+  border:1px solid var(--line2);border-top:none}
+#combat.on ~ #drawer .drawmenu{bottom:auto;top:26px;transform:translateY(-70%)}
+#combat.on ~ #drawer.up .drawmenu{transform:none}
 </style>
 <div class="scr on" id="title">
   <div class="titlebg"></div>
@@ -4305,6 +4315,15 @@ function show(id) {
     const e = $(s);
     if (e) e.classList.toggle('on', s === id);
   });
+  // The pull-up drawer resets on every screen change — the combat variant
+  // sits in a different corner and slides the other way, so a menu left
+  // open from the last screen would land in the wrong place.
+  const drawer = $('drawer');
+  if (drawer) {
+    drawer.classList.remove('up');
+    const tab = $('drawtab');
+    if (tab) tab.textContent = id === 'combat' ? '▼' : '▲';
+  }
 }
 
 /** Escape a string for use inside a double-quoted HTML attribute. */
@@ -7085,10 +7104,12 @@ function supportLabel(u) {
 // with a two-frame bob; visor and glint pixels (v/G/f) blink on their own
 // slower clock.
 //
-// Contrast rule (the reason these exist in this palette): token bodies are
-// light silver with near-black outlines so they pop off the dark cyan
-// friendly tiles, and every accent is warm — gold, white, ember — never
-// cyan-on-cyan. Hostiles keep their glyph chips; these are ours.
+// Palette: muted, tactical tones — a war story, not a toy chest. Standard
+// Issue (the free default) is dark olive drab; every purchasable scheme is
+// an equally desaturated colour, never a bright primary. The contrast rule
+// still holds: a body dark enough to blur into the near-black outline (Onyx,
+// Cobalt) gets its own lighter outline override (`o` in SCHEMES) so the
+// silhouette never disappears into the tile behind it.
 //
 // Map legend:  . empty   o outline   b body   s shade   w weapon
 //              g gold    W white     v visor glint   G gold glint   f flame
@@ -7466,23 +7487,25 @@ const PIXMAP = {
 // a light outline to hold the silhouette); weapons, gold trim and white stay.
 
 const SCHEMES = {
-  standard: {n: 'Standard Issue', price: 0, b: '#ccd3ea', s: '#8b93b6', v: '#ffd970'},
-  crimson: {n: 'Crimson', price: 150, b: '#e04f4f', s: '#8f2626', v: '#ffd970'},
-  cobalt: {n: 'Cobalt', price: 150, b: '#5578f0', s: '#2d3f96', v: '#ffd970'},
-  emerald: {n: 'Emerald', price: 150, b: '#4fd070', s: '#237a3c', v: '#f4f6ff'},
-  rose: {n: 'Rose', price: 200, b: '#ff7ab8', s: '#a83e70', v: '#fff0f6'},
-  onyx: {n: 'Onyx', price: 200, b: '#383b4f', s: '#181a26', v: '#ff5b5b', o: '#d4d9ec'},
+  standard: {n: 'Standard Issue', price: 0, b: '#4a6b4a', s: '#2c402c', v: '#ffd970'},
+  crimson: {n: 'Crimson', price: 150, b: '#7a3232', s: '#4a1c1c', v: '#ffd970'},
+  cobalt: {n: 'Cobalt', price: 150, b: '#3c5490', s: '#243568', v: '#ffd970', o: '#aebde0'},
+  slate: {n: 'Slate', price: 150, b: '#4a4f5c', s: '#2c2f38', v: '#ffd970'},
+  plum: {n: 'Plum', price: 200, b: '#5c3358', s: '#371f36', v: '#ffd970'},
+  onyx: {n: 'Onyx', price: 200, b: '#23252f', s: '#121319', v: '#ff5b5b', o: '#8890a8'},
 };
 
 const hasSprite = id => !!PIXMAP[id];
 const spriteIds = () => Object.keys(PIXMAP);
 
 // -- hostile tokens -----------------------------------------------------------
-// The hive is bone and chitin: pale bodies, near-black outlines, venom-green
-// glow pixels — hot-light on the maroon tiles, never magenta-on-maroon.
+// The hive reads as a colour, not a shape: violet chitin, near-black
+// outlines, venom-green glow pixels — bright enough against every hostile
+// tile tier (unit/tech/special) to never blur into the ground behind it.
+// Green army, purple hive: the two forces are unmistakable at a glance.
 
 const PXE_COLOR = {
-  o: '#1a0d16', b: '#e6d4c4', s: '#a8907e', w: '#6b4e52',
+  o: '#170a20', b: '#8a5cc9', s: '#5c3a86', w: '#4a3563',
   g: '#ffc94d', W: '#f4f6ff', x: '#cdf24c',
 };
 
@@ -9091,11 +9114,16 @@ function wireRecordScreen() {
     enter(p);
   };
   $('callsign').addEventListener('keydown', e => { if (e.key === 'Enter') $('create').click(); });
-  // The pull-up drawer: one tab on every out-of-combat screen. Tap to slide
-  // the menu up, tap again to slide it back down.
+  // The pull-up drawer: one tab everywhere but title/boot. Tap to slide the
+  // menu open, tap again to slide it away — bottom-centre and rising on the
+  // hold/ops/map/modes screens, top-right and dropping down in combat (see
+  // the #combat.on ~ #drawer rules), where the bottom edge is already the
+  // hand and action bar.
   const drawer = $('drawer');
+  const inCombat = () => $('combat').classList.contains('on');
   const paintDrawer = () => {
-    $('drawtab').textContent = drawer.classList.contains('up') ? '▼' : '▲';
+    const open = drawer.classList.contains('up');
+    $('drawtab').textContent = inCombat() ? (open ? '▲' : '▼') : (open ? '▼' : '▲');
     $('drawui').textContent = 'UI · ' + uiModeLabel();
     $('drawmus').textContent = 'Music · ' + (musicOn() ? 'On' : 'Off');
   };
@@ -9106,11 +9134,24 @@ function wireRecordScreen() {
   $('drawhome').onclick = () => {
     drawer.classList.remove('up');
     paintDrawer();
-    commit();
-    stopScene();
-    setActive(null);
-    show('boot');
-    renderSlots();
+    const goHome = () => {
+      commit();
+      stopScene();
+      setActive(null);
+      show('boot');
+      renderSlots();
+    };
+    // Signing out mid-mission is an abort — ask first, same stakes as the
+    // in-combat Abort button, then route through leaveCombat() so the
+    // mission actually ends (stats, gauntlet/onslaught bookkeeping) instead
+    // of just cutting away from an unfinished board.
+    if (inCombat() && G && !G.over) {
+      ask('Abort mission', 'Signing out now abandons the mission in progress.<br><br>Leave the field?',
+        ok => { if (!ok) return; leaveCombat(); goHome(); }, {ok: 'Abort & sign out'});
+    } else {
+      if (inCombat()) leaveCombat();
+      goHome();
+    }
   };
   paintDrawer();
 }
