@@ -72,6 +72,7 @@ export const OPS = {
       ["n6", "n8"],
     ],
     lore: "The Blackmarrow seams run deeper than any survey admits, and something has been hollowing them out from below. The last crew up sealed the winch station behind them and never said what they saw. The nest is confirmed. Burn it out — and mind the dark below the second gallery, where the power has been out for a month.",
+    modBias: "crumble",
   },
   sunderglass: {
     k: "sunderglass",
@@ -105,6 +106,7 @@ export const OPS = {
       ["n6", "n8"],
     ],
     lore: "The Sunderglass flats grow the resonant crystal every jump drive in the sector depends on, and the hive grazes on them like cattle. Every day the fields sit contested, the harvest shatters a little more. Cut what can still be saved and get out before the glassing swallows the route home.",
+    eventBias: "research",
   },
   lumenspire: {
     k: "lumenspire",
@@ -208,6 +210,7 @@ export const OPS = {
       ["n5", "n9"],
     ],
     lore: "Once a year the Concordat factions meet under one roof to keep the alliance stitched together. This year the burrowers came up through the foundations mid-session — past every checkpoint, straight for the Summit Hall. If the delegations die in the wards, the alliance dies with them and the whole region tips. Walk them out. Whatever it costs.",
+    eventBias: "bombard",
   },
   shallowhelm: {
     k: "shallowhelm",

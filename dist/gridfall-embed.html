@@ -1272,6 +1272,7 @@ const OPS = {
       ["n6", "n8"],
     ],
     lore: "The Blackmarrow seams run deeper than any survey admits, and something has been hollowing them out from below. The last crew up sealed the winch station behind them and never said what they saw. The nest is confirmed. Burn it out — and mind the dark below the second gallery, where the power has been out for a month.",
+    modBias: "crumble",
   },
   sunderglass: {
     k: "sunderglass",
@@ -1305,6 +1306,7 @@ const OPS = {
       ["n6", "n8"],
     ],
     lore: "The Sunderglass flats grow the resonant crystal every jump drive in the sector depends on, and the hive grazes on them like cattle. Every day the fields sit contested, the harvest shatters a little more. Cut what can still be saved and get out before the glassing swallows the route home.",
+    eventBias: "research",
   },
   lumenspire: {
     k: "lumenspire",
@@ -1408,6 +1410,7 @@ const OPS = {
       ["n5", "n9"],
     ],
     lore: "Once a year the Concordat factions meet under one roof to keep the alliance stitched together. This year the burrowers came up through the foundations mid-session — past every checkpoint, straight for the Summit Hall. If the delegations die in the wards, the alliance dies with them and the whole region tips. Walk them out. Whatever it costs.",
+    eventBias: "bombard",
   },
   shallowhelm: {
     k: "shallowhelm",
@@ -2907,7 +2910,12 @@ function genRun() {
         : role === 'final' ? 'extract'
           : role === 'side' ? sidePool[randInt(sidePool.length)]
             : mainPool[randInt(mainPool.length)]),
-      mod: chance(0.45) ? mods[1 + randInt(mods.length - 1)] : 'none',
+      // An operation can name a signature modifier (Blackmarrow's tunnels
+      // collapsing underfoot) — still a roll, just weighted toward the
+      // theme instead of drawn flat from the full pool every time.
+      mod: chance(0.45)
+        ? (map.modBias && chance(0.65) ? map.modBias : mods[1 + randInt(mods.length - 1)])
+        : 'none',
       reward: 70 + randInt(5) * 20 + 5 + randInt(5),
     };
   });
@@ -3652,10 +3660,16 @@ const EVENT_CHANCE = 0.35;
 /** Roll the event telegraphed for the coming turn — usually nothing. Research
  * Team sits out a Civilians mission: it rides G.civ same as the shelter and
  * its walkers do, and an unflagged extra entry there would throw off that
- * mode's own extraction count and shelter-hull tracking. */
+ * mode's own extraction count and shelter-hull tracking. An operation can
+ * name a signature event (Sunderglass's Research Team, Crownring's
+ * Bombardment) — still a roll, just weighted toward the theme rather than
+ * drawn flat from every event in the book. */
 function rollEvent() {
   if (!chance(EVENT_CHANCE)) return null;
   const keys = Object.keys(EVENTS).filter(k => !(k === 'research' && G.type === 'civilians'));
+  const op = G.op && OPS[G.op];
+  const bias = op && op.eventBias;
+  if (bias && keys.includes(bias) && chance(0.55)) return bias;
   return keys[randInt(keys.length)];
 }
 
@@ -4344,7 +4358,7 @@ function launchSpec(nd) {
   }
 
   setG({
-    node: nd.node, type: nd.type, mod: nd.mod, reward: nd.reward,
+    node: nd.node, op: nd.op || null, type: nd.type, mod: nd.mod, reward: nd.reward,
     heat: nd.heat || 0, endless: !!nd.endless, gauntlet: !!nd.gauntlet, daily: !!nd.daily,
     waves: nd.endless ? 9999 : m.waves,
     turn: 1, dp: MAXDP, breaches: 0, over: false,
@@ -4408,7 +4422,7 @@ function launch(nodeId) {
   if (!active) return false;
   const nd = opRun().nodes[nodeId];
   if (!nd) return false;
-  return launchSpec({node: nodeId, type: nd.type, mod: nd.mod, reward: nd.reward, heat: nd.heat});
+  return launchSpec({node: nodeId, op: active.op, type: nd.type, mod: nd.mod, reward: nd.reward, heat: nd.heat});
 }
 
 /** Onslaught: one board, waves that never stop and scale 1.9x each time. */

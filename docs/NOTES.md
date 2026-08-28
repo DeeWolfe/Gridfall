@@ -1954,6 +1954,46 @@ expected. Full 37-guard suite passes, including a new `puppeteer` foe
 sprite `pixtest` was otherwise failing on (glyph `☍`, palette matches the
 existing hostile tokens).
 
+## Operations get a signature hazard, not just a random one
+
+Crumbling Ground and the two field events (Bombardment, Research Team)
+landed as pure chance across every operation — mechanically fine, but it
+meant Blackmarrow's sub-crust mining tunnels never felt more likely to
+cave in than a shipyard's open deck, which undersells the setting. Gave
+three operations a signature hazard instead:
+
+- **Blackmarrow** (mining tunnels) → biased toward the **Crumbling
+  Ground** modifier.
+- **Sunderglass** (crystal fields) → biased toward the **Research Team**
+  event.
+- **Crownring** (a summit under siege) → biased toward **Bombardment**.
+
+Two new operation-data fields carry it: `modBias` (`run.js`'s modifier
+roll) and `eventBias` (`events.js`'s `rollEvent()`), both read straight
+off `OPS[key]` the same way `heat` already is — no new content pipeline,
+just two more optional fields on the existing per-operation JSON entries.
+Neither is a guarantee: when a mission's modifier roll or event roll
+already hits (the existing 45%/35% chances, untouched), the *signature*
+one wins 65%/55% of the time and the full pool still gets the rest, so
+Blackmarrow can still throw a Nest or a Blackout — it just leans hard
+toward tunnels giving way underfoot. Onslaught, Gauntlet and the Daily
+Challenge aren't tied to an operation (`node: null`) and never see this —
+signature hazards are a campaign-map thing.
+
+**Needed one small plumbing addition:** `G` didn't carry which operation
+a mission belonged to at all — `launch(nodeId)` resolves everything
+through `opRun()`/`active.op` but never handed it to `launchSpec()`.
+Added `op` to the node spec `launch()` builds and to the base `G` object,
+so `rollEvent()` (which only sees `G`, not `active`) can look its bias up.
+
+Verified statistically rather than by eyeballing the numbers in the diff:
+300 simulated `genRun()` calls on Blackmarrow put Crumbling Ground on
+~34% of modified nodes against ~7% for every other modifier and ~13%
+uniform at Ironveil (no bias); 2000 `rollEvent()` calls each showed
+Research Team at ~60% of Sunderglass's triggered events (vs. ~16% at
+Ironveil) and Bombardment at ~57% of Crownring's (same baseline
+contrast). Full 37-guard suite passes.
+
 ## Still open
 
 1. **Crystals still loses to "Three breaches"** more than anything else — the

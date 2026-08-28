@@ -34,7 +34,12 @@ export function genRun() {
         : role === 'final' ? 'extract'
           : role === 'side' ? sidePool[randInt(sidePool.length)]
             : mainPool[randInt(mainPool.length)]),
-      mod: chance(0.45) ? mods[1 + randInt(mods.length - 1)] : 'none',
+      // An operation can name a signature modifier (Blackmarrow's tunnels
+      // collapsing underfoot) — still a roll, just weighted toward the
+      // theme instead of drawn flat from the full pool every time.
+      mod: chance(0.45)
+        ? (map.modBias && chance(0.65) ? map.modBias : mods[1 + randInt(mods.length - 1)])
+        : 'none',
       reward: 70 + randInt(5) * 20 + 5 + randInt(5),
     };
   });

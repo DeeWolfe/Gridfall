@@ -14,6 +14,7 @@
 // one turn; what it started doesn't have to.
 
 import {G} from '../state/session.js';
+import {OPS} from '../content/operations.js';
 import {chance, randInt} from '../state/rng.js';
 import {clog} from './log.js';
 
@@ -39,10 +40,16 @@ const EVENT_CHANCE = 0.35;
 /** Roll the event telegraphed for the coming turn — usually nothing. Research
  * Team sits out a Civilians mission: it rides G.civ same as the shelter and
  * its walkers do, and an unflagged extra entry there would throw off that
- * mode's own extraction count and shelter-hull tracking. */
+ * mode's own extraction count and shelter-hull tracking. An operation can
+ * name a signature event (Sunderglass's Research Team, Crownring's
+ * Bombardment) — still a roll, just weighted toward the theme rather than
+ * drawn flat from every event in the book. */
 export function rollEvent() {
   if (!chance(EVENT_CHANCE)) return null;
   const keys = Object.keys(EVENTS).filter(k => !(k === 'research' && G.type === 'civilians'));
+  const op = G.op && OPS[G.op];
+  const bias = op && op.eventBias;
+  if (bias && keys.includes(bias) && chance(0.55)) return bias;
   return keys[randInt(keys.length)];
 }
 
