@@ -746,6 +746,40 @@ a synthetic `.click()` fires no pointerdown, so the gesture list includes
 'click' — which is also what lets the Playwright checks (and a
 MediaRecorder capture of the live bus) exercise the engine headlessly.
 
+## Pixel Ops: unit tokens on the combat grid
+
+The pixel grid tokens came off hold. `src/render/sprites.js` gives every
+unit a 12×12 pixel sprite on the combat board, authored as readable
+row-string maps (`o` outline, `b` body, `s` shade, `w` weapon, `g` gold,
+`W` white, `v`/`G`/`f` blinking glints) — edit a string, rebuild, the
+token changes, which is the iteration loop the user wanted. Troopers
+compose from a shared chassis (TROOPER / HEAVY / KNEEL) plus a sparse
+per-card overlay for the weapon or prop; emplacements and odd shapes
+(drone, fireteam pair, hoverbike, exo frame, Hecate platform) are full
+custom maps. Tokens idle on a two-frame bob (staggered per-unit by uid so
+a line never marches in lockstep) and their glint pixels blink on a
+slower clock; reduced-motion disables both.
+
+The palette enforces the contrast rule recorded when this was parked:
+light-silver bodies (#ccd3ea) with near-black outlines over the dark
+faction tiles, warm accents only (gold/white/ember) — pixtest (guard #37)
+actually asserts no `#4de8ff`/`#ff4d8f` inside any token, plus coverage
+both ways and distinctness. In `unitMarkup` the sprite replaces the name
+text (name moved to the cell tooltip; the details panel already carries
+it), hp shrank to a corner digit, and every status badge (minihp,
+incoming, lock, shield, cannon, cycling, spent) survives. Hostiles keep
+their glyph-and-intent chips deliberately — that language was built for
+threat-reading and stays.
+
+## Design direction on file: the Tech tier
+
+For future card work: **Tech should lean into items, placements and
+stratagem-like effects — generally not units.** Think Magic's artifacts
+and instants rather than creatures: emplacements, consumables, field
+modifications, one-shot calls. The existing Tech units stay for now, but
+new Tech design starts from "what does the player place or trigger", not
+"what body do they add to a lane".
+
 ## Combat track, pull-up drawer, achievements
 
 The music engine grew a second mood: `M_MOODS` holds the 92 BPM Am·F·C·G

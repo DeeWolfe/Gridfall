@@ -19,7 +19,7 @@ const GUARDS = [
   'stratagemtest', 'passivetest', 'grappletest', 'breachtest', 'foetest', 'eventtest',
   'opentest', 'leadtest', 'packtest', 'maptest', 'cardtest', 'repro',
   'playtest', 'actbar', 'csstest', 'cssdup', 'headtest', 'navtest', 'scaletest',
-  'handtest', 'uitest', 'tapetest', 'tuttest', 'sndtest', 'arttest', 'buildtest',
+  'handtest', 'uitest', 'tapetest', 'tuttest', 'sndtest', 'arttest', 'pixtest', 'buildtest',
 ];
 const BALANCE = ['test', 'mtest', 'onstest'];
 

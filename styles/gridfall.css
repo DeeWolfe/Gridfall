@@ -374,7 +374,15 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .ent{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;
   justify-content:center;border:1px solid;padding:1px;position:relative}
 .ent .nm{font-size:0.5938rem;font-weight:700;text-align:center;line-height:1.05}
-.ent .hp{font-size:0.625rem;font-weight:700;line-height:1.1}
+.ent .hp{position:absolute;bottom:0;right:2px;font-size:0.5312rem;font-weight:700;line-height:1.1;
+  text-shadow:0 0 3px rgba(7,6,15,.9)}
+/* Pixel Ops tokens: two-frame idle bob, blinking visor/glint pixels. */
+.ent .pxu{width:90%;height:90%}
+.pxu{animation:pixbob 1.2s linear infinite}
+.pxg{animation:pixglint 2.4s linear infinite}
+@keyframes pixbob{0%,49.9%{transform:translateY(0)}50%,100%{transform:translateY(-4%)}}
+@keyframes pixglint{0%,64%{opacity:1}65%,100%{opacity:.25}}
+@media(prefers-reduced-motion:reduce){.pxu,.pxg{animation:none}}
 .p-unit{background:#14304d;border-color:var(--cyan-d);color:var(--cyan)}
 .p-struct{background:#152a3a;border-color:#2b5f75;color:#8fd4e6}
 .p-spec{background:#3a2c12;border-color:#9a7420;color:var(--gold)}

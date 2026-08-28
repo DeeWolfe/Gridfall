@@ -376,7 +376,15 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .ent{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;
   justify-content:center;border:1px solid;padding:1px;position:relative}
 .ent .nm{font-size:0.5938rem;font-weight:700;text-align:center;line-height:1.05}
-.ent .hp{font-size:0.625rem;font-weight:700;line-height:1.1}
+.ent .hp{position:absolute;bottom:0;right:2px;font-size:0.5312rem;font-weight:700;line-height:1.1;
+  text-shadow:0 0 3px rgba(7,6,15,.9)}
+/* Pixel Ops tokens: two-frame idle bob, blinking visor/glint pixels. */
+.ent .pxu{width:90%;height:90%}
+.pxu{animation:pixbob 1.2s linear infinite}
+.pxg{animation:pixglint 2.4s linear infinite}
+@keyframes pixbob{0%,49.9%{transform:translateY(0)}50%,100%{transform:translateY(-4%)}}
+@keyframes pixglint{0%,64%{opacity:1}65%,100%{opacity:.25}}
+@media(prefers-reduced-motion:reduce){.pxu,.pxg{animation:none}}
 .p-unit{background:#14304d;border-color:var(--cyan-d);color:var(--cyan)}
 .p-struct{background:#152a3a;border-color:#2b5f75;color:#8fd4e6}
 .p-spec{background:#3a2c12;border-color:#9a7420;color:var(--gold)}
@@ -7065,6 +7073,410 @@ function supportLabel(u) {
   return null;
 }
 
+/* ==== src/render/sprites.js ========================================= */
+// Pixel Ops: the on-grid combat tokens. Every friendly unit is a 12×12
+// pixel sprite, drawn as SVG rects (crispEdges) from the readable row-string
+// maps below — edit a string, rebuild, and the token changes. Sprites idle
+// with a two-frame bob; visor and glint pixels (v/G/f) blink on their own
+// slower clock.
+//
+// Contrast rule (the reason these exist in this palette): token bodies are
+// light silver with near-black outlines so they pop off the dark cyan
+// friendly tiles, and every accent is warm — gold, white, ember — never
+// cyan-on-cyan. Hostiles keep their glyph chips; these are ours.
+//
+// Map legend:  . empty   o outline   b body   s shade   w weapon
+//              g gold    W white     v visor glint   G gold glint   f flame
+
+const PX_COLOR = {
+  o: '#12102a', b: '#ccd3ea', s: '#8b93b6', w: '#5b6284',
+  g: '#ffc94d', W: '#f4f6ff', v: '#ffd970', G: '#ffc94d', f: '#ff9a3d',
+};
+const PX_BLINK = {v: 1, G: 1, f: 1};
+
+/** Merge an overlay onto a base map: any non-dot overlay pixel wins. */
+const ov = (base, patch) => base.map((row, y) => {
+  const p = patch[y];
+  if (!p) return row;
+  return row.split('').map((ch, x) => (p[x] && p[x] !== '.') ? p[x] : ch).join('');
+});
+
+// A 12-row overlay that is mostly empty, written sparsely: {rowIndex: 'string'}.
+const sparse = obj => Array.from({length: 12}, (_, y) => obj[y] || '............');
+
+// -- chassis -----------------------------------------------------------------
+
+const TROOPER = [
+  '............',
+  '............',
+  '....oooo....',
+  '...ovvbbo...',
+  '...obbbbo...',
+  '..oobssboo..',
+  '..o.bbbb.o..',
+  '....bbbb....',
+  '....obbo....',
+  '....ob.bo...',
+  '...oo..oo...',
+  '............',
+];
+
+const HEAVY = [
+  '............',
+  '...oooooo...',
+  '..obbbbbbo..',
+  '..obvvbbbo..',
+  '..obbbbbbo..',
+  '.oobssssboo.',
+  '.o.bbbbbb.o.',
+  '.o.bssssb.o.',
+  '...bbbbbb...',
+  '...obb.bbo..',
+  '..oo....oo..',
+  '............',
+];
+
+const KNEEL = [
+  '............',
+  '............',
+  '............',
+  '....oooo....',
+  '...ovvbbo...',
+  '...obbbbo...',
+  '..oobssboo..',
+  '..o.bbbb.o..',
+  '....bbbbo...',
+  '...ob..bbo..',
+  '..oo....oo..',
+  '............',
+];
+
+// -- the 46 tokens -----------------------------------------------------------
+
+const PIXMAP = {
+  // scouts and skirmish troopers
+  scout: ov(TROOPER, sparse({1: '.....G......', 2: '.....o......'})),
+  recon: [
+    '............',
+    '............',
+    '..G......G..',
+    '..oo....oo..',
+    '...osbbso...',
+    '..obvvbbo...',
+    '...osbbso...',
+    '..oo....oo..',
+    '..G......G..',
+    '............',
+    '............',
+    '............',
+  ],
+  pathfinder: ov(TROOPER, sparse({1: '.........gg.', 2: '.........wg.', 3: '.........w..', 4: '.........w..', 5: '.........w..'})),
+  rifle: ov(TROOPER, sparse({5: '.........ww.', 6: '..........wv'})),
+  zaku: [
+    '............',
+    '............',
+    '.ooo....ooo.',
+    '.ovbo..ovbo.',
+    '.obbo..obbo.',
+    '.obbo..obbo.',
+    '.bssb..bssb.',
+    '.obbo..obbo.',
+    '.o..o..o..o.',
+    '.oo.oo.oo.oo',
+    '............',
+    '............',
+  ],
+  vanguard: ov(TROOPER, sparse({4: '.ss.........', 5: '.ss.........', 6: '.ss.........', 7: '.ss.........'})),
+  marks: ov(KNEEL, sparse({5: '.........www', 6: '..........v.'})),
+  archer: ov(TROOPER, sparse({3: '.........w..', 4: '..........w.', 5: '..........w.', 6: '..........w.', 7: '.........w..'})),
+  assassin: ov(TROOPER, sparse({3: '...ovvsso...', 5: '..oosssso...', 8: '.........w..', 9: '.........w..'})),
+  kunoichi: ov(TROOPER, sparse({5: '.w.......w..', 6: '.w.......w..', 3: '...ossvvo...'})),
+  samurai: ov(TROOPER, sparse({1: '.....gg.....', 2: '....goog....', 8: '.........w..', 9: '..........w.', 10: '...........w'})),
+  ronin: ov(TROOPER, sparse({2: '....ssss....', 8: '.w..........', 9: '.w..........', 10: '.w..........'})),
+  naginata: ov(TROOPER, sparse({1: '.........v..', 2: '.........w..', 3: '.........w..', 4: '.........w..', 5: '.........w..', 6: '.........w..', 7: '.........w..', 8: '.........w..'})),
+  lancer: ov(TROOPER, sparse({5: '........wwwv'})),
+  herald: ov(TROOPER, sparse({1: '.........wgg', 2: '.........wgg', 3: '.........w..', 4: '.........w..', 5: '.........w..'})),
+  medic: ov(TROOPER, sparse({5: '..oobWsboo..', 6: '..o.WWWW.o..', 7: '....bWbb....'})),
+  knight: ov(HEAVY, sparse({4: '.wo.........', 5: '.wo.........', 6: '.wo.........', 7: '.wo.........', 8: '.wo.........'})),
+  bulwark: ov(HEAVY, sparse({3: '.oo.........', 4: '.ob.........', 5: '.ob.........', 6: '.ob.........', 7: '.ob.........', 8: '.ob.........', 9: '.oo.........'})),
+  outrider: [
+    '............',
+    '............',
+    '............',
+    '....oooo....',
+    '...ovvbbo...',
+    '...obbbbo...',
+    '..oobssboo..',
+    '.wwwbbbbwww.',
+    'owwwwwwwwwwo',
+    '.oo......oo.',
+    '..o......o..',
+    '............',
+  ],
+  cipher: ov(TROOPER, sparse({0: '....G..G....', 1: '....GG.GG...'})),
+  engineer: ov(TROOPER, sparse({5: '.g.......w..', 6: '.g.......ww.', 4: '.gg.........'})),
+  mortar: ov(KNEEL, sparse({2: '.........ww.', 3: '........ww..', 4: '.......ww...', 5: '......ow....'})),
+
+  // tech emplacements and devices
+  wall: [
+    '............',
+    '............',
+    '............',
+    '............',
+    'oooooooooooo',
+    'obbsobbsobbo',
+    'oooooooooooo',
+    'osbbosbbosbo',
+    'oooooooooooo',
+    'obbsobbsobbo',
+    'oooooooooooo',
+    '............',
+  ],
+  supply: [
+    '............',
+    '....G..G....',
+    '...oo..oo...',
+    '....obbo....',
+    '...obssbo...',
+    '............',
+    '...oooooo...',
+    '..obbbbbbo..',
+    '..obgbbgbo..',
+    '..obbbbbbo..',
+    '..oooooooo..',
+    '............',
+  ],
+  beacon: [
+    '............',
+    '.....GG.....',
+    '.....GG.....',
+    '.....oo.....',
+    '.....ob.....',
+    '.....ob.....',
+    '.....ob.....',
+    '.....ob.....',
+    '....oobb....',
+    '...obbbbo...',
+    '..oooooooo..',
+    '............',
+  ],
+  cache: [
+    '............',
+    '............',
+    '............',
+    '...oooooo...',
+    '..obbbbbbo..',
+    '..obggggbo..',
+    '..oboooobo..',
+    '..obbbbbbo..',
+    '..obssssbo..',
+    '..oooooooo..',
+    '............',
+    '............',
+  ],
+  shield: [
+    '............',
+    '..v......v..',
+    '.v........v.',
+    '.v........v.',
+    '..ob....bo..',
+    '...obbbbo...',
+    '....obbo....',
+    '....obbo....',
+    '....obbo....',
+    '...obssbo...',
+    '..oooooooo..',
+    '............',
+  ],
+  cannon: ov(TROOPER, sparse({1: '......www.wv', 2: '......oss...', 3: '...ovvbss...'})),
+  turret: [
+    '............',
+    '............',
+    '............',
+    '....oooo....',
+    '...obssbwwwv',
+    '...obbbbo...',
+    '....oooo....',
+    '...obbbbo...',
+    '..obssssbo..',
+    '..oo....oo..',
+    '.oo......oo.',
+    '............',
+  ],
+  relay: [
+    '............',
+    '.G...GG...G.',
+    '..o..oo..o..',
+    '...o.oo.o...',
+    '....ooob....',
+    '.....ob.....',
+    '.....ob.....',
+    '.....ob.....',
+    '....obbo....',
+    '...obssbo...',
+    '..oooooooo..',
+    '............',
+  ],
+  techblade: [
+    '............',
+    '.....vv.....',
+    '.....vW.....',
+    '.....vW.....',
+    '.....vW.....',
+    '.....vW.....',
+    '.....vW.....',
+    '.....oo.....',
+    '....obbo....',
+    '...obssbo...',
+    '..oooooooo..',
+    '............',
+  ],
+  pulse: [
+    '............',
+    '............',
+    '....GGGG....',
+    '...G....G...',
+    '....oooo....',
+    '...obbbbo...',
+    '..obbssbbo..',
+    '..obbbbbbo..',
+    '..osbbbbso..',
+    '..oooooooo..',
+    '............',
+    '............',
+  ],
+  scrambler: [
+    '............',
+    '.G..........',
+    '..w.....w...',
+    '...w...w....',
+    '....w.w.....',
+    '.....ob.....',
+    '....oooo....',
+    '...obbbbo...',
+    '...obssbo...',
+    '...oooooo...',
+    '............',
+    '............',
+  ],
+  battery: [
+    '............',
+    '..v...v...v.',
+    '..w...w...w.',
+    '..w...w...w.',
+    '..w...w...w.',
+    '..w...w...w.',
+    '.oooooooooo.',
+    '.obbbbbbbbo.',
+    '.obssssssbo.',
+    '.oooooooooo.',
+    '............',
+    '............',
+  ],
+  fob: [
+    '............',
+    '............',
+    '....g.......',
+    '...ooooooo..',
+    '..obbbbbbbo.',
+    '.obbbbbbbbbo',
+    '.obbooobssbo',
+    '.obbobobssbo',
+    '.obbooobssbo',
+    '.ooooooooooo',
+    '............',
+    '............',
+  ],
+  mine: [
+    '............',
+    '............',
+    '............',
+    '............',
+    '............',
+    '............',
+    '.....GG.....',
+    '....obbo....',
+    '..oobssboo..',
+    '.obbbbbbbbo.',
+    '..oooooooo..',
+    '............',
+  ],
+  dynamo: [
+    '............',
+    '.....G......',
+    '....GG......',
+    '...GG.......',
+    '..oooooooo..',
+    '..obbbbbbo..',
+    '..obsGGsbo..',
+    '..obsGGsbo..',
+    '..obbbbbbo..',
+    '..oooooooo..',
+    '............',
+    '............',
+  ],
+
+  // specialists — gold-trimmed
+  aegis: ov(HEAVY, sparse({2: '.go.........', 3: '.gb.........', 4: '.gb.........', 5: '.gb.........', 6: '.gb.........', 7: '.gb.........', 8: '.gb.........', 9: '.go.........', 1: '...gooooog..'})),
+  biomed: ov(TROOPER, sparse({2: '....gggg....', 5: '..oobWsboo..', 6: '..o.WggW.o..', 7: '....bWbb....'})),
+  techmed: ov(TROOPER, sparse({4: '.gg.........', 5: '.gg.........', 6: '.gg.........', 7: '....bWWb....'})),
+  dragoon: ov(HEAVY, sparse({1: '.f.oooooo.f.', 2: '.fobbbbbbof.', 10: '..oo....oo..'})),
+  railgun: ov(KNEEL, sparse({4: '........wwww', 5: '...obbbbwwwv', 6: '..oobssbG...'})),
+  hell: ov(TROOPER, sparse({10: '...ff..ff...', 11: '....f..f....', 1: '.........g..', 2: '.........g..'})),
+  plasma: ov(HEAVY, sparse({4: '.........GG.', 5: '........GGGG', 6: '.........GG.'})),
+  exo: [
+    '............',
+    '..oooooooo..',
+    '.obbbbbbbbo.',
+    '.obvvbbssbo.',
+    '.obbbbbbsbo.',
+    'oobssssssboo',
+    'o.bbbbbbbb.o',
+    'o.bssbbssb.o',
+    '..bbbbbbbb..',
+    '..obb..bbo..',
+    '.oo......oo.',
+    '............',
+  ],
+  hecate: [
+    '............',
+    '.v..v..v....',
+    '.w..w..w....',
+    '.w..w..w....',
+    '.wwwwwww....',
+    '..oooooooo..',
+    '..obbbbbbog.',
+    '..obssssbog.',
+    '..obbbbbbo..',
+    '...oo..oo...',
+    '..oo....oo..',
+    '............',
+  ],
+};
+
+const hasSprite = id => !!PIXMAP[id];
+const spriteIds = () => Object.keys(PIXMAP);
+
+/**
+ * The on-grid token. `delay` staggers the idle bob so a full line does not
+ * march in lockstep; pass anything stable per unit (uid works).
+ */
+function unitSprite(id, delay = 0) {
+  const map = PIXMAP[id];
+  if (!map) return '';
+  let rects = '';
+  map.forEach((row, y) => {
+    for (let x = 0; x < row.length; x++) {
+      const ch = row[x];
+      if (ch === '.' || !PX_COLOR[ch]) continue;
+      rects += `<rect x="${x * 8}" y="${y * 8}" width="8" height="8" fill="${PX_COLOR[ch]}"${PX_BLINK[ch] ? ' class="pxg"' : ''}/>`;
+    }
+  });
+  const d = ((delay % 10) * 0.13).toFixed(2);
+  return `<svg class="pxu" viewBox="0 0 96 96" shape-rendering="crispEdges" aria-hidden="true"
+    style="animation-delay:-${d}s">${rects}</svg>`;
+}
+
 /* ==== src/render/combat.js ========================================== */
 // The combat screen: header, board, hand, selection panel and action bar.
 //
@@ -7254,13 +7666,14 @@ function drawSel() {
 /** Markup for one of your units standing in a cell. */
 function unitMarkup(u, incoming) {
   const kind = u.t === 'special' ? 'p-spec' : u.tech ? 'p-struct' : 'p-unit';
-  return `<div class="ent ${kind}${u.size > 1 ? ' anchor' : ''}${u.stun ? ' stunned' : ''}${u.acted ? ' spent' : ''}">
+  return `<div class="ent ${kind}${u.size > 1 ? ' anchor' : ''}${u.stun ? ' stunned' : ''}${u.acted ? ' spent' : ''}" title="${u.n}">
         ${incoming ? `<span class="incdmg">-${incoming}</span>` : ''}
         ${u.tgt ? '<span class="lockpip">⌖</span>' : ''}
         <span class="minihp"><i style="width:${Math.max(0, u.hp / u.max * 100)}%"></i></span>
         ${u.shield > 0 ? `<span class="shield">${'◈'.repeat(Math.min(u.shield, 2))}</span>` : ''}
         ${u.att.cannon ? '<span class="att">▮</span>' : ''}${u.cycling > 0 ? '<span class="att cyc">⟳</span>' : ''}${u.acted ? '<span class="ord done">✓</span>' : ''}
-        <div class="nm">${u.n.split(' ')[0]}${u.size > 1 ? '▸' : ''}</div><div class="hp">${u.hp}</div></div>`;
+        ${unitSprite(u.id, u.uid) || `<div class="nm">${u.n.split(' ')[0]}</div>`}
+        <div class="hp">${u.hp}</div></div>`;
 }
 
 /** Every hostile type carries its own glyph — identity at cell size. */

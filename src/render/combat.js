@@ -32,6 +32,7 @@ import {renderMap} from './map.js';
 import {renderModes} from './modes.js';
 import {sfx} from './sound.js';
 import {setMusicMood} from './music.js';
+import {unitSprite} from './sprites.js';
 
 const LOG_LINES = 40;
 
@@ -215,13 +216,14 @@ function drawSel() {
 /** Markup for one of your units standing in a cell. */
 function unitMarkup(u, incoming) {
   const kind = u.t === 'special' ? 'p-spec' : u.tech ? 'p-struct' : 'p-unit';
-  return `<div class="ent ${kind}${u.size > 1 ? ' anchor' : ''}${u.stun ? ' stunned' : ''}${u.acted ? ' spent' : ''}">
+  return `<div class="ent ${kind}${u.size > 1 ? ' anchor' : ''}${u.stun ? ' stunned' : ''}${u.acted ? ' spent' : ''}" title="${u.n}">
         ${incoming ? `<span class="incdmg">-${incoming}</span>` : ''}
         ${u.tgt ? '<span class="lockpip">⌖</span>' : ''}
         <span class="minihp"><i style="width:${Math.max(0, u.hp / u.max * 100)}%"></i></span>
         ${u.shield > 0 ? `<span class="shield">${'◈'.repeat(Math.min(u.shield, 2))}</span>` : ''}
         ${u.att.cannon ? '<span class="att">▮</span>' : ''}${u.cycling > 0 ? '<span class="att cyc">⟳</span>' : ''}${u.acted ? '<span class="ord done">✓</span>' : ''}
-        <div class="nm">${u.n.split(' ')[0]}${u.size > 1 ? '▸' : ''}</div><div class="hp">${u.hp}</div></div>`;
+        ${unitSprite(u.id, u.uid) || `<div class="nm">${u.n.split(' ')[0]}</div>`}
+        <div class="hp">${u.hp}</div></div>`;
 }
 
 /** Every hostile type carries its own glyph — identity at cell size. */
