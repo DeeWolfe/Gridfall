@@ -37,6 +37,13 @@ export function dmgEnemy(e, d, src, pen) {
   clog(`<span class="g">${src}</span> destroyed ${BEST[e.k].n}.`, 'kill');
   logContact(e.k);
 
+  G.units.filter(u => u.ctrlBy === e.uid).forEach(u => {
+    u.controlled = false;
+    u.ctrlTurns = 0;
+    u.ctrlBy = null;
+    clog(`<span class="g">${u.n} breaks free</span> — its controller is dead.`, 'order');
+  });
+
   const D = BEST[e.k];
   if (D.split) huskSplit(e, D.split);
   if (D.deathrush) screamerRush(e);

@@ -1038,6 +1038,16 @@
    "spd": 1,
    "deathrush": 1,
    "d": "Dies loudly. The scream sends every hostile on the board one step forward — time the kill, or the kill times you."
+  },
+  "puppeteer": {
+   "n": "Puppeteer",
+   "t": "special",
+   "hp": 14,
+   "dmg": 0,
+   "threat": 8,
+   "spd": 0,
+   "mindctrl": 3,
+   "d": "Never moves. Every 3 turns it seizes the nearest unit in its lane, turning it against you until it breaks free or the Puppeteer dies."
   }
  },
  "leads": {

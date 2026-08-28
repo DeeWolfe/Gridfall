@@ -690,6 +690,20 @@ const FOE_PIX = {
     '.oo.o..o.oo.',
     '............',
   ],
+  puppeteer: [
+    '............',
+    '.o..oooo..o.',
+    '..o.obbo.o..',
+    '...oobboo...',
+    '....obbo....',
+    '...obxxbo...',
+    '..oobbbboo..',
+    '.o.obbbbo.o.',
+    'o..obwwbo..o',
+    '...o.ww.o...',
+    '..o..oo..o..',
+    '............',
+  ],
 };
 
 export const hasFoeSprite = k => !!FOE_PIX[k];

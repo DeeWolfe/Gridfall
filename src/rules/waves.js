@@ -31,7 +31,7 @@ export function wave(t) {
   if (t >= 2) pool.push('hulk', 'breacher', 'husk');
   if (t >= 3) pool.push('spitter', 'burrower');
   if (t >= 4 || G.mod === 'nest') pool.push('spore', 'jammer', 'pylon', 'mender');
-  if (t >= 5) pool.push('harrower');
+  if (t >= 5) pool.push('harrower', 'puppeteer');
   if (t >= 6) pool.push('screamer');
   if ((t >= G.waves || (G.endless && t >= 7)) && G.type !== 'extract') pool.push('chorus', 'sovereign');
   // The wider bestiary dilutes the quota type; three extra entries keep the

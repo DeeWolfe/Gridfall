@@ -218,7 +218,8 @@ function drawSel() {
 /** Markup for one of your units standing in a cell. */
 function unitMarkup(u, incoming) {
   const kind = u.t === 'special' ? 'p-spec' : u.tech ? 'p-struct' : 'p-unit';
-  return `<div class="ent ${kind}${u.size > 1 ? ' anchor' : ''}${u.stun ? ' stunned' : ''}${u.acted ? ' spent' : ''}" title="${u.n}">
+  return `<div class="ent ${kind}${u.size > 1 ? ' anchor' : ''}${u.stun ? ' stunned' : ''}${u.acted ? ' spent' : ''}${u.controlled ? ' controlled' : ''}" title="${u.controlled ? u.n + ' — mind controlled' : u.n}">
+        ${u.controlled ? '<span class="lockpip" style="color:var(--violet)">☍</span>' : ''}
         ${incoming ? `<span class="incdmg">-${incoming}</span>` : ''}
         ${u.tgt ? '<span class="lockpip">⌖</span>' : ''}
         <span class="minihp"><i style="width:${Math.max(0, u.hp / u.max * 100)}%"></i></span>
@@ -232,7 +233,7 @@ function unitMarkup(u, incoming) {
 const FOE_GLYPH = {
   crawler: '▪', hulk: '⬢', breacher: '◣', spitter: '◆', burrower: '⋒',
   spore: '✱', jammer: '⌁', pylon: '▣', harrower: '✠', mender: '✚',
-  husk: '◍', screamer: '◉', chorus: '≋', sovereign: '♚',
+  husk: '◍', screamer: '◉', chorus: '≋', sovereign: '♚', puppeteer: '☍',
 };
 
 /** The intent badge: what this hostile will do next turn, per enemyIntent(). */
@@ -330,7 +331,7 @@ export function drawBoard() {
       const incoming = threat.hits[u.uid] || 0;
       if (incoming) cell.className = cls + ' underthreat';
       cell.innerHTML = marker + unitMarkup(u, incoming);
-      if (!sel && !G.over && !u.acted) {
+      if (!sel && !G.over && !u.acted && !u.controlled) {
         cell.classList.add('clickable');
         cell.onclick = () => { setMover(mover && mover.uid === u.uid ? null : u); drawAll(); };
       }

@@ -1885,6 +1885,75 @@ behavior, extraction counting, and the loss/win conditions were all run
 through the balance sim rather than just read. Full 37-guard suite
 passes, no page errors in a live playthrough.
 
+## Mind control: a hostile that turns your own units against you
+
+Last item off the field-idea list. New special-tier hostile, the Puppeteer:
+never moves (`spd: 0`, same stillness as Chorus, Mender, Spore, Jammer,
+Pylon), and every three turns it seizes the nearest un-controlled unit in
+its lane instead of doing anything else. The seized unit doesn't just stop
+obeying — per the spec, it flips: its tile now counts as hostile ground,
+and if it can still shoot, it shoots at your own line instead of the hive.
+It breaks free on its own after two turns, or immediately if the Puppeteer
+that's holding it dies.
+
+**Registered exactly like every other special:** `mindctrl: 3` on the
+`BEST['puppeteer']` entry (data-driven, `reference/gridfall-data.json`),
+added to the wave pool alongside Harrower at `t >= 5` (`waves.js`). The
+existing one-specialist-per-wave budget cap needed no changes — it already
+treats any `t: 'special'` entry the same way.
+
+**The trick was ordering the checks in `actHostile()`.** Every other
+`spd: 0` hostile returns immediately once its own conditional special
+(spawn, mend) doesn't fire, because stillness *is* their whole kit. The
+Puppeteer's stillness is incidental — its cast is the kit — so `mindctrl`
+had to be checked *before* the `spd === 0` early return, or the Puppeteer
+would sit there literally doing nothing, forever, which is a worse bug
+than not having the feature at all.
+
+**A hijacked unit needed locking out of every path a normal turn reaches
+it through, not just the one where it does damage.** Three places, not
+one:
+- `playerPhase()`'s auto-fire fallback ("anything the player didn't
+  commit fires anyway") would otherwise have a controlled unit shoot at
+  hostiles on the player's behalf the same turn it's supposed to be
+  fighting for the other side — added `|| u.controlled` to the skip.
+- The board's click handler drops the `clickable` class and the
+  move/act `onclick` for a controlled unit, so it can't be selected,
+  moved, or ordered while seized.
+- `strike()`'s hostile-side target scan now stops at a controlled unit
+  (it's still a body in the lane, still blocks the shot) without
+  *setting* it as the target — a hostile won't shoot its own puppet.
+
+**What actually happens while seized**, added at the tail of
+`enemyPhase()`: any controlled unit with `dmg > 0` hits the nearest other
+(non-controlled) unit in its own lane through the same `dmgUnit()` every
+other attack uses, tagged "(hijacked)" in the log — a real hit, a real
+possible kill, `G.lost` included. Unarmed types (Scout, Medic) just stand
+there controlled; nothing to hijack a weapon out of.
+
+**Deliberately left alone**, matching this session's usual scope line: no
+way for the player to put down their own hijacked unit early — extending
+`geomFor()` (targeting.js) to read something other than `G.enemies` for
+that felt like its own feature, not this one. No dedicated forecast/intent
+badge case for `mindctrl` either — the existing `spd === 0` fallback in
+`enemyIntent()` already resolves to an idle badge with no crash risk, just
+a shrug where a more specific glyph could sit later. Sustain/aura/repair
+auras still read `G.units` without checking `controlled` — a hijacked
+unit can still get healed by a nearby Field Medic, which is a small
+inconsistency, not a bug; auditing every friendly-target loop in the
+codebase for this one hostile was out of scope.
+
+Verified directly against the rules rather than by reading the diff and
+hoping: a DOM-stub script drove `enemyPhase()`/`territoryPhase()`/
+`dmgEnemy()` through seven scenarios — cast lands on cadence while the
+Puppeteer stays put, the seized unit's tile flips to hostile, a seized
+unit with a weapon hits its own side, it reverts on the turn timer, it
+reverts immediately when its controller dies, and a seized unit still
+blocks a hostile's lane without being struck. All seven came back as
+expected. Full 37-guard suite passes, including a new `puppeteer` foe
+sprite `pixtest` was otherwise failing on (glyph `☍`, palette matches the
+existing hostile tokens).
+
 ## Still open
 
 1. **Crystals still loses to "Three breaches"** more than anything else — the

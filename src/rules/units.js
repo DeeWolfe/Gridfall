@@ -85,6 +85,9 @@ export function mkUnit(cid, l, c) {
     fresh: true,
     shieldMax: shield,
     shield,
+    controlled: false,
+    ctrlTurns: 0,
+    ctrlBy: null,
   };
 }
 

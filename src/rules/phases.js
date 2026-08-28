@@ -28,8 +28,10 @@ import {resolveStratagem} from './stratagems.js';
 /** Step 2, then reset every unit for the turn ahead. */
 export function playerPhase() {
   // Anything the player did not commit this turn falls back to firing.
+  // A mind-controlled unit isn't the player's to command — it sits this
+  // fallback out; controlledUnitsAct() (enemyPhase) is what it does instead.
   G.units.forEach(u => {
-    if (u.fresh || u.acted) return;
+    if (u.fresh || u.acted || u.controlled) return;
     fire(u, false);
     healPass(u, false);
     tapeMark('fire');            // one frame per unit that actually did something
@@ -100,7 +102,9 @@ export function strike(e, D, chorus, pressing) {
   let t = null;
   for (let c = e.col - 1; c >= 0; c--) {
     const u = unitAt(e.lane, c);
-    if (u) { t = u; break; }
+    // A controlled unit still blocks the lane — it's just not a target the
+    // Puppeteer's owner will shoot at.
+    if (u) { if (!u.controlled) t = u; break; }
   }
   if (!t) return;
   // Any strike that is not against the adjacent cell arcs in — an I-Field
@@ -126,6 +130,24 @@ function sporePulse(e, D) {
   }
 }
 
+const MINDCTRL_TURNS = 2;
+
+/** Puppeteer: seizes the nearest un-controlled friendly in its lane, turning
+ * it against the player until it breaks free or the Puppeteer dies. Checked
+ * ahead of the spd===0 return — its own stillness must not swallow the cast. */
+function mindControlPulse(e, D) {
+  e.acc = (e.acc || 0) + 1;
+  if (e.acc < D.mindctrl) return;
+  e.acc = 0;
+  const targets = G.units.filter(u => u.lane === e.lane && !u.controlled);
+  if (!targets.length) return;
+  const t = targets.sort((a, b) => b.col - a.col)[0];   // closest to the Puppeteer
+  t.controlled = true;
+  t.ctrlTurns = MINDCTRL_TURNS;
+  t.ctrlBy = e.uid;
+  clog(`<span class="d">Puppeteer</span> seized control of ${t.n}.`, 'loss');
+}
+
 /** One hostile's action for the turn: it moves or it attacks, never both. */
 function actHostile(e, chorus) {
   if (e.hp <= 0) return;
@@ -133,6 +155,7 @@ function actHostile(e, chorus) {
   const D = BEST[e.k];
 
   if (D.spawn) { sporePulse(e, D); return; }
+  if (D.mindctrl) { mindControlPulse(e, D); return; }
   if (D.spd === 0) return;
 
   // A Mender spends its turn healing the most wounded hostile in its lane;
@@ -188,6 +211,18 @@ function actHostile(e, chorus) {
   }
 }
 
+/** Hijacked units fight for the hive: whichever of the player's own units
+ * is nearest in-lane takes the hit. Unarmed types (Scouts, Medics) just
+ * stand there controlled — nothing to hijack a weapon out of. */
+function controlledUnitsAct() {
+  G.units.filter(u => u.controlled && u.dmg > 0).forEach(u => {
+    const targets = G.units.filter(o => o !== u && o.lane === u.lane && !o.controlled);
+    if (!targets.length) return;
+    const t = targets.sort((a, b) => Math.abs(a.col - u.col) - Math.abs(b.col - u.col))[0];
+    dmgUnit(t, u.dmg, u.n + ' (hijacked)');
+  });
+}
+
 /** Step 3. Each hostile either moves or attacks — never both in one turn. */
 export function enemyPhase() {
   const chorus = G.enemies.some(e => BEST[e.k].aura) ? 1 : 0;
@@ -197,6 +232,7 @@ export function enemyPhase() {
     // A frame per hostile that did anything visible: struck, spawned, or moved.
     tapeMark('enemy', e.col !== moved);
   });
+  controlledUnitsAct();
 }
 
 /** Step 4. Tiles flip to whoever ends the turn on them; plasma burns down. */
@@ -217,11 +253,20 @@ export function territoryPhase() {
     const u = unitAt(l, c);
     const e = foeAt(l, c);
     if (e && !scorched(l, c)) G.ter[l][c] = 'e';
+    // A hijacked unit is fighting for the hive now — its tile flips with it.
+    else if (u && u.controlled) G.ter[l][c] = 'e';
     else if (u || civAt(l, c)) G.ter[l][c] = 'p';
   }
   Object.keys(G.scorch).forEach(k => {
     G.scorch[k]--;
     if (G.scorch[k] <= 0) delete G.scorch[k];
+  });
+  G.units.filter(u => u.controlled).forEach(u => {
+    u.ctrlTurns--;
+    if (u.ctrlTurns > 0) return;
+    u.controlled = false;
+    u.ctrlBy = null;
+    clog(`<span class="g">${u.n} breaks free</span> of the Puppeteer's hold.`, 'order');
   });
   // The Research Team event's clock — a plain civilian pod otherwise, ticking
   // down to extraction instead of just sitting there waiting to be lost.
