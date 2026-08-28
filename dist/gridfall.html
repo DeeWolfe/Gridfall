@@ -965,14 +965,12 @@ body{font-size:1rem}
   color:var(--dim);font-size:0.625rem;line-height:1.65;max-width:64ch}
 
 /* ============ PULL-UP DRAWER ============ */
-/* One tab on every screen but title/boot: tap, the menu slides open; tap
-   again, it slides back away. On the hold/ops/map/modes screens it sits
-   bottom-centre and the menu rises; in combat — where the bottom edge is
-   already the hand and action bar — it moves to the top-right corner next
-   to the lead badge and the menu drops down instead. */
+/* One tab on the hold/ops/map/modes screens: tap, the menu slides up; tap
+   again, it slides back down. Combat has no drawer — its bottom edge is
+   already the hand and action bar, and its top-right is the lead badge. */
 #drawer{position:fixed;left:50%;transform:translateX(-50%);bottom:0;z-index:60;
   display:flex;flex-direction:column;align-items:center}
-#title.on ~ #drawer,#boot.on ~ #drawer{display:none}
+#title.on ~ #drawer,#boot.on ~ #drawer,#combat.on ~ #drawer{display:none}
 #drawtab{width:52px;height:20px;border:1px solid var(--line2);border-bottom:none;
   background:var(--panel2);color:var(--dim);font-size:0.5938rem;cursor:pointer;
   clip-path:polygon(9px 0,calc(100% - 9px) 0,100% 100%,0 100%);transition:.15s}
@@ -985,13 +983,6 @@ body{font-size:1rem}
 #drawer.up .drawmenu{transform:none;opacity:1;pointer-events:auto}
 .drawmenu .mini{text-align:left;white-space:nowrap}
 @media (prefers-reduced-motion: reduce){.drawmenu{transition:none}}
-
-#combat.on ~ #drawer{left:auto;right:12px;bottom:auto;top:0;transform:none;
-  align-items:flex-end;z-index:35}
-#combat.on ~ #drawer #drawtab{clip-path:polygon(9px 100%,calc(100% - 9px) 100%,100% 0,0 0);
-  border:1px solid var(--line2);border-top:none}
-#combat.on ~ #drawer .drawmenu{bottom:auto;top:26px;transform:translateY(-70%)}
-#combat.on ~ #drawer.up .drawmenu{transform:none}
 </style>
 </head>
 <body>
@@ -4322,14 +4313,13 @@ function show(id) {
     const e = $(s);
     if (e) e.classList.toggle('on', s === id);
   });
-  // The pull-up drawer resets on every screen change — the combat variant
-  // sits in a different corner and slides the other way, so a menu left
-  // open from the last screen would land in the wrong place.
+  // The pull-up drawer resets on every screen change, so a menu left open
+  // on one screen never reopens stale on the next.
   const drawer = $('drawer');
   if (drawer) {
     drawer.classList.remove('up');
     const tab = $('drawtab');
-    if (tab) tab.textContent = id === 'combat' ? '▼' : '▲';
+    if (tab) tab.textContent = '▲';
   }
 }
 
@@ -9121,16 +9111,13 @@ function wireRecordScreen() {
     enter(p);
   };
   $('callsign').addEventListener('keydown', e => { if (e.key === 'Enter') $('create').click(); });
-  // The pull-up drawer: one tab everywhere but title/boot. Tap to slide the
-  // menu open, tap again to slide it away — bottom-centre and rising on the
-  // hold/ops/map/modes screens, top-right and dropping down in combat (see
-  // the #combat.on ~ #drawer rules), where the bottom edge is already the
-  // hand and action bar.
+  // The pull-up drawer: one tab on the hold/ops/map/modes screens. Tap to
+  // slide the menu up, tap again to slide it back down. Combat has no drawer
+  // — the screen is already busy enough without a menu fighting the hand and
+  // action bar for space (see #title.on ~ #drawer etc. in the CSS).
   const drawer = $('drawer');
-  const inCombat = () => $('combat').classList.contains('on');
   const paintDrawer = () => {
-    const open = drawer.classList.contains('up');
-    $('drawtab').textContent = inCombat() ? (open ? '▲' : '▼') : (open ? '▼' : '▲');
+    $('drawtab').textContent = drawer.classList.contains('up') ? '▼' : '▲';
     $('drawui').textContent = 'UI · ' + uiModeLabel();
     $('drawmus').textContent = 'Music · ' + (musicOn() ? 'On' : 'Off');
   };
@@ -9141,24 +9128,11 @@ function wireRecordScreen() {
   $('drawhome').onclick = () => {
     drawer.classList.remove('up');
     paintDrawer();
-    const goHome = () => {
-      commit();
-      stopScene();
-      setActive(null);
-      show('boot');
-      renderSlots();
-    };
-    // Signing out mid-mission is an abort — ask first, same stakes as the
-    // in-combat Abort button, then route through leaveCombat() so the
-    // mission actually ends (stats, gauntlet/onslaught bookkeeping) instead
-    // of just cutting away from an unfinished board.
-    if (inCombat() && G && !G.over) {
-      ask('Abort mission', 'Signing out now abandons the mission in progress.<br><br>Leave the field?',
-        ok => { if (!ok) return; leaveCombat(); goHome(); }, {ok: 'Abort & sign out'});
-    } else {
-      if (inCombat()) leaveCombat();
-      goHome();
-    }
+    commit();
+    stopScene();
+    setActive(null);
+    show('boot');
+    renderSlots();
   };
   paintDrawer();
 }

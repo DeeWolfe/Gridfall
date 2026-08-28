@@ -17,14 +17,13 @@ export function show(id) {
     const e = $(s);
     if (e) e.classList.toggle('on', s === id);
   });
-  // The pull-up drawer resets on every screen change — the combat variant
-  // sits in a different corner and slides the other way, so a menu left
-  // open from the last screen would land in the wrong place.
+  // The pull-up drawer resets on every screen change, so a menu left open
+  // on one screen never reopens stale on the next.
   const drawer = $('drawer');
   if (drawer) {
     drawer.classList.remove('up');
     const tab = $('drawtab');
-    if (tab) tab.textContent = id === 'combat' ? '▼' : '▲';
+    if (tab) tab.textContent = '▲';
   }
 }
 

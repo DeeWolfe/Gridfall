@@ -19,7 +19,7 @@ import {startScene, stopScene, sizeScene, sceneRunning} from './battlefield.js';
 import {renderModes} from './modes.js';
 import {renderOps} from './ops.js';
 import {renderMap} from './map.js';
-import {drawAll, drawBoard, leaveCombat} from './combat.js';
+import {drawAll, drawBoard} from './combat.js';
 import {openPanel, importRecordFlow} from './panels.js';
 import {showPack, setAfterPacks} from './packs.js';
 import {showResult} from './result.js';
@@ -79,16 +79,13 @@ function wireRecordScreen() {
     enter(p);
   };
   $('callsign').addEventListener('keydown', e => { if (e.key === 'Enter') $('create').click(); });
-  // The pull-up drawer: one tab everywhere but title/boot. Tap to slide the
-  // menu open, tap again to slide it away — bottom-centre and rising on the
-  // hold/ops/map/modes screens, top-right and dropping down in combat (see
-  // the #combat.on ~ #drawer rules), where the bottom edge is already the
-  // hand and action bar.
+  // The pull-up drawer: one tab on the hold/ops/map/modes screens. Tap to
+  // slide the menu up, tap again to slide it back down. Combat has no drawer
+  // — the screen is already busy enough without a menu fighting the hand and
+  // action bar for space (see #title.on ~ #drawer etc. in the CSS).
   const drawer = $('drawer');
-  const inCombat = () => $('combat').classList.contains('on');
   const paintDrawer = () => {
-    const open = drawer.classList.contains('up');
-    $('drawtab').textContent = inCombat() ? (open ? '▲' : '▼') : (open ? '▼' : '▲');
+    $('drawtab').textContent = drawer.classList.contains('up') ? '▼' : '▲';
     $('drawui').textContent = 'UI · ' + uiModeLabel();
     $('drawmus').textContent = 'Music · ' + (musicOn() ? 'On' : 'Off');
   };
@@ -99,24 +96,11 @@ function wireRecordScreen() {
   $('drawhome').onclick = () => {
     drawer.classList.remove('up');
     paintDrawer();
-    const goHome = () => {
-      commit();
-      stopScene();
-      setActive(null);
-      show('boot');
-      renderSlots();
-    };
-    // Signing out mid-mission is an abort — ask first, same stakes as the
-    // in-combat Abort button, then route through leaveCombat() so the
-    // mission actually ends (stats, gauntlet/onslaught bookkeeping) instead
-    // of just cutting away from an unfinished board.
-    if (inCombat() && G && !G.over) {
-      ask('Abort mission', 'Signing out now abandons the mission in progress.<br><br>Leave the field?',
-        ok => { if (!ok) return; leaveCombat(); goHome(); }, {ok: 'Abort & sign out'});
-    } else {
-      if (inCombat()) leaveCombat();
-      goHome();
-    }
+    commit();
+    stopScene();
+    setActive(null);
+    show('boot');
+    renderSlots();
   };
   paintDrawer();
 }

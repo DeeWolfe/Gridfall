@@ -824,22 +824,20 @@ data-driven off `Object.keys(SCHEMES)` so the key rename needed no test
 changes; it still asserts every scheme (including the new optional `o`)
 avoids the faction tile colours.
 
-**Menu in combat.** The pull-up drawer only lived on the hold/ops/map/
-modes screens — combat was excluded because its bottom edge is already
-the hand and action bar. It's now reachable there too, repositioned: a
-small tab docks into the top-right corner next to the lead badge (a ~2px
-nudge into the badge's top edge reads as one docked control, not a
-collision — measured and screenshotted to confirm), and the menu drops
-down instead of rising up. `dom.js#show()` now resets the drawer (closed,
-correct resting arrow) on every screen change, so a menu left open on
-one screen never reopens mispositioned on the next; `paintDrawer()` in
-wiring.js is combat-aware so the arrow points the right direction in
-either position. The one real hazard — "Title screen" mid-mission — is
-guarded: tapping it while a mission is in progress asks for confirmation
-(same stakes as the in-combat Abort button) and, on confirm, routes
-through `leaveCombat()` before signing out, so mission-abort bookkeeping
-(stats, gauntlet/onslaught state) still runs instead of the game state
-being cut away from mid-board.
+**Menu in combat — tried, reverted.** Brought the pull-up drawer into
+combat too: a tab docked top-right by the lead badge, menu dropping down,
+with an abort-confirm guard on "Title screen" so signing out mid-mission
+still ran `leaveCombat()`'s bookkeeping. The user's call after seeing it:
+too much — combat is already the busiest screen (board, hand, action
+bar, incoming-threat row, lead badge) and a fifth control competing for
+the same top-right corner was clutter, not a convenience. Reverted
+cleanly: `#combat.on ~ #drawer{display:none}` restored, the
+combat-specific CSS block deleted outright rather than left dormant,
+`paintDrawer()`/`dom.js#show()` back to their original unconditional
+`▲`, and the `leaveCombat` import and abort-guard branch removed from
+wiring.js's `drawhome` handler since they had no reachable caller with
+the tab gone. Net diff on the revert was negative — this is why the
+combat screen doesn't get a drawer: it doesn't need one.
 
 ## Design direction on file: the Tech tier
 
