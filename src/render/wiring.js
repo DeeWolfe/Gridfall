@@ -99,8 +99,7 @@ function wireRecordScreen() {
     commit();
     stopScene();
     setActive(null);
-    show('boot');
-    renderSlots();
+    show('title');
   };
   paintDrawer();
 }

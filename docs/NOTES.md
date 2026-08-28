@@ -983,6 +983,46 @@ All of it guarded by `eventtest` (36 guards now): the event clock, both
 mirror pairs, the exact surge/calm budgets, the charge spending and the
 naked-lane loss, the Dynamo cap, and one truth check per intent kind.
 
+## Record tabs, a true sign-out, and readability round two
+
+Three unrelated asks landed together.
+
+**Service Record grew tabs**, matching Database's pattern instead of
+stacking Field record/Achievements/Veterans/Operations one under the
+other in one long scroll. `recTab` (module state, mirrors `dbTab`) picks
+which section `recordPanel()` returns; `recTabs()` mirrors `dbTabs()`
+exactly; a `data-rectab` attribute (not `data-tab` — that one's wired
+specifically to `openPanel('database')`) gets its own delegated handler
+in `openPanel`'s wiring. Grouped as Record (field stats + Modes — both
+are "how the commander is doing" at a glance), Achievements, Veterans,
+Operations.
+
+**The drawer's "Title screen" now actually means title screen.** It was
+calling `show('boot')` — the profile-select console, one screen short of
+the real entry point (`show('title')`, the "Tap to authenticate" splash,
+first in `SCREENS`). Fixed to `show('title')` directly; `renderSlots()`
+came out since that call only matters for the boot screen it no longer
+goes to (the title screen's own tap handler already calls it before
+showing boot, so nothing loses its slot list).
+
+**Readability round two.** The type-scale pass below fixed 6.9px prose:
+players still find it hard to read in direct sun. This pass repeated
+that pass's exact methodology one tier further: every micro font-size in
+the ladder (`0.4688rem` through `0.9375rem`, in the stylesheet *and*
+every inline style across four render files — 167 sites) shifted up to
+the next rung by a script matched on exact values, not a blind formula,
+so nothing drifted off-ladder. The root clamp rose `14–24px` →
+`16–26px` (ratio 1.625, still clears scaletest's 1.6× floor). Map SVG
+node/sub/zone labels went up another unit each (9/8/10). One thing the
+bigger scale broke that the earlier pass didn't have to deal with: the
+Service Record's new 4-tab row no longer fits 390px at the larger type
+("Operations" clipped clean off) — `.tabs` picked up the same
+`overflow-x:auto` + thin styled scrollbar treatment already used for
+`.incoming`/`.hcards`/`.cblog`, so a cramped tab row scrolls instead of
+clipping, on any panel, at any width, permanently (this will keep
+paying off if a panel ever grows a 5th or 6th tab). Verified overflow-
+free at 390px afterward, same bar the first pass set.
+
 ## The readability pass
 
 Players reported the text still read busy and small. The root cause was

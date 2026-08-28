@@ -20,7 +20,7 @@ export function renderSlots() {
     if (p) {
       b.className = 'slot';
       b.innerHTML = `<div><div class="cs">${p.callsign}</div><div class="meta">${rankName(p.progress.rank)} · ${p.stats.deployments} deployments · ${ago(p.lastPlayed)}</div></div>
-        <div style="display:flex;align-items:center;gap:8px"><span style="font-size:0.625rem;color:var(--dim)">0${i + 1}</span><span class="del" data-del="1">DEL</span></div>`;
+        <div style="display:flex;align-items:center;gap:8px"><span style="font-size:0.6875rem;color:var(--dim)">0${i + 1}</span><span class="del" data-del="1">DEL</span></div>`;
       b.onclick = ev => {
         if (ev.target.dataset.del) {
           ask('Erase record', `Permanently delete <b style="color:var(--zan)">${p.callsign}</b>? This cannot be undone.`,
@@ -36,7 +36,7 @@ export function renderSlots() {
       };
     } else {
       b.className = 'slot empty';
-      b.innerHTML = `<div><div class="cs">Empty record</div><div class="meta">Create a new task force</div></div><span style="font-size:0.625rem;color:var(--dim)">0${i + 1}</span>`;
+      b.innerHTML = `<div><div class="cs">Empty record</div><div class="meta">Create a new task force</div></div><span style="font-size:0.6875rem;color:var(--dim)">0${i + 1}</span>`;
       b.onclick = () => { $('newform').classList.add('on'); $('callsign').focus(); };
     }
     el.appendChild(b);

@@ -31,6 +31,7 @@ import {UI_MODES, UI_LABELS, uiPreference, uiModeLabel, setUiMode} from './uimod
 
 const TIERS = ['common', 'special', 'tech'];
 let dbTab = 'cards';
+let recTab = 'field';
 
 const cardGrid = (ids, mode) => `<div class="cgrid">${ids.map(c => cardEl(c, mode)).join('')}</div>`;
 
@@ -44,7 +45,7 @@ function squadPanel() {
    ${leadTilesHTML('squad')}
    <div class="sect">Deck</div>
    <div class="bar"><div><b>${deck.length}</b> / ${DECKSIZE} in deck · <b style="color:var(--cyan)">${Object.keys(active.loadout.gear).length}</b> geared</div>
-     <div style="color:var(--dim);font-size:0.625rem">Tap any card to enlarge it — inspect, fit gear, add or remove</div></div>
+     <div style="color:var(--dim);font-size:0.6875rem">Tap any card to enlarge it — inspect, fit gear, add or remove</div></div>
    <div class="sect">Active deck</div>
    ${deck.length ? cardGrid(deck, 'gear') : cardGridEmpty('Empty.')}
    <div class="sect">Reserve — ${reserve.length}</div>
@@ -84,9 +85,9 @@ function quartermasterPanel() {
 
   const canBuyPack = active.progress.credits >= PACK_PRICE;
   return `<div class="bar"><div>Credits <b>${active.progress.credits}</b> · Salvage <b style="color:var(--cyan)">${active.progress.salvage}</b></div>
-     <div style="color:var(--dim);font-size:0.625rem">Tap a card to enlarge and buy. Credits buy cards, salvage buys gear.</div></div>
+     <div style="color:var(--dim);font-size:0.6875rem">Tap a card to enlarge and buy. Credits buy cards, salvage buys gear.</div></div>
    <div class="bar"><div><b>Requisition drop</b>
-     <div style="color:var(--dim);font-size:0.625rem;margin-top:3px">Three offers, keep one — duplicates promote the card instead. Now and then one arrives as a priority requisition.</div></div>
+     <div style="color:var(--dim);font-size:0.6875rem;margin-top:3px">Three offers, keep one — duplicates promote the card instead. Now and then one arrives as a priority requisition.</div></div>
      <button class="btn${canBuyPack ? '' : ' ghost'}" id="buypack"${canBuyPack ? '' : ' disabled'}>Buy pack · ${PACK_PRICE} cr</button></div>
    ${TIERS.map(tier).join('')}
    ${gearGrid}
@@ -104,7 +105,7 @@ const dbTabs = () => `<div class="tabs">
 const dbRow = ({label, body, right, hot, locked, attrs}) =>
   `<div class="row${locked ? ' locked' : ''}"${attrs || ''} style="cursor:pointer">
      <span><b style="color:${locked ? 'var(--dim)' : 'var(--zan)'}">${label}</b>
-     <div style="font-size:0.5938rem;color:var(--dim);margin-top:4px;line-height:1.5">${body}</div></span>
+     <div style="font-size:0.6562rem;color:var(--dim);margin-top:4px;line-height:1.5">${body}</div></span>
      <span class="r${hot ? ' hot' : ''}">${right}</span></div>`;
 
 function databasePanel() {
@@ -127,7 +128,7 @@ function databasePanel() {
         `<div class="rows">${rows}</div>`;
     };
     return `<div class="bar"><div>Assets on file <b>${Object.keys(POOL).length}</b></div>
-       <div style="color:var(--dim);font-size:0.625rem">Tap an entry to enlarge — full stats, targeting and abilities</div></div>${dbTabs()}
+       <div style="color:var(--dim);font-size:0.6875rem">Tap an entry to enlarge — full stats, targeting and abilities</div></div>${dbTabs()}
        ${TIERS.map(tier).join('')}`;
   }
 
@@ -145,7 +146,7 @@ function databasePanel() {
       });
     }).join('');
     return `<div class="bar"><div>Gear on file <b>${Object.keys(GEAR).length}</b></div>
-     <div style="color:var(--dim);font-size:0.625rem">One slot per card, bought with salvage</div></div>${dbTabs()}
+     <div style="color:var(--dim);font-size:0.6875rem">One slot per card, bought with salvage</div></div>${dbTabs()}
      <div class="sect">Field gear</div><div class="rows">${rows}</div>`;
   }
 
@@ -167,7 +168,7 @@ function databasePanel() {
      <div class="rows">${rows}</div>`;
   };
   return `<div class="bar"><div>Hostiles logged <b>${seen.length}</b> / ${Object.keys(BEST).length}</div>
-     <div style="color:var(--dim);font-size:0.625rem">Entries unlock on first kill</div></div>${dbTabs()}
+     <div style="color:var(--dim);font-size:0.6875rem">Entries unlock on first kill</div></div>${dbTabs()}
      ${TIERS.map(tier).join('')}`;
 }
 
@@ -199,70 +200,83 @@ function achievementList() {
   ];
 }
 
+const recTabs = () => `<div class="tabs">
+     <button class="tab${recTab === 'field' ? ' on' : ''}" data-rectab="field">Record</button>
+     <button class="tab${recTab === 'ach' ? ' on' : ''}" data-rectab="ach">Achievements</button>
+     <button class="tab${recTab === 'vets' ? ' on' : ''}" data-rectab="vets">Veterans</button>
+     <button class="tab${recTab === 'ops' ? ' on' : ''}" data-rectab="ops">Operations</button></div>`;
+
 function recordPanel() {
   const s = active.stats;
+  const bar = `<div class="bar"><div>${active.callsign} · <b style="color:var(--zan)">${rankName(active.progress.rank)}</b></div>
+     <div style="color:var(--dim);font-size:0.6875rem">Task force command · XP ${active.progress.xp}</div></div>${recTabs()}`;
+
+  if (recTab === 'ach') {
+    const list = achievementList();
+    return bar + `<div class="sect">Achievements — ${list.filter(a => a.have >= a.need).length} / ${list.length} earned</div>
+   <div class="rows">${list.map(a => {
+      const done = a.have >= a.need;
+      return `<div class="row${done ? '' : ' locked'}"><span><b style="color:${done ? 'var(--gold)' : 'var(--dim)'}">${done ? '◆' : '◇'} ${a.n}</b>
+     <div style="font-size:0.6562rem;color:var(--dim);margin-top:4px">${a.d}</div></span>
+     <span class="r${done ? ' hot' : ''}">${done ? 'Earned' : Math.min(a.have, a.need) + ' / ' + a.need}</span></div>`;
+    }).join('')}</div>`;
+  }
+
+  if (recTab === 'vets') {
+    const veterans = Object.keys(active.usage || {})
+      .sort((a, b) => active.usage[b] - active.usage[a]).slice(0, 8)
+      .map(id => {
+        const v = vetOf(id);
+        return `<div class="row"><span>${POOL[id] ? POOL[id].n : id}
+       <span style="color:${v.col};font-size:0.6875rem"> · ${v.n}</span></span>
+       <span class="r">${v.u} deployments</span></div>`;
+      }).join('') || '<div class="row"><span style="color:var(--dim)">No deployments logged yet.</span></div>';
+    return bar + `<div class="sect">Veteran roster</div><div class="rows">${veterans}</div>`;
+  }
+
+  if (recTab === 'ops') {
+    const operations = Object.values(OPS).map(o => {
+      const r = active.ops[o.k];
+      const done = r ? r.cleared.length : 0;
+      return `<div class="row"><span>${o.n}</span><span class="r${done ? ' hot' : ''}">${done} / ${o.nodes.length} cleared</span></div>`;
+    }).join('');
+    return bar + `<div class="sect">Operations</div><div class="rows">${operations}</div>`;
+  }
+
   const fieldRecord = [
     ['Deployments', s.deployments], ['Objectives secured', s.held], ['Operations failed', s.lost],
     ['Hostiles destroyed', s.kills], ['Units lost', s.unitsLost], ['Breaches allowed', s.breaches],
     ['Enlisted', new Date(active.created).toLocaleDateString()],
   ].map(([k, v]) => `<div class="row"><span>${k}</span><span class="r">${v}</span></div>`).join('');
-
-  const veterans = Object.keys(active.usage || {})
-    .sort((a, b) => active.usage[b] - active.usage[a]).slice(0, 8)
-    .map(id => {
-      const v = vetOf(id);
-      return `<div class="row"><span>${POOL[id] ? POOL[id].n : id}
-       <span style="color:${v.col};font-size:0.625rem"> · ${v.n}</span></span>
-       <span class="r">${v.u} deployments</span></div>`;
-    }).join('') || '<div class="row"><span style="color:var(--dim)">No deployments logged yet.</span></div>';
-
-  const operations = Object.values(OPS).map(o => {
-    const r = active.ops[o.k];
-    const done = r ? r.cleared.length : 0;
-    return `<div class="row"><span>${o.n}</span><span class="r${done ? ' hot' : ''}">${done} / ${o.nodes.length} cleared</span></div>`;
-  }).join('');
-
-  return `
-   <div class="bar"><div>${active.callsign} · <b style="color:var(--zan)">${rankName(active.progress.rank)}</b></div>
-     <div style="color:var(--dim);font-size:0.625rem">Task force command · XP ${active.progress.xp}</div></div>
-   <div class="sect">Field record</div><div class="rows">${fieldRecord}</div>
-   <div class="sect">Achievements — ${achievementList().filter(a => a.have >= a.need).length} / ${achievementList().length} earned</div>
-   <div class="rows">${achievementList().map(a => {
-    const done = a.have >= a.need;
-    return `<div class="row${done ? '' : ' locked'}"><span><b style="color:${done ? 'var(--gold)' : 'var(--dim)'}">${done ? '◆' : '◇'} ${a.n}</b>
-     <div style="font-size:0.5938rem;color:var(--dim);margin-top:4px">${a.d}</div></span>
-     <span class="r${done ? ' hot' : ''}">${done ? 'Earned' : Math.min(a.have, a.need) + ' / ' + a.need}</span></div>`;
-  }).join('')}</div>
-   <div class="sect">Veteran roster</div><div class="rows">${veterans}</div>
+  return bar + `<div class="sect">Field record</div><div class="rows">${fieldRecord}</div>
    <div class="sect">Modes</div><div class="rows">
    <div class="row"><span>Onslaught best</span><span class="r hot">${active.bests.onslaught || 0} waves</span></div>
    <div class="row"><span>Gauntlets completed</span><span class="r hot">${active.bests.gauntlet || 0}</span></div>
-   <div class="row"><span>Ironman</span><span class="r">${active.ironman ? 'Enabled' : 'Off'}</span></div></div>
-   <div class="sect">Operations</div><div class="rows">${operations}</div>`;
+   <div class="row"><span>Ironman</span><span class="r">${active.ironman ? 'Enabled' : 'Off'}</span></div></div>`;
 }
 
 const settingsPanel = () => `<div class="sect">Interface</div><div class="rows">
-   <div class="row"><span>Layout<div style="font-size:0.5938rem;color:var(--dim);margin-top:4px;line-height:1.5">
+   <div class="row"><span>Layout<div style="font-size:0.6562rem;color:var(--dim);margin-top:4px;line-height:1.5">
      Desktop is a denser three-column board with a combat log and number-key deployment.
      Compact stacks and scrolls. Automatic picks by display.</div></span>
      <span class="uipick">${UI_MODES.map(m =>
        `<button class="mini${uiPreference() === m ? ' on' : ''}" data-ui="${m}">${UI_LABELS[m]}</button>`).join('')}</span></div>
    <div class="row"><span>In force</span><span class="r hot">${uiModeLabel()}</span></div>
-   <div class="row" id="sndrow" style="cursor:pointer"><span>Sound effects<div style="font-size:0.5938rem;color:var(--dim);margin-top:4px">All synthesized — nothing to download.</div></span>
+   <div class="row" id="sndrow" style="cursor:pointer"><span>Sound effects<div style="font-size:0.6562rem;color:var(--dim);margin-top:4px">All synthesized — nothing to download.</div></span>
      <span class="r hot">${soundOn() ? 'On' : 'Off'}</span></div>
-   <div class="row" id="musrow" style="cursor:pointer"><span>Atmosphere<div style="font-size:0.5938rem;color:var(--dim);margin-top:4px">A synthwave loop, generated live — no track to download.</div></span>
+   <div class="row" id="musrow" style="cursor:pointer"><span>Atmosphere<div style="font-size:0.6562rem;color:var(--dim);margin-top:4px">A synthwave loop, generated live — no track to download.</div></span>
      <span class="r hot">${musicOn() ? 'On' : 'Off'}</span></div></div>
    <div class="sect">System</div><div class="rows">
    <div class="row"><span>Storage</span><span class="r">${store.ephemeral ? 'Blocked — session only' : 'This device'}</span></div>
    <div class="row"><span>Save version</span><span class="r">v${active.version}</span></div>
    <div class="row" id="shipren" style="cursor:pointer"><span>Dropship name</span><span class="r hot">DS ${active.ship || 'ANVIL-7'}</span></div>
-   <div class="row" id="swrec" style="cursor:pointer"><span>Switch record<div style="font-size:0.5938rem;color:var(--dim);margin-top:4px">Back to command authentication.</div></span>
+   <div class="row" id="swrec" style="cursor:pointer"><span>Switch record<div style="font-size:0.6562rem;color:var(--dim);margin-top:4px">Back to command authentication.</div></span>
      <span class="r hot">Sign out</span></div>
    <div class="row" id="expo" style="cursor:pointer"><span>Export save</span><span class="r hot">Copy JSON</span></div>
-   <div class="row" id="impo" style="cursor:pointer"><span>Import save<div style="font-size:0.5938rem;color:var(--dim);margin-top:4px">Paste an exported record — it is repaired to the current version on the way in.</div></span>
+   <div class="row" id="impo" style="cursor:pointer"><span>Import save<div style="font-size:0.6562rem;color:var(--dim);margin-top:4px">Paste an exported record — it is repaired to the current version on the way in.</div></span>
      <span class="r hot">Paste JSON</span></div>
    <div class="row" id="newrun" style="cursor:pointer"><span>Regenerate current operation</span><span class="r" style="color:var(--mag)">Reroll missions</span></div>
-   <div class="row" id="tutreplay" style="cursor:pointer"><span>Combat briefing<div style="font-size:0.5938rem;color:var(--dim);margin-top:4px">Runs at the start of your next campaign mission.</div></span>
+   <div class="row" id="tutreplay" style="cursor:pointer"><span>Combat briefing<div style="font-size:0.6562rem;color:var(--dim);margin-top:4px">Runs at the start of your next campaign mission.</div></span>
      <span class="r hot">${active.settings.tutorial === 'replay' ? 'Queued' : 'Replay'}</span></div></div>
    <div class="sect">Controls</div><div class="rows">
    <div class="row"><span>End turn</span><span class="r">Space · Enter</span></div>
@@ -363,6 +377,7 @@ export function openPanel(key) {
       }, {ok: 'Refit'});
   });
   each('[data-tab]', el => { dbTab = el.dataset.tab; openPanel('database'); });
+  each('[data-rectab]', el => { recTab = el.dataset.rectab; openPanel('record'); });
   each('[data-ui]', el => { setUiMode(el.dataset.ui); paintHold(); openPanel('settings'); });
 
   const buyPack = $('buypack');
