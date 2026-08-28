@@ -7971,6 +7971,10 @@ const SCHEMES = {
   slate: {n: 'Slate', price: 150, b: '#4a4f5c', s: '#2c2f38', v: '#ffc94d'},
   plum: {n: 'Plum', price: 200, b: '#5c3358', s: '#371f36', v: '#ffc94d'},
   onyx: {n: 'Onyx', price: 200, b: '#23252f', s: '#121319', v: '#ff5a5a', o: '#8890a8'},
+  umber: {n: 'Umber', price: 150, b: '#6b4a30', s: '#402c1c', v: '#ffc94d'},
+  teal: {n: 'Teal', price: 175, b: '#2f6b64', s: '#1c403c', v: '#ffc94d'},
+  sand: {n: 'Sand', price: 175, b: '#9c8a5e', s: '#6b5c3c', v: '#ffc94d'},
+  indigo: {n: 'Indigo', price: 225, b: '#3c3a68', s: '#242340', v: '#ffc94d', o: '#a8a6d0'},
 };
 
 const hasSprite = id => !!PIXMAP[id];
@@ -8952,10 +8956,10 @@ function squadPanel() {
 }
 
 function quartermasterPanel() {
-  const tier = t => `<div class="sect">${TIERNAME[t]} — credits</div>` +
+  const tier = t => `<div class="sect">${TIERNAME[t]}</div>` +
     cardGrid(Object.keys(POOL).filter(c => POOL[c].t === t), 'shop');
 
-  const gearGrid = `<div class="sect" style="color:var(--cyan)">Gear — credits</div>
+  const gearGrid = `<div class="sect" style="color:var(--cyan)">Gear</div>
      <div class="cgrid">${Object.keys(GEAR).map(gi => {
        const g = GEAR[gi];
        const owned = active.unlocks.gear.includes(gi);
@@ -8967,7 +8971,7 @@ function quartermasterPanel() {
          <div class="gfoot ${owned ? 'own' : affordable ? 'buy' : 'no'}">${owned ? 'Owned' : g.cost + ' cr'}</div></button>`;
      }).join('')}</div>`;
 
-  const schemeGrid = `<div class="sect" style="color:var(--gold)">Uniforms — credits</div>
+  const schemeGrid = `<div class="sect" style="color:var(--gold)">Uniforms</div>
      <div class="cgrid">${Object.keys(SCHEMES).map(k => {
        const sc = SCHEMES[k];
        const owned = active.unlocks.schemes.includes(k);
@@ -8991,7 +8995,7 @@ function quartermasterPanel() {
    ${TIERS.map(tier).join('')}
    ${gearGrid}
    ${schemeGrid}
-   <div class="sect">Team leads — credits</div>${leadTilesHTML('shop')}`;
+   <div class="sect">Team leads</div>${leadTilesHTML('shop')}`;
 }
 
 const dbTabs = () => `<div class="tabs">
@@ -9697,7 +9701,7 @@ function wireRecordScreen() {
   const drawer = $('drawer');
   const paintDrawer = () => {
     $('drawtab').textContent = drawer.classList.contains('up') ? '▼' : '▲';
-    $('drawui').textContent = 'UI · ' + uiModeLabel();
+    $('drawui').textContent = 'UI · ' + UI_LABELS[uiPreference()];
     $('drawmus').textContent = 'Music · ' + (musicOn() ? 'On' : 'Off');
   };
   $('drawtab').onclick = () => { sfx('tap'); drawer.classList.toggle('up'); paintDrawer(); };

@@ -23,7 +23,7 @@ import {drawAll, drawBoard} from './combat.js';
 import {openPanel, importRecordFlow} from './panels.js';
 import {showPack, setAfterPacks} from './packs.js';
 import {showResult} from './result.js';
-import {applyUiMode, cycleUiMode, uiModeLabel, uiPreference} from './uimode.js';
+import {applyUiMode, cycleUiMode, uiPreference, UI_LABELS} from './uimode.js';
 import {enableTape} from '../rules/tape.js';
 import {playTurn, skipReplay} from './playback.js';
 import {maybeStartTutorial, tutorialTick} from './tutorial.js';
@@ -87,7 +87,7 @@ function wireRecordScreen() {
   const drawer = $('drawer');
   const paintDrawer = () => {
     $('drawtab').textContent = drawer.classList.contains('up') ? '▼' : '▲';
-    $('drawui').textContent = 'UI · ' + uiModeLabel();
+    $('drawui').textContent = 'UI · ' + UI_LABELS[uiPreference()];
     $('drawmus').textContent = 'Music · ' + (musicOn() ? 'On' : 'Off');
   };
   $('drawtab').onclick = () => { sfx('tap'); drawer.classList.toggle('up'); paintDrawer(); };

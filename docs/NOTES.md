@@ -1580,6 +1580,38 @@ hold screen's purse shows Credits only, the Quartermaster grid prices
 every gear piece in `cr` with the new coach-card copy, and buying
 Reactive Plating deducted exactly 120 credits and granted it.
 
+## Three small polish requests off the back of the credits merge
+
+**Drawer UI chip drops the resolved submode.** The pull-up drawer's `UI ·`
+chip used `uiModeLabel()`, which for the `auto` preference reads
+"Automatic · Desktop" or "Automatic · Compact" — useful detail on the
+dedicated Settings row, noise on a one-line quick-toggle chip you're
+about to tap past anyway. The chip now reads `UI_LABELS[uiPreference()]`
+directly — just "Automatic", "Desktop" or "Compact" — while the Settings
+panel's "In force" row keeps the detailed form unchanged; only the
+drawer's chip needed a narrower answer, not the whole label function.
+
+**Redundant "— credits" dropped from every shop category header.**
+Leftover from the two-currency Quartermaster, where a section that
+happened to spend the *other* currency (gear/uniforms — salvage; cards —
+credits) needed the label to tell them apart. Now that the top bar
+already says "Credits 3000" and the subtext already says "Cards, gear
+and uniforms all spend the same credits," repeating "— credits" on
+Common/Tech/Specialist/Gear/Uniforms/Team leads was just noise with
+nothing left to disambiguate. Five section headers, one word dropped
+from each.
+
+**Four more uniform schemes.** Umber (brown, 150cr), Teal (blue-green,
+175cr), Sand (khaki, 175cr), Indigo (blue-violet, 225cr, with the same
+lightened-outline treatment Cobalt and Onyx use so a dark body doesn't
+blur into the tile ink). Same rules as the original six: desaturated
+tactical tones, gold visor pip on all of them (the "yours and alive"
+signal the sprite header comment calls out as a near-invariant — Onyx's
+red visor is the one deliberate exception, not a precedent to extend),
+and no faction cyan/magenta. `pixtest.js`'s scheme guards (distinctness,
+contrast, complete field set) covered the new four automatically —
+10 schemes, all checks pass, no test changes needed.
+
 ## Still open
 
 1. **Crystals still loses to "Three breaches"** more than anything else — the

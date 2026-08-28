@@ -54,10 +54,10 @@ function squadPanel() {
 }
 
 function quartermasterPanel() {
-  const tier = t => `<div class="sect">${TIERNAME[t]} — credits</div>` +
+  const tier = t => `<div class="sect">${TIERNAME[t]}</div>` +
     cardGrid(Object.keys(POOL).filter(c => POOL[c].t === t), 'shop');
 
-  const gearGrid = `<div class="sect" style="color:var(--cyan)">Gear — credits</div>
+  const gearGrid = `<div class="sect" style="color:var(--cyan)">Gear</div>
      <div class="cgrid">${Object.keys(GEAR).map(gi => {
        const g = GEAR[gi];
        const owned = active.unlocks.gear.includes(gi);
@@ -69,7 +69,7 @@ function quartermasterPanel() {
          <div class="gfoot ${owned ? 'own' : affordable ? 'buy' : 'no'}">${owned ? 'Owned' : g.cost + ' cr'}</div></button>`;
      }).join('')}</div>`;
 
-  const schemeGrid = `<div class="sect" style="color:var(--gold)">Uniforms — credits</div>
+  const schemeGrid = `<div class="sect" style="color:var(--gold)">Uniforms</div>
      <div class="cgrid">${Object.keys(SCHEMES).map(k => {
        const sc = SCHEMES[k];
        const owned = active.unlocks.schemes.includes(k);
@@ -93,7 +93,7 @@ function quartermasterPanel() {
    ${TIERS.map(tier).join('')}
    ${gearGrid}
    ${schemeGrid}
-   <div class="sect">Team leads — credits</div>${leadTilesHTML('shop')}`;
+   <div class="sect">Team leads</div>${leadTilesHTML('shop')}`;
 }
 
 const dbTabs = () => `<div class="tabs">

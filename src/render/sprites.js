@@ -467,6 +467,10 @@ export const SCHEMES = {
   slate: {n: 'Slate', price: 150, b: '#4a4f5c', s: '#2c2f38', v: '#ffc94d'},
   plum: {n: 'Plum', price: 200, b: '#5c3358', s: '#371f36', v: '#ffc94d'},
   onyx: {n: 'Onyx', price: 200, b: '#23252f', s: '#121319', v: '#ff5a5a', o: '#8890a8'},
+  umber: {n: 'Umber', price: 150, b: '#6b4a30', s: '#402c1c', v: '#ffc94d'},
+  teal: {n: 'Teal', price: 175, b: '#2f6b64', s: '#1c403c', v: '#ffc94d'},
+  sand: {n: 'Sand', price: 175, b: '#9c8a5e', s: '#6b5c3c', v: '#ffc94d'},
+  indigo: {n: 'Indigo', price: 225, b: '#3c3a68', s: '#242340', v: '#ffc94d', o: '#a8a6d0'},
 };
 
 export const hasSprite = id => !!PIXMAP[id];
