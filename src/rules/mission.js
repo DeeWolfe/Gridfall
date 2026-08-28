@@ -60,7 +60,7 @@ export function launchSpec(nd) {
   }
 
   setG({
-    node: nd.node, type: nd.type, mod: nd.mod, reward: nd.reward, salv: nd.salv,
+    node: nd.node, type: nd.type, mod: nd.mod, reward: nd.reward,
     heat: nd.heat || 0, endless: !!nd.endless, gauntlet: !!nd.gauntlet, daily: !!nd.daily,
     waves: nd.endless ? 9999 : m.waves,
     turn: 1, dp: MAXDP, breaches: 0, over: false,
@@ -118,13 +118,13 @@ export function launch(nodeId) {
   if (!active) return false;
   const nd = opRun().nodes[nodeId];
   if (!nd) return false;
-  return launchSpec({node: nodeId, type: nd.type, mod: nd.mod, reward: nd.reward, salv: nd.salv, heat: nd.heat});
+  return launchSpec({node: nodeId, type: nd.type, mod: nd.mod, reward: nd.reward, heat: nd.heat});
 }
 
 /** Onslaught: one board, waves that never stop and scale 1.9x each time. */
 export function launchOnslaught() {
   if (!active) return false;
-  return launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0, salv: 0, endless: true});
+  return launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0, endless: true});
 }
 
 /** Gauntlet: three missions back to back. One loss ends the chain. */
@@ -147,8 +147,7 @@ export function launchGauntlet() {
   const leg = active.gaunt.legs[active.gaunt.i];
   return launchSpec({
     node: null, type: leg.type, mod: leg.mod,
-    reward: 80 + active.gaunt.i * 50,
-    salv: 5 + active.gaunt.i * 2,
+    reward: 85 + active.gaunt.i * 52,
     gauntlet: true,
   });
 }
@@ -186,8 +185,7 @@ export function launchDaily() {
   const streak = Math.min((active.daily && active.daily.streak) || 0, 10);
   return launchSpec({
     node: null, type, mod, daily: true,
-    reward: 120 + streak * 15,
-    salv: 8 + streak * 2,
+    reward: 128 + streak * 17,
   });
 }
 
@@ -221,10 +219,8 @@ function settleOnslaught() {
   const record = best > previous;
   active.bests.onslaught = best;
 
-  const cr = G.turn * 12;
-  const sv = Math.floor(G.turn * 1.5);
+  const cr = G.turn * 12 + Math.floor(G.turn * 1.5);
   active.progress.credits += cr;
-  active.progress.salvage += sv;
   active.stats.deployments++;
   active.stats.kills += G.kills;
   commit();
@@ -238,21 +234,18 @@ function settleOnslaught() {
       `Personal best · ${active.bests.onslaught}`,
       `Hostiles destroyed · ${G.kills}`,
     ],
-    payout: {cr, sv},
+    payout: {cr},
   };
 }
 
 function settleGauntlet(win, why) {
   let cr = 0;
-  let sv = 0;
   let title;
 
   if (win) {
     active.gaunt.i++;
     cr = G.reward;
-    sv = G.salv;
     active.progress.credits += cr;
-    active.progress.salvage += sv;
     active.stats.held++;
     const done = active.gaunt.i >= GAUNTLET_LEGS;
     queuePack('standard', 'Gauntlet leg cleared');
@@ -279,19 +272,16 @@ function settleGauntlet(win, why) {
     cleared: win,
     title,
     lines: [why, `Hostiles destroyed · ${G.kills}`, `Units lost · ${G.lost}`].filter(Boolean),
-    payout: win ? {cr, sv} : null,
+    payout: win ? {cr} : null,
   };
 }
 
 function settleCampaign(win, why) {
   let cr = 0;
-  let sv = 0;
 
   if (win) {
-    cr = G.reward;
-    sv = G.salv + Math.floor(G.kills / 5);
+    cr = G.reward + Math.floor(G.kills / 5);
     active.progress.credits += cr;
-    active.progress.salvage += sv;
     opRun().cleared.push(G.node);
     active.stats.held++;
     active.progress.xp += 20;
@@ -325,7 +315,7 @@ function settleCampaign(win, why) {
     title: win ? 'OBJECTIVE SECURED' : 'OPERATION FAILED',
     lines: [why, `Hostiles destroyed · ${G.kills}`, `Units lost · ${G.lost}`,
       `Ground held · ${held()} tiles`].filter(Boolean),
-    payout: win ? {cr, sv} : null,
+    payout: win ? {cr} : null,
   };
 }
 
@@ -337,15 +327,12 @@ function settleDaily(win, why) {
   const key = todayKey();
   const alreadyToday = active.daily.date === key && active.daily.done;
   let cr = 0;
-  let sv = 0;
 
   if (win && !alreadyToday) {
     const streak = active.daily.date === yesterdayKey() ? active.daily.streak + 1 : 1;
     active.daily = {date: key, done: true, streak};
     cr = G.reward;
-    sv = G.salv;
     active.progress.credits += cr;
-    active.progress.salvage += sv;
     active.stats.held++;
     queuePack(streak % 5 === 0 ? 'specialist' : 'standard', `Daily challenge · streak ${streak}`);
   } else if (!win) {
@@ -368,7 +355,7 @@ function settleDaily(win, why) {
       win ? `Streak · ${active.daily.streak}${alreadyToday ? ' — already banked today' : ''}`
         : 'Loss doesn\'t cost the streak — try again today.',
     ].filter(Boolean),
-    payout: win && !alreadyToday ? {cr, sv} : null,
+    payout: win && !alreadyToday ? {cr} : null,
   };
 }
 

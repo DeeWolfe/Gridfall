@@ -89,7 +89,7 @@ const F = failures();
     const guest = A.profiles.find(p => p.id === 'guest1');
     if (!guest) F.push('a valid record did not import');
     else {
-      if (guest.version !== 4) F.push('the import was not migrated');
+      if (guest.version !== A.SAVE_VERSION) F.push('the import was not migrated');
       if (guest.loadout.deck.includes('ghostcard')) F.push('migration did not strip a dead card on import');
       if (get('dlgtitle')._text !== 'Record imported') F.push('no success notice after import');
     }

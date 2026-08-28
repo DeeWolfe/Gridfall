@@ -7,7 +7,7 @@ import {spawnUnit, spawnFoe, clearBoard, unlockAll, stillAir} from './support/fi
 const F = failures();
 
 A.enterProfile(unlockAll(A.blankProfile('HC'), ['hecate', 'rifle', 'wall', 'marks']));
-A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0, salv: 0});
+A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0});
   stillAir();
 clearBoard();
 

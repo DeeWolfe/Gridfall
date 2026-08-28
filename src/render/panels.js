@@ -57,16 +57,16 @@ function quartermasterPanel() {
   const tier = t => `<div class="sect">${TIERNAME[t]} — credits</div>` +
     cardGrid(Object.keys(POOL).filter(c => POOL[c].t === t), 'shop');
 
-  const gearGrid = `<div class="sect" style="color:var(--cyan)">Gear — salvage</div>
+  const gearGrid = `<div class="sect" style="color:var(--cyan)">Gear — credits</div>
      <div class="cgrid">${Object.keys(GEAR).map(gi => {
        const g = GEAR[gi];
        const owned = active.unlocks.gear.includes(gi);
-       const affordable = active.progress.salvage >= g.cost;
+       const affordable = active.progress.credits >= g.cost;
        return `<button class="gcard t-tech${owned ? ' owned' : affordable ? '' : ' cant'}" data-gear="${gi}"
-         title="${attr(g.n + ' — ' + g.cost + ' salvage\n' + g.d)}">
+         title="${attr(g.n + ' — ' + g.cost + ' cr\n' + g.d)}">
          <div class="inkmark">${sigil(gi, 'tech')}</div>
          <div class="tn">${g.n}</div>
-         <div class="gfoot ${owned ? 'own' : affordable ? 'buy' : 'no'}">${owned ? 'Owned' : g.cost + ' sv'}</div></button>`;
+         <div class="gfoot ${owned ? 'own' : affordable ? 'buy' : 'no'}">${owned ? 'Owned' : g.cost + ' cr'}</div></button>`;
      }).join('')}</div>`;
 
   const schemeGrid = `<div class="sect" style="color:var(--gold)">Uniforms — credits</div>
@@ -85,8 +85,8 @@ function quartermasterPanel() {
      }).join('')}</div>`;
 
   const canBuyPack = active.progress.credits >= PACK_PRICE;
-  return `<div class="bar"><div>Credits <b>${active.progress.credits}</b> · Salvage <b style="color:var(--cyan)">${active.progress.salvage}</b></div>
-     <div style="color:var(--dim);font-size:0.6875rem">Tap a card to enlarge and buy. Credits buy cards, salvage buys gear.</div></div>
+  return `<div class="bar"><div>Credits <b>${active.progress.credits}</b></div>
+     <div style="color:var(--dim);font-size:0.6875rem">Tap a card to enlarge and buy. Cards, gear and uniforms all spend the same credits.</div></div>
    <div class="bar"><div><b>Requisition drop</b>
      <div style="color:var(--dim);font-size:0.6875rem;margin-top:3px">Three offers, keep one — duplicates promote the card instead. Now and then one arrives as a priority requisition.</div></div>
      <button class="btn${canBuyPack ? '' : ' ghost'}" id="buypack"${canBuyPack ? '' : ' disabled'}>Buy pack · ${PACK_PRICE} cr</button></div>
@@ -141,13 +141,13 @@ function databasePanel() {
       return dbRow({
         label: g.n,
         body: g.d + (fittedTo ? ` · fitted to ${POOL[fittedTo].n}` : ''),
-        right: owned ? 'Owned' : g.cost + ' sv',
+        right: owned ? 'Owned' : g.cost + ' cr',
         hot: !owned,
         attrs: ` data-gear="${gi}"`,
       });
     }).join('');
     return `<div class="bar"><div>Gear on file <b>${Object.keys(GEAR).length}</b></div>
-     <div style="color:var(--dim);font-size:0.6875rem">One slot per card, bought with salvage</div></div>${dbTabs()}
+     <div style="color:var(--dim);font-size:0.6875rem">One slot per card, bought with credits</div></div>${dbTabs()}
      <div class="sect">Field gear</div><div class="rows">${rows}</div>`;
   }
 

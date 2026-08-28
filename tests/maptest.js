@@ -39,7 +39,6 @@ for (const opKey of Object.keys(A.OPS)) {
       if (n.role === 'side') {
         const pool = n.type ? [n.type] : ['crystals', 'specimens', 'uplink', 'blitz'];
         if (!pool.includes(nd.type)) F.push(`${opKey} side node rolled ${nd.type}`);
-        if (nd.salv < 8) F.push(`${opKey} side node salvage not boosted: ${nd.salv}`);
       }
       const wantHeat = A.OPS[opKey].heat ? (n.heat != null ? n.heat : A.OPS[opKey].heat) : 0;
       if (wantHeat !== (nd.heat || 0)) {
@@ -79,7 +78,7 @@ for (const opKey of Object.keys(A.OPS)) {
 {
   const p = A.blankProfile('UP');
   A.enterProfile(p);
-  A.launchSpec({node: null, type: 'uplink', mod: 'none', reward: 0, salv: 0});
+  A.launchSpec({node: null, type: 'uplink', mod: 'none', reward: 0});
   const {l, c} = A.G.uplinkAt;
   if (c !== 4 || l < 1 || l > 3) F.push(`uplink tile in the wrong band: ${l},${c}`);
   // Keep the board quiet so only the tile's ownership drives the outcome.
@@ -102,7 +101,7 @@ for (const opKey of Object.keys(A.OPS)) {
 {
   const p = A.blankProfile('BZ');
   A.enterProfile(p);
-  A.launchSpec({node: null, type: 'blitz', mod: 'none', reward: 0, salv: 0});
+  A.launchSpec({node: null, type: 'blitz', mod: 'none', reward: 0});
   if (A.G.quota !== 9) F.push('blitz quota not set');
   A.G.kills = 9;
   A.endTurn();
@@ -142,7 +141,7 @@ for (const opKey of Object.keys(A.OPS)) {
   const p = A.blankProfile('HT');
   A.enterProfile(p);
   const spend = heat => {
-    A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0, salv: 0, heat});
+    A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0, heat});
     return Object.entries(A.G.manifest).reduce((a, [k, c]) => a + A.BEST[k].threat * c, 0);
   };
   if (spend(0) !== 4) F.push('baseline wave-1 budget moved: ' + spend(0));

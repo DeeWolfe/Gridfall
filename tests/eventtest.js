@@ -9,7 +9,7 @@ const F = failures();
 
 const start = () => {
   A.enterProfile(unlockAll(A.blankProfile('EV'), ['rifle', 'marks', 'wall', 'medic', 'turret', 'dynamo']));
-  A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0, salv: 0});
+  A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0});
   clearBoard();
   A.G.eventNext = null;
   A.G.event = null;

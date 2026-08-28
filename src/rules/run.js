@@ -35,24 +35,22 @@ export function genRun() {
           : role === 'side' ? sidePool[randInt(sidePool.length)]
             : mainPool[randInt(mainPool.length)]),
       mod: chance(0.45) ? mods[1 + randInt(mods.length - 1)] : 'none',
-      reward: 70 + randInt(5) * 20,
-      salv: 5 + randInt(5),
+      reward: 70 + randInt(5) * 20 + 5 + randInt(5),
     };
   });
 
   // The objective missions are markedly harder; pay accordingly.
   Object.values(nodes).forEach(nd => {
-    if (nd.type === 'crystals') { nd.reward = Math.round(nd.reward * 1.85) + 40; nd.salv += 4; }
-    if (nd.type === 'specimens') { nd.reward = Math.round(nd.reward * 1.55); nd.salv += 2; }
-    if (nd.type === 'uplink') { nd.reward = Math.round(nd.reward * 1.4); nd.salv += 2; }
-    if (nd.type === 'blitz') { nd.reward = Math.round(nd.reward * 1.25); nd.salv += 2; }
+    if (nd.type === 'crystals') nd.reward = Math.round(nd.reward * 1.85) + 44;
+    if (nd.type === 'specimens') nd.reward = Math.round(nd.reward * 1.55) + 2;
+    if (nd.type === 'uplink') nd.reward = Math.round(nd.reward * 1.4) + 2;
+    if (nd.type === 'blitz') nd.reward = Math.round(nd.reward * 1.25) + 2;
   });
 
   // A bonus side objective is a detour — it pays like one.
   map.nodes.forEach(n => {
     if (n.role !== 'side') return;
-    nodes[n.id].reward = Math.round(nodes[n.id].reward * 1.5);
-    nodes[n.id].salv += 3;
+    nodes[n.id].reward = Math.round(nodes[n.id].reward * 1.5) + 3;
   });
 
   // A hot operation runs every wave over budget (see wave()) — and pays for
@@ -64,8 +62,7 @@ export function genRun() {
       const heat = n.heat != null ? n.heat : map.heat;
       if (!heat) return;
       nd.heat = heat;
-      nd.reward = Math.round(nd.reward * (1 + heat * 0.25));
-      nd.salv += heat;
+      nd.reward = Math.round(nd.reward * (1 + heat * 0.25)) + heat;
     });
   }
 

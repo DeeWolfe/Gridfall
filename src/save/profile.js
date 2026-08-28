@@ -22,7 +22,7 @@ export function blankProfile(callsign) {
     callsign: callsign.toUpperCase().slice(0, 12),
     created: Date.now(),
     lastPlayed: Date.now(),
-    progress: {rank: 1, xp: 0, credits: 300, salvage: 120},
+    progress: {rank: 1, xp: 0, credits: 420},
     unlocks: {cards: [...STARTER], enemies: [], gear: [], leads: [], schemes: ['standard']},
     loadout: {deck: [...STARTER], gear: {}, scheme: 'standard'},
     stats: {deployments: 0, held: 0, lost: 0, breaches: 0, kills: 0, unitsLost: 0},
@@ -70,8 +70,17 @@ export function migrate(p) {
     delete p.run;
   }
 
-  p.progress = p.progress || {rank: 1, xp: 0, credits: 300, salvage: 120};
+  p.progress = p.progress || {rank: 1, xp: 0, credits: 300};
   p.progress.packMeter = p.progress.packMeter || 0;
+
+  // v5 dropped the salvage currency — gear buys with credits now, so any
+  // salvage still on the books folds straight into the credits total instead
+  // of evaporating.
+  if (!p.version || p.version < 5) {
+    p.version = 5;
+    p.progress.credits = (p.progress.credits || 0) + (p.progress.salvage || 0);
+    delete p.progress.salvage;
+  }
   p.unlocks = p.unlocks || {};
   p.unlocks.cards = p.unlocks.cards || [...STARTER];
   p.unlocks.enemies = p.unlocks.enemies || [];

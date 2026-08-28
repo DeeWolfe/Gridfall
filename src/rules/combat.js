@@ -33,7 +33,7 @@ export function dmgEnemy(e, d, src, pen) {
   G.enemies = G.enemies.filter(x => x.uid !== e.uid);
   G.kills++;
   if (G.quotaK === e.k) G.quotaHit++;
-  if (G.mod === 'salvage') G.dp++;
+  if (G.mod === 'scavenge') G.dp++;
   clog(`<span class="g">${src}</span> destroyed ${BEST[e.k].n}.`, 'kill');
   logContact(e.k);
 

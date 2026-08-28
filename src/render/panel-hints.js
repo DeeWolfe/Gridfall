@@ -20,9 +20,9 @@ const HINTS = {
   },
   quartermaster: {
     title: 'Quartermaster',
-    body: 'Credits buy cards and uniforms, salvage buys gear — spend accordingly. ' +
-      'A duplicate from a requisition drop promotes the card instead of wasting the pull, ' +
-      'so nothing here is ever a dead end.',
+    body: 'Cards, gear and uniforms all spend the same credits — weigh a new card against a ' +
+      'gear upgrade for one you already run. A duplicate from a requisition drop promotes the ' +
+      'card instead of wasting the pull, so nothing here is ever a dead end.',
   },
   database: {
     title: 'Database',

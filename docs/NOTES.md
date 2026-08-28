@@ -1514,6 +1514,72 @@ failed. Reproduced clean in an isolated script with nothing left open
 between steps — fit the gear, the save shows `{rifle: 'rapidkit'}`, no
 page errors.
 
+## Salvage is gone — gear spends credits now
+
+Explicit request: drop the second currency entirely, have gear buy with
+credits, and update everything downstream — client and tutorial both.
+Salvage touched more of the codebase than any single-currency change has
+reason to: node generation (`run.js`), five settle functions
+(`mission.js`), the pack system's consolation-prize fallback
+(`rules/packs.js`), the save schema and its migration (`profile.js`),
+and every render surface that showed a price or a balance
+(`panels.js`, `focus.js`, `hold.js`, `map.js`, `result.js`, `modes.js`,
+`packs.js`) plus the one-time Quartermaster coach card
+(`panel-hints.js`) — the "tutorial" half of the ask.
+
+**The merge, not just a strip.** Every node used to carry two reward
+numbers — `reward` (credits) and `salv` (salvage) — generated
+independently and paid out independently. Folded `salv` straight into
+`reward` at every point it used to be set (base roll, per-type
+multiplier, side-objective bonus, heat surcharge) instead of keeping a
+second field that would just get added to the same pot at settle time —
+one number in, one number out, nothing spent tracking a sum that always
+had the same destination. The four settle functions (`onslaught`,
+`gauntlet`, `campaign`, `daily`) each shed their `sv` half accordingly;
+`settleCampaign`'s "extra credits per 5 kills" flavor survived as
+`Math.floor(G.kills / 5)` added straight onto `cr`, just no longer
+badged separately as scavenged salvage.
+
+**A modifier collision, caught by grep before it shipped.** The
+"Salvage" battlefield modifier (refunds 1 DP per kill) has nothing to do
+with the currency — it just happened to share the English word. Left
+alone it would have read as a leftover reference to a system that no
+longer exists, so it's `scavenge` now (same effect, same rarity — a pure
+rename, `combat.js`'s `G.mod === 'scavenge'` check included).
+
+**Gear pricing, rescaled, not just relabeled.** Credits and salvage were
+never the same denomination — a node paid roughly 15x more credits than
+salvage on average. Copying the raw salvage numbers over as credit
+prices unchanged would have made every gear piece nearly free relative
+to how fast credits come in. Rescaled 3x instead (135–420cr), anchored
+against card prices rather than the old per-node ratio: the cheapest
+piece sits below a common card, the priciest hybrids (Ghost Plating,
+Rapid Kit) land close to a Specialist's price — "gear costs about what a
+card of comparable weight costs" reads as the right intuition for a
+merged economy, not a mechanical multiplication of the old numbers.
+Starting credits went from 300 to 420 (the direct sum of the old
+starting pools, 300 + 120) so a new commander's total day-one buying
+power doesn't shrink just because the pools merged.
+
+**Existing saves keep their salvage, not lose it.** `SAVE_VERSION` bumped
+to 5; `migrate()` grew a version-gated block, cascading after the
+existing v4 block exactly like v3→v4 did, that folds
+`progress.salvage` into `progress.credits` and deletes the field —
+never invented, never discarded. Verified live: seeded a v4 save with
+555 credits and 333 salvage on the books, loaded it, and the profile
+came back with exactly 888 credits, no `salvage` key, `version: 5`. A
+v1-shaped legacy import (no salvage field at all) cascades through both
+migration steps in one pass without incident — folding `undefined || 0`
+is a no-op, not a crash.
+
+Full 37-guard suite passes (`sndtest`'s legacy-import check now compares
+against `SAVE_VERSION` instead of a hardcoded `4`, so the next version
+bump won't silently go stale the way the gen-content banner comments
+did back at the 58-card patch). Verified the rest live in a browser: the
+hold screen's purse shows Credits only, the Quartermaster grid prices
+every gear piece in `cr` with the new coach-card copy, and buying
+Reactive Plating deducted exactly 120 credits and granted it.
+
 ## Still open
 
 1. **Crystals still loses to "Three breaches"** more than anything else — the

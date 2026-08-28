@@ -7,7 +7,7 @@
 // whole pool, and a duplicate is offered as a field promotion instead — the
 // deployments it grants advance that card toward its next veterancy rank.
 // Once the cards run out the guaranteed slot degrades to unowned gear, then
-// promotions, then raw salvage. The pack NEVER opens empty.
+// promotions, then raw credits. The pack NEVER opens empty.
 
 import {DECKSIZE} from '../state/constants.js';
 import {POOL} from '../content/cards.js';
@@ -18,7 +18,7 @@ import {commit} from '../save/profile.js';
 
 const OFFER_SIZE = 3;
 const PROMOTION_DEPLOYMENTS = 12;
-const CONSOLATION_SALVAGE = 40;
+const CONSOLATION_CREDITS = 40;
 
 // Priced BELOW the average unowned Common/Tech single (~115 cr): the pack is
 // the budget gamble, the exact card is the certainty premium — the structure
@@ -46,7 +46,7 @@ export function purchasePack() {
 /**
  * Roll an offer.
  * @param {'standard'|'specialist'} tier  specialist draws Specialist cards only
- * @returns {Array<{kind:'card'|'gear'|'vet'|'salvage', id?:string, amount?:number}>}
+ * @returns {Array<{kind:'card'|'gear'|'vet'|'credits', id?:string, amount?:number}>}
  */
 export function packOffer(tier) {
   const owned = active.unlocks.cards || [];
@@ -75,7 +75,7 @@ export function packOffer(tier) {
       ? {kind: 'vet', id, amount: PROMOTION_DEPLOYMENTS}
       : {kind: 'card', id});
   }
-  while (out.length < OFFER_SIZE) out.push({kind: 'salvage', amount: CONSOLATION_SALVAGE});
+  while (out.length < OFFER_SIZE) out.push({kind: 'credits', amount: CONSOLATION_CREDITS});
   return out;
 }
 
@@ -92,8 +92,8 @@ export function claimPack(pick) {
   } else if (pick.kind === 'vet') {
     active.usage = active.usage || {};
     active.usage[pick.id] = (active.usage[pick.id] || 0) + pick.amount;
-  } else if (pick.kind === 'salvage') {
-    active.progress.salvage += pick.amount;
+  } else if (pick.kind === 'credits') {
+    active.progress.credits += pick.amount;
   }
   commit();
 }

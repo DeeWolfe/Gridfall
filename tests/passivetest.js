@@ -10,7 +10,7 @@ const start = lead => {
   const p = unlockAll(A.blankProfile('PV'), ['rifle', 'marks', 'wall', 'assassin']);
   A.enterProfile(p);
   p.lead = lead;
-  A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0, salv: 0});
+  A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0});
   stillAir();
   clearBoard();
 };

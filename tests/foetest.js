@@ -8,7 +8,7 @@ const F = failures();
 
 const start = () => {
   A.enterProfile(unlockAll(A.blankProfile('FO'), ['rifle', 'marks', 'wall', 'medic']));
-  A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0, salv: 0});
+  A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0});
   stillAir();
   clearBoard();
 };

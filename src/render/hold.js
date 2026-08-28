@@ -114,7 +114,6 @@ export function paintHold() {
   $('h-cs').textContent = p.callsign;
   $('h-rk').textContent = rankName(p.progress.rank) + ' · Rank ' + p.progress.rank;
   $('h-cr').textContent = p.progress.credits;
-  $('h-sa').textContent = p.progress.salvage;
   $('sectorname').textContent = MAPDEF.n.replace('OPERATION ', '');
   $('shipname').textContent = 'DS ' + (p.ship || 'ANVIL-7');
 

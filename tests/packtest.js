@@ -68,7 +68,7 @@ A.enterProfile(p);
   if (p.unlocks.cards.length !== before.length + 1) F.push('claim changed collection size incorrectly');
 }
 
-// 4. a full collection degrades to gear, then veterancy and salvage — never empty
+// 4. a full collection degrades to gear, then veterancy and credits — never empty
 {
   p.unlocks.cards = Object.keys(A.POOL);
   let offer = packOffer('standard');
@@ -80,8 +80,8 @@ A.enterProfile(p);
   offer = packOffer('standard');
   if (offer.length !== 3) F.push('offer went short with everything owned');
   if (offer.some(x => x.kind === 'card' || x.kind === 'gear')) F.push('offered something already owned');
-  if (!offer.every(x => x.kind === 'vet' || x.kind === 'salvage')) {
-    F.push('final fallback is not veterancy or salvage');
+  if (!offer.every(x => x.kind === 'vet' || x.kind === 'credits')) {
+    F.push('final fallback is not veterancy or credits');
   }
 
   const vet = offer.find(x => x.kind === 'vet');
@@ -90,11 +90,11 @@ A.enterProfile(p);
     A.claimPack(vet);
     if (((p.usage || {})[vet.id] || 0) !== before + vet.amount) F.push('veterancy award did not apply');
   }
-  const salvage = offer.find(x => x.kind === 'salvage');
-  if (salvage) {
-    const before = p.progress.salvage;
-    A.claimPack(salvage);
-    if (p.progress.salvage !== before + salvage.amount) F.push('salvage award did not apply');
+  const creditsPick = offer.find(x => x.kind === 'credits');
+  if (creditsPick) {
+    const before = p.progress.credits;
+    A.claimPack(creditsPick);
+    if (p.progress.credits !== before + creditsPick.amount) F.push('credits award did not apply');
   }
 }
 

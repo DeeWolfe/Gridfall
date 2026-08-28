@@ -162,18 +162,18 @@ export function focusEnemy(id) {
 export function focusGear(gi, viewOnly) {
   const g = GEAR[gi];
   const owned = active.unlocks.gear.includes(gi);
-  const affordable = active.progress.salvage >= g.cost;
+  const affordable = active.progress.credits >= g.cost;
 
   $('fwrap').innerHTML = `<div class="fcard t-tech">
       <div class="fart">${sigil(gi, 'tech', 118)}<div class="fcost" style="background:var(--cyan);color:#06121a">◈</div></div>
       <div class="fname">${g.n}</div><div class="ftype">Gear · one slot per card</div>
       <div class="ftxt">${g.d}</div>
-      <div class="fstats"><div class="fstat"><span class="k">Cost</span><span class="v">${g.cost} salvage</span></div>
+      <div class="fstats"><div class="fstat"><span class="k">Cost</span><span class="v">${g.cost} cr</span></div>
       <div class="fstat"><span class="k">Owned</span><span class="v">${owned ? 'Yes' : 'No'}</span></div></div>
     </div><div class="facts">${viewOnly ? '<button class="btn ghost" data-close="1">Close</button>'
     : owned ? '<button class="btn ghost" data-close="1">Owned — fit it in Squad</button>'
-      : affordable ? `<button class="btn" data-fgear="${gi}">Buy · ${g.cost} salvage</button><button class="btn ghost" data-close="1">Close</button>`
-        : `<button class="btn ghost" data-close="1">Need ${g.cost} salvage</button>`}</div>`;
+      : affordable ? `<button class="btn" data-fgear="${gi}">Buy · ${g.cost} cr</button><button class="btn ghost" data-close="1">Close</button>`
+        : `<button class="btn ghost" data-close="1">Need ${g.cost} cr</button>`}</div>`;
   $('fbg').innerHTML = bokehLayer(['#4de8ff', '#5dffa0', '#9d6bff']);
   $('focus').classList.add('on');
   wireFocus();
@@ -233,8 +233,8 @@ function wireFocus() {
   each('data-fgear', b => {
     const gi = b.dataset.fgear;
     const g = GEAR[gi];
-    if (active.unlocks.gear.includes(gi) || active.progress.salvage < g.cost) return;
-    active.progress.salvage -= g.cost;
+    if (active.unlocks.gear.includes(gi) || active.progress.credits < g.cost) return;
+    active.progress.credits -= g.cost;
     active.unlocks.gear.push(gi);
     commit();
     closeFocus();

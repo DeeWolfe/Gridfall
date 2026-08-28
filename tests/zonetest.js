@@ -8,7 +8,7 @@ const F = failures();
 const cell = (l, c) => l * A.COLS + c;
 
 A.enterProfile(unlockAll(A.blankProfile('ZN'), ['fob', 'mine', 'rifle', 'wall']));
-A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0, salv: 0});
+A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0});
   stillAir();
 clearBoard();
 

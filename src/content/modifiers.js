@@ -7,6 +7,6 @@ export const MODS = {
   nest: {n: "Nest", d: "Emplacements from wave one."},
   blackout: {n: "Blackout", d: "No wave preview and no spawn markers."},
   breach: {n: "Hull breach", d: "The top lane is impassable."},
-  salvage: {n: "Salvage", d: "Each kill refunds 1 deploy point."},
+  scavenge: {n: "Scavenge", d: "Each kill refunds 1 deploy point."},
   swarm: {n: "Swarm", d: "Crawler counts doubled."},
 };

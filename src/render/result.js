@@ -14,7 +14,7 @@ export function showResult() {
   $('rt').textContent = r.title;
 
   const payout = r.payout
-    ? `<br><br><b style="color:var(--gold)">+${r.payout.cr} credits</b> · <b style="color:var(--cyan)">+${r.payout.sv} salvage</b>`
+    ? `<br><br><b style="color:var(--gold)">+${r.payout.cr} credits</b>`
     : '';
   $('rs').innerHTML = r.lines.join('<br>') + payout;
   $('result').classList.add('on');

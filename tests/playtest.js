@@ -118,7 +118,6 @@ T('post-mission map', () => { renderMap(); noUndef('mapbody', 'map after'); });
 // 4. shop, deck and gear round trip
 T('buy card', () => {
   A.active.progress.credits = 5000;
-  A.active.progress.salvage = 2000;
   focusCard('samurai', 'shop');
 });
 T('deck edit', () => {
@@ -198,7 +197,6 @@ function clickAll(render, label) {
 
 const rich = A.blankProfile('WIRE');
 rich.progress.credits = 9000;
-rich.progress.salvage = 9000;
 enter(rich);
 PANELS.forEach(k => clickAll(() => openPanel(k), 'panel ' + k));
 clickAll(() => renderModes(), 'modes');

@@ -10,7 +10,7 @@ const start = (lead, deck) => {
   const p = unlockAll(A.blankProfile('ST'), deck || ['rifle', 'marks', 'wall', 'medic']);
   A.enterProfile(p);
   p.lead = lead;
-  A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0, salv: 0});
+  A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0});
   stillAir();
 };
 

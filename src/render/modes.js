@@ -20,7 +20,7 @@ export function renderModes() {
   <div class="modegrid">
     <button class="modecard live" style="--oc:#4de8ff" id="goCampaign">
       <div class="mname">Campaign</div>
-      <div class="mdesc">Work an operation node by node. Progress, credits and salvage persist between missions. Three operations available, each its own map.</div>
+      <div class="mdesc">Work an operation node by node. Progress and credits persist between missions. Three operations available, each its own map.</div>
       <div class="mfoot"><span>${cleared} missions cleared</span>
         <span style="color:#4de8ff">Select ▸</span></div></button>
     <button class="modecard live" style="--oc:#ff4d8f" id="goOnslaught">

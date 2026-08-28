@@ -36,8 +36,8 @@ function packArt(p) {
       body: `+${p.amount} deployments logged — advances this card toward its next rank.`,
       art: artFor(p.id, k.t, 86, '#9d6bff'), tier: 'special'};
   }
-  return {title: p.amount + ' Salvage', sub: 'Supplies', body: 'Raw materials for the Quartermaster.',
-    art: sigil('salvage', 'tech', 86), tier: 'tech'};
+  return {title: '+' + p.amount + ' Credits', sub: 'Bonus payout', body: 'Extra requisition credits — nothing wasted.',
+    art: sigil('credits', 'tech', 86), tier: 'tech'};
 }
 
 /** Present the next owed pack. Returns false when the queue is empty. */

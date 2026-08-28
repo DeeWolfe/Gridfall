@@ -178,7 +178,7 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .purse{display:flex;gap:16px;text-align:right}
 .purse .k{font-size:0.7188rem;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
 .purse .v{font-size:1.0625rem;font-weight:700}
-.purse .cr .v{color:var(--gold)} .purse .sa .v{color:var(--cyan)}
+.purse .cr .v{color:var(--gold)}
 .baymain{flex:1;overflow-y:auto;padding:16px 19px;display:flex;flex-direction:column;gap:10px}
 .deploy{position:relative;border:1px solid var(--cyan-d);text-align:left;padding:22px;
   background:linear-gradient(135deg,#16304a 0%,#1b1440 100%);overflow:hidden;

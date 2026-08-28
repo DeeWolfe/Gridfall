@@ -12,7 +12,7 @@ const start = () => {
   const p = unlockAll(A.blankProfile('GR'), ['rifle', 'marks', 'wall', 'medic']);
   A.enterProfile(p);
   p.lead = 'riptide';                              // carries Grapple Net
-  A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0, salv: 0});
+  A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0});
   stillAir();
   clearBoard();
 };
