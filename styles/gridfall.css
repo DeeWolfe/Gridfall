@@ -136,6 +136,9 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .timport:hover{color:var(--zan);border-color:var(--zan)}
 .tfoot{position:absolute;left:0;right:0;bottom:clamp(12px,2.5vh,26px);text-align:center;
   font-size:0.6875rem;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);opacity:.75}
+.tpatch{background:none;border:none;padding:0;margin:0;font:inherit;letter-spacing:inherit;
+  text-transform:inherit;color:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.tpatch:hover{color:var(--zan);opacity:1}
 
 .scanlines{position:absolute;inset:0;pointer-events:none;
   background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(77,232,255,.028) 2px 3px)}
@@ -253,6 +256,10 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .bar{display:flex;justify-content:space-between;align-items:center;gap:.8rem;background:var(--panel);
   border:1px solid var(--line);padding:.8rem 1rem;font-size:0.75rem;flex-wrap:wrap}
 .bar b{color:var(--gold);font-size:1rem}
+.patchcur{color:var(--green);font-size:0.6875rem;letter-spacing:.08em;text-transform:none}
+.patchnotes{display:flex;flex-direction:column;gap:6px;margin-bottom:6px}
+.patchnote{font-size:0.75rem;line-height:1.6;color:var(--txt);padding-left:14px;position:relative}
+.patchnote::before{content:'–';position:absolute;left:0;color:var(--dim)}
 .tabs{display:flex;gap:6px;margin-top:12px;overflow-x:auto;overscroll-behavior-x:contain;
   scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
 .tabs::-webkit-scrollbar{height:4px}

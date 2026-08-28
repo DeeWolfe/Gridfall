@@ -143,6 +143,9 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .timport:hover{color:var(--zan);border-color:var(--zan)}
 .tfoot{position:absolute;left:0;right:0;bottom:clamp(12px,2.5vh,26px);text-align:center;
   font-size:0.6875rem;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);opacity:.75}
+.tpatch{background:none;border:none;padding:0;margin:0;font:inherit;letter-spacing:inherit;
+  text-transform:inherit;color:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.tpatch:hover{color:var(--zan);opacity:1}
 
 .scanlines{position:absolute;inset:0;pointer-events:none;
   background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(77,232,255,.028) 2px 3px)}
@@ -260,6 +263,10 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .bar{display:flex;justify-content:space-between;align-items:center;gap:.8rem;background:var(--panel);
   border:1px solid var(--line);padding:.8rem 1rem;font-size:0.75rem;flex-wrap:wrap}
 .bar b{color:var(--gold);font-size:1rem}
+.patchcur{color:var(--green);font-size:0.6875rem;letter-spacing:.08em;text-transform:none}
+.patchnotes{display:flex;flex-direction:column;gap:6px;margin-bottom:6px}
+.patchnote{font-size:0.75rem;line-height:1.6;color:var(--txt);padding-left:14px;position:relative}
+.patchnote::before{content:'–';position:absolute;left:0;color:var(--dim)}
 .tabs{display:flex;gap:6px;margin-top:12px;overflow-x:auto;overscroll-behavior-x:contain;
   scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
 .tabs::-webkit-scrollbar{height:4px}
@@ -1027,7 +1034,7 @@ body{font-size:1rem}
     <div class="tprompt" id="titlego">▸ Tap to authenticate</div>
     <button class="btn ghost timport" id="titleimport">Import record</button>
   </div>
-  <div class="tfoot">Designed by DeeWolf</div>
+  <div class="tfoot">Designed by DeeWolf · <span id="titlever">v0.0</span> · <button class="tpatch" id="titlepatch">Patch notes</button></div>
   <div class="scanlines"></div>
 </div>
 
@@ -9670,6 +9677,100 @@ function render() {
   });
 }
 
+/* ==== src/content/patch-notes.js ==================================== */
+// Player-facing changelog. Unlike everything else under src/content, this is
+// hand-authored rather than generated from reference/gridfall-data.json —
+// it's prose for a person to read, not balance data. Bump VERSION and add a
+// new entry to the front of PATCH_NOTES with every release worth telling a
+// commander about; skip the ones that are pure internal cleanup.
+
+const VERSION = '1.8';
+
+const PATCH_NOTES = [
+  {
+    v: '1.8',
+    notes: [
+      'The hand tray in combat now collapses, so you can see more of the board.',
+      "Card art no longer prints the card's name a second time on top of the seal — and the seal is centred in the frame.",
+      'Four new uniform schemes: Umber, Teal, Sand, Indigo.',
+      'Quartermaster cleanup — fewer redundant labels in the shop.',
+    ],
+  },
+  {
+    v: '1.7',
+    notes: [
+      'Salvage is gone. Cards, gear and uniforms all spend the same credits now.',
+    ],
+  },
+  {
+    v: '1.6',
+    notes: [
+      '12 new cards and 6 new gear pieces join the roster.',
+      'Requisition packs arrive a little slower, to make room for the bigger collection.',
+    ],
+  },
+  {
+    v: '1.5',
+    notes: [
+      'Daily Challenge: one mission a day, the same for every commander, with a streak to protect.',
+      'Squad, Quartermaster, Database and Service Record each walk a new commander through once.',
+      'Combat has its own music now, distinct from the hold screen.',
+      'An animated title screen.',
+    ],
+  },
+  {
+    v: '1.4',
+    notes: [
+      'Turn events, lane charges, the Dynamo card, and enemy intent readouts.',
+      'Achievements, and a pull-up drawer for quick settings mid-mission.',
+    ],
+  },
+  {
+    v: '1.3',
+    notes: [
+      "Every unit — yours and the hive's — gets a hand-drawn pixel sprite on the board.",
+      'Purchasable uniform schemes for your whole roster.',
+      'A darker, more tactical palette.',
+    ],
+  },
+  {
+    v: '1.2',
+    notes: [
+      'Ink-seal card art for every card, and chip-style tiles throughout the shop and squad screens.',
+      'Desktop and compact interface modes.',
+    ],
+  },
+  {
+    v: '1.1',
+    notes: [
+      'Eight team leads, each with a passive and a stratagem call.',
+      'Three new hostiles, three new campaign operations.',
+    ],
+  },
+  {
+    v: '1.0',
+    notes: [
+      'First release: campaign operations, lane-defence combat, Squad, Quartermaster and Database, local save records.',
+    ],
+  },
+];
+
+/* ==== src/render/patchnotes.js ====================================== */
+// The patch notes overlay. Reuses the hold panels' DOM (#panel/#pbody)
+// directly rather than going through openPanel(), because openPanel() gates
+// on an active profile and this has to work from the title screen too —
+// before a commander has authenticated, or even created a record.
+
+function openPatchNotes() {
+  $('ptitle').textContent = 'Patch Notes';
+  $('pbody').innerHTML = `<div class="bar"><div>You're running <b style="color:var(--gold)">v${VERSION}</b></div>
+      <div style="color:var(--dim);font-size:0.6875rem">What's shipped, newest first.</div></div>` +
+    PATCH_NOTES.map(({v, notes}, i) => `
+      <div class="sect">v${v}${i === 0 ? ' <span class="patchcur">· current</span>' : ''}</div>
+      <div class="patchnotes">${notes.map(n => `<div class="patchnote">${n}</div>`).join('')}</div>`).join('');
+  $('panel').classList.add('on');
+}
+
 /* ==== src/render/wiring.js ========================================== */
 // Boot: install the presentation hooks, wire the shell's fixed controls, and
 // put the record-select screen up.
@@ -9703,14 +9804,17 @@ function wireResultButton() {
   };
 }
 
-/** The splash: tap anywhere for the login console; import stays separate. */
+/** The splash: tap anywhere for the login console; import and patch notes
+ * stay separate, so both are excluded from the whole-screen tap target. */
 function wireTitleScreen() {
+  $('titlever').textContent = 'v' + VERSION;
   $('title').onclick = ev => {
-    if (ev && ev.target && ev.target.id === 'titleimport') return;
+    if (ev && ev.target && (ev.target.id === 'titleimport' || ev.target.id === 'titlepatch')) return;
     renderSlots();
     show('boot');
   };
   $('titleimport').onclick = () => importRecordFlow(() => renderSlots());
+  $('titlepatch').onclick = () => openPatchNotes();
 }
 
 function wireRecordScreen() {

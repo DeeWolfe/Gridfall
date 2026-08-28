@@ -1678,6 +1678,44 @@ larger in both dimensions — and back to the exact original 432×269 on
 reopen. Full 37-guard suite passes, including `handtest.js`'s layout
 structure checks against the built page, unchanged.
 
+## A version number, and patch notes to hang it on
+
+The game had never carried a visible version — `package.json` had sat at
+the scaffold's original `1.0.0` through every batch since. Added a real
+one: `VERSION` and a `PATCH_NOTES` array in a new, hand-authored
+`src/content/patch-notes.js` — hand-authored deliberately, unlike
+everything else under `src/content/`, because this is prose for a
+player to read, not balance data to regenerate from the JSON. Backfilled
+nine version entries (1.0 through the current 1.8) by grouping this
+project's real history into player-facing, feature-level bullets —
+grouped by theme rather than reproducing the internal task-by-task
+order, the way any real changelog does. `package.json` now reads
+`1.8.0` to match.
+
+The version shows on the title screen footer (`Designed by DeeWolf ·
+v1.8`), with a "Patch notes" link right next to it that opens the
+changelog. That link had to reuse the hold panels' own overlay
+(`#panel`/`#pbody`) directly rather than go through `openPanel()` —
+`openPanel()` gates on an active profile, and the title screen is
+exactly the one place in the game where there isn't one yet. New
+`src/render/patchnotes.js` sets the panel's title and body straight,
+sidestepping that gate; closing it (`#pclose`) already just hides the
+overlay with no profile dependency, so no changes needed there.
+
+One thing the click handler had to account for: `#title`'s screen-wide
+tap target advances straight to the login console on any click, with a
+single exception carved out for the Import Record button
+(`ev.target.id === 'titleimport'`). The Patch Notes link needed the same
+exception added alongside it, or clicking it would open the changelog
+*and* immediately navigate away underneath it.
+
+Verified live: the footer renders `v1.8` (not a literal placeholder),
+opening Patch Notes shows all nine versions with the current one tagged,
+closing it returns to the title screen intact, and tapping anywhere
+else on the title screen still advances to login as before. Full
+37-guard suite passes with no test changes needed — nothing was
+asserting on the old two-item footer.
+
 ## Still open
 
 1. **Crystals still loses to "Three breaches"** more than anything else — the

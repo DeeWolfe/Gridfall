@@ -27,6 +27,8 @@ import {applyUiMode, cycleUiMode, uiPreference, UI_LABELS} from './uimode.js';
 import {enableTape} from '../rules/tape.js';
 import {playTurn, skipReplay} from './playback.js';
 import {maybeStartTutorial, tutorialTick} from './tutorial.js';
+import {openPatchNotes} from './patchnotes.js';
+import {VERSION} from '../content/patch-notes.js';
 
 const AUTOSAVE_MS = 20000;
 
@@ -57,14 +59,17 @@ function wireResultButton() {
   };
 }
 
-/** The splash: tap anywhere for the login console; import stays separate. */
+/** The splash: tap anywhere for the login console; import and patch notes
+ * stay separate, so both are excluded from the whole-screen tap target. */
 function wireTitleScreen() {
+  $('titlever').textContent = 'v' + VERSION;
   $('title').onclick = ev => {
-    if (ev && ev.target && ev.target.id === 'titleimport') return;
+    if (ev && ev.target && (ev.target.id === 'titleimport' || ev.target.id === 'titlepatch')) return;
     renderSlots();
     show('boot');
   };
   $('titleimport').onclick = () => importRecordFlow(() => renderSlots());
+  $('titlepatch').onclick = () => openPatchNotes();
 }
 
 function wireRecordScreen() {
