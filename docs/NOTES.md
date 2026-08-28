@@ -783,17 +783,21 @@ drill-nosed Breacher in profile, hollow-cored Husk, round-mouthed
 Screamer, three-node Chorus.
 
 **Uniform schemes**: `SCHEMES` in sprites.js defines six field-plate
-recolours (Standard free; Duskrose/Regolith/Verdigris 150 cr;
-Whiteout/Emberline 200 cr) that override only body/shade/visor — outline,
-weapons, gold trim and white stay put, and every scheme keeps the
-light-body contrast rule (pixtest asserts it, along with hostile
-coverage/distinctness and unknown-scheme fallback). The Quartermaster
-grew a "Uniforms — credits" section: swatch chips with a live rifleman
-preview; tap an owned scheme to apply, tap an unowned one for a
-confirm-and-refit dialog. Ownership lives in `unlocks.schemes`, the
-applied pick in `loadout.scheme` (both migrated + on blank profiles —
-the blankProfile miss was caught by playtest), and every friendly sprite
-on the grid draws through the active scheme.
+recolours. First pass used pastels (Duskrose/Regolith/Verdigris/
+Whiteout/Emberline) and the user called it: too close together, name a
+scheme from across the room. Repainted to bold primaries — Crimson,
+Cobalt, Emerald, Rose, Onyx — that read as distinct factions at a glance;
+Onyx also overrides the outline colour (`o`, optional per-scheme) to a
+light grey, since a near-black body needs a light edge to hold its
+silhouette against the dark tile rather than the usual dark-outline-on-
+light-body. Standard stays free; the rest are 150–200 cr. Same contrast
+rule underneath — b/s/v (and now optionally o) override, weapons/gold
+trim/white stay — and pixtest's faction-colour check covers the optional
+outline too. The Quartermaster's "Uniforms — credits" section (swatch
+chips with a live rifleman preview; tap owned to apply, unowned for a
+confirm-and-refit dialog), the `unlocks.schemes`/`loadout.scheme`
+persistence, and the migration/blank-profile wiring are all unchanged —
+only the palette moved.
 
 ## Design direction on file: the Tech tier
 

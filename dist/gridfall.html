@@ -7468,16 +7468,17 @@ const PIXMAP = {
 
 // -- uniform schemes ----------------------------------------------------------
 // Cosmetic recolours of the soldiers' field plate, sold at the Quartermaster.
-// Every scheme keeps the contrast rule: light body, dark outline, warm glint.
-// b/s/v are overridden; outlines, weapons, gold trim and white stay put.
+// Bold, unmistakable colours — you should be able to name a squad's scheme
+// from across the room. b/s/v are overridden (o too, where a dark body needs
+// a light outline to hold the silhouette); weapons, gold trim and white stay.
 
 const SCHEMES = {
   standard: {n: 'Standard Issue', price: 0, b: '#ccd3ea', s: '#8b93b6', v: '#ffd970'},
-  duskrose: {n: 'Duskrose', price: 150, b: '#ecc9d9', s: '#b58fa6', v: '#ffe3ef'},
-  regolith: {n: 'Regolith', price: 150, b: '#e3d5b8', s: '#b3a077', v: '#ff9a3d'},
-  verdigris: {n: 'Verdigris', price: 150, b: '#cfe8d8', s: '#8fb8a0', v: '#eafff2'},
-  whiteout: {n: 'Whiteout', price: 200, b: '#f0f2fa', s: '#9aa0b8', v: '#ffd970'},
-  emberline: {n: 'Emberline', price: 200, b: '#ecd2c2', s: '#b8907a', v: '#ff9a3d'},
+  crimson: {n: 'Crimson', price: 150, b: '#e04f4f', s: '#8f2626', v: '#ffd970'},
+  cobalt: {n: 'Cobalt', price: 150, b: '#5578f0', s: '#2d3f96', v: '#ffd970'},
+  emerald: {n: 'Emerald', price: 150, b: '#4fd070', s: '#237a3c', v: '#f4f6ff'},
+  rose: {n: 'Rose', price: 200, b: '#ff7ab8', s: '#a83e70', v: '#fff0f6'},
+  onyx: {n: 'Onyx', price: 200, b: '#383b4f', s: '#181a26', v: '#ff5b5b', o: '#d4d9ec'},
 };
 
 const hasSprite = id => !!PIXMAP[id];
@@ -7718,6 +7719,7 @@ function unitSprite(id, delay = 0, scheme) {
   if (!map) return '';
   const sc = SCHEMES[scheme] || SCHEMES.standard;
   const colors = {...PX_COLOR, b: sc.b, s: sc.s, v: sc.v};
+  if (sc.o) colors.o = sc.o;
   return renderPix(map, colors, 'pxu', delay);
 }
 

@@ -52,7 +52,7 @@ Object.keys(BEST).forEach(k => {
 Object.keys(SCHEMES).forEach(k => {
   const sc = SCHEMES[k];
   if (!sc.n || sc.price == null || !sc.b || !sc.s || !sc.v) F.push(`scheme '${k}' is missing fields`);
-  if (/#4de8ff|#ff4d8f/i.test(sc.b + sc.s + sc.v)) F.push(`scheme '${k}' uses a faction tile colour`);
+  if (/#4de8ff|#ff4d8f/i.test(sc.b + sc.s + sc.v + (sc.o || ''))) F.push(`scheme '${k}' uses a faction tile colour`);
 });
 const schemeFaces = new Set(Object.keys(SCHEMES).map(k => unitSprite('rifle', 0, k)));
 if (schemeFaces.size !== Object.keys(SCHEMES).length) F.push('two schemes render identically');
