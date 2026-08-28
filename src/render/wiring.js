@@ -59,17 +59,15 @@ function wireResultButton() {
   };
 }
 
-/** The splash: tap anywhere for the login console; import and patch notes
- * stay separate, so both are excluded from the whole-screen tap target. */
+/** The splash: tap anywhere for the login console; import stays separate. */
 function wireTitleScreen() {
   $('titlever').textContent = 'v' + VERSION;
   $('title').onclick = ev => {
-    if (ev && ev.target && (ev.target.id === 'titleimport' || ev.target.id === 'titlepatch')) return;
+    if (ev && ev.target && ev.target.id === 'titleimport') return;
     renderSlots();
     show('boot');
   };
   $('titleimport').onclick = () => importRecordFlow(() => renderSlots());
-  $('titlepatch').onclick = () => openPatchNotes();
 }
 
 function wireRecordScreen() {
@@ -99,6 +97,7 @@ function wireRecordScreen() {
   $('drawset').onclick = () => { drawer.classList.remove('up'); paintDrawer(); openPanel('settings'); };
   $('drawui').onclick = () => { cycleUiMode(); paintDrawer(); };
   $('drawmus').onclick = () => { toggleMusic(); paintDrawer(); };
+  $('drawpatch').onclick = () => { drawer.classList.remove('up'); paintDrawer(); openPatchNotes(); };
   $('drawhome').onclick = () => {
     drawer.classList.remove('up');
     paintDrawer();

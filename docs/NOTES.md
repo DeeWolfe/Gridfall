@@ -1716,6 +1716,31 @@ else on the title screen still advances to login as before. Full
 37-guard suite passes with no test changes needed — nothing was
 asserting on the old two-item footer.
 
+## Patch notes moved off the title screen, into the drawer
+
+Follow-up to the version/patch-notes patch above. The title screen isn't
+where a commander already mid-campaign would look for "what changed" —
+the pull-up drawer is, since that's where Settings, UI mode and Music
+already live as the game's one persistent quick-access menu. Moved the
+link there instead: a new `Patch notes` chip in `.drawmenu`, between
+Music and the sign-out row, wired the same way `drawset` already opens
+Settings — close the drawer, then `openPatchNotes()`.
+
+The version number stays on the title screen footer; only the link
+moved. `openPatchNotes()` itself needed no changes — it was already
+independent of `openPanel()`'s active-profile gate (see the prior
+entry), and the drawer only ever renders on screens where a profile is
+active anyway, so that independence just means the same function now
+serves two different callers instead of being tied to one.
+
+Verified live: the title footer is back to just `Designed by DeeWolf ·
+v1.8` with `#titlepatch` gone from the DOM entirely, the drawer lists
+all five chips in order, and clicking the new one closes the drawer and
+opens the same changelog — now returning to the hold screen on close
+instead of the title screen, since that's where it was opened from.
+Full suite still passes; nothing was asserting on the title-screen
+footer's old shape.
+
 ## Still open
 
 1. **Crystals still loses to "Three breaches"** more than anything else — the

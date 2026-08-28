@@ -143,9 +143,6 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .timport:hover{color:var(--zan);border-color:var(--zan)}
 .tfoot{position:absolute;left:0;right:0;bottom:clamp(12px,2.5vh,26px);text-align:center;
   font-size:0.6875rem;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);opacity:.75}
-.tpatch{background:none;border:none;padding:0;margin:0;font:inherit;letter-spacing:inherit;
-  text-transform:inherit;color:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
-.tpatch:hover{color:var(--zan);opacity:1}
 
 .scanlines{position:absolute;inset:0;pointer-events:none;
   background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(77,232,255,.028) 2px 3px)}
@@ -1034,7 +1031,7 @@ body{font-size:1rem}
     <div class="tprompt" id="titlego">▸ Tap to authenticate</div>
     <button class="btn ghost timport" id="titleimport">Import record</button>
   </div>
-  <div class="tfoot">Designed by DeeWolf · <span id="titlever">v0.0</span> · <button class="tpatch" id="titlepatch">Patch notes</button></div>
+  <div class="tfoot">Designed by DeeWolf · <span id="titlever">v0.0</span></div>
   <div class="scanlines"></div>
 </div>
 
@@ -1200,6 +1197,7 @@ body{font-size:1rem}
     <button class="mini" id="drawset">Settings</button>
     <button class="mini" id="drawui">UI</button>
     <button class="mini" id="drawmus">Music</button>
+    <button class="mini" id="drawpatch">Patch notes</button>
     <button class="mini" id="drawhome">Title screen</button>
   </div>
   <button id="drawtab" aria-label="Menu">▲</button>
@@ -9804,17 +9802,15 @@ function wireResultButton() {
   };
 }
 
-/** The splash: tap anywhere for the login console; import and patch notes
- * stay separate, so both are excluded from the whole-screen tap target. */
+/** The splash: tap anywhere for the login console; import stays separate. */
 function wireTitleScreen() {
   $('titlever').textContent = 'v' + VERSION;
   $('title').onclick = ev => {
-    if (ev && ev.target && (ev.target.id === 'titleimport' || ev.target.id === 'titlepatch')) return;
+    if (ev && ev.target && ev.target.id === 'titleimport') return;
     renderSlots();
     show('boot');
   };
   $('titleimport').onclick = () => importRecordFlow(() => renderSlots());
-  $('titlepatch').onclick = () => openPatchNotes();
 }
 
 function wireRecordScreen() {
@@ -9844,6 +9840,7 @@ function wireRecordScreen() {
   $('drawset').onclick = () => { drawer.classList.remove('up'); paintDrawer(); openPanel('settings'); };
   $('drawui').onclick = () => { cycleUiMode(); paintDrawer(); };
   $('drawmus').onclick = () => { toggleMusic(); paintDrawer(); };
+  $('drawpatch').onclick = () => { drawer.classList.remove('up'); paintDrawer(); openPatchNotes(); };
   $('drawhome').onclick = () => {
     drawer.classList.remove('up');
     paintDrawer();

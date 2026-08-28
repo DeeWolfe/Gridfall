@@ -136,9 +136,6 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .timport:hover{color:var(--zan);border-color:var(--zan)}
 .tfoot{position:absolute;left:0;right:0;bottom:clamp(12px,2.5vh,26px);text-align:center;
   font-size:0.6875rem;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);opacity:.75}
-.tpatch{background:none;border:none;padding:0;margin:0;font:inherit;letter-spacing:inherit;
-  text-transform:inherit;color:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
-.tpatch:hover{color:var(--zan);opacity:1}
 
 .scanlines{position:absolute;inset:0;pointer-events:none;
   background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(77,232,255,.028) 2px 3px)}
