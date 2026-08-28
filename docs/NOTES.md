@@ -1189,6 +1189,95 @@ Verified visually: the Quartermaster's card grid and Uniform swatches
 now read as one palette family, and on the board the hive's violet is
 unmistakably the same violet as the lead badge sitting above it.
 
+## Briefings, a wordmark that breathes, English first, and a daily op
+
+Four asks landed together: hint cards on the hold panels, an animated
+title, the boot screen's language order, and a daily challenge mode.
+
+**Hold-panel briefings.** Each of Squad, Quartermaster, Database and
+Service Record now opens with a one-paragraph tip in the same
+second-person "Commander" voice as the combat tutorial — what the panel
+is for and the one thing worth knowing before touching it (lead sets the
+squad's passive; credits buy cards and uniforms, salvage buys gear;
+every asset/gear/hostile you've met logs itself here; the Record tabs
+switch above). `hintCard(key)` in `panels.js` reads
+`active.settings.hints[key]` — dismissed collapses the block to a small
+"▸ Briefing" pill, tapping the pill brings it back. State is per-key, on
+the profile, lazily defaulted the same way `sound`/`music`/`tutorial`
+already are — no `profile.js` migration needed. Verified with a DOM-stub
+script: all four panels show the hint by default, dismiss collapses it,
+re-tapping restores it, and a real-browser screenshot confirms the
+Squad panel's card.
+
+**Animated title wordmark.** `.twordmark` ("GRIDFALL") now breathes —
+the gradient stops extended (`#fff → cyan → violet → zan → cyan → #fff`)
+against a `260% 100%` background-size, with `background-position`
+ping-ponging `0% → 100% → 0%` over 8s (`ease-in-out`, so no seam math is
+needed for a hard loop). Measured in a real page: `background-position`
+moved from `1.36% 50%` to `82.3% 50%` between two samples 2.5s apart —
+it's actually animating, not just declared to. Nothing else on the
+title screen changed: `.tkanji` (残心), `.tsub` (Zanshin Protocol),
+`.tprompt` and `.timport` are untouched, and the existing global
+`prefers-reduced-motion` rule (`* { animation: none !important }`)
+already disables it for anyone who asked — no new guard needed.
+
+**Boot screen: English leads, kanji follows.** "Commander authentication"
+was the small caption under a huge glowing 認証 heading — moving the
+kanji below without touching size would've left a giant kanji sitting
+over tiny English, which isn't what "move the Japanese under the
+English" meant. Instead the roles swapped: `.authtitle` (new class) is
+now the bold gradient heading carrying "Commander authentication", and
+`.authkanji` — demoted to the small violet caption size the English used
+to have — reads `認証 · 残心ネット`, merging in the network tag that used
+to sit on the English line. `index.html`'s `.conbody` now orders
+`authtitle` before `authkanji`; confirmed in a real page that the DOM
+(and visual stack) puts English first.
+
+**Daily Challenge.** A fourth mode card, `--violet` accented to match
+Gauntlet's gold/Onslaught's magenta/Campaign's cyan trio getting a
+sibling. One mission type + one modifier, the same for every commander
+on a given calendar day — picked by hashing `todayKey()` (the
+commander's local `YYYY-MM-DD`) twice with a small string hash
+(`dayHash`, `Math.imul`-based, nothing to do with the shared gameplay
+RNG in `state/rng.js`) to index into `Object.keys(MISSIONS)` and
+`Object.keys(MODS)` separately. That's deliberate: the mission and
+modifier are fixed for the day, but `launchSpec()` still shuffles the
+deck and rolls spawns fresh every attempt, so same-day retries aren't
+the same run replayed.
+
+`launchDaily()`/`settleDaily()` in `mission.js` sit alongside the
+existing `launchOnslaught`/`settleOnslaught` and
+`launchGauntlet`/`settleGauntlet` pairs, wired into `finish()`'s
+dispatch. Only a **win** writes `active.daily = {date, done, streak}` —
+a loss touches nothing, so same-day retries never cost the streak, which
+is the whole point of a forgiving daily. Streak logic: if yesterday was
+the last *completed* day, extend it; otherwise reset to 1. Winning twice
+in one day pays out once — the second clear reports "DAILY ALREADY
+CLEARED" and skips the reward, checked by comparing today's key against
+the stored date. Reward scales gently with streak (`120 + streak×15`
+credits, `8 + streak×2` salvage, capped at streak 10), and every fifth
+streak day queues a specialist pack instead of standard.
+
+Abort mid-daily (`abortMission()` now returns `wasDaily` alongside the
+existing `wasEndless`/`wasGauntlet`) and the result screen's "Continue"
+handler both route back to Mode Select rather than the campaign map,
+same as Onslaught/Gauntlet — there's no map node to return to.
+`confirmAbort()` in `combat.js` got its own daily-specific stakes text
+("streak is untouched") instead of falling through to the campaign
+wording.
+
+Verified end to end with a script driving the real rules layer (no
+browser): first win of the day paid out and set `streak: 1`; replaying
+after the win reported "DAILY ALREADY CLEARED" with credits unchanged;
+aborting mid-attempt left `active.daily` byte-for-byte identical to
+before the abort. `csstest`'s static id-audit needed `goDaily` added to
+its `DYNAMIC` allowlist (it's built at runtime like the other three mode
+buttons) — the only test-suite change this batch needed.
+
+All four verified together: `node build.js`, 37/37 guards green, and
+real-browser screenshots of the title screen, boot screen, hold panel
+hint (open and dismissed), and mode-select grid with the new card.
+
 ## Still open
 
 1. **Crystals still loses to "Three breaches"** more than anything else — the

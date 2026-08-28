@@ -58,7 +58,7 @@ export function launchSpec(nd) {
 
   setG({
     node: nd.node, type: nd.type, mod: nd.mod, reward: nd.reward, salv: nd.salv,
-    heat: nd.heat || 0, endless: !!nd.endless, gauntlet: !!nd.gauntlet,
+    heat: nd.heat || 0, endless: !!nd.endless, gauntlet: !!nd.gauntlet, daily: !!nd.daily,
     waves: nd.endless ? 9999 : m.waves,
     turn: 1, dp: MAXDP, breaches: 0, over: false,
     ter: freshTerritory(), scorch: {},
@@ -104,6 +104,7 @@ export function launchSpec(nd) {
   if (G.heat) clog(`<span class="d">Deep-zone operation</span> — hive pressure +${G.heat} threat every wave.`);
   if (G.endless) clog('<span class="t">ONSLAUGHT</span> — the waves do not stop. See how far you get.');
   if (G.gauntlet) clog(`<span class="t">GAUNTLET ${active.gaunt.i + 1} of ${GAUNTLET_LEGS}</span> — one loss ends the chain.`);
+  if (G.daily) clog(`<span class="t">DAILY CHALLENGE</span> — today's op. A loss does not cost your streak; only the win of the day does.`);
 
   hooks.enterCombat();
   return true;
@@ -149,15 +150,54 @@ export function launchGauntlet() {
   });
 }
 
+/** Calendar-day key in the commander's own local time, e.g. "2026-08-28". */
+function dateKey(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+export const todayKey = () => dateKey(new Date());
+const yesterdayKey = () => { const d = new Date(); d.setDate(d.getDate() - 1); return dateKey(d); };
+
+// A small hash of the date string, not the shared gameplay RNG — every
+// commander gets the same mission and modifier on a given day, but the
+// spawns and cards inside that mission still shuffle fresh per attempt.
+function dayHash(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (Math.imul(h, 31) + s.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+function dailyPick(key) {
+  const types = Object.keys(MISSIONS);
+  const mods = Object.keys(MODS).filter(k => k !== 'none');
+  return {
+    type: types[dayHash(key + ':type') % types.length],
+    mod: mods[dayHash(key + ':mod') % mods.length],
+  };
+}
+
+/** Daily challenge: one fixed mission+modifier per calendar day, for everyone. */
+export function launchDaily() {
+  if (!active) return false;
+  const key = todayKey();
+  const {type, mod} = dailyPick(key);
+  const streak = Math.min((active.daily && active.daily.streak) || 0, 10);
+  return launchSpec({
+    node: null, type, mod, daily: true,
+    reward: 120 + streak * 15,
+    salv: 8 + streak * 2,
+  });
+}
+
 /** Walk away mid-mission. A gauntlet run is forfeit. */
 export function abortMission() {
   const wasEndless = G && G.endless;
   const wasGauntlet = G && G.gauntlet;
+  const wasDaily = G && G.daily;
   if (wasGauntlet) active.gaunt = null;
   setG(null);
   clearSelection();
   commit();
-  return {wasEndless, wasGauntlet};
+  return {wasEndless, wasGauntlet, wasDaily};
 }
 
 /** The objective line shown in the combat header. */
@@ -285,13 +325,57 @@ function settleCampaign(win, why) {
   };
 }
 
+// Losing a daily attempt does not touch `active.daily` at all — same-day
+// retries stay free, and only a win writes the date, so the streak can only
+// ever be built or broken by a result that actually landed.
+function settleDaily(win, why) {
+  active.daily = active.daily || {date: null, done: false, streak: 0};
+  const key = todayKey();
+  const alreadyToday = active.daily.date === key && active.daily.done;
+  let cr = 0;
+  let sv = 0;
+
+  if (win && !alreadyToday) {
+    const streak = active.daily.date === yesterdayKey() ? active.daily.streak + 1 : 1;
+    active.daily = {date: key, done: true, streak};
+    cr = G.reward;
+    sv = G.salv;
+    active.progress.credits += cr;
+    active.progress.salvage += sv;
+    active.stats.held++;
+    queuePack(streak % 5 === 0 ? 'specialist' : 'standard', `Daily challenge · streak ${streak}`);
+  } else if (!win) {
+    active.stats.lost++;
+  }
+
+  active.stats.deployments++;
+  active.stats.kills += G.kills;
+  active.stats.unitsLost += G.lost;
+  active.stats.breaches += G.breaches;
+  commit();
+
+  return {
+    kind: win ? 'win' : 'lose',
+    cleared: win,
+    title: win ? (alreadyToday ? 'DAILY ALREADY CLEARED' : 'DAILY CHALLENGE CLEARED') : 'DAILY CHALLENGE FAILED',
+    lines: [
+      why,
+      `Hostiles destroyed · ${G.kills}`, `Units lost · ${G.lost}`,
+      win ? `Streak · ${active.daily.streak}${alreadyToday ? ' — already banked today' : ''}`
+        : 'Loss doesn\'t cost the streak — try again today.',
+    ].filter(Boolean),
+    payout: win && !alreadyToday ? {cr, sv} : null,
+  };
+}
+
 /** End the mission, pay out, and describe the outcome on `G.result`. */
 export function finish(win, why) {
   tapeEnd();                     // the result card takes over; drop the tape
   G.over = true;
   G.result = G.endless ? settleOnslaught()
     : G.gauntlet ? settleGauntlet(win, why)
-      : settleCampaign(win, why);
+      : G.daily ? settleDaily(win, why)
+        : settleCampaign(win, why);
   hooks.showResult();
   hooks.invalidate();
 }

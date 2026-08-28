@@ -31,8 +31,8 @@ import {maybeStartTutorial, tutorialTick} from './tutorial.js';
 const AUTOSAVE_MS = 20000;
 
 /** Where to go once the result card and any packs have been dismissed. */
-function afterMission(wasEndless, wasGauntlet, cleared) {
-  if (wasEndless || (wasGauntlet && !cleared)) { show('modes'); renderModes(); return; }
+function afterMission(wasEndless, wasGauntlet, wasDaily, cleared) {
+  if (wasEndless || wasDaily || (wasGauntlet && !cleared)) { show('modes'); renderModes(); return; }
   if (wasGauntlet && active.gaunt && active.gaunt.i < GAUNTLET_LEGS) { launchGauntlet(); return; }
   if (wasGauntlet) { show('modes'); renderModes(); return; }
   // A finished operation — final node cleared — rolls fresh missions to
@@ -47,10 +47,11 @@ function wireResultButton() {
     $('result').classList.remove('on');
     const wasGauntlet = G && G.gauntlet;
     const wasEndless = G && G.endless;
+    const wasDaily = G && G.daily;
     const cleared = !!(G && G.result && G.result.cleared);
     setG(null);
 
-    const go = () => afterMission(wasEndless, wasGauntlet, cleared);
+    const go = () => afterMission(wasEndless, wasGauntlet, wasDaily, cleared);
     setAfterPacks(go);
     if (!showPack()) go();
   };

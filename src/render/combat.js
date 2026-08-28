@@ -38,11 +38,11 @@ const LOG_LINES = 40;
 
 /** Leaving combat: back to the map, or to mode select for endless/gauntlet. */
 export function leaveCombat() {
-  const {wasEndless, wasGauntlet} = abortMission();
+  const {wasEndless, wasGauntlet, wasDaily} = abortMission();
   $('result').classList.remove('on');
   closeFocus();
   setMusicMood('hold');
-  if (wasEndless || wasGauntlet) { show('modes'); renderModes(); return; }
+  if (wasEndless || wasGauntlet || wasDaily) { show('modes'); renderModes(); return; }
   show('map');
   renderMap();
 }
@@ -54,7 +54,9 @@ function confirmAbort() {
     ? 'The gauntlet chain is forfeit — legs already cleared keep their pay, but the run ends here.'
     : G.endless
       ? 'Onslaught pays out only when your line falls. Abort now and the run pays nothing.'
-      : 'Progress on this mission is lost. The node stays open to try again.';
+      : G.daily
+        ? 'This attempt is abandoned, but the streak is untouched — you can retry today\'s challenge.'
+        : 'Progress on this mission is lost. The node stays open to try again.';
   ask('Abort mission', stakes + '<br><br>Leave the field?',
     ok => { if (ok) leaveCombat(); }, {ok: 'Abort'});
 }
