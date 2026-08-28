@@ -211,9 +211,16 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .dhead{font-size:0.5938rem;letter-spacing:.22em;text-transform:uppercase;color:var(--violet)}
 .drow{font-size:0.6562rem;color:var(--dim);line-height:1.5}
 .drow b{color:var(--txt)}
-.pips{display:inline-flex;gap:3px;margin-left:6px;vertical-align:-1px}
-.pip{width:11px;height:6px;background:var(--panel2);border:1px solid var(--line2);display:inline-block}
-.pip.on{background:var(--gold);border-color:var(--gold)}
+/* Named apart from the card veterancy `.pips`/`.pip` below on purpose — that
+   rule set is `position:absolute`, and the two used to share a class name.
+   With no positioned ancestor of its own, the readout's dots inherited that
+   absolute rule and rode the nearest positioned ancestor (`.scr`, fixed and
+   full-screen) all the way to the viewport's bottom-right corner: two tiny
+   boxes sitting outside their card, one gold, one dark, silently clickable
+   because they're still descendants of the readout button underneath. */
+.rqpips{display:inline-flex;gap:3px;margin-left:6px;vertical-align:-1px}
+.rqpip{width:11px;height:6px;background:var(--panel2);border:1px solid var(--line2);display:inline-block}
+.rqpip.on{background:var(--gold);border-color:var(--gold)}
 .dgo{font-size:0.625rem;letter-spacing:.16em;text-transform:uppercase;color:var(--zan);margin-top:2px}
 /* The service ticker hugs the bottom of whatever space is left. Its line
    mixes the UI's monospace stack with a CJK fallback (残心ネット etc.) for
@@ -5891,7 +5898,7 @@ function paintReadout() {
       <span class="dhead">作戦 · Current deployment</span>
       <span class="drow"><b>${MAPDEF.n}</b></span>
       <span class="drow">Requisition drop · <b>${meter >= 1 ? 'one node out' : 'two nodes out'}</b>
-        <span class="pips"><span class="pip${meter >= 1 ? ' on' : ''}"></span><span class="pip"></span></span></span>
+        <span class="rqpips"><span class="rqpip${meter >= 1 ? ' on' : ''}"></span><span class="rqpip"></span></span></span>
       <span class="dgo">Open the sector map ▸</span>
     </span>`;
 }

@@ -145,7 +145,7 @@ function paintReadout() {
       <span class="dhead">作戦 · Current deployment</span>
       <span class="drow"><b>${MAPDEF.n}</b></span>
       <span class="drow">Requisition drop · <b>${meter >= 1 ? 'one node out' : 'two nodes out'}</b>
-        <span class="pips"><span class="pip${meter >= 1 ? ' on' : ''}"></span><span class="pip"></span></span></span>
+        <span class="rqpips"><span class="rqpip${meter >= 1 ? ' on' : ''}"></span><span class="rqpip"></span></span></span>
       <span class="dgo">Open the sector map ▸</span>
     </span>`;
 }

@@ -861,18 +861,32 @@ the fix addresses the actual mechanism (implicit line-height across a
 font fallback boundary, inside a shrinkable overflow:hidden box) rather
 than papering over one symptom.
 
-**The gold + violet squares in the bottom-right corner are not part of
-the game.** Confirmed by querying `document.elementFromPoint()` across
-that entire corner region in a real render — every point resolves to
-`.bayfoot`/`.baymain` with a fully transparent background; nothing in
-Gridfall's CSS paints anything gold there, and the only screen-corner UI
-Gridfall owns (the pull-up drawer tab) is bottom-*centre*, not right, and
-grey/teal. The squares also appear identically in a bare Playwright
-Chromium loading the raw file with no Claude viewer involved, which
-rules out the artifact host chrome too — leaving the browser/OS's own
-native UI (most likely a scrollbar-corner or zoom control) as the
-explanation. Nothing to fix in the game; noted here so it isn't
-re-investigated from scratch later.
+**Correction — the gold + violet squares WERE part of the game.** The
+first pass concluded browser chrome; wrong, and the user's follow-up
+report ("it navigates the same as the readout") was the tell that sent
+this back for a real investigation rather than a second guess. Root
+cause: a **class-name collision**. The readout's requisition-drop
+progress dots (`hold.js`, two small boxes, one gold when a pack is one
+node out) and the card veterancy-rank badge (`card-html.js`/`focus.js`,
+the ◆◆◆ corner marks) both used `.pips`/`.pip`. The veterancy rule is
+`position:absolute;bottom:2px;right:3px` — correct for its own case,
+where the card tile itself is the positioned ancestor — but the
+readout's dots have no positioned ancestor of their own, so the same
+rule sent them hunting up the tree for one and landed on `.scr`
+(`position:fixed;inset:0`, full-screen), pinning two ~11×6px boxes to
+the *viewport's* bottom-right corner, standing outside their card, still
+descendants of `<button id="readout">` and so still fully wired to its
+click handler — which is exactly why tapping the "icon" navigated like
+the readout. Confirmed empirically both ways: before the fix,
+`elementFromPoint` at that corner returned `<span class="pip">` and a
+scripted click there flipped the screen from `hold` to `map`; after
+renaming the readout's pair to `.rqpips`/`.rqpip` (kept visually
+identical, just no longer sharing a name), the same corner resolves only
+to the inert `.bayfoot`, a click there does nothing, and the dots sit
+correctly inline inside the readout card. Reproduced only at narrow
+viewports (≤~390px) in this pass — worth remembering that a class-name
+collision like this can hide at one viewport width and surface at
+another, since the ancestor chain's positioning can change with layout.
 
 ## Design direction on file: the Tech tier
 
