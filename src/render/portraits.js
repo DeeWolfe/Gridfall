@@ -1,274 +1,163 @@
-// Placeholder card portraits: simple vector scenes composed from shared parts
-// (busts with different helmets, emplacements, drones, devices), tinted to the
-// card's tier. Deliberately flat and geometric — these are stand-ins that make
-// every card recognisable at a glance until real art lands. A real image in
-// CARD_ART always wins over these (see artFor in art.js).
+// Neon Sigil card faces: every card carries a glowing geometric insignia —
+// military patch by way of cyberpunk HUD — on a scanlined ground with corner
+// brackets and a rotated requisition serial. All procedural SVG, tinted by
+// the accent the caller passes (tier colour, or a veterancy recolour).
+//
+// The sigils echo mechanics on purpose: Lance Battery's rail shows its three
+// range ticks, Tech Blade its three vertical cells, Rail Sniper's beam runs
+// the full lane. A real image in CARD_ART always wins over these (see artFor
+// in art.js). Ink-seal kanji marks are reserved for card backs and ability
+// icons, per the art direction pick.
 
-const PXFILL = '#141a30';
+import {POOL} from '../content/cards.js';
 
-// -- shared parts ------------------------------------------------------------
-// All coordinates live in a 100x140 viewBox; subjects centre around x=50 with
-// the ground line near y=120. Parts return SVG fragments; `c` is the accent.
+// -- shared primitives -------------------------------------------------------
+// All coordinates live in a 100x140 viewBox; sigils centre on (50,64) and the
+// serial rail owns the right edge. `c` is the accent colour.
 
-const pxNeck = c => `<path d="M44 76 L56 76 L56 92 L44 92 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.2"/>`;
-const pxTorso = c => `<path d="M18 124 Q22 94 40 88 L60 88 Q78 94 82 124 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>`;
-const pxTorsoHeavy = c => `<path d="M14 124 Q18 92 38 86 L62 86 Q82 92 86 124 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.8"/>
-  <rect x="15" y="90" width="17" height="18" rx="4" fill="${PXFILL}" stroke="${c}" stroke-width="1.4"/>
-  <rect x="68" y="90" width="17" height="18" rx="4" fill="${PXFILL}" stroke="${c}" stroke-width="1.4"/>`;
+const ring = (c, r, w = 2.4, dash = '') =>
+  `<circle cx="50" cy="64" r="${r}" fill="none" stroke="${c}" stroke-width="${w}"${dash ? ` stroke-dasharray="${dash}"` : ''}/>`;
+const dot = (c, r = 5, x = 50, y = 64) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}"/>`;
+const stroke = (c, d, w = 2.6) => `<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}"/>`;
+const fillp = (c, d, o = 1) => `<path d="${d}" fill="${c}"${o < 1 ? ` opacity="${o}"` : ''}/>`;
+const bars = (c, ys, w = 3.4) => stroke(c, ys.map(y => `M26 ${y} H74`).join(' '), w);
 
-const pxHelm = {
-  trooper: c => `<path d="M36 74 L36 56 Q36 40 50 40 Q64 40 64 56 L64 74 Q50 80 36 74 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <path d="M40 58 L60 58 L60 66 Q50 70 40 66 Z" fill="${c}" opacity=".9"/>`,
-  scout: c => `${pxHelm.trooper(c)}
-    <path d="M64 48 L74 34" stroke="${c}" stroke-width="1.4"/><circle cx="74" cy="33" r="2" fill="${c}"/>`,
-  hood: c => `<path d="M32 78 Q30 46 50 40 Q70 46 68 78 Q50 86 32 78 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <ellipse cx="50" cy="63" rx="10" ry="12" fill="#07060f"/>
-    <path d="M44 62 h5 M52 62 h5" stroke="${c}" stroke-width="1.6" opacity=".9"/>`,
-  kabuto: c => `<path d="M36 74 L36 58 Q36 42 50 42 Q64 42 64 58 L64 74 Q50 80 36 74 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <path d="M36 60 L26 72 M64 60 L74 72" stroke="${c}" stroke-width="1.6" opacity=".7"/>
-    <path d="M50 42 Q40 30 30 34 M50 42 Q60 30 70 34" stroke="${c}" stroke-width="1.8" fill="none"/>
-    <circle cx="50" cy="38" r="2.6" fill="${c}"/>
-    <path d="M42 60 h6 M52 60 h6" stroke="${c}" stroke-width="1.6"/>`,
-  knight: c => `<path d="M36 74 L36 54 Q36 40 50 40 Q64 40 64 54 L64 74 Q50 80 36 74 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <path d="M50 46 V64 M40 58 H60" stroke="${c}" stroke-width="1.4"/>
-    <path d="M50 40 Q60 26 56 14" stroke="${c}" stroke-width="2.4" fill="none" opacity=".8"/>`,
-  heavy: c => `<path d="M32 76 L32 52 Q32 42 42 40 L58 40 Q68 42 68 52 L68 76 Q50 82 32 76 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.8"/>
-    <path d="M38 56 H62 V62 H38 Z" fill="${c}" opacity=".85"/>
-    <circle cx="37" cy="68" r="1.6" fill="${c}" opacity=".6"/><circle cx="63" cy="68" r="1.6" fill="${c}" opacity=".6"/>`,
-  bare: c => `<path d="M38 72 Q38 44 50 44 Q62 44 62 72 Q50 78 38 72 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <path d="M38 56 H62" stroke="${c}" stroke-width="2.2"/><path d="M62 56 L70 50 M62 58 L70 60" stroke="${c}" stroke-width="1.2" opacity=".7"/>
-    <path d="M44 64 h4 M52 64 h4" stroke="${c}" stroke-width="1.5" opacity=".9"/>`,
+// -- the 46 sigils -----------------------------------------------------------
+
+const SIGIL = {
+  // scouts and skirmish troopers
+  scout: c => `${stroke(c, 'M18 64 Q50 40 82 64 Q50 88 18 64 Z')}${dot(c, 6)}
+    ${stroke(c, 'M50 34 V44 M50 84 V94', 1.8)}`,
+  recon: c => `${stroke(c, 'M22 74 Q50 44 78 74')}${stroke(c, 'M34 70 Q50 52 66 70', 1.8)}${dot(c, 3.5, 50, 78)}
+    ${stroke(c, 'M20 88 H34 M42 88 H50', 1.4)}`,
+  pathfinder: c => `${stroke(c, 'M30 88 L66 52 M66 52 H46 M66 52 V72')}
+    ${stroke(c, 'M26 96 L34 88 M40 82 L46 76', 1.6)}`,
+  rifle: c => `${ring(c, 24)}${stroke(c, 'M50 32 V48 M50 80 V96 M18 64 H34 M66 64 H82', 2.4)}${dot(c)}`,
+  zaku: c => `${ring(c, 11).replace('cx="50"', 'cx="36"')}${ring(c, 11).replace('cx="50"', 'cx="64"')}
+    ${dot(c, 3, 36, 64)}${dot(c, 3, 64, 64)}${stroke(c, 'M26 86 H74', 2)}`,
+  vanguard: c => `${stroke(c, 'M30 80 L50 62 L70 80', 3.2)}${stroke(c, 'M30 62 L50 44 L70 62', 3.2)}
+    ${stroke(c, 'M30 94 H70', 1.8)}`,
+  marks: c => `${stroke(c, 'M50 28 L62 64 L50 100 L38 64 Z')}${fillp(c, 'M50 42 L56 64 L50 86 L44 64 Z', .5)}
+    ${stroke(c, 'M26 64 H38 M62 64 H74', 2)}`,
+  archer: c => `${stroke(c, 'M34 32 Q66 64 34 96')}${stroke(c, 'M34 32 L34 96', 1.2)}
+    ${stroke(c, 'M28 64 H70 M70 64 L60 57 M70 64 L60 71', 2.2)}`,
+  assassin: c => `${stroke(c, 'M50 64 L68 32 M50 64 L82 64 M50 64 L68 96 M50 64 L32 96 M50 64 L18 64 M50 64 L32 32')}
+    ${ring(c, 9, 2.6)}${dot(c, 3.5)}`,
+  kunoichi: c => `${stroke(c, 'M30 34 L70 94 M70 34 L30 94', 2.8)}
+    ${fillp(c, 'M50 56 L58 64 L50 72 L42 64 Z')}${stroke(c, 'M24 44 L30 34 M76 44 L70 34', 1.6)}`,
+  samurai: c => `${ring(c, 17, 2.8)}${stroke(c,
+    Array.from({length: 8}, (_, i) => {
+      const a = i * Math.PI / 4;
+      const x1 = 50 + Math.cos(a) * 23, y1 = 64 + Math.sin(a) * 23;
+      const x2 = 50 + Math.cos(a) * 34, y2 = 64 + Math.sin(a) * 34;
+      return `M${x1.toFixed(1)} ${y1.toFixed(1)} L${x2.toFixed(1)} ${y2.toFixed(1)}`;
+    }).join(' '), 2.6)}${dot(c, 4)}`,
+  ronin: c => `${stroke(c, 'M50 30 V98', 2.2)}${fillp(c, 'M50 40 L30 52 L50 58 Z')}
+    ${fillp(c, 'M50 70 L70 82 L50 88 Z')}`,
+  naginata: c => `${stroke(c, 'M36 100 L64 40', 2.4)}${stroke(c, 'M64 40 Q60 24 74 18', 2.8)}
+    ${stroke(c, 'M30 92 L42 98', 1.8)}`,
+  lancer: c => `${stroke(c, 'M26 44 L46 64 L26 84 M42 44 L62 64 L42 84 M58 44 L78 64 L58 84', 2.8)}`,
+  herald: c => `${stroke(c, 'M38 26 V100', 2.4)}${fillp(c, 'M38 30 L74 42 L38 56 Z', .85)}
+    ${stroke(c, 'M50 78 L62 72 M50 86 L66 80 M50 94 L62 90', 1.4)}`,
+  medic: c => `${stroke(c, 'M50 28 L76 43 V85 L50 100 L24 85 V43 Z')}
+    ${fillp(c, 'M44 48 h12 v10 h10 v12 h-10 v10 h-12 v-10 h-10 v-12 h10 Z')}`,
+  knight: c => `${stroke(c, 'M50 30 L74 40 V70 Q74 90 50 100 Q26 90 26 70 V40 Z', 2.8)}
+    ${stroke(c, 'M42 56 L58 72 M58 72 V60 M58 72 H46', 2.2)}`,
+  bulwark: c => `${stroke(c, 'M30 36 H70 V90 Q50 102 30 90 Z', 2.8)}${stroke(c, 'M30 56 H70', 1.6)}
+    ${stroke(c, 'M50 56 V96', 1.6)}`,
+  outrider: c => `${stroke(c, 'M22 64 H64 M64 64 L50 50 M64 64 L50 78', 3)}
+    ${stroke(c, 'M74 50 L84 64 L74 78', 2.4)}${stroke(c, 'M16 52 L22 64 L16 76', 1.4)}`,
+  cipher: c => `${stroke(c, 'M34 46 Q50 30 66 46 M66 46 V34 M66 46 H54', 2.4)}
+    ${stroke(c, 'M66 82 Q50 98 34 82 M34 82 V94 M34 82 H46', 2.4)}${dot(c, 3.5)}`,
+  engineer: c => `${stroke(c, 'M32 48 L50 38 L68 48 V70 L50 80 L32 70 Z', 2.4)}
+    ${stroke(c, 'M50 88 H74 M74 88 L64 81 M74 88 L64 95', 2.2)}`,
+  mortar: c => `${stroke(c, 'M24 92 Q50 18 78 66', 2, )}${dot(c, 4.5, 78, 66)}
+    ${stroke(c, 'M70 78 L86 78 M78 70 L78 86', 1.8)}${stroke(c, 'M20 98 H36', 2.6)}`,
+
+  // tech emplacements and devices
+  wall: c => `${bars(c, [44, 64, 84])}${stroke(c, 'M26 38 V90 M74 38 V90', 1.6).replace('stroke-width="1.6"', 'stroke-width="1.6" opacity=".5"')}`,
+  supply: c => `${stroke(c, 'M26 52 Q50 30 74 52')}${stroke(c, 'M30 52 L44 74 M70 52 L56 74', 1.4)}
+    ${stroke(c, 'M44 74 h12 v12 h-12 Z', 2)}`,
+  beacon: c => `${fillp(c, 'M38 30 L62 30 L54 58 L46 58 Z', .5)}${stroke(c, 'M38 30 H62 M46 58 L54 58', 2)}
+    ${stroke(c, 'M34 78 H66 M28 90 H72', 2.2)}${dot(c, 3, 50, 68)}`,
+  cache: c => `${stroke(c, 'M30 46 H70 V90 H30 Z', 2.6)}${stroke(c, 'M30 60 H70 M50 46 V90', 1.6)}
+    ${stroke(c, 'M42 30 L50 38 L58 30', 2)}`,
+  shield: c => `${stroke(c, 'M50 34 L72 44 V70 Q72 88 50 96 Q28 88 28 70 V44 Z', 2.8)}
+    ${ring(c, 34, 1.2, '3 6')}`,
+  cannon: c => `${stroke(c, 'M22 64 H74', 5)}${stroke(c, 'M74 58 V70', 2)}
+    ${stroke(c, 'M30 50 H58 M30 78 H50', 1.4)}${ring(c, 32, 1.2, '3 6')}`,
+  turret: c => `${stroke(c, 'M32 90 L50 58 L68 90 Z', 2.6)}${stroke(c, 'M50 58 V34', 3)}
+    ${stroke(c, 'M44 40 H56', 1.8)}${dot(c, 3, 50, 90)}`,
+  relay: c => `${stroke(c, 'M50 96 V52', 2.4)}${stroke(c, 'M40 92 H60', 2.4)}
+    ${stroke(c, 'M38 52 Q50 40 62 52 M32 42 Q50 26 68 42', 2)}`,
+  techblade: c => `${fillp(c, 'M47 30 H53 V92 H47 Z', .9)}${stroke(c, 'M40 96 H60', 2.6)}
+    ${stroke(c, 'M64 40 h8 M64 60 h8 M64 80 h8', 2.2)}`,
+  pulse: c => `${ring(c, 12, 2.4)}${ring(c, 22, 1.6, '5 5')}${ring(c, 32, 1, '3 7')}${dot(c, 4)}`,
+  scrambler: c => `${stroke(c, 'M24 50 L34 58 L44 50 L54 58 L64 50 L74 58', 2)}
+    ${stroke(c, 'M24 70 L34 78 L44 70 L54 78 L64 70 L74 78', 2)}${stroke(c, 'M70 38 L30 92', 2.6)}`,
+  battery: c => `${stroke(c, 'M20 64 H72', 2.6)}${stroke(c, 'M34 58 V70 M48 58 V70 M62 58 V70', 1.8)}
+    ${fillp(c, 'M72 54 L86 64 L72 74 Z', .9)}`,
+  fob: c => `${stroke(c, 'M28 92 V56 L50 38 L72 56 V92 Z', 2.6)}
+    ${stroke(c, 'M50 62 V80 M41 71 H59', 2.4)}`,
+  mine: c => `${ring(c, 14, 2.6)}${stroke(c,
+    Array.from({length: 8}, (_, i) => {
+      const a = i * Math.PI / 4 + Math.PI / 8;
+      const x1 = 50 + Math.cos(a) * 16, y1 = 64 + Math.sin(a) * 16;
+      const x2 = 50 + Math.cos(a) * 24, y2 = 64 + Math.sin(a) * 24;
+      return `M${x1.toFixed(1)} ${y1.toFixed(1)} L${x2.toFixed(1)} ${y2.toFixed(1)}`;
+    }).join(' '), 2.2)}${ring(c, 32, 1, '2 7')}`,
+  dynamo: c => `${ring(c, 26, 2.4, '9 5')}${fillp(c, 'M56 38 L42 66 L52 66 L44 90 L62 60 L52 60 Z')}`,
+
+  // specialists — bigger, busier emblems
+  aegis: c => `${stroke(c, 'M50 28 L76 40 V70 Q76 92 50 102 Q24 92 24 70 V40 Z', 2.8)}
+    ${fillp(c, 'M50 40 L66 48 V68 Q66 82 50 89 Q34 82 34 68 V48 Z', .4)}${stroke(c, 'M36 108 H64', 2.2)}`,
+  biomed: c => `${stroke(c, 'M36 30 Q64 47 36 64 Q64 81 36 98', 2.2)}
+    ${stroke(c, 'M64 30 Q36 47 64 64 Q36 81 64 98', 2.2)}
+    ${stroke(c, 'M42 40 H58 M42 64 H58 M42 88 H58', 1.4)}`,
+  techmed: c => `${ring(c, 26, 2, '7 4')}${fillp(c, 'M45 46 h10 v13 h13 v10 h-13 v13 h-10 v-13 h-13 v-10 h13 Z')}`,
+  dragoon: c => `${fillp(c, 'M50 30 L72 78 H28 Z', .45)}${stroke(c, 'M50 30 L72 78 H28 Z', 2.4)}
+    ${stroke(c, 'M40 88 L36 100 M60 88 L64 100', 2.6)}${stroke(c, 'M20 46 Q50 24 80 46', 1.2)}`,
+  railgun: c => `${stroke(c, 'M10 64 H90', 3)}${stroke(c, 'M58 54 L70 64 L58 74 M72 54 L84 64 L72 74', 2)}
+    ${stroke(c, 'M24 52 L36 64 L24 76 Z', 1.6)}`,
+  hell: c => `${stroke(c, 'M30 26 L44 54 M52 22 L66 50 M70 34 L82 58', 2.6)}
+    ${fillp(c, 'M44 54 L38 58 L48 62 Z M66 50 L60 54 L70 58 Z M82 58 L76 62 L86 66 Z')}
+    ${stroke(c, 'M24 92 H76', 1.6)}`,
+  plasma: c => `${dot(c, 12)}${ring(c, 19, 1.8)}${stroke(c,
+    'M50 36 V26 M50 92 V102 M22 64 H12 M78 64 H88 M31 45 L24 38 M69 45 L76 38 M31 83 L24 90 M69 83 L76 90', 2)}
+    ${stroke(c, 'M42 106 q4 6 0 10 M58 106 q-4 6 0 10', 1.6)}`,
+  exo: c => `${stroke(c, 'M28 36 H44 V52 M72 36 H56 V52 M28 100 H44 V84 M72 100 H56 V84', 3)}
+    ${fillp(c, 'M50 52 L60 64 L50 76 L40 64 Z')}`,
+  hecate: c => `${ring(c, 22, 2.4).replace('cy="64"', 'cy="60"')}
+    ${ring(c, 30, 1, '4 6').replace('cy="64"', 'cy="60"')}
+    ${stroke(c, 'M58 68 L84 94 M78 96 L88 86', 2.6)}${dot(c, 6, 50, 60)}${dot(c, 3, 72, 38)}`,
 };
 
-const pxBust = (c, helm, heavy) => `${pxNeck(c)}${heavy ? pxTorsoHeavy(c) : pxTorso(c)}${pxHelm[helm](c)}`;
+export const hasPortrait = id => !!SIGIL[id];
+export const portraitIds = () => Object.keys(SIGIL);
 
-const pxProp = {
-  rifle: c => `<path d="M26 100 L74 76" stroke="${c}" stroke-width="2.6"/>
-    <path d="M62 82 L66 92" stroke="${c}" stroke-width="2"/><path d="M74 76 L81 72" stroke="${c}" stroke-width="1.4"/>`,
-  longrifle: c => `<path d="M20 104 L84 68" stroke="${c}" stroke-width="2.4"/>
-    <circle cx="56" cy="84" r="4" fill="none" stroke="${c}" stroke-width="1.4"/>
-    <path d="M84 68 L91 64" stroke="${c}" stroke-width="1.2"/>`,
-  bow: c => `<path d="M62 46 Q86 82 62 118" stroke="${c}" stroke-width="2" fill="none"/>
-    <path d="M62 46 L62 118" stroke="${c}" stroke-width="1" opacity=".7"/>
-    <path d="M40 82 H70 M70 82 L64 78 M70 82 L64 86" stroke="${c}" stroke-width="1.6"/>`,
-  katana: c => `<path d="M58 88 L88 50" stroke="${c}" stroke-width="2.4"/><path d="M62 82 L68 88" stroke="${c}" stroke-width="2"/>`,
-  twin: c => `<path d="M56 88 L84 54 M44 88 L16 54" stroke="${c}" stroke-width="2.2"/>
-    <path d="M52 82 L60 88 M48 82 L40 88" stroke="${c}" stroke-width="1.8"/>`,
-  daggers: c => `<path d="M34 96 L22 118 M66 96 L78 118" stroke="${c}" stroke-width="2.2"/>
-    <path d="M30 99 L38 104 M70 99 L62 104" stroke="${c}" stroke-width="1.6"/>`,
-  dagger: c => `<path d="M68 92 L78 116" stroke="${c}" stroke-width="2.2"/><path d="M64 96 L73 92" stroke="${c}" stroke-width="1.6"/>`,
-  naginata: c => `<path d="M70 128 V46" stroke="${c}" stroke-width="2"/>
-    <path d="M70 46 Q66 30 78 22" stroke="${c}" stroke-width="2.4" fill="none"/>`,
-  spear: c => `<path d="M66 128 V42" stroke="${c}" stroke-width="2"/><path d="M60 42 L72 42 L66 24 Z" fill="${c}" opacity=".9"/>`,
-  banner: c => `<path d="M70 128 V30" stroke="${c}" stroke-width="2"/>
-    <path d="M70 32 L94 40 L70 52 Z" fill="${c}" opacity=".8"/>`,
-  cross: c => `<path d="M46 98 h8 v6 h6 v8 h-6 v6 h-8 v-6 h-6 v-8 h6 Z" fill="${c}" opacity=".95"/>`,
-  kite: c => `<path d="M26 86 L44 86 L44 106 Q35 118 26 106 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <path d="M35 90 V110" stroke="${c}" stroke-width="1.2" opacity=".6"/>`,
-  sword: c => `<path d="M64 118 V80" stroke="${c}" stroke-width="2.2"/><path d="M58 90 H70" stroke="${c}" stroke-width="2"/>`,
-  hammer: c => `<path d="M64 122 L78 68" stroke="${c}" stroke-width="2.4"/>
-    <path d="M68 54 L90 62 L86 76 L64 68 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.8"/>`,
-  thrusters: c => `<path d="M30 94 L14 116 M70 94 L86 116" stroke="${c}" stroke-width="3" opacity=".8"/>
-    <path d="M18 120 L15 128 M82 120 L85 128" stroke="${c}" stroke-width="1.6" opacity=".5"/>`,
-  blade: c => `<path d="M76 118 V44" stroke="${c}" stroke-width="6" opacity=".18"/>
-    <path d="M76 118 V44" stroke="${c}" stroke-width="2.4"/><path d="M71 118 H81" stroke="${c}" stroke-width="2.4"/>`,
-  pluses: c => `<path d="M26 51 v7 M22.5 54.5 h7 M74 45 v7 M70.5 48.5 h7 M30 82 v6 M27 85 h6" stroke="${c}" stroke-width="1.6" opacity=".8"/>`,
-  bolt: c => `<path d="M74 44 L66 58 L73 58 L63 76" stroke="${c}" stroke-width="2" fill="none"/>`,
-  chevrons: c => `<path d="M76 56 L84 64 L76 72 M83 50 L91 58" stroke="${c}" stroke-width="1.8" fill="none" opacity=".8"/>`,
-  chest: c => `<path d="M42 102 L50 97 L58 102 M42 110 L50 105 L58 110" stroke="${c}" stroke-width="1.6" fill="none" opacity=".8"/>`,
-  drop: c => `<path d="M26 40 L32 48 L38 40" stroke="${c}" stroke-width="1.8" fill="none" opacity=".85"/>`,
-};
-
-// -- whole-scene bodies for the non-humanoid cards ---------------------------
-
-const pxBody = {
-  wall: c => `<rect x="22" y="102" width="26" height="16" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <rect x="52" y="102" width="26" height="16" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <rect x="35" y="86" width="30" height="16" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <rect x="26" y="70" width="22" height="16" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <rect x="52" y="70" width="20" height="16" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <path d="M38 94 L48 86 M52 102 L62 94" stroke="${c}" stroke-width="1.2" opacity=".5"/>`,
-  turret: c => `<path d="M32 120 L68 120 L62 106 L38 106 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <path d="M38 106 V94 Q38 88 46 88 L54 88 Q62 88 62 94 V106 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <path d="M60 96 H88" stroke="${c}" stroke-width="3"/><path d="M88 93 V99" stroke="${c}" stroke-width="1.5"/>
-    <circle cx="46" cy="96" r="2" fill="${c}"/>`,
-  mortar: c => `<ellipse cx="50" cy="116" rx="22" ry="5" fill="${PXFILL}" stroke="${c}" stroke-width="1.4"/>
-    <path d="M38 112 L64 64 L74 70 L48 118 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <path d="M62 86 L48 112" stroke="${c}" stroke-width="1.2" opacity=".5"/>
-    <path d="M72 62 Q86 40 78 24" stroke="${c}" stroke-width="1.6" fill="none" stroke-dasharray="3 4" opacity=".8"/>`,
-  battery: c => `<rect x="26" y="92" width="26" height="22" rx="3" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <path d="M52 100 H92" stroke="${c}" stroke-width="2.6"/>
-    <path d="M62 96 V104 M72 96 V104" stroke="${c}" stroke-width="1.4" opacity=".5"/>
-    <circle cx="92" cy="100" r="2.6" fill="${c}"/>`,
-  pulse: c => `<circle cx="50" cy="90" r="18" fill="none" stroke="${c}" stroke-width="1.2" opacity=".5" stroke-dasharray="4 5"/>
-    <circle cx="50" cy="90" r="27" fill="none" stroke="${c}" stroke-width="1" opacity=".28" stroke-dasharray="4 7"/>
-    <path d="M50 74 L60 90 L50 106 L40 90 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <circle cx="50" cy="90" r="3" fill="${c}"/>`,
-  relay: c => `<path d="M50 120 V58" stroke="${c}" stroke-width="2"/><path d="M40 120 H60" stroke="${c}" stroke-width="2"/>
-    <path d="M42 66 L50 58 L58 66 M42 78 L50 70 L58 78 M42 90 L50 82 L58 90" stroke="${c}" stroke-width="1.8" fill="none" opacity=".8"/>`,
-  beacon: c => `<path d="M38 120 L50 86 L62 120 M43 108 H57" stroke="${c}" stroke-width="1.8" fill="none"/>
-    <path d="M50 86 V60" stroke="${c}" stroke-width="2"/>
-    <circle cx="50" cy="56" r="4" fill="${c}"/>
-    <path d="M50 46 V40 M42 50 L38 46 M58 50 L62 46" stroke="${c}" stroke-width="1.4"/>
-    <ellipse cx="50" cy="124" rx="16" ry="4" fill="none" stroke="${c}" stroke-width="1" stroke-dasharray="3 4" opacity=".6"/>`,
-  scrambler: c => `<rect x="36" y="94" width="28" height="22" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <path d="M50 94 V72" stroke="${c}" stroke-width="1.8"/><circle cx="50" cy="70" r="2" fill="${c}"/>
-    <path d="M30 78 Q24 84 30 90 M34 72 Q26 84 34 96" stroke="${c}" stroke-width="1.2" fill="none" opacity=".5"/>
-    <path d="M70 78 Q76 84 70 90 M66 72 Q74 84 66 96" stroke="${c}" stroke-width="1.2" fill="none" opacity=".5"/>
-    <path d="M42 104 H58" stroke="${c}" stroke-width="1.2" stroke-dasharray="2 3" opacity=".7"/>`,
-  supply: c => `<path d="M28 60 H72" stroke="${c}" stroke-width="1.6" opacity=".7"/>
-    <circle cx="34" cy="60" r="2" fill="${c}"/><circle cx="66" cy="60" r="2" fill="${c}"/>
-    <ellipse cx="50" cy="68" rx="13" ry="7" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <path d="M50 75 V88" stroke="${c}" stroke-width="1.2"/>
-    <rect x="40" y="88" width="20" height="16" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <path d="M40 96 H60" stroke="${c}" stroke-width="1" opacity=".6"/>`,
-  cache: c => `<rect x="28" y="92" width="44" height="26" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <rect x="36" y="70" width="24" height="20" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <path d="M28 100 H72" stroke="${c}" stroke-width="1" opacity=".6"/>
-    <path d="M34 118 L46 106 M50 118 L62 106" stroke="${c}" stroke-width="1.2" opacity=".5"/>
-    <path d="M70 64 v6 M67 67 h6" stroke="${c}" stroke-width="1.4" opacity=".8"/>`,
-  recon: c => `<path d="M14 72 Q50 48 86 72" stroke="${c}" stroke-width="2" fill="none"/>
-    <path d="M44 68 L56 68 L50 82 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <path d="M50 82 V92" stroke="${c}" stroke-width="1.5"/>
-    <path d="M50 84 L34 118 M50 84 L66 118" stroke="${c}" stroke-width="1" opacity=".25"/>
-    <path d="M38 112 Q50 120 62 112" stroke="${c}" stroke-width="1" stroke-dasharray="3 4" opacity=".4" fill="none"/>
-    <circle cx="50" cy="72" r="2" fill="${c}"/>`,
-  shield: c => `<path d="M50 58 L74 70 V98 Q50 120 26 98 V70 Z" fill="${PXFILL}" stroke="${c}" stroke-width="2"/>
-    <path d="M50 68 L66 76 V94 Q50 108 34 94 V76 Z" fill="none" stroke="${c}" stroke-width="1.2" opacity=".5"/>
-    <path d="M50 82 v10 M45 87 h10" stroke="${c}" stroke-width="1.8" opacity=".9"/>`,
-  cannon: c => `<rect x="32" y="96" width="20" height="15" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <path d="M46 98 L84 74 L89 81 L51 105 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <circle cx="88" cy="75" r="2.6" fill="${c}"/>
-    <path d="M38 111 V118 M46 111 V118" stroke="${c}" stroke-width="1.4" opacity=".6"/>`,
-  bulwark: c => `<rect x="40" y="110" width="20" height="10" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <rect x="30" y="64" width="40" height="46" fill="${c}" opacity=".16"/>
-    <rect x="30" y="64" width="40" height="46" fill="none" stroke="${c}" stroke-width="1.6"/>
-    <path d="M34 76 H66 M34 88 H66 M34 100 H66" stroke="${c}" stroke-width="1" stroke-dasharray="4 4" opacity=".45"/>`,
-  plasma: c => `<path d="M36 112 L58 74 L68 80 L46 118 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <ellipse cx="50" cy="120" rx="20" ry="4" fill="${PXFILL}" stroke="${c}" stroke-width="1.2"/>
-    <path d="M66 70 Q84 46 76 28" stroke="${c}" stroke-width="1.6" fill="none" stroke-dasharray="3 4" opacity=".8"/>
-    <circle cx="74" cy="26" r="5" fill="${c}" opacity=".85"/>
-    <path d="M70 33 Q74 40 78 33" stroke="${c}" stroke-width="1.2" opacity=".5" fill="none"/>`,
-  hell: c => `<rect x="28" y="74" width="16" height="26" rx="8" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <rect x="58" y="54" width="16" height="26" rx="8" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <path d="M34 80 h4 M64 60 h4" stroke="${c}" stroke-width="1.4" opacity=".8"/>
-    <path d="M38 70 L30 44 M68 50 L60 24" stroke="${c}" stroke-width="1.8" stroke-dasharray="4 4" opacity=".5"/>
-    <path d="M32 104 L36 112 L40 104 M62 84 L66 92 L70 84" stroke="${c}" stroke-width="1.4" fill="none" opacity=".7"/>`,
-  aegis: c => `<path d="M30 80 Q30 68 38 68 Q46 68 46 80 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.4"/>
-    <path d="M54 80 Q54 68 62 68 Q70 68 70 80 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.4"/>
-    <rect x="24" y="80" width="24" height="38" rx="3" fill="${PXFILL}" stroke="${c}" stroke-width="1.8"/>
-    <rect x="52" y="80" width="24" height="38" rx="3" fill="${PXFILL}" stroke="${c}" stroke-width="1.8"/>
-    <path d="M36 90 V104 M64 90 V104" stroke="${c}" stroke-width="1.6" opacity=".8"/>`,
-};
-
-const pxBodyNew = {
-  zaku: c => `<path d="M10 124 Q13 104 26 100 L40 100 Q53 104 56 124 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.5"/>
-    <path d="M24 98 L24 86 Q24 76 33 76 Q42 76 42 86 L42 98 Q33 102 24 98 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.5"/>
-    <path d="M27 88 L39 88 L39 93 Q33 96 27 93 Z" fill="${c}" opacity=".9"/>
-    <path d="M44 124 Q47 106 60 102 L74 102 Q87 106 90 124 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.5"/>
-    <path d="M58 100 L58 88 Q58 78 67 78 Q76 78 76 88 L76 100 Q67 104 58 100 Z" fill="${PXFILL}" stroke="${c}" stroke-width="1.5"/>
-    <path d="M61 90 L73 90 L73 95 Q67 98 61 95 Z" fill="${c}" opacity=".9"/>
-    <path d="M14 108 L44 92 M48 110 L78 94" stroke="${c}" stroke-width="1.8"/>`,
-  swapArrows: c => `<path d="M20 40 Q50 22 80 40 M80 40 L72 36 M80 40 L76 48" stroke="${c}" stroke-width="1.8" fill="none" opacity=".85"/>
-    <path d="M84 92 Q92 68 80 48" stroke="${c}" stroke-width="1.2" fill="none" opacity="0"/>
-    <path d="M80 116 Q50 134 20 116 M20 116 L28 120 M20 116 L24 108" stroke="${c}" stroke-width="1.8" fill="none" opacity=".85"/>`,
-  cog: c => `<circle cx="76" cy="52" r="7" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <circle cx="76" cy="52" r="2.4" fill="${c}"/>
-    <path d="M76 42 V45 M76 59 V62 M66 52 H69 M83 52 H86 M69 45 L71 47 M81 57 L83 59 M83 45 L81 47 M71 57 L69 59" stroke="${c}" stroke-width="1.6"/>`,
-  dash: c => `<path d="M64 96 L76 90 M64 104 L80 98 M64 112 L76 106" stroke="${c}" stroke-width="1.8" opacity=".7"/>`,
-  fob: c => `<rect x="20" y="96" width="60" height="22" fill="${PXFILL}" stroke="${c}" stroke-width="1.8"/>
-    <rect x="30" y="80" width="40" height="16" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <path d="M38 104 H62" stroke="${c}" stroke-width="1.2" opacity=".6"/>
-    <path d="M50 80 V58" stroke="${c}" stroke-width="1.8"/><circle cx="50" cy="56" r="2.4" fill="${c}"/>
-    <path d="M42 88 h6 M52 88 h6" stroke="${c}" stroke-width="1.6" opacity=".8"/>
-    <path d="M14 118 H86" stroke="${c}" stroke-width="1.4" opacity=".5"/>
-    <path d="M26 62 v6 M23 65 h6 M74 66 v6 M71 69 h6" stroke="${c}" stroke-width="1.4" opacity=".7"/>`,
-  mine: c => `<ellipse cx="50" cy="98" rx="26" ry="10" fill="${PXFILL}" stroke="${c}" stroke-width="1.8"/>
-    <ellipse cx="50" cy="94" rx="16" ry="6" fill="none" stroke="${c}" stroke-width="1.2" opacity=".7"/>
-    <path d="M38 90 V82 M50 88 V78 M62 90 V82" stroke="${c}" stroke-width="2"/>
-    <circle cx="50" cy="75" r="2" fill="${c}"/>
-    <path d="M20 112 L28 104 M80 112 L72 104" stroke="${c}" stroke-width="1.2" opacity=".5"/>
-    <path d="M30 60 L36 66 M70 60 L64 66 M50 54 V62" stroke="${c}" stroke-width="1.4" opacity=".6"/>`,
-  hecate: c => `<path d="M34 120 L50 92 L66 120 M40 110 H60" stroke="${c}" stroke-width="1.8" fill="none"/>
-    <path d="M42 96 L86 34" stroke="${c}" stroke-width="4"/>
-    <path d="M86 34 L92 26" stroke="${c}" stroke-width="1.6"/>
-    <rect x="40" y="88" width="20" height="12" rx="2" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <circle cx="80" cy="26" r="8" fill="none" stroke="${c}" stroke-width="1" opacity=".6" stroke-dasharray="3 3"/>
-    <path d="M80 20 V32 M74 26 H86" stroke="${c}" stroke-width="1" opacity=".6"/>`,
-};
-
-// -- the card table ----------------------------------------------------------
-
-const pxDraw = {
-  scout: c => pxBust(c, 'scout') + pxProp.pluses(c),
-  rifle: c => pxBust(c, 'trooper') + pxProp.rifle(c),
-  marks: c => pxBust(c, 'hood') + pxProp.longrifle(c),
-  medic: c => pxBust(c, 'trooper') + pxProp.cross(c),
-  recon: c => pxBody.recon(c),
-  pathfinder: c => pxBust(c, 'scout') + pxProp.rifle(c) + pxProp.chevrons(c),
-  vanguard: c => pxBust(c, 'heavy', true) + pxProp.chest(c),
-  archer: c => pxBust(c, 'hood') + pxProp.bow(c),
-  assassin: c => pxBust(c, 'hood') + pxProp.dagger(c) + pxProp.drop(c),
-  samurai: c => pxBust(c, 'kabuto') + pxProp.katana(c),
-  lancer: c => pxBust(c, 'trooper') + pxProp.spear(c),
-  mortar: c => pxBody.mortar(c),
-  bulwark: c => pxBody.bulwark(c),
-  ronin: c => pxBust(c, 'bare') + pxProp.twin(c),
-  naginata: c => pxBust(c, 'trooper') + pxProp.naginata(c),
-  kunoichi: c => pxBust(c, 'hood') + pxProp.daggers(c) + pxProp.drop(c),
-  herald: c => pxBust(c, 'trooper') + pxProp.banner(c),
-  knight: c => pxBust(c, 'knight') + pxProp.kite(c) + pxProp.sword(c),
-  wall: c => pxBody.wall(c),
-  supply: c => pxBody.supply(c),
-  beacon: c => pxBody.beacon(c),
-  cache: c => pxBody.cache(c),
-  shield: c => pxBody.shield(c),
-  cannon: c => pxBody.cannon(c),
-  turret: c => pxBody.turret(c),
-  relay: c => pxBody.relay(c),
-  dynamo: c => `<rect x="34" y="92" width="32" height="26" rx="3" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
-    <circle cx="50" cy="105" r="7" fill="none" stroke="${c}" stroke-width="1.6"/>
-    <path d="M50 100 V110 M45 105 H55" stroke="${c}" stroke-width="1.2" opacity=".6"/>
-    <path d="M50 92 V74 M50 74 L44 80 M50 74 L56 80" stroke="${c}" stroke-width="1.6" fill="none"/>
-    <path d="M38 66 Q50 56 62 66" stroke="${c}" stroke-width="1.2" fill="none" opacity=".55"/>
-    <path d="M32 58 Q50 44 68 58" stroke="${c}" stroke-width="1" fill="none" opacity=".35"/>
-    <path d="M58 84 L53 92 L58 92 L52 102" stroke="${c}" stroke-width="1.4" fill="none" opacity=".9"/>`,
-  techblade: c => pxBust(c, 'trooper') + pxProp.blade(c),
-  pulse: c => pxBody.pulse(c),
-  scrambler: c => pxBody.scrambler(c),
-  battery: c => pxBody.battery(c),
-  aegis: c => pxBody.aegis(c),
-  biomed: c => pxBust(c, 'hood') + pxProp.cross(c) + pxProp.pluses(c),
-  techmed: c => pxBust(c, 'trooper') + pxProp.cross(c) + pxProp.bolt(c),
-  dragoon: c => pxBust(c, 'trooper') + pxProp.thrusters(c) + pxProp.katana(c),
-  railgun: c => pxBust(c, 'heavy') + pxProp.longrifle(c) +
-    `<path d="M30 99 V107 M40 93 V101" stroke="${c}" stroke-width="1.4" opacity=".6"/>
-     <path d="M20 104 L84 68" stroke="${c}" stroke-width="6" opacity=".15"/>`,
-  hell: c => pxBody.hell(c),
-  plasma: c => pxBody.plasma(c),
-  exo: c => pxBust(c, 'heavy', true) + pxProp.hammer(c),
-  zaku: c => pxBodyNew.zaku(c),
-  cipher: c => pxBust(c, 'hood') + pxBodyNew.swapArrows(c),
-  engineer: c => pxBust(c, 'scout') + pxBodyNew.cog(c),
-  outrider: c => pxBust(c, 'trooper') + pxProp.katana(c) + pxBodyNew.dash(c),
-  fob: c => pxBodyNew.fob(c),
-  mine: c => pxBodyNew.mine(c),
-  hecate: c => pxBodyNew.hecate(c),
-};
-
-export const hasPortrait = id => !!pxDraw[id];
-export const portraitIds = () => Object.keys(pxDraw);
-
-/** Full-bleed placeholder portrait; `accent` is the tier or veterancy colour. */
+/** Full-bleed sigil face; `accent` is the tier or veterancy colour. */
 export function cardPortrait(id, accent) {
-  const draw = pxDraw[id];
+  const draw = SIGIL[id];
   if (!draw) return '';
+  const special = POOL[id] && POOL[id].t === 'special';
+  const serial = ('GF-' + id.toUpperCase()).slice(0, 10);
+  const uid = 'sg' + id;
   return `<svg class="artfill" viewBox="0 0 100 140" preserveAspectRatio="xMidYMid slice">
-    <rect width="100" height="140" fill="#0b0918"/>
-    <ellipse cx="50" cy="132" rx="70" ry="34" fill="${accent}" opacity=".1"/>
-    <path d="M0 96 H100" stroke="${accent}" stroke-width=".6" opacity=".28"/>
-    <path d="M0 108 H100" stroke="${accent}" stroke-width=".5" opacity=".16"/>
-    <path d="M0 124 H100" stroke="${accent}" stroke-width=".5" opacity=".09"/>
-    ${draw(accent)}
+    <defs><filter id="gl-${uid}" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="2.4" result="b"/><feMerge>
+      <feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <radialGradient id="rg-${uid}" cx="50%" cy="45%">
+      <stop offset="0%" stop-color="${accent}" stop-opacity=".16"/>
+      <stop offset="100%" stop-color="${accent}" stop-opacity="0"/></radialGradient>
+      <pattern id="sc-${uid}" width="4" height="4" patternUnits="userSpaceOnUse">
+      <path d="M0 0 H4" stroke="${accent}" stroke-width=".5" opacity=".14"/></pattern></defs>
+    <rect width="100" height="140" fill="#080614"/>
+    <rect width="100" height="140" fill="url(#rg-${uid})"/>
+    <rect width="100" height="140" fill="url(#sc-${uid})"/>
+    <g filter="url(#gl-${uid})">${draw(accent)}</g>
+    <path d="M8 10 H24 M8 10 V26 M92 10 H76 M92 10 V26" stroke="${accent}" stroke-width="1.4" opacity=".7"/>
+    ${special ? `<path d="M8 130 L14 124 M92 130 L86 124" stroke="${accent}" stroke-width="1.4" opacity=".8"/>` : ''}
+    <text x="93" y="120" font-size="5.5" fill="${accent}" opacity=".55" letter-spacing="1.6" text-anchor="end"
+      transform="rotate(-90 93 120)" font-family="ui-monospace,monospace">${serial}</text>
   </svg>`;
 }

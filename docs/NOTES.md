@@ -620,6 +620,29 @@ pulses once (`absorb`). State lives in `hold.js` (`toggleRoster`,
 only; the Quartermaster's grid never folds. The tiles stay in the DOM when
 folded (CSS `display:none`), which keeps the render guards honest.
 
+## Neon Sigil card faces
+
+The line-bust placeholders are gone. After a two-round art pitch (five
+directions, then Ink Seal vs Neon Sigil size-tested at focus/hand/chip),
+**Neon Sigil won**: every card now carries a glowing geometric insignia —
+military patch by way of cyberpunk HUD — on a scanlined ground with corner
+brackets and a rotated requisition serial (`GF-RIFLE`…). Specialists get
+corner blades. `portraits.js` was rewritten wholesale but keeps its exports
+(`cardPortrait`/`hasPortrait`/`portraitIds`), so `artFor`'s precedence
+(real art → portrait → sigil fallback) and the whole arttest contract stand
+unchanged; the bundle got 10KB lighter.
+
+The sigils echo mechanics on purpose: Lance Battery's rail carries its
+three range ticks, Tech Blade its three vertical cells, Rail Sniper's beam
+runs the full lane, Outrider's arrow shoves a second chevron ahead of it.
+
+Decisions parked from the same pitch: **Ink Seal** kanji faces are reserved
+for card backs and ability icons if those ever land, and **Pixel Ops**
+animated grid tokens are approved in principle but on hold for iteration —
+first note already filed: token bodies need luminance contrast against
+their own faction's tiles (light silver units, hot-light hostiles, dark
+outlines), never cyan-on-cyan or magenta-on-maroon.
+
 ## The fun patch — variety, drama, and honest enemies
 
 Built from the game-loop review: a near-random bot was winning most missions,
