@@ -7135,12 +7135,29 @@ function supportLabel(u) {
 // Cobalt) gets its own lighter outline override (`o` in SCHEMES) so the
 // silhouette never disappears into the tile behind it.
 //
+// Cohesion with the rest of the game: the outline ink and the two colours
+// that carry meaning (gold = "yours and alive," violet = "hostile") are the
+// exact --deep/--gold/--violet hex the UI uses for the same ideas elsewhere
+// — card backgrounds, specialist trim and achievements, the third lead
+// colour — so a pixel token and an ink-seal card read as the same object
+// language rather than two palettes that merely resemble each other.
+// Everything else (armour tone, weapon metal, cloth shade) stays its own
+// material colour on purpose; that variety is what makes a sprite instead
+// of a swatch.
+//
 // Map legend:  . empty   o outline   b body   s shade   w weapon
 //              g gold    W white     v visor glint   G gold glint   f flame
 
+// Outline ink and the two "faction identity" accents are pulled to the
+// exact hex the rest of the UI uses for the same idea — --deep (card and
+// page backgrounds), --gold (specialist trim, achievements, currency) — so
+// the pixel tokens read as the same object language as everything else,
+// not a lookalike palette that happens to be close. Everything else here
+// (armour tone, weapon metal, cloth shade) stays its own material colour;
+// forcing all of it onto UI tokens would flatten the sprites, not unify them.
 const PX_COLOR = {
-  o: '#12102a', b: '#ccd3ea', s: '#8b93b6', w: '#5b6284',
-  g: '#ffc94d', W: '#f4f6ff', v: '#ffd970', G: '#ffc94d', f: '#ff9a3d',
+  o: '#0e0c1e', b: '#ccd3ea', s: '#8b93b6', w: '#5b6284',
+  g: '#ffc94d', W: '#f4f6ff', v: '#ffc94d', G: '#ffc94d', f: '#ff9a3d',
 };
 const PX_BLINK = {v: 1, G: 1, f: 1};
 
@@ -7510,13 +7527,17 @@ const PIXMAP = {
 // from across the room. b/s/v are overridden (o too, where a dark body needs
 // a light outline to hold the silhouette); weapons, gold trim and white stay.
 
+// Every scheme's visor glint is the exact --gold token (Onyx's is --red) —
+// whatever the armour colour, the pip that reads as "this unit is alive and
+// yours" always matches the game's one gold accent, the same way a
+// specialist card's border or an earned achievement does.
 const SCHEMES = {
-  standard: {n: 'Standard Issue', price: 0, b: '#4a6b4a', s: '#2c402c', v: '#ffd970'},
-  crimson: {n: 'Crimson', price: 150, b: '#7a3232', s: '#4a1c1c', v: '#ffd970'},
-  cobalt: {n: 'Cobalt', price: 150, b: '#3c5490', s: '#243568', v: '#ffd970', o: '#aebde0'},
-  slate: {n: 'Slate', price: 150, b: '#4a4f5c', s: '#2c2f38', v: '#ffd970'},
-  plum: {n: 'Plum', price: 200, b: '#5c3358', s: '#371f36', v: '#ffd970'},
-  onyx: {n: 'Onyx', price: 200, b: '#23252f', s: '#121319', v: '#ff5b5b', o: '#8890a8'},
+  standard: {n: 'Standard Issue', price: 0, b: '#4a6b4a', s: '#2c402c', v: '#ffc94d'},
+  crimson: {n: 'Crimson', price: 150, b: '#7a3232', s: '#4a1c1c', v: '#ffc94d'},
+  cobalt: {n: 'Cobalt', price: 150, b: '#3c5490', s: '#243568', v: '#ffc94d', o: '#aebde0'},
+  slate: {n: 'Slate', price: 150, b: '#4a4f5c', s: '#2c2f38', v: '#ffc94d'},
+  plum: {n: 'Plum', price: 200, b: '#5c3358', s: '#371f36', v: '#ffc94d'},
+  onyx: {n: 'Onyx', price: 200, b: '#23252f', s: '#121319', v: '#ff5a5a', o: '#8890a8'},
 };
 
 const hasSprite = id => !!PIXMAP[id];
@@ -7528,8 +7549,14 @@ const spriteIds = () => Object.keys(PIXMAP);
 // tile tier (unit/tech/special) to never blur into the ground behind it.
 // Green army, purple hive: the two forces are unmistakable at a glance.
 
+// Same outline ink as the friendly roster (--deep) — one faction's tokens
+// aren't drawn with darker or lighter "line weight" than the other's, they
+// share literally the same ink. The body colour is the exact --violet
+// token: the game's third named accent (team leads, section marks,
+// stratagems) doubling as "this is the enemy," so purple means one thing
+// everywhere in the game, not two similar-but-different purples.
 const PXE_COLOR = {
-  o: '#170a20', b: '#8a5cc9', s: '#5c3a86', w: '#4a3563',
+  o: '#0e0c1e', b: '#9d6bff', s: '#5c3a86', w: '#4a3563',
   g: '#ffc94d', W: '#f4f6ff', x: '#cdf24c',
 };
 

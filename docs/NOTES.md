@@ -1153,6 +1153,42 @@ currency, where it is semantic. Danger buttons (abort, cancel placement)
 moved to true red (`--red`) so the brand and the warning never share a hue
 on the same screen.
 
+## Pixel tokens joined the palette, not just the vibe
+
+"Make the pixels cohesive with the game's overall style" landed as a
+concrete, checkable move rather than a re-skin: `sprites.js`'s outline
+ink and its two identity-bearing accents now use the *exact* hex the
+rest of the UI uses for the same idea, not a custom colour that merely
+resembled it.
+
+- **Outline ink** (`o`, every friendly and every hostile sprite):
+  `#12102a`/`#170a20` → `#0e0c1e`, which is `--deep` — the same dark the
+  ink-seal card backgrounds and every panel are built from. Both
+  factions' pixel art is drawn with literally the same ink now, not two
+  near-black tones that happened to look similar.
+- **The visor glint** (`v`, every uniform scheme but Onyx): `#ffd970` →
+  `#ffc94d`, exactly `--gold` — the same gold as specialist card
+  borders, achievements, and salvage currency. "This unit is yours and
+  alive" is now the one gold the rest of the game already uses for
+  "valuable/earned," not a private near-gold. Onyx's danger-red visor
+  snapped to the exact `--red` token the same way.
+- **The hive's body colour** (`b`, all 14 hostiles): `#8a5cc9` →
+  `#9d6bff`, exactly `--violet` — the game's third named accent (team
+  leads, the `.sect::before` ✦ spark, stratagem cards). Purple now means
+  one specific thing everywhere in the game, including on the board.
+
+Deliberately did **not** collapse every sprite colour onto a token —
+weapon metal, cloth shade, armour base stay their own custom hexes.
+Forcing all of it onto three UI variables would flatten the sprites into
+swatches; only the outline (structural, shared by definition) and the
+two colours that actually *mean* something game-wide (gold = yours,
+violet = hostile) needed to be the literal same value, not a close one.
+pixtest's contrast guard still passes unchanged (it checks for the
+faction *tile* colours, cyan/magenta, which none of this touches).
+Verified visually: the Quartermaster's card grid and Uniform swatches
+now read as one palette family, and on the board the hive's violet is
+unmistakably the same violet as the lead badge sitting above it.
+
 ## Still open
 
 1. **Crystals still loses to "Three breaches"** more than anything else — the
