@@ -1,11 +1,14 @@
 // The small card tile used in the Squad, Quartermaster and Database grids.
+// Ghost layout: no art panel — cost, name, hull and price as a requisition
+// line-item, with the card's ink-seal mark as a faint watermark behind the
+// text. The full seal face lives in the focus view, one tap away.
 
 import {DECKSIZE} from '../state/constants.js';
 import {POOL} from '../content/cards.js';
 import {TIERNAME} from '../content/ranks.js';
 import {active} from '../state/session.js';
 import {costOf, gearOf, vetOf} from '../save/progression.js';
-import {artFor} from './art.js';
+import {cardMark} from './portraits.js';
 import {attr} from './dom.js';
 
 /**
@@ -41,14 +44,10 @@ export function cardEl(id, mode) {
   const tip = `${k.n} — ${TIERNAME[k.t]} · ${costOf(id)} DP${k.hp ? ' · ' + hull + ' hull' : ''}\n${k.d}` +
     `${g ? '\nGear: ' + g.n + ' — ' + g.d : ''}${v.t ? '\nRank: ' + v.n + ' (' + v.u + ' deployments)' : ''}`;
 
-  const traits = TIERNAME[k.t] + (k.attach ? ' · Attach' : '') + (k.size > 1 ? ' · 2 cells' : '') +
-    (k.mob || k.attach ? '' : ' · Anchored');
-
   return `<button class="gcard t-${k.t}${cls} v${v.t}" title="${attr(tip)}" data-focus="${id}" data-mode="${mode}">
-    <div class="gart">${artFor(id, k.t, null, v.t >= 2 ? v.col : null)}<div class="gcost">${costOf(id)}</div>
-      ${k.hp ? `<div class="ghp">${hull} HULL</div>` : ''}
-      ${v.t ? `<div class="pips">${'◆'.repeat(v.t)}</div>` : ''}</div>
-    <div class="gname">${k.n}</div>
-    <div class="gtype">${traits}</div>
-    <div class="gtxt">${k.d}</div>${g ? `<div class="gtag">◈ ${g.n}</div>` : ''}${foot}</button>`;
+    ${cardMark(id, v.t >= 2 ? v.col : null)}
+    <div class="tn">${k.n}</div>
+    <div class="tstat"><span class="gcost">${costOf(id)}</span>${k.hp ? `<span class="thull">${hull} HULL</span>` : ''}
+      ${v.t ? `<span class="pips">${'◆'.repeat(v.t)}</span>` : ''}</div>
+    ${g ? `<div class="gtag">◈ ${g.n}</div>` : ''}${foot}</button>`;
 }

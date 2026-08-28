@@ -4,7 +4,7 @@
 // well-formed full-bleed SVG, and real art must still take precedence.
 import {POOL} from '../src/content/cards.js';
 import {CARD_ART} from '../src/content/card-art.js';
-import {cardPortrait, hasPortrait, portraitIds} from '../src/render/portraits.js';
+import {cardPortrait, cardMark, hasPortrait, portraitIds} from '../src/render/portraits.js';
 import {artFor} from '../src/render/art.js';
 
 const F = [];
@@ -30,6 +30,16 @@ Object.keys(POOL).forEach(id => {
   const svg = cardPortrait(id, '#4de8ff');
   if (seen[svg]) F.push(`'${id}' and '${seen[svg]}' share the same portrait`);
   else seen[svg] = id;
+});
+
+// The watermark layer behind the ghost tiles: every card, all distinct.
+const marks = {};
+Object.keys(POOL).forEach(id => {
+  const m = cardMark(id);
+  if (!m.includes('class="inkmark"')) F.push(`${id}: no watermark mark`);
+  if (m.includes('undefined') || m.includes('NaN')) F.push(`${id}: bad values in mark`);
+  if (marks[m]) F.push(`'${id}' and '${marks[m]}' share the same mark`);
+  else marks[m] = id;
 });
 
 // artFor precedence: real art -> portrait -> sigil.

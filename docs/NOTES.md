@@ -643,6 +643,40 @@ first note already filed: token bodies need luminance contrast against
 their own faction's tiles (light silver units, hot-light hostiles, dark
 outlines), never cyan-on-cyan or magenta-on-maroon.
 
+## Ink Seal faces, ghost tiles (art round three)
+
+The Neon Sigil faces lasted one look in play: too busy at store-tile size,
+where the full-bleed chrome (glow, scanlines, radial wash, brackets, serial)
+stacked under the cost chip, HULL tag and pips. Round three pitched five
+calmer directions at true tile size; the pick was **ghost tiles carrying the
+round-two Ink Seal**, so `portraits.js` is now the seal system: an ensō
+brush ring (heavier stroke on Specialists — rarity you feel before you
+read it), one role-picked kanji per card (目 Scout, 臼 Mortar, 貫 Rail
+Sniper, 双 Fireteam — all 46 distinct, which is also what guarantees face
+distinctness), a nameplate and the red Zanshin chop 残. No filters, no
+gradients, no per-card def ids.
+
+Two products, two surfaces. `cardPortrait()` is the full 100×140 face and
+shows wherever a card is a poster: the combat hand, the focus view, pack
+reveals. `cardMark()` is the bare ensō-and-kanji, drawn full-strength and
+faded by CSS (`.inkmark`, 15% — veterancy tiles run brighter and keep the
+legend shimmer on the mark). The grid tiles in Squad/Quartermaster/Database
+lost their art panel entirely: name, cost, hull and price as a requisition
+line-item with the mark as a watermark behind — tiles are half the height,
+so the whole pool plus gear plus leads now fits one store screen. Gear
+tiles keep the old art-panel layout (they never had faces).
+
+Two layout traps worth remembering: the cost chip inline with the name
+broke names mid-word at 62px tiles ("Vangu ard") — the name needs the full
+tile width, stats go on their own row; and the seal face slice-crops badly
+in non-5:7 frames (the focus view blew the kanji up to fill a square), so
+`.fart`/`.pcart` give `svg.artfill` an explicit `aspect-ratio:5/7` window.
+arttest now also covers `cardMark` (coverage, well-formedness,
+distinctness). Bundle 334→329KB. Kanji render through the system serif
+stack (Hiragino/Yu Mincho/Noto Serif JP); a device with no CJK fonts would
+show boxes — acceptable for now, and the embedding pipeline is the fix if
+it ever bites.
+
 ## The fun patch — variety, drama, and honest enemies
 
 Built from the game-loop review: a near-random bot was winning most missions,
