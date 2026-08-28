@@ -1326,6 +1326,77 @@ is pixel-for-pixel the same gold chrome as the combat briefing, and
 Settings shows "Panel briefings — Replay" sitting right under "Combat
 briefing — Replay."
 
+## Combat got its own track, not a faster remix of hold's
+
+Follow-up on last session's music check: I'd confirmed the mood switch
+was technically firing (tempo, hat, arp density all measurably changed)
+but the user still couldn't hear a difference in play, and said so —
+"can you make it a different enough track?" The diagnosis held up: both
+moods shared the same key (A minor), the same oscillator waveform, the
+same instrumentation, and the same mix. A modest tempo bump and a quiet
+hi-hat under all that sameness reads as "the same song, a bit brisker,"
+not a mood change. Fixed by actually changing the things a listener
+keys on — key, timbre and drums — not just the things easiest to tune.
+
+**Different mode, not a reordered progression.** Hold still cruises
+Am·F·C·G. Combat dropped the old "same four chords, different order"
+approach (Am·G·F·E) for a real key change: an E Phrygian vamp,
+Em·F·Em·Bb. The i→bII half-step (Em to F) is the standard "danger" cue
+in film/game scoring — a different mode, not a shuffle of the same
+notes, so combat sounds like it's in a different harmonic space, not
+just re-sequenced.
+
+**Square waves instead of sawtooth, for both pad and bass.** `M_MOODS`
+gained a `wave` field per mood; `mPad`/`mBass` now read it instead of a
+hardcoded `'sawtooth'`. Square's odd-harmonics-only spectrum reads
+harder and buzzier than a sawtooth at the same gain — the whole
+instrument palette changes character, not just the notes it plays.
+
+**A real backbeat, not just a louder hat.** Added `mSnare()` — a
+band-passed (1.8kHz) noise crack, wider and punchier than the existing
+highpass hat — firing on beats 2 and 4 (`mood.snare`). Combat now has an
+actual kick+snare rock/action pattern; hold keeps its plain kick pulse.
+The bass also cuts each beat into `bassDiv` slices (2 for hold's
+straight 8ths, 4 for combat's driving 16ths) instead of a fixed
+subdivision, with note length scaling down so the denser 16ths don't
+smear into each other.
+
+**Mix gets tighter, not just busier.** `filterHz`/`filterLfo`/
+`filterDepth` and `verbWet`/`delayWet`/`delayFb` are now per-mood too —
+combat runs a brighter, faster-moving filter (2400Hz vs 900Hz, LFO
+0.22Hz vs 0.06Hz) and a drier send (verb 0.16 vs 0.35, delay 0.22 vs
+0.3), so it reads as tighter and more immediate instead of just louder
+or busier under the same wash hold uses.
+
+**The switch had to not click.** The filter/delay/hall parameters live
+on shared graph nodes built once and reused across the whole session —
+snapping them straight to the new mood's values on every `enterCombat`/
+`leaveCombat` would pop. `applyMoodTone()` ramps all of them via
+`setTargetAtTime` (~0.5s time constant) instead, called from
+`setMusicMood()` whenever the mood actually changes (a same-mood call is
+now a no-op, where before it re-set the identical value every time).
+Tempo, key and instrumentation aren't ramped — the very next scheduled
+beat just uses the new mood's `moodDef()`, so the switch is immediate
+where it should be and smooth where a hard cut would be audible.
+
+Caught one bug before it shipped: promoting `delay`/`verb` from locals
+to module-level `mDelay`/`mVerbWet` (needed so `applyMoodTone()` could
+reach them) left one stale reference — `arpSend.connect(delay)` — that
+would have thrown on the very first note. Found it on a straight re-read
+of the diff, not by running it first.
+
+Verified the same way as the first pass — a script patching
+`AudioContext.prototype.createOscillator`/`createBufferSource` in a real
+browser session to count what's actually being scheduled, not just what
+the code says it should do:
+
+- Hold (5s): 26 sawtooth notes, 0 square, 0 hat, 0 snare, 1.40 kicks/s.
+- Combat (5s): 0 sawtooth, 62 square notes, 11 hat hits, 5 snare hits,
+  2.20 kicks/s — dead-on the 132bpm target (2.2/s exactly).
+- Aborting a mission back to the map reverted cleanly to all-sawtooth,
+  zero square — the mood switch un-does itself, no stuck state.
+- No page errors across any of the runs.
+
 ## Still open
 
 1. **Crystals still loses to "Three breaches"** more than anything else — the
