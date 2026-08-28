@@ -1841,6 +1841,50 @@ into a +60 credit jump on schedule. Full 37-guard suite passes,
 including hundreds of simulated Civilians missions in the balance sim
 with the exclusion holding — no inflated pod counts, no stray losses.
 
+## Civilian Extract: from static pods to a shelter that puts people out
+
+Fifth off the field-idea list, and the biggest one — a real mission-type
+rework, not a modifier or an event. The old Civilians mission was three
+static pods sitting at column 0, defended in place for the mission's
+duration. The new one: a shelter (20 hull) holds a lane, survivors it puts
+out walk toward your own edge one cell a turn, and the mission is won by
+extracting enough of them — not by outlasting the clock.
+
+**Reused G.civ rather than building a second system.** Same move as
+Research Team: the shelter and its walkers are G.civ entries, flagged
+`building`/`walking`, so every rule that already knows what a civilian
+pod is — hostiles prioritizing it over your units in `strike()`, holding
+its tile claiming territory, blocking movement and deployment through
+it — just works, for both the shelter and every walker, with zero new
+call sites. `civilianWalk()` (new, `phases.js`) steps each walker one
+cell toward column 0 every turn, held back by anything that would block
+a unit — a hostile, another body, fresh rubble — so it waits out an
+obstacle instead of walking through it. Stepping off column 0 is the
+extraction.
+
+**Getting the numbers right took two passes, not one.** First cut spawned
+a new survivor every 3 turns against a goal of 4 — over a mission's
+~10 available turns that's 3 spawns, chasing a goal one *more* than the
+maximum possible extractions, before any of them even had to survive
+anything. The balance sim caught it cold: 0 wins in 67 simulated runs.
+Dropped the cadence to every turn flat (heat now moves the goal instead
+of the spawn rate — simpler, and the goal was always where the
+difficulty should live) and seeded one walker already moving at the
+drop so turn one isn't dead air. Second pass: 82% at heat 0, 70-83%
+across heat 0-3 — close to the original static-pods mission's own
+historical win rate, which is the right target; Civilians was always
+meant to sit on the easier end of the roster, not join Crystals and
+Uplink at the hard end.
+
+Board marker follows the same pattern `RSCH` set for Research Team: the
+generic `CIV` label now reads `BLDG` for the shelter specifically, so it
+doesn't look like an oversized civilian pod.
+
+Verified against the rules directly — spawn cadence, walk-and-block
+behavior, extraction counting, and the loss/win conditions were all run
+through the balance sim rather than just read. Full 37-guard suite
+passes, no page errors in a live playthrough.
+
 ## Still open
 
 1. **Crystals still loses to "Three breaches"** more than anything else — the
@@ -1858,6 +1902,11 @@ with the exclusion holding — no inflated pod counts, no stray losses.
 5. **`PACK_METER_GOAL` (3) is an untested guess.** If collection still races
    ahead or the drip now feels too slow, it's a one-line tune in
    `mission.js` either direction.
+6. **Civilian Extract's heat scaling isn't monotonic yet** — heat 1-3 sampled
+   within a few points of each other (70-83%) rather than stepping down
+   cleanly as `civGoal` climbs, on 30 runs per level. Could be sample noise,
+   could mean the goal needs to scale a bit faster than `+1` per heat point
+   to actually bite. Worth a wider sample before touching it either way.
 
 Two things the structure now makes cheap:
 

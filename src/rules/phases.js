@@ -91,7 +91,9 @@ export function strike(e, D, chorus, pressing) {
     cv.hp -= dmg;
     if (cv.hp <= 0) {
       clog(cv.research ? '<span class="d">Research Team lost — the specimen got away.</span>'
-        : '<span class="d">A civilian pod was destroyed.</span>', 'loss');
+        : cv.building ? '<span class="d">The shelter was destroyed.</span>'
+          : cv.walking ? '<span class="d">A civilian was caught in the open.</span>'
+            : '<span class="d">A civilian pod was destroyed.</span>', 'loss');
     }
     return;
   }
@@ -300,9 +302,52 @@ function spawnResearchTeam() {
   clog(`<span style="color:var(--violet)">Research Team</span> on the ground — lane ${l + 1}. Hold ${RESEARCH_TURNS} turns for extraction.`, 'order');
 }
 
+const CIV_SPAWN_HP = 4;
+// A mission runs roughly 10 turns (waves + grace). Every-3-turns was the
+// first cut and it under-shipped badly — 3 spawns can't reach a goal of 4,
+// full stop, before anything even gets in a walker's way. Every turn, flat
+// across heat, leaves real margin for losses along the way; the goal
+// (civGoal, mission.js) is the difficulty knob instead of the spawn rate.
+const CIV_SPAWN_EVERY = () => 1;
+
+/**
+ * Civilian Extract: every survivor the shelter puts out walks toward your
+ * own edge one cell a turn — blocked by anything that would block a unit,
+ * same as it holding still, so it just waits out a hostile or a crater
+ * instead of forcing a crossing. Stepping off column 0 is the extraction.
+ */
+function civilianWalk() {
+  [...G.civ].forEach(v => {
+    if (!v.walking || v.hp <= 0) return;
+    const nc = v.c - 1;
+    if (nc < 0) {
+      G.civ = G.civ.filter(x => x !== v);
+      G.extracts++;
+      clog(`<span class="g">Civilian extracted</span> — ${G.extracts} of ${G.civGoal} clear.`, 'order');
+      return;
+    }
+    if (G.ter[v.l][nc] === 'x' || unitAt(v.l, nc) || foeAt(v.l, nc) || civAt(v.l, nc)) return;
+    v.c = nc;
+  });
+}
+
+/** The shelter puts out one more survivor, one cell clear of itself so the
+ * two never share a tile. Fizzles quietly if that cell isn't open. */
+function civilianSpawnTick() {
+  const bld = G.civ.find(v => v.building && v.hp > 0);
+  if (!bld || bld.c <= 0) return;
+  const c = bld.c - 1;
+  if (G.ter[bld.l][c] === 'x' || unitAt(bld.l, c) || foeAt(bld.l, c) || civAt(bld.l, c)) return;
+  G.civ.push({l: bld.l, c, hp: CIV_SPAWN_HP, walking: true});
+  clog('<span class="g">Civilians moving</span> — one more heading for extraction.', 'order');
+}
+
 /** Losing conditions checked every turn, in the order the reference used. */
 function lossCheck() {
-  if (G.type === 'civilians' && G.civ.every(v => v.hp <= 0)) return 'All civilian pods lost.';
+  if (G.type === 'civilians') {
+    const bld = G.civ.find(v => v.building);
+    if (!bld || bld.hp <= 0) return 'The shelter was destroyed.';
+  }
   if (G.breaches >= MAXBREACH) {
     return MAXBREACH === 1 ? 'The line was breached.' : MAXBREACH + ' breaches.';
   }
@@ -340,6 +385,11 @@ function endgameCheck() {
     if (G.extra >= 3) return {win: false, why: `Purge incomplete — ${G.kills} of ${G.quota} destroyed.`};
     return null;
   }
+  if (G.type === 'civilians') {
+    if (G.extracts >= G.civGoal) return {win: true};
+    if (G.extra >= 3) return {win: false, why: `Extraction incomplete — ${G.extracts} of ${G.civGoal} got out.`};
+    return null;
+  }
   if (!G.enemies.length || G.extra >= 2) return {win: true};
   return null;
 }
@@ -351,6 +401,7 @@ export function endTurn() {
   tapeBegin();
   playerPhase();
   enemyPhase();
+  if (G.type === 'civilians') civilianWalk();
   territoryPhase();
   tapeMark('territory', true);   // a deliberate beat as the tiles flip
   if (G.mod === 'crumble' && G.turn % 2 === 0) crumbleTick();
@@ -359,6 +410,10 @@ export function endTurn() {
   if (lost) return finish(false, lost);
   if (G.type === 'specimens' && G.quotaHit >= G.quota) return finish(true);
   if (G.type === 'blitz' && G.kills >= G.quota) return finish(true);
+  if (G.type === 'civilians') {
+    if (G.extracts >= G.civGoal) return finish(true);
+    if (G.turn % CIV_SPAWN_EVERY(G.heat) === 0) civilianSpawnTick();
+  }
 
   // The uplink counts CONSECUTIVE turns held — losing the tile resets it.
   if (G.type === 'uplink' && G.uplinkAt) {

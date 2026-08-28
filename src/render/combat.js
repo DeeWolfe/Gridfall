@@ -338,7 +338,8 @@ export function drawBoard() {
       // The trailing half of a two-cell unit.
       cell.innerHTML = marker + '<div class="ent p-unit anchor"><div class="nm">◂</div></div>';
     } else if (v) {
-      cell.innerHTML = marker + `<div class="ent p-civ"><div class="nm">${v.research ? 'RSCH' : 'CIV'}</div><div class="hp">${v.hp}</div></div>`;
+      const label = v.research ? 'RSCH' : v.building ? 'BLDG' : 'CIV';
+      cell.innerHTML = marker + `<div class="ent p-civ"><div class="nm">${label}</div><div class="hp">${v.hp}</div></div>`;
     } else if (e) {
       const locked = G.units.some(x => x.tgt === e.uid);
       cell.innerHTML = marker + foeMarkup(e, locked);

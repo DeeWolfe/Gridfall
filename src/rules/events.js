@@ -37,8 +37,9 @@ export const EVENTS = {
 const EVENT_CHANCE = 0.35;
 
 /** Roll the event telegraphed for the coming turn — usually nothing. Research
- * Team sits out a Civilians mission: it rides G.civ same as the pods do, and
- * a fifth entry there would throw off that mode's own "N of 3" tracking. */
+ * Team sits out a Civilians mission: it rides G.civ same as the shelter and
+ * its walkers do, and an unflagged extra entry there would throw off that
+ * mode's own extraction count and shelter-hull tracking. */
 export function rollEvent() {
   if (!chance(EVENT_CHANCE)) return null;
   const keys = Object.keys(EVENTS).filter(k => !(k === 'research' && G.type === 'civilians'));

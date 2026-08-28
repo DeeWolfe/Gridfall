@@ -84,6 +84,7 @@ export function launchSpec(nd) {
     deck: shuffle([...deck]), hand: [], units: [], enemies: [],
     logs: [], kills: 0, lost: 0, extra: 0, doctrine: 'probe', leadUsed: false,
     civ: [], crystals: [], quota: 0, quotaK: null, quotaHit: 0,
+    civGoal: 0, extracts: 0,
     uplinkAt: null, uplinkHeld: 0,
     strat: null, freeDrop: 0,
     gridCharge: Array(LANES).fill(1), event: null, eventNext: null,
@@ -91,7 +92,15 @@ export function launchSpec(nd) {
   });
 
   if (G.mod === 'breach') for (let c = 0; c < COLS; c++) G.ter[0][c] = 'x';
-  if (G.type === 'civilians') G.civ = [{l: 1, c: 0, hp: 6}, {l: 2, c: 0, hp: 6}, {l: 3, c: 0, hp: 6}];
+  if (G.type === 'civilians') {
+    // The shelter anchors the lane it's in; harder ops (heat) ask for more
+    // extracts and put survivors out faster (CIV_SPAWN_EVERY, phases.js) —
+    // that's what raises the stakes, not a tougher shelter or walkers.
+    // One survivor is already moving at the drop so turn 1 isn't dead air.
+    const l = randInt(LANES);
+    G.civ = [{l, c: 2, hp: 20, building: true}, {l, c: 1, hp: 4, walking: true}];
+    G.civGoal = 3 + G.heat;
+  }
   if (G.type === 'crystals') G.crystals = rollCrystals(G.heat);
   if (G.type === 'specimens') {
     G.quotaK = QUOTA_TYPES[randInt(QUOTA_TYPES.length)];
@@ -222,7 +231,10 @@ export function objText() {
   if (G.type === 'specimens') return `${BEST[G.quotaK].n} destroyed: ${G.quotaHit} / ${G.quota}`;
   if (G.type === 'uplink') return `Uplink held: ${G.uplinkHeld} / 3 turns running`;
   if (G.type === 'blitz') return `Hostiles destroyed: ${G.kills} / ${G.quota}`;
-  if (G.type === 'civilians') return `Civilian pods alive: ${G.civ.filter(v => v.hp > 0).length} / 3`;
+  if (G.type === 'civilians') {
+    const bld = G.civ.find(v => v.building);
+    return `Extracted: ${G.extracts} / ${G.civGoal} — shelter ${bld ? bld.hp : 0} hull`;
+  }
   return m.d;
 }
 

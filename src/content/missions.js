@@ -9,9 +9,9 @@ export const MISSIONS = {
     d: "Hold the line through every wave. Each lane's grid charge absorbs one breach — after that, one body through ends it.",
   },
   civilians: {
-    n: "Protect Civilians",
+    n: "Civilian Extract",
     waves: 7,
-    d: "Three civilian pods sit on your ground. Lose all three and the operation fails.",
+    d: "A shelter holds the line while survivors run for the edge. Protect it, walk enough of them out, and the block is clear.",
   },
   specimens: {
     n: "Acquire Specimens",
