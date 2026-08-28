@@ -2849,6 +2849,10 @@ const MODS = {
   breach: {n: "Hull breach", d: "The top lane is impassable."},
   scavenge: {n: "Scavenge", d: "Each kill refunds 1 deploy point."},
   swarm: {n: "Swarm", d: "Crawler counts doubled."},
+  crumble: {
+    n: "Crumbling Ground",
+    d: "Every couple of turns, one open tile collapses for good — impassable to both sides.",
+  },
 };
 
 /* ==== src/state/rng.js ============================================== */
@@ -4275,6 +4279,22 @@ function freshTerritory() {
 }
 
 /**
+ * Roll the four crystal nodes fresh each mission, one per lane. Standard ops
+ * keep the safe split — two on your own ground, two in the neutral band,
+ * never hostile ground, so holding is still the game rather than a rout —
+ * just randomized within it instead of the same four spots every time. A
+ * deep-zone (heat) operation opens the whole board: any node can land past
+ * the midline, in hostile ground, for a harder mission that has to be
+ * fought for rather than sat on.
+ */
+function rollCrystals(heat) {
+  const lanes = shuffle([0, 1, 2, 3, 4]).slice(0, 4);
+  if (heat > 0) return lanes.map(l => ({l, c: randInt(COLS)}));
+  const cols = [randInt(3), randInt(3), 3 + randInt(2), 3 + randInt(2)];
+  return lanes.map((l, i) => ({l, c: cols[i]}));
+}
+
+/**
  * Start a mission. `nd` carries the node's type, modifier and payout, plus the
  * endless/gauntlet flags that change how finish() settles up.
  */
@@ -4306,10 +4326,7 @@ function launchSpec(nd) {
 
   if (G.mod === 'breach') for (let c = 0; c < COLS; c++) G.ter[0][c] = 'x';
   if (G.type === 'civilians') G.civ = [{l: 1, c: 0, hp: 6}, {l: 2, c: 0, hp: 6}, {l: 3, c: 0, hp: 6}];
-  // Two nodes start on player ground, two sit in the neutral band. Never in
-  // hostile ground (c > 4) — holding a tile behind the spawn line all game is
-  // a different mission than contesting the middle, and a much worse one.
-  if (G.type === 'crystals') G.crystals = [{l: 0, c: 1}, {l: 1, c: 4}, {l: 3, c: 2}, {l: 4, c: 4}];
+  if (G.type === 'crystals') G.crystals = rollCrystals(G.heat);
   if (G.type === 'specimens') {
     G.quotaK = QUOTA_TYPES[randInt(QUOTA_TYPES.length)];
     G.quota = BEST[G.quotaK].threat <= 2 ? 4 : 3;
@@ -7250,6 +7267,28 @@ function territoryPhase() {
   });
 }
 
+/**
+ * Crumbling Ground modifier: every couple of turns, one open tile collapses
+ * for good — impassable to both sides for the rest of the mission, the same
+ * 'x' Hull Breach sets at the start, just carved out mid-fight instead.
+ * Never an objective tile (a crystal, the uplink relay) or one anything is
+ * standing on, so it can't softlock a mission or bury a unit.
+ */
+function crumbleTick() {
+  const open = [];
+  for (let l = 0; l < LANES; l++) for (let c = 0; c < COLS; c++) {
+    if (G.ter[l][c] === 'x') continue;
+    if (unitAt(l, c) || foeAt(l, c) || civAt(l, c)) continue;
+    if (G.crystals.some(x => x.l === l && x.c === c)) continue;
+    if (G.uplinkAt && G.uplinkAt.l === l && G.uplinkAt.c === c) continue;
+    open.push([l, c]);
+  }
+  if (!open.length) return;
+  const [l, c] = open[randInt(open.length)];
+  G.ter[l][c] = 'x';
+  clog(`<span style="color:var(--violet)">Structural collapse</span> — lane ${l + 1}, col ${c + 1} is impassable now.`, 'order');
+}
+
 /** Losing conditions checked every turn, in the order the reference used. */
 function lossCheck() {
   if (G.type === 'civilians' && G.civ.every(v => v.hp <= 0)) return 'All civilian pods lost.';
@@ -7303,6 +7342,7 @@ function endTurn() {
   enemyPhase();
   territoryPhase();
   tapeMark('territory', true);   // a deliberate beat as the tiles flip
+  if (G.mod === 'crumble' && G.turn % 2 === 0) crumbleTick();
 
   const lost = lossCheck();
   if (lost) return finish(false, lost);

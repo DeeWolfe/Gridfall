@@ -45,6 +45,22 @@ function freshTerritory() {
 }
 
 /**
+ * Roll the four crystal nodes fresh each mission, one per lane. Standard ops
+ * keep the safe split — two on your own ground, two in the neutral band,
+ * never hostile ground, so holding is still the game rather than a rout —
+ * just randomized within it instead of the same four spots every time. A
+ * deep-zone (heat) operation opens the whole board: any node can land past
+ * the midline, in hostile ground, for a harder mission that has to be
+ * fought for rather than sat on.
+ */
+function rollCrystals(heat) {
+  const lanes = shuffle([0, 1, 2, 3, 4]).slice(0, 4);
+  if (heat > 0) return lanes.map(l => ({l, c: randInt(COLS)}));
+  const cols = [randInt(3), randInt(3), 3 + randInt(2), 3 + randInt(2)];
+  return lanes.map((l, i) => ({l, c: cols[i]}));
+}
+
+/**
  * Start a mission. `nd` carries the node's type, modifier and payout, plus the
  * endless/gauntlet flags that change how finish() settles up.
  */
@@ -76,10 +92,7 @@ export function launchSpec(nd) {
 
   if (G.mod === 'breach') for (let c = 0; c < COLS; c++) G.ter[0][c] = 'x';
   if (G.type === 'civilians') G.civ = [{l: 1, c: 0, hp: 6}, {l: 2, c: 0, hp: 6}, {l: 3, c: 0, hp: 6}];
-  // Two nodes start on player ground, two sit in the neutral band. Never in
-  // hostile ground (c > 4) — holding a tile behind the spawn line all game is
-  // a different mission than contesting the middle, and a much worse one.
-  if (G.type === 'crystals') G.crystals = [{l: 0, c: 1}, {l: 1, c: 4}, {l: 3, c: 2}, {l: 4, c: 4}];
+  if (G.type === 'crystals') G.crystals = rollCrystals(G.heat);
   if (G.type === 'specimens') {
     G.quotaK = QUOTA_TYPES[randInt(QUOTA_TYPES.length)];
     G.quota = BEST[G.quotaK].threat <= 2 ? 4 : 3;

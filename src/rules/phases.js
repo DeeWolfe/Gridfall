@@ -12,6 +12,7 @@ import {LANES, COLS, MAXDP, MAXBREACH} from '../state/constants.js';
 import {BEST} from '../content/hostiles.js';
 import {G, active, nextUid, clearSelection, replaying} from '../state/session.js';
 import {hooks} from '../state/hooks.js';
+import {randInt} from '../state/rng.js';
 import {leadOf} from '../save/progression.js';
 import {unitAt, foeAt, civAt, held, heldEnemyHalf, crystalsHeld, scorched} from './board.js';
 import {fire, healPass, dmgUnit, dmgEnemy, breachAt} from './combat.js';
@@ -208,6 +209,28 @@ export function territoryPhase() {
   });
 }
 
+/**
+ * Crumbling Ground modifier: every couple of turns, one open tile collapses
+ * for good — impassable to both sides for the rest of the mission, the same
+ * 'x' Hull Breach sets at the start, just carved out mid-fight instead.
+ * Never an objective tile (a crystal, the uplink relay) or one anything is
+ * standing on, so it can't softlock a mission or bury a unit.
+ */
+function crumbleTick() {
+  const open = [];
+  for (let l = 0; l < LANES; l++) for (let c = 0; c < COLS; c++) {
+    if (G.ter[l][c] === 'x') continue;
+    if (unitAt(l, c) || foeAt(l, c) || civAt(l, c)) continue;
+    if (G.crystals.some(x => x.l === l && x.c === c)) continue;
+    if (G.uplinkAt && G.uplinkAt.l === l && G.uplinkAt.c === c) continue;
+    open.push([l, c]);
+  }
+  if (!open.length) return;
+  const [l, c] = open[randInt(open.length)];
+  G.ter[l][c] = 'x';
+  clog(`<span style="color:var(--violet)">Structural collapse</span> — lane ${l + 1}, col ${c + 1} is impassable now.`, 'order');
+}
+
 /** Losing conditions checked every turn, in the order the reference used. */
 function lossCheck() {
   if (G.type === 'civilians' && G.civ.every(v => v.hp <= 0)) return 'All civilian pods lost.';
@@ -261,6 +284,7 @@ export function endTurn() {
   enemyPhase();
   territoryPhase();
   tapeMark('territory', true);   // a deliberate beat as the tiles flip
+  if (G.mod === 'crumble' && G.turn % 2 === 0) crumbleTick();
 
   const lost = lossCheck();
   if (lost) return finish(false, lost);

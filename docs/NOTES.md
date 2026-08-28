@@ -1741,6 +1741,52 @@ instead of the title screen, since that's where it was opened from.
 Full suite still passes; nothing was asserting on the title-screen
 footer's old shape.
 
+## Crystals randomizes, and the ground can now cave in mid-fight
+
+First two off the field-idea list: Crystals stopped rolling the same four
+spots every time, and a new modifier lets the board itself change shape
+during a mission.
+
+**Crystals.** The four node positions were a fixed array — `{l:0,c:1}`,
+`{l:1,c:4}`, `{l:3,c:2}`, `{l:4,c:4}` — the same every single Crystals
+mission since the mode shipped. `rollCrystals(heat)` in `mission.js`
+replaces it: one node per lane (4 of the 5, picked fresh), with the
+zone split — two on your own ground, two in the neutral band, never
+hostile ground — kept for a **standard** mission, because that split is
+load-bearing design, not decoration (see the mode's original comment:
+holding ground behind the spawn line all mission is a worse, different
+mission from contesting the middle). A **deep-zone (heat) operation**
+drops that guardrail entirely — any of the four can land anywhere on
+the board, hostile ground included, which is the actual "harder
+difficulty" hook: heat already means more hive pressure every wave, so
+an exposed crystal deep in enemy territory now stacks onto that instead
+of the position doing nothing to raise the stakes.
+
+**Crumbling Ground.** A new battlefield modifier (`crumble`), rolled
+onto campaign nodes the same 45% way `nest`/`blackout`/`breach`/
+`scavenge`/`swarm` already are — no new roll mechanism, just a sixth
+entry in the pool. Every second turn it's active, one open tile
+collapses into the same impassable `'x'` state Hull Breach already sets
+at mission start (existing rendering, existing rules — every place that
+checks `G.ter[l][c] === 'x'` already blocks both hostile movement and
+player deployment through it, so this reuses that machinery outright
+rather than inventing a second kind of wall). `crumbleTick()` in
+`phases.js` never picks a tile with a unit, hostile or civilian
+standing on it, and never a crystal or the uplink relay tile — a
+modifier is supposed to make a mission harder, not softlock it by
+burying an objective.
+
+Verified against the actual rules (not just reading the code): 12
+Crystals launches at heat 0 produced 12 distinct layouts, all holding
+the 2-ground/2-neutral/0-hostile split across 4 distinct lanes; 15
+launches at heat 2 landed at least one crystal in hostile ground.
+A `crumble`-modifier mission had zero impassable tiles at kickoff, one
+after turn 2, still one after turn 3, two after turn 4 — exactly the
+every-other-turn cadence. Full 37-guard suite passes, and the balance
+sim (which rolls modifiers onto hundreds of simulated missions,
+`crumble` included now) ran clean — zero errors across every mission
+type and modifier combination.
+
 ## Still open
 
 1. **Crystals still loses to "Three breaches"** more than anything else — the

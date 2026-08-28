@@ -9,4 +9,8 @@ export const MODS = {
   breach: {n: "Hull breach", d: "The top lane is impassable."},
   scavenge: {n: "Scavenge", d: "Each kill refunds 1 deploy point."},
   swarm: {n: "Swarm", d: "Crawler counts doubled."},
+  crumble: {
+    n: "Crumbling Ground",
+    d: "Every couple of turns, one open tile collapses for good — impassable to both sides.",
+  },
 };

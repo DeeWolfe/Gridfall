@@ -1198,6 +1198,10 @@
   "swarm": {
    "n": "Swarm",
    "d": "Crawler counts doubled."
+  },
+  "crumble": {
+   "n": "Crumbling Ground",
+   "d": "Every couple of turns, one open tile collapses for good — impassable to both sides."
   }
  },
  "operations": {
