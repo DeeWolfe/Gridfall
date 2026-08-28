@@ -24,7 +24,6 @@ import {endTurn} from '../rules/phases.js';
 import {objText, abortMission} from '../rules/mission.js';
 import {forecastThreat, enemyIntent, supportTargets, influenceCells, supportLabel} from '../rules/forecast.js';
 import {EVENTS} from '../rules/events.js';
-import {clog} from '../rules/log.js';
 import {$, show} from './dom.js';
 import {portrait, artFor} from './art.js';
 import {ask, notify} from './dialog.js';
@@ -33,7 +32,6 @@ import {renderMap} from './map.js';
 import {renderModes} from './modes.js';
 import {sfx} from './sound.js';
 
-const LEAD_DP_BONUS = 4;
 const LOG_LINES = 40;
 
 /** Leaving combat: back to the map, or to mode select for endless/gauntlet. */
@@ -127,7 +125,7 @@ export function drawActions() {
 }
 
 /** What the selected unit will do, or what the selected card will cost. */
-export function drawSel() {
+function drawSel() {
   const el = $('selinfo');
 
   if (stratSel) {
@@ -225,7 +223,7 @@ function unitMarkup(u, incoming) {
 }
 
 /** Every hostile type carries its own glyph — identity at cell size. */
-export const FOE_GLYPH = {
+const FOE_GLYPH = {
   crawler: '▪', hulk: '⬢', breacher: '◣', spitter: '◆', burrower: '⋒',
   spore: '✱', jammer: '⌁', pylon: '▣', harrower: '✠', mender: '✚',
   husk: '◍', screamer: '◉', chorus: '≋', sovereign: '♚',
@@ -304,6 +302,7 @@ export function drawBoard() {
     if (mover && mover.lane === l && mover.col === c) cls += ' movesel';
     if (willHit.has(i)) cls += ' willhit';
     if (buffed.has(i)) cls += ' buffed';
+    if (influenced.has(i)) cls += ' influence';
     if (aimable.has(i)) cls += ' aimable';
     cell.className = cls;
 
@@ -382,7 +381,7 @@ export function drawBoard() {
  * The combat log. The engine has always kept it; until the desktop layout there
  * was nowhere to put it. Newest first, capped to what the rail can show.
  */
-export function drawLog() {
+function drawLog() {
   const el = $('cblog');
   if (!el) return;
   const entries = G.logs.slice(0, LOG_LINES);

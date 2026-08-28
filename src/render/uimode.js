@@ -28,7 +28,7 @@ export function uiPreference() {
 }
 
 /** What `auto` resolves to on this display right now. */
-export function detectMode() {
+function detectMode() {
   try {
     return typeof matchMedia === 'function' && matchMedia(DESKTOP_QUERY).matches ? 'pc' : 'compact';
   } catch {

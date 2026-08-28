@@ -5,7 +5,7 @@ import {STRATAGEMS} from '../content/stratagems.js';
 import {LEADGATES} from '../content/lead-unlocks.js';
 import {OPS} from '../content/operations.js';
 import {active, MAPDEF, setMapdef} from '../state/session.js';
-import {rankName, leadUnlocked, leadGateText, leadPrice} from '../save/progression.js';
+import {rankName, leadUnlocked, leadPrice} from '../save/progression.js';
 import {enterProfile, opRun} from '../rules/run.js';
 import {$, show} from './dom.js';
 import {portrait} from './art.js';
@@ -133,8 +133,8 @@ export function paintHold() {
 
 /**
  * The current-deployment readout under the menu tiles: the active operation's
- * map, who leads the squad, and how far off the next requisition drop is.
- * The whole card is a shortcut straight onto the sector map (wired at boot).
+ * map and how far off the next requisition drop is. The whole card is a
+ * shortcut straight onto the sector map (wired at boot).
  */
 function paintReadout() {
   const el = $('readout');

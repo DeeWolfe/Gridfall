@@ -21,7 +21,7 @@ export const setAfterPacks = fn => { afterPacks = fn; };
 /** Everything the pack card needs to render one offer. Card picks carry no
  * sub-line — tier and stats stay in the shop and squad views; the pick's
  * rules text is already on the card. Non-card picks keep a kind label. */
-export function packArt(p) {
+function packArt(p) {
   if (p.kind === 'card') {
     const k = POOL[p.id];
     return {title: k.n, sub: '', body: k.d, art: artFor(p.id, k.t, 86), tier: k.t};

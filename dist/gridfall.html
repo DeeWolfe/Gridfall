@@ -404,11 +404,6 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .box h3::before{content:'✦ ';color:var(--violet)}
 .box h3{font-size:0.625rem;letter-spacing:.16em;color:var(--dim);text-transform:uppercase;
   margin-bottom:7px;font-weight:700}
-.box .obtxt{font-size:0.6875rem;line-height:1.55;color:var(--txt)}
-.box .obsub{font-size:0.625rem;color:var(--dim);margin-top:6px;line-height:1.5}
-.mrow{display:flex;justify-content:space-between;font-size:0.625rem;padding:2px 0}
-.mrow .c{color:#ff8fb5}
-.note{font-size:0.6562rem;color:var(--dim);margin-top:7px;line-height:1.5}
 
 @media(max-width:1079px){}
 
@@ -588,7 +583,6 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .selfire.live{border-color:var(--gold);color:var(--gold);background:rgba(255,201,77,.07)}
 .selfire.dead{border-color:var(--line2);color:var(--dim)}
 .selfire b{font-size:0.6875rem}
-.lockline{font-size:0.6562rem;color:var(--gold);margin-top:6px;letter-spacing:.1em}
 .selacts{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
 .selacts .mini{padding:6px 9px;font-size:0.6562rem}
 .mini.act{color:var(--green);border-color:var(--green)}
@@ -818,7 +812,6 @@ body{font-size:1rem}
 .hc.strat .n{color:var(--violet)}
 .stratmark-art{font-size:2.4rem;color:var(--violet);text-shadow:0 0 18px rgba(157,107,255,.8);
   animation:tblink 2.2s ease-in-out infinite}
-.leadchip.locked{opacity:.45;cursor:not-allowed}
 .leadperk.strat b{color:var(--violet)}
 .hc.t-tech{border-color:var(--cyan-d)} .hc.t-special{border-color:#9a7420}
 .hc.sel{border-color:var(--green);box-shadow:0 0 16px rgba(93,255,160,.28)}
@@ -5443,8 +5436,8 @@ function paintHold() {
 
 /**
  * The current-deployment readout under the menu tiles: the active operation's
- * map, who leads the squad, and how far off the next requisition drop is.
- * The whole card is a shortcut straight onto the sector map (wired at boot).
+ * map and how far off the next requisition drop is. The whole card is a
+ * shortcut straight onto the sector map (wired at boot).
  */
 function paintReadout() {
   const el = $('readout');
@@ -6772,7 +6765,6 @@ function sfx(name) {
 // rebuilds the screen from scratch each time rather than patching it, which is
 // why the rules layer only has to say "something changed".
 
-const LEAD_DP_BONUS = 4;
 const LOG_LINES = 40;
 
 /** Leaving combat: back to the map, or to mode select for endless/gauntlet. */
@@ -7043,6 +7035,7 @@ function drawBoard() {
     if (mover && mover.lane === l && mover.col === c) cls += ' movesel';
     if (willHit.has(i)) cls += ' willhit';
     if (buffed.has(i)) cls += ' buffed';
+    if (influenced.has(i)) cls += ' influence';
     if (aimable.has(i)) cls += ' aimable';
     cell.className = cls;
 

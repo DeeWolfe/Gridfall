@@ -1,13 +1,12 @@
 // Boot: install the presentation hooks, wire the shell's fixed controls, and
 // put the record-select screen up.
 
-import {G, active, profiles, sel, replaying, setActive, setG, setSel, setMover, MAPDEF} from '../state/session.js';
-import {POOL} from '../content/cards.js';
+import {G, active, profiles, sel, replaying, setActive, setG, setSel, setMover} from '../state/session.js';
 import {costOf} from '../save/progression.js';
 import {setHooks} from '../state/hooks.js';
 import {store} from '../save/store.js';
 import {blankProfile, saveAll, commit, initProfiles} from '../save/profile.js';
-import {opRun, genRun, opComplete} from '../rules/run.js';
+import {genRun, opComplete} from '../rules/run.js';
 import {launchGauntlet, GAUNTLET_LEGS} from '../rules/mission.js';
 import {$, show} from './dom.js';
 import {ask, notify, dlgClose} from './dialog.js';
@@ -19,7 +18,7 @@ import {renderModes} from './modes.js';
 import {renderOps} from './ops.js';
 import {renderMap} from './map.js';
 import {drawAll, drawBoard} from './combat.js';
-import {openPanel, renameShip, importRecordFlow} from './panels.js';
+import {openPanel, importRecordFlow} from './panels.js';
 import {showPack, setAfterPacks} from './packs.js';
 import {showResult} from './result.js';
 import {applyUiMode, cycleUiMode, uiModeLabel, uiPreference} from './uimode.js';

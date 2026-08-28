@@ -719,6 +719,15 @@ imports. Locked leads open the same popup with the gate as status and
 Recruit (or "Need N cr") as the action — the "Not on the roster" notify
 is gone.
 
+A dead-code sweep followed the UI churn (unused imports in five render
+modules, four internal-only functions un-exported, seven orphaned CSS
+rules from removed layouts, a leftover `LEAD_DP_BONUS` const). The sweep
+also caught a real dropped feature: `drawBoard` computed the `influenced`
+cell set every repaint but never applied it — the Scrambler's dampened
+lane had silently stopped highlighting even though the `.influence` CSS
+survived. The one-line apply is restored and browser-verified (selecting
+a Scrambler lights its full lane violet).
+
 The hold's deployment readout slimmed with the same declutter goal: the
 node tally ("X / Y nodes secured") and the whole lead row (portrait,
 callsign, perk name) are gone — the readout is now operation name,
