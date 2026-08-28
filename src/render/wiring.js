@@ -11,6 +11,7 @@ import {launchGauntlet, GAUNTLET_LEGS} from '../rules/mission.js';
 import {$, show} from './dom.js';
 import {ask, notify, dlgClose} from './dialog.js';
 import {closeFocus, setFocusFollowUp, setLeadFollowUp} from './focus.js';
+import {startMusic} from './music.js';
 import {renderSlots} from './boot-screen.js';
 import {enter, paintHold, foldRoster} from './hold.js';
 import {startScene, stopScene, sizeScene, sceneRunning} from './battlefield.js';
@@ -169,6 +170,13 @@ function wireCrashGuard() {
 
 export function boot() {
   const repaint = () => { drawAll(); tutorialTick(); };
+
+  // The atmosphere starts on the first gesture — the earliest moment autoplay
+  // policy allows a context — and startMusic itself checks the profile switch.
+  if (typeof document !== 'undefined' && document.addEventListener) {
+    ['pointerdown', 'keydown', 'click'].forEach(ev =>
+      document.addEventListener(ev, () => startMusic(), {once: true}));
+  }
   setHooks({
     invalidate: repaint,
     turnResolved: frames => {

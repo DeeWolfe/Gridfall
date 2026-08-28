@@ -719,6 +719,33 @@ imports. Locked leads open the same popup with the gate as status and
 Recruit (or "Need N cr") as the action — the "Not on the roster" notify
 is gone.
 
+## Synthwave atmosphere
+
+`src/render/music.js`: a generative synthwave loop on the same WebAudio
+stack as the effects — nothing to download, honouring the no-assets rule.
+Am · F · C · G at 92 BPM: two detuned saws per pad voice swelling a bar at
+a time behind a lowpass that breathes on a 0.06 Hz LFO, an eighth-note
+saw bass with an octave jump on alternating downbeats, a soft sine-drop
+kick each beat, and a sparse triangle arpeggio (≈55% of eighths, chord
+tones two octaves up) feeding a dotted-eighth feedback delay and a
+procedural convolver hall (2.2 s of decaying noise as the impulse). A
+200 ms look-ahead scheduler books ~600 ms of notes at a time — the
+standard WebAudio pattern, so tab jank never tears a note.
+
+The switch (`active.settings.music`, "Atmosphere" row in Settings) sits
+next to the sound one and follows its exact contract: on by default,
+survives a save round trip, every call a silent no-op without WebAudio
+(sndtest covers both engines). Startup: a one-shot
+pointerdown/keydown/click listener installed at boot fires `startMusic()`
+inside the first gesture — the earliest moment autoplay policy allows —
+and `paintHold` calls `syncMusic()` so switching to a profile with music
+off stops it. Stop is a 0.8 s fade, not a cut; the graph is built once
+and reused across stop/start. sound.js now exports its lazy `audio()`
+context factory for the music layer to share. Lesson from verification:
+a synthetic `.click()` fires no pointerdown, so the gesture list includes
+'click' — which is also what lets the Playwright checks (and a
+MediaRecorder capture of the live bus) exercise the engine headlessly.
+
 A dead-code sweep followed the UI churn (unused imports in five render
 modules, four internal-only functions un-exported, seven orphaned CSS
 rules from removed layouts, a leftover `LEAD_DP_BONUS` const). The sweep

@@ -11,6 +11,7 @@ import * as A from './support/api.js';
 import {get} from './support/dom.js';
 import {failures} from './support/harness.js';
 import {sfx, SFX_NAMES, soundOn, toggleSound} from '../src/render/sound.js';
+import {musicOn, toggleMusic, startMusic, stopMusic, syncMusic} from '../src/render/music.js';
 import {openPanel} from '../src/render/panels.js';
 import {dlgClose} from '../src/render/dialog.js';
 import {boot} from '../src/render/wiring.js';
@@ -38,8 +39,23 @@ const F = failures();
   toggleSound();
   if (!soundOn()) F.push('toggle did not turn sound back on');
 
+  // --- music: the same contract as sound — no-ops without WebAudio, a
+  // persistent switch on the profile, and its own Settings row ---
+  try { startMusic(); syncMusic(); stopMusic(); } catch (e) {
+    F.push('music engine threw without WebAudio: ' + e.message);
+  }
+  if (!musicOn()) F.push('music does not default to on');
+  toggleMusic();
+  if (musicOn()) F.push('toggle did not turn music off');
+  const reMuted = A.initProfiles().find(p => p.callsign === 'SND');
+  if (!reMuted || reMuted.settings.music !== 'off') F.push('music mute did not survive a save round trip');
+  toggleMusic();
+  if (!musicOn()) F.push('toggle did not turn music back on');
+
   openPanel('settings');
   const panel = get('pbody')._html;
+  if (!panel.includes('musrow')) F.push('Settings has no music row');
+  if (!/Atmosphere/.test(panel)) F.push('the music row is unlabelled');
   if (!panel.includes('sndrow')) F.push('Settings has no sound row');
   if (!/Sound effects/.test(panel)) F.push('the sound row is unlabelled');
   const row = get('sndrow');

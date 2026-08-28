@@ -22,6 +22,7 @@ import {focusCard, focusEnemy, focusGear, focusLead} from './focus.js';
 import {leadCardHTML, leadTilesHTML, toggleRoster, paintHold, enter} from './hold.js';
 import {showPack, setAfterPacks} from './packs.js';
 import {soundOn, toggleSound} from './sound.js';
+import {musicOn, toggleMusic} from './music.js';
 import {UI_MODES, UI_LABELS, uiPreference, uiModeLabel, setUiMode} from './uimode.js';
 
 const TIERS = ['common', 'special', 'tech'];
@@ -193,7 +194,9 @@ const settingsPanel = () => `<div class="sect">Interface</div><div class="rows">
        `<button class="mini${uiPreference() === m ? ' on' : ''}" data-ui="${m}">${UI_LABELS[m]}</button>`).join('')}</span></div>
    <div class="row"><span>In force</span><span class="r hot">${uiModeLabel()}</span></div>
    <div class="row" id="sndrow" style="cursor:pointer"><span>Sound effects<div style="font-size:0.5938rem;color:var(--dim);margin-top:4px">All synthesized — nothing to download.</div></span>
-     <span class="r hot">${soundOn() ? 'On' : 'Off'}</span></div></div>
+     <span class="r hot">${soundOn() ? 'On' : 'Off'}</span></div>
+   <div class="row" id="musrow" style="cursor:pointer"><span>Atmosphere<div style="font-size:0.5938rem;color:var(--dim);margin-top:4px">A synthwave loop, generated live — no track to download.</div></span>
+     <span class="r hot">${musicOn() ? 'On' : 'Off'}</span></div></div>
    <div class="sect">System</div><div class="rows">
    <div class="row"><span>Storage</span><span class="r">${store.ephemeral ? 'Blocked — session only' : 'This device'}</span></div>
    <div class="row"><span>Save version</span><span class="r">v${active.version}</span></div>
@@ -301,6 +304,9 @@ export function openPanel(key) {
 
   const soundRow = $('sndrow');
   if (soundRow) soundRow.onclick = () => { toggleSound(); openPanel('settings'); };
+
+  const musicRow = $('musrow');
+  if (musicRow) musicRow.onclick = () => { toggleMusic(); openPanel('settings'); };
 
   const importRow = $('impo');
   if (importRow) importRow.onclick = () => importRecordFlow();

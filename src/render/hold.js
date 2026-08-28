@@ -11,6 +11,7 @@ import {$, show} from './dom.js';
 import {portrait} from './art.js';
 import {startScene} from './battlefield.js';
 import {applyUiMode, uiModeLabel} from './uimode.js';
+import {syncMusic} from './music.js';
 
 /** A thumbnail of an operation's map: zones, edges, and cleared nodes. */
 export function opThumb(o, run) {
@@ -119,6 +120,7 @@ export function paintHold() {
 
   // The profile carries the interface preference, so re-apply it on entry.
   applyUiMode();
+  syncMusic();
   const chip = $('uiswap');
   if (chip) chip.textContent = 'UI · ' + uiModeLabel();
 

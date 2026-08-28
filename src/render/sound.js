@@ -14,7 +14,8 @@ const MASTER_LEVEL = 0.22;
 let audioCtx = null;
 let masterGain = null;
 
-function audio() {
+/** Shared lazily-created context — the music layer builds on the same one. */
+export function audio() {
   if (typeof AudioContext === 'undefined') return null;
   if (!audioCtx) {
     audioCtx = new AudioContext();
