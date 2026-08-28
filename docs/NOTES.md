@@ -719,6 +719,15 @@ imports. Locked leads open the same popup with the gate as status and
 Recruit (or "Need N cr") as the action — the "Not on the roster" notify
 is gone.
 
+The hold's deployment readout slimmed with the same declutter goal: the
+node tally ("X / Y nodes secured") and the whole lead row (portrait,
+callsign, perk name) are gone — the readout is now operation name,
+requisition-drop meter, and the sector-map shortcut; the map thumb still
+shows cleared nodes visually. The descent bar's Rename button is gone
+too (ship rename lives in Settings, which already had it); `renameShip`
+itself is untouched. playtest's readout guard now asserts the removed
+rows stay removed.
+
 ## The fun patch — variety, drama, and honest enemies
 
 Built from the game-loop review: a near-random bot was winning most missions,

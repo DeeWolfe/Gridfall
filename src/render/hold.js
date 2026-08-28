@@ -140,15 +140,11 @@ function paintReadout() {
   const el = $('readout');
   if (!el) return;
   const run = opRun();
-  const id = (active.lead && LEADS[active.lead]) ? active.lead : 'ironbrand';
-  const L = LEADS[id];
-  const perk = L.passive ? L.passive.n : L.stratagem ? STRATAGEMS[L.stratagem].n : '';
   const meter = active.progress.packMeter || 0;
   el.innerHTML = `<span class="dmap">${opThumb(MAPDEF, run)}</span>
     <span class="dinfo">
       <span class="dhead">作戦 · Current deployment</span>
-      <span class="drow"><b>${MAPDEF.n}</b> · ${run.cleared.length} / ${MAPDEF.nodes.length} nodes secured</span>
-      <span class="drow"><span class="dpic">${portrait(id)}</span><b style="color:${L.col}">${L.call}</b> leads · ${perk}</span>
+      <span class="drow"><b>${MAPDEF.n}</b></span>
       <span class="drow">Requisition drop · <b>${meter >= 1 ? 'one node out' : 'two nodes out'}</b>
         <span class="pips"><span class="pip${meter >= 1 ? ' on' : ''}"></span><span class="pip"></span></span></span>
       <span class="dgo">Open the sector map ▸</span>

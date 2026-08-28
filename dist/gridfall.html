@@ -216,9 +216,6 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .dhead{font-size:0.5938rem;letter-spacing:.22em;text-transform:uppercase;color:var(--violet)}
 .drow{font-size:0.6562rem;color:var(--dim);line-height:1.5}
 .drow b{color:var(--txt)}
-.dpic{display:inline-block;width:17px;height:17px;vertical-align:-4px;margin-right:6px;
-  border:1px solid var(--line2);overflow:hidden}
-.dpic svg{width:100%;height:100%;display:block}
 .pips{display:inline-flex;gap:3px;margin-left:6px;vertical-align:-1px}
 .pip{width:11px;height:6px;background:var(--panel2);border:1px solid var(--line2);display:inline-block}
 .pip.on{background:var(--gold);border-color:var(--gold)}
@@ -637,7 +634,6 @@ body{font-size:1rem}
   text-transform:uppercase;color:var(--dim);margin-bottom:5px;gap:8px}
 .vtrack{height:3px;background:var(--line);overflow:hidden}
 .vtrack i{display:block;height:100%;transition:width .3s}
-.renameship{margin-left:10px;padding:3px 7px;font-size:0.625rem;pointer-events:auto}
 .portlabel{pointer-events:auto}
 
 .deploy{min-height:clamp(112px,11vw,150px);display:flex;flex-direction:column;justify-content:center;
@@ -1026,8 +1022,7 @@ body{font-size:1rem}
     <div class="strut" style="left:31%;top:0;bottom:0;width:9px"></div>
     <div class="strut" style="left:67%;top:0;bottom:0;width:9px"></div>
     <div class="strut" style="left:0;right:0;top:37%;height:9px"></div>
-    <div class="portlabel"><b id="shipname">—</b> · Descent <b id="eta">T−0:00</b> · <span id="sectorname">—</span>
-      <button class="mini renameship" id="renameship">Rename</button></div></div>
+    <div class="portlabel"><b id="shipname">—</b> · Descent <b id="eta">T−0:00</b> · <span id="sectorname">—</span></div></div>
   <div class="bay">
     <div class="baytop"><div class="who"><div class="cs" id="h-cs">—</div><div class="rk" id="h-rk">—</div></div>
       <div class="purse"><div class="cr"><div class="k">Credits</div><div class="v" id="h-cr">0</div></div>
@@ -5455,15 +5450,11 @@ function paintReadout() {
   const el = $('readout');
   if (!el) return;
   const run = opRun();
-  const id = (active.lead && LEADS[active.lead]) ? active.lead : 'ironbrand';
-  const L = LEADS[id];
-  const perk = L.passive ? L.passive.n : L.stratagem ? STRATAGEMS[L.stratagem].n : '';
   const meter = active.progress.packMeter || 0;
   el.innerHTML = `<span class="dmap">${opThumb(MAPDEF, run)}</span>
     <span class="dinfo">
       <span class="dhead">作戦 · Current deployment</span>
-      <span class="drow"><b>${MAPDEF.n}</b> · ${run.cleared.length} / ${MAPDEF.nodes.length} nodes secured</span>
-      <span class="drow"><span class="dpic">${portrait(id)}</span><b style="color:${L.col}">${L.call}</b> leads · ${perk}</span>
+      <span class="drow"><b>${MAPDEF.n}</b></span>
       <span class="drow">Requisition drop · <b>${meter >= 1 ? 'one node out' : 'two nodes out'}</b>
         <span class="pips"><span class="pip${meter >= 1 ? ' on' : ''}"></span><span class="pip"></span></span></span>
       <span class="dgo">Open the sector map ▸</span>
@@ -8063,7 +8054,6 @@ function wireNavigation() {
     show('map');
     renderMap();
   };
-  $('renameship').onclick = e => { e.stopPropagation(); renameShip(); };
   $('modesback').onclick = () => { show('hold'); startScene(); paintHold(); };
   $('opsback').onclick = () => { show('modes'); renderModes(); };
   $('mapback').onclick = () => { show('ops'); renderOps(); };

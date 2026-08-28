@@ -209,9 +209,6 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .dhead{font-size:0.5938rem;letter-spacing:.22em;text-transform:uppercase;color:var(--violet)}
 .drow{font-size:0.6562rem;color:var(--dim);line-height:1.5}
 .drow b{color:var(--txt)}
-.dpic{display:inline-block;width:17px;height:17px;vertical-align:-4px;margin-right:6px;
-  border:1px solid var(--line2);overflow:hidden}
-.dpic svg{width:100%;height:100%;display:block}
 .pips{display:inline-flex;gap:3px;margin-left:6px;vertical-align:-1px}
 .pip{width:11px;height:6px;background:var(--panel2);border:1px solid var(--line2);display:inline-block}
 .pip.on{background:var(--gold);border-color:var(--gold)}
@@ -630,7 +627,6 @@ body{font-size:1rem}
   text-transform:uppercase;color:var(--dim);margin-bottom:5px;gap:8px}
 .vtrack{height:3px;background:var(--line);overflow:hidden}
 .vtrack i{display:block;height:100%;transition:width .3s}
-.renameship{margin-left:10px;padding:3px 7px;font-size:0.625rem;pointer-events:auto}
 .portlabel{pointer-events:auto}
 
 .deploy{min-height:clamp(112px,11vw,150px);display:flex;flex-direction:column;justify-content:center;

@@ -51,10 +51,11 @@ T('hold', () => { paintHold(); noUndef('deploysub', 'hold'); noUndef('shipname',
 T('readout', () => {
   noUndef('readout', 'deployment readout');
   const html = get('readout')._html;
-  ['opmini', 'dhead', 'dpic', 'pips', 'dgo'].forEach(k => {
+  ['opmini', 'dhead', 'pips', 'dgo'].forEach(k => {
     if (!html.includes(k)) throw new Error('readout missing ' + k);
   });
-  if (!html.includes('IRONBRAND')) throw new Error('readout missing the assigned lead');
+  if (html.includes('nodes secured')) throw new Error('readout grew its node tally back');
+  if (html.includes('dpic')) throw new Error('readout grew its lead row back');
 });
 T('ticker', () => {
   noUndef('ticker', 'service ticker');

@@ -97,7 +97,6 @@ function wireNavigation() {
     show('map');
     renderMap();
   };
-  $('renameship').onclick = e => { e.stopPropagation(); renameShip(); };
   $('modesback').onclick = () => { show('hold'); startScene(); paintHold(); };
   $('opsback').onclick = () => { show('modes'); renderModes(); };
   $('mapback').onclick = () => { show('ops'); renderOps(); };
