@@ -11,7 +11,15 @@
 
 import {$} from './dom.js';
 
-const DESCENT_SECONDS = 214;
+// The dropship's clock cycles through its own flight, not just one drop —
+// descent to the AO, ascent back out, then a stretch en route to the next
+// one, on repeat. Same durations for now; the flavour is in the label.
+const PHASES = [
+  {n: 'Descent', s: 214},
+  {n: 'Ascent', s: 214},
+  {n: 'Enroute', s: 214},
+];
+const CYCLE_SECONDS = PHASES.reduce((sum, p) => sum + p.s, 0);
 
 // Seconds between events, picked fresh from each range every time one fires.
 const CADENCE = {
@@ -330,14 +338,22 @@ function paintBlasts() {
   });
 }
 
-/** Engine vibration on the hold screen, and the descent clock. */
+/** Engine vibration on the hold screen, and the flight clock. */
 function paintChrome() {
   const vibe = $('vibe');
   if (vibe) {
     const shake = ((Math.sin(t * 23) + Math.sin(t * 37)) * 0.32).toFixed(2);
     vibe.style.transform = `translate3d(0,${shake}px,0)`;
   }
-  const left = Math.max(0, DESCENT_SECONDS - Math.floor(t) % DESCENT_SECONDS);
+  let into = Math.floor(t) % CYCLE_SECONDS;
+  let phase = PHASES[PHASES.length - 1];
+  for (const p of PHASES) {
+    if (into < p.s) { phase = p; break; }
+    into -= p.s;
+  }
+  const left = Math.max(0, phase.s - into);
+  const phaseEl = $('phase');
+  if (phaseEl) phaseEl.textContent = phase.n;
   const eta = $('eta');
   if (eta) eta.textContent = 'T−' + Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0');
 }

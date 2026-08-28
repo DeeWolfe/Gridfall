@@ -1081,6 +1081,26 @@ it now) and reflavoured as an authentication terminal: 認証 in holo gradient,
 "Commander authentication · 残心ネット", boot-log lines tagged with kanji
 (接続 / 暗号 / 登録 / 待機), and "Command records · 指揮記録".
 
+## The flight clock rotates
+
+The hold screen's "Descent T−3:33" label used to be static text — always
+"Descent," only the countdown moved. It now cycles through the ship's own
+flight: **Descent → Ascent → Enroute**, on repeat, each phase a fresh
+`T−3:34` countdown. `battlefield.js` keeps a small `PHASES` array (same
+214s duration each, for now — the value was already arbitrary flavour
+before this) and a `CYCLE_SECONDS` total; `paintChrome()` — already
+running every animation frame for the engine-vibration effect — walks
+the array against `t % CYCLE_SECONDS` to find the active phase and its
+remaining time, same cost as the old single-phase math. The "Descent"
+word in index.html became `<span id="phase">`, painted alongside `#eta`
+by the same function. Verified the Descent→Ascent boundary live with
+Playwright's clock API (fast-forwarded 214s of virtual time, watched the
+label flip and the countdown reset), and checked all three boundaries
+plus the wrap back to Descent by running the same phase-selection
+algorithm standalone — driving the full rAF-based scene through 642
+virtual seconds in one browser session was too slow to be worth it once
+the logic was confirmed identical across every boundary.
+
 ## The zanshin accent
 
 The 残心 magenta (`--zan: #ff4d8f`) became the game's brand colour: primary
