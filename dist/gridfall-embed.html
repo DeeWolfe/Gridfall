@@ -2940,10 +2940,16 @@ function genRun() {
   // A hot operation runs every wave over budget (see wave()) — and pays for
   // the trouble, node by node. A node can override the operation's heat when
   // its mission type can't carry the full load (a mandatory Crystals hold).
+  // Crystals already pays for its objective by spreading a defence across
+  // four points at once; stacking a hot operation's full wave tax on top
+  // compounds two difficulties into one, so an auto-rolled Crystals node
+  // caps at heat 1 the same way a hand-placed override already does at
+  // Shallowhelm — a hand-set `n.heat` in the map data still wins outright.
   if (map.heat) {
     map.nodes.forEach(n => {
       const nd = nodes[n.id];
-      const heat = n.heat != null ? n.heat : map.heat;
+      let heat = n.heat != null ? n.heat : map.heat;
+      if (nd.type === 'crystals' && n.heat == null) heat = Math.min(heat, 1);
       if (!heat) return;
       nd.heat = heat;
       nd.reward = Math.round(nd.reward * (1 + heat * 0.25)) + heat;

@@ -40,7 +40,10 @@ for (const opKey of Object.keys(A.OPS)) {
         const pool = n.type ? [n.type] : ['crystals', 'specimens', 'uplink', 'blitz'];
         if (!pool.includes(nd.type)) F.push(`${opKey} side node rolled ${nd.type}`);
       }
-      const wantHeat = A.OPS[opKey].heat ? (n.heat != null ? n.heat : A.OPS[opKey].heat) : 0;
+      let wantHeat = A.OPS[opKey].heat ? (n.heat != null ? n.heat : A.OPS[opKey].heat) : 0;
+      // Crystals caps at heat 1 when auto-rolled — it already pays for its
+      // objective by spreading a defence across four points (run.js).
+      if (nd.type === 'crystals' && n.heat == null) wantHeat = Math.min(wantHeat, 1);
       if (wantHeat !== (nd.heat || 0)) {
         F.push(`${opKey} ${n.id}: heat ${nd.heat}, expected ${wantHeat}`);
       }

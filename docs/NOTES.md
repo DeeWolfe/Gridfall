@@ -2074,20 +2074,54 @@ That's `wave()` taxing every mission type the same flat amount per heat
 point with no discount for Crystals' built-in spread; see the rewritten
 Still Open item below.
 
+## Crystals stops paying double at a hot operation
+
+Second half of the crystals pass. The breach fix (previous entry) closed
+most of the gap at heat 1, but heat 2-3 barely moved — because a hot
+operation's flat wave-budget tax stacks directly on top of Crystals'
+already-thinner-than-everyone-else defence, compounding two difficulties
+that were never meant to multiply.
+
+Generalized the fix Shallowhelm's map data already used by hand for its
+one guaranteed Crystals node: `run.js`'s heat-assignment pass now caps
+any **auto-rolled** Crystals node at heat 1, regardless of the operation's
+own heat — Crownring (op heat 2) and Shallowhelm (op heat 3) both send
+their Crystals nodes out at heat 1 now, same as Lumenspire already does
+by having heat 1 in the first place. A hand-set `n.heat` in the map data
+still wins outright — nothing about Shallowhelm's own explicit override
+changed, this just stopped it being the only node in the game getting the
+treatment.
+
+`nd.reward` already read the same (now-capped) `heat` value it always
+did, so payouts stay honest with what the mission actually asks — no
+separate reward fix needed.
+
+**Measured directly**, not assumed: `genRun()` sampled 400 times each at
+Crownring and Shallowhelm confirmed every auto-rolled Crystals node comes
+out at exactly heat 1, no exceptions. A 600-run win-rate sample per heat
+level then compared the old uncapped numbers against what heat 1 actually
+plays like:
+
+| | Old (uncapped) | New (capped to heat 1) |
+|---|---|---|
+| Crownring's Crystals nodes | 26.7% | 33.0% |
+| Shallowhelm's Crystals nodes | 23.8% | 33.0% |
+
+`maptest.js`'s per-node heat assertion (guard B) needed updating to
+expect the cap instead of flagging it as a bug — it now mirrors the same
+`nd.type === 'crystals'` check `run.js` applies. Full 37-guard suite
+passes.
+
 ## Still open
 
-1. **Crystals' breach rate is down, not gone.** Two levers landed (see the
-   entry below): an extra endgame turn and a second tolerated breach, both
-   crystals-only. Breach losses dropped meaningfully at every heat level,
-   but heat 2-3 are still rough — 29% and 25% win rate on a 300-run direct
-   sample, and by then "Only N of 4 held" outpaces breaches as the loss
-   reason again. That's a heat-scaling problem now, not a breach one:
-   `wave()` taxes every mission type the same flat amount per heat point,
-   with no discount for a mission that's already paying for its spread
-   across four points. Shallowhelm already works around this by pinning
-   its one guaranteed Crystals node to heat 1 instead of the operation's
-   heat 3 — the honest fix is probably the same idea applied generally,
-   not another breach-side tweak.
+1. **Crystals at a hot operation is better, not soft.** Auto-rolled Crystals
+   nodes now cap at heat 1 regardless of the operation's own heat (see the
+   entry below) — Crownring's went 26.7% → 33.0%, Shallowhelm's 23.8% →
+   33.0% on a 600-run direct sample each. Real, but Crystals still sits at
+   the bottom of the roster even at heat 0 (62-65%) against most other
+   types' 50-90%, by design — four separate points is just harder to hold
+   than one line. Nothing further planned unless it still feels wrong in
+   play; the mission was always meant to be the hard one.
 2. **No real card art yet.** The placeholder portraits stand in; the
    embedding pipeline is built and proven (see above) and waits on actual
    images, which replace a placeholder the moment they land in `CARD_ART`.
