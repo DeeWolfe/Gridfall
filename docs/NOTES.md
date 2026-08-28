@@ -2112,6 +2112,43 @@ expect the cap instead of flagging it as a bug — it now mirrors the same
 `nd.type === 'crystals'` check `run.js` applies. Full 37-guard suite
 passes.
 
+## Civilian Extract's heat scaling: sampled it properly, left it alone
+
+Next item off the Still Open list — but this one closes without a code
+change, which is worth writing up as honestly as the ones that did.
+
+The original concern came from 30 runs per heat level (`mtest.js`'s
+default sample, split across mission types and operations) showing heat
+1-3 within a few points of each other instead of stepping down cleanly.
+Replaced that with the same direct-sim approach used for the two Crystals
+entries above — `launchSpec` straight to a civilians mission, bypassing
+the campaign map so heat is the only thing changing — at 600 runs per
+level instead of 30:
+
+| Heat | Win rate | Losses to breach | Losses to goal-not-met |
+|---|---|---|---|
+| 0 | 86.3% | 15 | 67 |
+| 1 | 82.5% | 30 | 75 |
+| 2 | 81.7% | 34 | 76 |
+| 3 | 71.8% | 88 | 66 |
+
+It does step down cleanly — the 30-run number was noise, not a real
+non-monotonic wobble. Heat 0-2 is a shallow, sensible slope; heat 3 drops
+harder, and breach losses more than double rather than the extraction
+goal getting meaningfully further out of reach, which rhymes with what
+Crystals hit at its own top heat tier.
+
+**Left it alone anyway.** Civilian Extract's whole redesign (see its own
+entry above) was built around "heat moves the goal, not the mission's
+difficulty knob" being the simpler, correct design — and 71.8% at heat 3,
+its hardest tier, still clears "Civilian Extract sits on the easier end
+of the roster" by a wide margin against Crystals' 62-65% at heat 0, its
+*easiest*. Crystals earned its heat-cap fix because a hot operation's
+wave tax was compounding with a structural difficulty the mission can't
+avoid — spreading across four points. Civilian Extract doesn't have that
+structural bind; one shelter, one lane. Tuning heat 3 down here would be
+solving a problem that isn't there yet, not the one that was reported.
+
 ## Still open
 
 1. **Crystals at a hot operation is better, not soft.** Auto-rolled Crystals
@@ -2133,11 +2170,15 @@ passes.
 5. **`PACK_METER_GOAL` (3) is an untested guess.** If collection still races
    ahead or the drip now feels too slow, it's a one-line tune in
    `mission.js` either direction.
-6. **Civilian Extract's heat scaling isn't monotonic yet** — heat 1-3 sampled
-   within a few points of each other (70-83%) rather than stepping down
-   cleanly as `civGoal` climbs, on 30 runs per level. Could be sample noise,
-   could mean the goal needs to scale a bit faster than `+1` per heat point
-   to actually bite. Worth a wider sample before touching it either way.
+6. ~~Civilian Extract's heat scaling isn't monotonic yet~~ **Resolved by
+   sampling, no code change.** The 30-runs-per-level number this was based
+   on was noise. A 600-run direct sample per level (see below) actually
+   steps down cleanly: 86%, 82%, 82%, 72%. Heat 0-2 is a shallow, sensible
+   slope; heat 3 drops harder, mostly to breach losses (88 of 169 losses at
+   heat 3, vs. 34 of 110 at heat 2) rather than the extraction goal itself.
+   Left alone — Civilian Extract was always meant to sit on the easier end
+   of the roster, and 72% at its hardest tier still comfortably clears that
+   bar next to Crystals' 62-65% at its *easiest*.
 
 Two things the structure now makes cheap:
 
