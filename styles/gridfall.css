@@ -383,6 +383,9 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 @keyframes pixbob{0%,49.9%{transform:translateY(0)}50%,100%{transform:translateY(-4%)}}
 @keyframes pixglint{0%,64%{opacity:1}65%,100%{opacity:.25}}
 @media(prefers-reduced-motion:reduce){.pxu,.pxg{animation:none}}
+/* Uniform swatch tiles in the Quartermaster: full-strength sprite preview. */
+.swpre{position:absolute;inset:12% 10% 24% 10%;display:flex;align-items:center;justify-content:center}
+.swpre svg{width:82%;height:82%}
 .p-unit{background:#14304d;border-color:var(--cyan-d);color:var(--cyan)}
 .p-struct{background:#152a3a;border-color:#2b5f75;color:#8fd4e6}
 .p-spec{background:#3a2c12;border-color:#9a7420;color:var(--gold)}

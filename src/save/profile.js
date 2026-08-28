@@ -23,8 +23,8 @@ export function blankProfile(callsign) {
     created: Date.now(),
     lastPlayed: Date.now(),
     progress: {rank: 1, xp: 0, credits: 300, salvage: 120},
-    unlocks: {cards: [...STARTER], enemies: [], gear: [], leads: []},
-    loadout: {deck: [...STARTER], gear: {}},
+    unlocks: {cards: [...STARTER], enemies: [], gear: [], leads: [], schemes: ['standard']},
+    loadout: {deck: [...STARTER], gear: {}, scheme: 'standard'},
     stats: {deployments: 0, held: 0, lost: 0, breaches: 0, kills: 0, unitsLost: 0},
     ship: 'ANVIL-7',
     lead: 'ironbrand',
@@ -80,6 +80,8 @@ export function migrate(p) {
   p.loadout = p.loadout || {};
   p.loadout.deck = p.loadout.deck || [...STARTER];
   p.loadout.gear = p.loadout.gear || {};
+  p.loadout.scheme = typeof p.loadout.scheme === 'string' ? p.loadout.scheme : 'standard';
+  p.unlocks.schemes = Array.isArray(p.unlocks.schemes) ? p.unlocks.schemes : ['standard'];
 
   // Strip anything that points at content we no longer ship.
   p.loadout.deck = p.loadout.deck.filter(c => POOL[c]);

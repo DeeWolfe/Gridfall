@@ -19,6 +19,7 @@ import {$, attr, show} from './dom.js';
 import {sigil} from './art.js';
 import {ask, notify} from './dialog.js';
 import {cardEl} from './card-html.js';
+import {unitSprite, SCHEMES} from './sprites.js';
 import {focusCard, focusEnemy, focusGear, focusLead} from './focus.js';
 import {leadCardHTML, leadTilesHTML, toggleRoster, paintHold, enter} from './hold.js';
 import {renderSlots} from './boot-screen.js';
@@ -66,6 +67,21 @@ function quartermasterPanel() {
          <div class="gfoot ${owned ? 'own' : affordable ? 'buy' : 'no'}">${owned ? 'Owned' : g.cost + ' sv'}</div></button>`;
      }).join('')}</div>`;
 
+  const schemeGrid = `<div class="sect" style="color:var(--gold)">Uniforms — credits</div>
+     <div class="cgrid">${Object.keys(SCHEMES).map(k => {
+       const sc = SCHEMES[k];
+       const owned = active.unlocks.schemes.includes(k);
+       const applied = (active.loadout.scheme || 'standard') === k;
+       const affordable = active.progress.credits >= sc.price;
+       const foot = applied ? '<div class="gfoot own">Applied</div>'
+         : owned ? '<div class="gfoot add">Tap to apply</div>'
+           : `<div class="gfoot ${affordable ? 'buy' : 'no'}">${sc.price} cr</div>`;
+       return `<button class="gcard t-common${applied ? ' indeck' : ''}${!owned && !affordable ? ' cant' : ''}" data-scheme="${k}"
+         title="${attr(sc.n + ' — a field-plate recolour for every soldier on the grid.')}">
+         <div class="swpre">${unitSprite('rifle', 0, k)}</div>
+         <div class="tn">${sc.n}</div>${foot}</button>`;
+     }).join('')}</div>`;
+
   const canBuyPack = active.progress.credits >= PACK_PRICE;
   return `<div class="bar"><div>Credits <b>${active.progress.credits}</b> · Salvage <b style="color:var(--cyan)">${active.progress.salvage}</b></div>
      <div style="color:var(--dim);font-size:0.625rem">Tap a card to enlarge and buy. Credits buy cards, salvage buys gear.</div></div>
@@ -74,6 +90,7 @@ function quartermasterPanel() {
      <button class="btn${canBuyPack ? '' : ' ghost'}" id="buypack"${canBuyPack ? '' : ' disabled'}>Buy pack · ${PACK_PRICE} cr</button></div>
    ${TIERS.map(tier).join('')}
    ${gearGrid}
+   ${schemeGrid}
    <div class="sect">Team leads — credits</div>${leadTilesHTML('shop')}`;
 }
 
@@ -320,6 +337,31 @@ export function openPanel(key) {
   each('[data-focus]', el => focusCard(el.dataset.focus, el.dataset.mode));
   each('[data-foe]', el => focusEnemy(el.dataset.foe));
   each('[data-gear]', el => focusGear(el.dataset.gear));
+  each('[data-scheme]', el => {
+    const k = el.dataset.scheme;
+    const sc = SCHEMES[k];
+    if (!sc) return;
+    if (active.unlocks.schemes.includes(k)) {
+      active.loadout.scheme = k;
+      commit();
+      openPanel('quartermaster');
+      return;
+    }
+    if (active.progress.credits < sc.price) {
+      notify('Insufficient credits', `The ${sc.n} refit costs ${sc.price} cr. You hold ${active.progress.credits}.`);
+      return;
+    }
+    ask(`Refit uniforms — ${sc.n}`,
+      `Recolours the field plate of every soldier on the grid. Yours for good once bought.<br><br>Buy and apply for <b style="color:var(--gold)">${sc.price} cr</b>?`,
+      ok => {
+        if (!ok) return;
+        active.progress.credits -= sc.price;
+        active.unlocks.schemes.push(k);
+        active.loadout.scheme = k;
+        commit();
+        openPanel('quartermaster');
+      }, {ok: 'Refit'});
+  });
   each('[data-tab]', el => { dbTab = el.dataset.tab; openPanel('database'); });
   each('[data-ui]', el => { setUiMode(el.dataset.ui); paintHold(); openPanel('settings'); });
 

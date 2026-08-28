@@ -380,25 +380,264 @@ const PIXMAP = {
   ],
 };
 
+// -- uniform schemes ----------------------------------------------------------
+// Cosmetic recolours of the soldiers' field plate, sold at the Quartermaster.
+// Every scheme keeps the contrast rule: light body, dark outline, warm glint.
+// b/s/v are overridden; outlines, weapons, gold trim and white stay put.
+
+export const SCHEMES = {
+  standard: {n: 'Standard Issue', price: 0, b: '#ccd3ea', s: '#8b93b6', v: '#ffd970'},
+  duskrose: {n: 'Duskrose', price: 150, b: '#ecc9d9', s: '#b58fa6', v: '#ffe3ef'},
+  regolith: {n: 'Regolith', price: 150, b: '#e3d5b8', s: '#b3a077', v: '#ff9a3d'},
+  verdigris: {n: 'Verdigris', price: 150, b: '#cfe8d8', s: '#8fb8a0', v: '#eafff2'},
+  whiteout: {n: 'Whiteout', price: 200, b: '#f0f2fa', s: '#9aa0b8', v: '#ffd970'},
+  emberline: {n: 'Emberline', price: 200, b: '#ecd2c2', s: '#b8907a', v: '#ff9a3d'},
+};
+
 export const hasSprite = id => !!PIXMAP[id];
 export const spriteIds = () => Object.keys(PIXMAP);
 
-/**
- * The on-grid token. `delay` staggers the idle bob so a full line does not
- * march in lockstep; pass anything stable per unit (uid works).
- */
-export function unitSprite(id, delay = 0) {
-  const map = PIXMAP[id];
-  if (!map) return '';
+// -- hostile tokens -----------------------------------------------------------
+// The hive is bone and chitin: pale bodies, near-black outlines, venom-green
+// glow pixels — hot-light on the maroon tiles, never magenta-on-maroon.
+
+const PXE_COLOR = {
+  o: '#1a0d16', b: '#e6d4c4', s: '#a8907e', w: '#6b4e52',
+  g: '#ffc94d', W: '#f4f6ff', x: '#cdf24c',
+};
+
+const FOE_PIX = {
+  crawler: [
+    '............',
+    '............',
+    '............',
+    '............',
+    '............',
+    '....oooo....',
+    '...obbbbo...',
+    '..obxbbxbo..',
+    '...osbbso...',
+    '..o.o..o.o..',
+    '.o..o..o..o.',
+    '............',
+  ],
+  hulk: [
+    '............',
+    '............',
+    '...oooooo...',
+    '..obbbbbbo..',
+    '.obbsbbsbbo.',
+    '.obbbbbbbbo.',
+    '.obxbbbbxbo.',
+    '.obbssssbbo.',
+    '..obbbbbbo..',
+    '..oo.oo.oo..',
+    '.oo..oo..oo.',
+    '............',
+  ],
+  breacher: [
+    '............',
+    '............',
+    '............',
+    '.......oo...',
+    '....ooobbo..',
+    '..oobbbsbbow',
+    '.obbbbbbbbww',
+    '..oobbbsbbow',
+    '....ooobxo..',
+    '.......oo...',
+    '..o.o..o....',
+    '............',
+  ],
+  spitter: [
+    '............',
+    '............',
+    '....oooo....',
+    '...obbbbo...',
+    '...obxxbo...',
+    '...obbbboww.',
+    '...osbbso.w.',
+    '...obbbbo...',
+    '....obbo....',
+    '...o.oo.o...',
+    '..o..oo..o..',
+    '............',
+  ],
+  burrower: [
+    '............',
+    '............',
+    '.....ooo....',
+    '....obbbo...',
+    '...obxbbbo..',
+    '...obbbbbo..',
+    '....osbbbo..',
+    '.....obbbo..',
+    '...oobbbo...',
+    '..obbbbo....',
+    '...oooo.....',
+    '............',
+  ],
+  spore: [
+    '............',
+    '............',
+    '....oooo....',
+    '...obbbbo...',
+    '..obbxbbbo..',
+    '..obbbbxbo..',
+    '..obxbbbbo..',
+    '...obbxbo...',
+    '....oooo....',
+    '.....oo.....',
+    '....oooo....',
+    '............',
+  ],
+  jammer: [
+    '............',
+    '.x........x.',
+    '..w......w..',
+    '...w....w...',
+    '....oooo....',
+    '...obbbbo...',
+    '..obxbbxbo..',
+    '..obbssbbo..',
+    '...obbbbo...',
+    '..o.o..o.o..',
+    '.o..o..o..o.',
+    '............',
+  ],
+  pylon: [
+    '............',
+    '.....oo.....',
+    '....obbo....',
+    '....obbo....',
+    '...obxbbo...',
+    '...obbbbo...',
+    '..obbsbbbo..',
+    '..obbbbsbo..',
+    '.obbbbbbbbo.',
+    '.oooooooooo.',
+    '............',
+    '............',
+  ],
+  harrower: [
+    '............',
+    '..w......w..',
+    '..ww....ww..',
+    '...oooooo...',
+    '..obxbbxbo..',
+    '...obbbbo...',
+    '..oobssboo..',
+    '.o..bbbb..o.',
+    '....obbo....',
+    '....o..o....',
+    '...oo..oo...',
+    '............',
+  ],
+  mender: [
+    '............',
+    '............',
+    '....oooo....',
+    '...obbbbo...',
+    '..obbWWbbo..',
+    '..obWxxWbo..',
+    '..obbWWbbo..',
+    '...osbbso...',
+    '....obbo....',
+    '...o.oo.o...',
+    '..o..oo..o..',
+    '............',
+  ],
+  husk: [
+    '............',
+    '............',
+    '...oooooo...',
+    '..obbbbbbo..',
+    '..obo..obo..',
+    '..obo..obo..',
+    '..obbooobo..',
+    '..osbbbbso..',
+    '...obbbbo...',
+    '..o.o..o.o..',
+    '.o..o..o..o.',
+    '............',
+  ],
+  screamer: [
+    '............',
+    '............',
+    '...oooooo...',
+    '..obbbbbbo..',
+    '..obboobbo..',
+    '..obo..obo..',
+    '..obo..obo..',
+    '..obboobbo..',
+    '..obbxxbbo..',
+    '...oooooo...',
+    '..o.o..o.o..',
+    '............',
+  ],
+  chorus: [
+    '............',
+    '............',
+    '..oo.oo.oo..',
+    '.obboxxobbo.',
+    '.obbobbobbo.',
+    '..oo.oo.oo..',
+    '....obbo....',
+    '...obbbbo...',
+    '..obsbbsbo..',
+    '...oooooo...',
+    '..o..oo..o..',
+    '............',
+  ],
+  sovereign: [
+    '............',
+    '.g.g.gg.g.g.',
+    '.gggggggggg.',
+    '..oooooooo..',
+    '.obxbbbbxbo.',
+    '.obbbbbbbbo.',
+    'oobbssssbboo',
+    'o.bbbbbbbb.o',
+    '..obssssbo..',
+    '..obbbbbbo..',
+    '.oo.o..o.oo.',
+    '............',
+  ],
+};
+
+export const hasFoeSprite = k => !!FOE_PIX[k];
+export const foeSpriteIds = () => Object.keys(FOE_PIX);
+
+const renderPix = (map, colors, cls, delay) => {
   let rects = '';
   map.forEach((row, y) => {
     for (let x = 0; x < row.length; x++) {
       const ch = row[x];
-      if (ch === '.' || !PX_COLOR[ch]) continue;
-      rects += `<rect x="${x * 8}" y="${y * 8}" width="8" height="8" fill="${PX_COLOR[ch]}"${PX_BLINK[ch] ? ' class="pxg"' : ''}/>`;
+      if (ch === '.' || !colors[ch]) continue;
+      rects += `<rect x="${x * 8}" y="${y * 8}" width="8" height="8" fill="${colors[ch]}"${PX_BLINK[ch] || ch === 'x' ? ' class="pxg"' : ''}/>`;
     }
   });
   const d = ((delay % 10) * 0.13).toFixed(2);
-  return `<svg class="pxu" viewBox="0 0 96 96" shape-rendering="crispEdges" aria-hidden="true"
+  return `<svg class="${cls}" viewBox="0 0 96 96" shape-rendering="crispEdges" aria-hidden="true"
     style="animation-delay:-${d}s">${rects}</svg>`;
+};
+
+/**
+ * The on-grid token. `delay` staggers the idle bob so a full line does not
+ * march in lockstep; pass anything stable per unit (uid works). `scheme`
+ * names a uniform recolour — unknown or absent falls back to standard.
+ */
+export function unitSprite(id, delay = 0, scheme) {
+  const map = PIXMAP[id];
+  if (!map) return '';
+  const sc = SCHEMES[scheme] || SCHEMES.standard;
+  const colors = {...PX_COLOR, b: sc.b, s: sc.s, v: sc.v};
+  return renderPix(map, colors, 'pxu', delay);
+}
+
+/** A hostile's token — same engine, the hive palette. */
+export function foeSprite(k, delay = 0) {
+  const map = FOE_PIX[k];
+  if (!map) return '';
+  return renderPix(map, PXE_COLOR, 'pxu pxe', delay);
 }

@@ -32,7 +32,7 @@ import {renderMap} from './map.js';
 import {renderModes} from './modes.js';
 import {sfx} from './sound.js';
 import {setMusicMood} from './music.js';
-import {unitSprite} from './sprites.js';
+import {unitSprite, foeSprite} from './sprites.js';
 
 const LOG_LINES = 40;
 
@@ -222,7 +222,7 @@ function unitMarkup(u, incoming) {
         <span class="minihp"><i style="width:${Math.max(0, u.hp / u.max * 100)}%"></i></span>
         ${u.shield > 0 ? `<span class="shield">${'◈'.repeat(Math.min(u.shield, 2))}</span>` : ''}
         ${u.att.cannon ? '<span class="att">▮</span>' : ''}${u.cycling > 0 ? '<span class="att cyc">⟳</span>' : ''}${u.acted ? '<span class="ord done">✓</span>' : ''}
-        ${unitSprite(u.id, u.uid) || `<div class="nm">${u.n.split(' ')[0]}</div>`}
+        ${unitSprite(u.id, u.uid, active.loadout.scheme) || `<div class="nm">${u.n.split(' ')[0]}</div>`}
         <div class="hp">${u.hp}</div></div>`;
 }
 
@@ -247,11 +247,12 @@ function intentBadge(e) {
 function foeMarkup(e, locked) {
   const D = BEST[e.k];
   const kind = D.t === 'special' ? 'e-spec' : D.t === 'tech' ? 'e-tech' : 'e-unit';
-  return `<div class="ent ${kind}${e.stun ? ' stunned' : ''}">
+  return `<div class="ent ${kind}${e.stun ? ' stunned' : ''}" title="${D.n}">
         ${intentBadge(e)}
         ${locked ? '<span class="lockpip">⌖</span>' : ''}
         <span class="minihp foe"><i style="width:${Math.max(0, e.hp / D.hp * 100)}%"></i></span>
-        <div class="nm"><span class="fglyph">${FOE_GLYPH[e.k] || '▪'}</span>${D.n.split(' ')[0]}</div><div class="hp">${e.hp}</div></div>`;
+        ${foeSprite(e.k, e.uid) || `<div class="nm"><span class="fglyph">${FOE_GLYPH[e.k] || '▪'}</span>${D.n.split(' ')[0]}</div>`}
+        <div class="hp">${e.hp}</div></div>`;
 }
 
 export function drawBoard() {

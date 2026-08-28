@@ -771,6 +771,30 @@ incoming, lock, shield, cannon, cycling, spent) survives. Hostiles keep
 their glyph-and-intent chips deliberately — that language was built for
 threat-reading and stays.
 
+## The hive gets sprites; the Quartermaster sells uniforms
+
+Round two of Pixel Ops. All 14 hostiles now render as pixel tokens too —
+bone-and-chitin bodies (#e6d4c4) with near-black outlines and blinking
+venom-green glow pixels (`x`), hot-light on the maroon tiles per the
+contrast rule; the Sovereign keeps a gold crown. The glyph-and-intent
+chip gave way to sprite + intent badge + hp corner digit (glyphs live on
+in the wave manifest, where text size wants text). Distinct silhouettes:
+drill-nosed Breacher in profile, hollow-cored Husk, round-mouthed
+Screamer, three-node Chorus.
+
+**Uniform schemes**: `SCHEMES` in sprites.js defines six field-plate
+recolours (Standard free; Duskrose/Regolith/Verdigris 150 cr;
+Whiteout/Emberline 200 cr) that override only body/shade/visor — outline,
+weapons, gold trim and white stay put, and every scheme keeps the
+light-body contrast rule (pixtest asserts it, along with hostile
+coverage/distinctness and unknown-scheme fallback). The Quartermaster
+grew a "Uniforms — credits" section: swatch chips with a live rifleman
+preview; tap an owned scheme to apply, tap an unowned one for a
+confirm-and-refit dialog. Ownership lives in `unlocks.schemes`, the
+applied pick in `loadout.scheme` (both migrated + on blank profiles —
+the blankProfile miss was caught by playtest), and every friendly sprite
+on the grid draws through the active scheme.
+
 ## Design direction on file: the Tech tier
 
 For future card work: **Tech should lean into items, placements and
