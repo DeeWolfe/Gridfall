@@ -6,7 +6,6 @@ import {costOf} from '../save/progression.js';
 import {setHooks} from '../state/hooks.js';
 import {store} from '../save/store.js';
 import {blankProfile, saveAll, commit, initProfiles} from '../save/profile.js';
-import {genRun, opComplete} from '../rules/run.js';
 import {launchGauntlet, GAUNTLET_LEGS} from '../rules/mission.js';
 import {$, show} from './dom.js';
 import {ask, notify, dlgClose} from './dialog.js';
@@ -37,9 +36,6 @@ function afterMission(wasEndless, wasGauntlet, wasDaily, cleared) {
   if (wasEndless || wasDaily || (wasGauntlet && !cleared)) { show('modes'); renderModes(); return; }
   if (wasGauntlet && active.gaunt && active.gaunt.i < GAUNTLET_LEGS) { launchGauntlet(); return; }
   if (wasGauntlet) { show('modes'); renderModes(); return; }
-  // A finished operation — final node cleared — rolls fresh missions to
-  // come back to; uncollected side objectives are forfeit with it.
-  if (opComplete()) genRun();
   show('map');
   renderMap();
 }

@@ -14,9 +14,13 @@ import {startScene} from './battlefield.js';
 import {applyUiMode} from './uimode.js';
 import {syncMusic} from './music.js';
 
-/** A thumbnail of an operation's map: zones, edges, and cleared nodes. */
+/** A thumbnail of an operation's map: zones, edges, and cleared nodes. A
+ * completed operation (final node down) shows every node filled — bonus
+ * objectives left uncollected are forfeit along with it. */
 export function opThumb(o, run) {
   const node = id => o.nodes.find(n => n.id === id);
+  const final = o.nodes.find(n => n.role === 'final');
+  const complete = !!(run && final && run.cleared.includes(final.id));
   return `<svg viewBox="0 0 440 300" class="opmini">
         ${o.zones.map(z => `<polygon points="${z.p}" fill="${o.col}" opacity=".10" stroke="${o.col}" stroke-width="2" stroke-opacity=".35"/>`).join('')}
         ${o.edges.map(([a, b]) => {
@@ -24,7 +28,7 @@ export function opThumb(o, run) {
           const B = node(b);
           return `<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="${o.col}" stroke-width="1.6" opacity=".4"/>`;
         }).join('')}
-        ${o.nodes.map(n => `<circle cx="${n.x}" cy="${n.y}" r="7" fill="${run && run.cleared.includes(n.id) ? '#5dffa0' : '#0d0b1c'}" stroke="${o.col}" stroke-width="2.4"/>`).join('')}
+        ${o.nodes.map(n => `<circle cx="${n.x}" cy="${n.y}" r="7" fill="${complete || (run && run.cleared.includes(n.id)) ? '#5dffa0' : '#0d0b1c'}" stroke="${o.col}" stroke-width="2.4"/>`).join('')}
       </svg>`;
 }
 

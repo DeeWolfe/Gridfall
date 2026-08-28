@@ -2149,6 +2149,34 @@ avoid — spreading across four points. Civilian Extract doesn't have that
 structural bind; one shelter, one lane. Tuning heat 3 down here would be
 solving a problem that isn't there yet, not the one that was reported.
 
+## A finished operation stays on the board, with a replay button
+
+Clearing an operation's final node used to be invisible — `afterMission()`
+rolled a brand new set of missions for it before the player ever saw the map
+again, so "operation complete" was a state that existed for one frame and
+was gone. The only way to redo an operation on purpose was the reroll row
+buried in Settings, and it worked identically whether the operation was
+half-finished or fully cleared.
+
+Now the map screen shows the finished state instead of skipping past it.
+`renderMap()` checks `opComplete()`; when it's true, every node draws filled
+and ticked (`nodesSvg`/`edgesSvg` take a `complete` flag that overrides the
+real per-node state for the SVG only — the underlying `run.cleared` data is
+untouched), the briefing list is replaced with an OPERATION COMPLETE card,
+and nothing on the map is clickable. That card carries a **↺ Replay
+operation** button; confirming it calls the same `genRun()` the Settings
+reroll uses, which throws out `cleared` and rolls a fresh node set. The
+operation-select grid and the hold screen's deployment thumbnail
+(`opThumb`) pick up the same "show every node filled" treatment, plus a
+gold ✓ and a `Complete` label in place of the `x / y cleared` counter, so a
+finished operation reads as finished everywhere it's shown, not just on its
+own map.
+
+Uncollected bonus objectives are still forfeit the moment the final node
+clears — that didn't change, only when the player finds out. `csstest`
+needed `opreplay` added to its list of runtime-created ids, since the
+button doesn't exist in the static shell.
+
 ## Still open
 
 1. **Crystals at a hot operation is better, not soft.** Auto-rolled Crystals

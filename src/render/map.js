@@ -5,21 +5,23 @@ import {MISSIONS} from '../content/missions.js';
 import {MODS} from '../content/modifiers.js';
 import {OPS} from '../content/operations.js';
 import {active, MAPDEF, setMapdef} from '../state/session.js';
-import {opRun, nodeState, reqBlocked} from '../rules/run.js';
+import {opRun, nodeState, reqBlocked, opComplete, genRun} from '../rules/run.js';
 import {launch} from '../rules/mission.js';
+import {commit} from '../save/profile.js';
 import {$} from './dom.js';
+import {ask} from './dialog.js';
 
 const CLEARED = '#5dffa0';
 const DARK = '#2b2558';
 
-function edgesSvg(run) {
+function edgesSvg(run, complete) {
   const node = id => MAPDEF.nodes.find(n => n.id === id);
   return MAPDEF.edges.map(([a, b]) => {
     const A = node(a);
     const B = node(b);
-    const done = run.cleared.includes(a) && run.cleared.includes(b);
-    const live = (run.cleared.includes(a) && nodeState(b) === 'open') ||
-      (run.cleared.includes(b) && nodeState(a) === 'open');
+    const done = complete || (run.cleared.includes(a) && run.cleared.includes(b));
+    const live = !complete && ((run.cleared.includes(a) && nodeState(b) === 'open') ||
+      (run.cleared.includes(b) && nodeState(a) === 'open'));
     const stroke = done ? CLEARED : live ? MAPDEF.col : DARK;
     return `<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="${stroke}" stroke-width="${done || live ? 2 : 1.2}" stroke-dasharray="${done || live ? '' : '3 3'}" opacity="${done || live ? 0.9 : 0.5}"/>`;
   }).join('');
@@ -27,11 +29,14 @@ function edgesSvg(run) {
 
 const GOLD = '#ffc94d';
 
-function nodesSvg(run) {
+// Once the final node is cleared the run stays on the board as a finished
+// map — every node shown filled and ticked, whatever side objectives were
+// actually collected — rather than snapping back to a fresh roll unasked.
+function nodesSvg(run, complete) {
   return MAPDEF.nodes.map(n => {
-    const st = nodeState(n.id);
+    const st = complete ? 'clear' : nodeState(n.id);
     const m = MISSIONS[run.nodes[n.id].type];
-    const gated = reqBlocked(n.id);
+    const gated = !complete && reqBlocked(n.id);
     // Open nodes get a breathing ring so the eye lands on what is playable.
     const pulse = st === 'open'
       ? `<circle cx="${n.x}" cy="${n.y}" r="14" fill="none" stroke="${MAPDEF.col}" stroke-width="1" opacity=".5">
@@ -80,23 +85,32 @@ export function renderMap() {
   setMapdef(active.op);
 
   const run = opRun();
+  const complete = opComplete();
   $('maptitle').textContent = MAPDEF.n;
 
-  const open = MAPDEF.nodes.filter(n => nodeState(n.id) === 'open');
-  const briefings = open.map(n => {
-    const nd = run.nodes[n.id];
-    const m = MISSIONS[nd.type];
-    const md = MODS[nd.mod];
-    const tag = n.role === 'final' ? ' <span style="color:var(--gold)">· EXTRACTION — ends the operation</span>'
-      : n.role === 'side' ? ' <span style="color:var(--gold)">· BONUS OBJECTIVE</span>' : '';
-    return `<div class="row" data-go="${n.id}" style="cursor:pointer">
+  const open = complete ? [] : MAPDEF.nodes.filter(n => nodeState(n.id) === 'open');
+  const briefings = complete
+    // The final node is down — the map stays up showing every node secured,
+    // rather than snapping to a fresh roll before the player has seen it.
+    ? `<div class="row" style="flex-direction:column;align-items:center;gap:10px;padding:16px 4px;text-align:center">
+        <span style="color:var(--gold);letter-spacing:1px">作戦完了 · OPERATION COMPLETE</span>
+        <span style="font-size:0.6562rem;color:var(--dim);line-height:1.5">Every node on this map has been secured. Any unclaimed bonus objectives are forfeit — replay to roll a fresh set of missions here.</span>
+        <button class="btn gold" id="opreplay">↺ Replay operation</button>
+      </div>`
+    : open.map(n => {
+      const nd = run.nodes[n.id];
+      const m = MISSIONS[nd.type];
+      const md = MODS[nd.mod];
+      const tag = n.role === 'final' ? ' <span style="color:var(--gold)">· EXTRACTION — ends the operation</span>'
+        : n.role === 'side' ? ' <span style="color:var(--gold)">· BONUS OBJECTIVE</span>' : '';
+      return `<div class="row" data-go="${n.id}" style="cursor:pointer">
         <span><b style="color:var(--zan)">${n.l ? n.l + ' — ' : ''}${m.n}</b>${nd.mod !== 'none' ? ` <span style="color:var(--violet)">· ${md.n}</span>` : ''}${tag}
         <div style="font-size:0.6562rem;color:var(--dim);margin-top:4px;line-height:1.5">${n.lore ? n.lore + ' ' : ''}${m.d}${md.d ? ' ' + md.d : ''}</div></span>
         <span class="r hot">${nd.reward} cr ▸</span></div>`;
-  }).join('') || '<div class="row"><span style="color:var(--dim)">Operation complete.</span></div>';
+    }).join('') || '<div class="row"><span style="color:var(--dim)">Operation complete.</span></div>';
 
   // Gated nodes the player could otherwise reach: say what is holding them.
-  const gatedRows = MAPDEF.nodes.filter(n => reqBlocked(n.id)).map(n =>
+  const gatedRows = complete ? '' : MAPDEF.nodes.filter(n => reqBlocked(n.id)).map(n =>
     `<div class="row locked"><span><b style="color:var(--gold)">⛒ ${n.l || 'Sealed route'}</b>
       <div style="font-size:0.6562rem;color:var(--dim);margin-top:4px;line-height:1.5">${n.reqText || 'Requirements not met.'}</div></span></div>`).join('');
 
@@ -105,10 +119,10 @@ export function renderMap() {
       <defs><pattern id="gr" width="8" height="8" patternUnits="userSpaceOnUse">
         <path d="M8 0H0V8" fill="none" stroke="#181340" stroke-width=".5"/></pattern></defs>
       <rect width="440" height="300" fill="#080714"/><rect width="440" height="300" fill="url(#gr)"/>
-      ${zonesSvg()}${edgesSvg(run)}${nodesSvg(run)}</svg></div>
+      ${zonesSvg()}${edgesSvg(run, complete)}${nodesSvg(run, complete)}</svg></div>
     ${MAPDEF.lore ? `<div class="sect">状況 · Situation report</div>
       <div class="oplore" style="border-color:${MAPDEF.col}">${MAPDEF.lore}</div>` : ''}</div>
-    <div><div class="sect">Available — ${open.length}</div><div class="rows">${briefings}${gatedRows}</div>
+    <div><div class="sect">${complete ? 'Status' : 'Available — ' + open.length}</div><div class="rows">${briefings}${gatedRows}</div>
     <div class="sect">Loadout</div><div class="rows">
       <div class="row"><span>Deck size</span><span class="r${active.loadout.deck.length < 6 ? '' : ' hot'}">${active.loadout.deck.length} cards</span></div>
       <div class="row"><span>Gear fitted</span><span class="r">${Object.keys(active.loadout.gear).length}</span></div>
@@ -117,6 +131,18 @@ export function renderMap() {
 
   document.querySelectorAll('#mapbody [data-n],#mapbody [data-go]').forEach(el => {
     const id = el.dataset.n || el.dataset.go;
-    if (nodeState(id) === 'open') el.onclick = () => launch(id);
+    if (!complete && nodeState(id) === 'open') el.onclick = () => launch(id);
   });
+
+  const replayBtn = $('opreplay');
+  if (replayBtn) {
+    replayBtn.onclick = () => ask('Replay operation',
+      `Roll a fresh set of missions for <b>${MAPDEF.n}</b>?`,
+      ok => {
+        if (!ok) return;
+        genRun();
+        commit();
+        renderMap();
+      }, {ok: 'Replay'});
+  }
 }

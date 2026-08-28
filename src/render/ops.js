@@ -18,12 +18,14 @@ export function renderOps() {
   <div class="opgrid">${Object.values(OPS).map(o => {
     const run = active.ops[o.k];
     const done = run ? run.cleared.length : 0;
+    const final = o.nodes.find(n => n.role === 'final');
+    const complete = !!(run && final && run.cleared.includes(final.id));
     const current = active.op === o.k;
     return `<button class="opcard${current ? ' cur' : ''}" data-op="${o.k}" style="--oc:${o.col}">
-      <div class="opname">${o.n}${o.heat ? `<span class="heatpips" title="Deep zone — +${o.heat} threat every wave">${'▲'.repeat(o.heat)}</span>` : ''}</div>
+      <div class="opname">${o.n}${o.heat ? `<span class="heatpips" title="Deep zone — +${o.heat} threat every wave">${'▲'.repeat(o.heat)}</span>` : ''}${complete ? ' <span style="color:var(--gold)">✓</span>' : ''}</div>
       <div class="opsub">${o.sub}</div>
       ${opThumb(o, run)}
-      <div class="opfoot"><span>${done} / ${o.nodes.length} cleared</span>
+      <div class="opfoot"><span${complete ? ' style="color:var(--gold)"' : ''}>${complete ? 'Complete' : `${done} / ${o.nodes.length} cleared`}</span>
         <span style="color:${o.col}">${current ? 'ACTIVE ▸' : 'Deploy ▸'}</span></div></button>`;
   }).join('')}</div>
   <div class="mnote">Each operation is its own map with its own missions. Progress is tracked separately — switch between them freely.</div>`;
