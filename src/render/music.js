@@ -15,18 +15,42 @@ import {commit} from '../save/profile.js';
 import {audio} from './sound.js';
 
 const MUSIC_LEVEL = 0.12;
-const M_BPM = 92;
-const M_SPB = 60 / M_BPM;                        // seconds per beat
 const NOTE_HZ = n => 440 * 2 ** ((n - 69) / 12); // midi -> Hz
 
-// Four bars, one chord each: pad voicing (close, mid register), bass root,
-// and the arp pool it sprays from. Voice-leading keeps the pads from jumping.
-const M_PROG = [
-  {pad: [57, 60, 64], bass: 33, arp: [69, 72, 76, 81]},  // A minor
-  {pad: [53, 57, 60], bass: 29, arp: [65, 69, 72, 77]},  // F major
-  {pad: [55, 60, 64], bass: 36, arp: [67, 72, 76, 79]},  // C major
-  {pad: [55, 59, 62], bass: 31, arp: [67, 71, 74, 79]},  // G major
-];
+// Two moods on one engine. Each is four bars, one chord per bar: pad voicing
+// (close, mid register), bass root, and the arp pool it sprays from —
+// voice-leading keeps the pads from jumping. The hold cruises Am·F·C·G; the
+// combat track runs the Andalusian cadence (Am·G·F·E) faster, with a denser
+// arp and an offbeat hat, so the fight reads darker without changing key.
+const M_MOODS = {
+  hold: {
+    bpm: 92, arpChance: 0.55, hat: false,
+    prog: [
+      {pad: [57, 60, 64], bass: 33, arp: [69, 72, 76, 81]},  // A minor
+      {pad: [53, 57, 60], bass: 29, arp: [65, 69, 72, 77]},  // F major
+      {pad: [55, 60, 64], bass: 36, arp: [67, 72, 76, 79]},  // C major
+      {pad: [55, 59, 62], bass: 31, arp: [67, 71, 74, 79]},  // G major
+    ],
+  },
+  combat: {
+    bpm: 108, arpChance: 0.75, hat: true,
+    prog: [
+      {pad: [57, 60, 64], bass: 33, arp: [69, 72, 76, 81]},  // A minor
+      {pad: [55, 59, 62], bass: 31, arp: [67, 71, 74, 79]},  // G major
+      {pad: [53, 57, 60], bass: 29, arp: [65, 69, 72, 77]},  // F major
+      {pad: [52, 56, 59], bass: 28, arp: [64, 68, 71, 76]},  // E major
+    ],
+  },
+};
+let mMood = 'hold';
+const moodDef = () => M_MOODS[mMood];
+const mSpb = () => 60 / moodDef().bpm;
+
+/** Pick the track: 'hold' cruise or 'combat' drive. Takes effect on the next
+ * scheduled beat — the bus, delay and hall carry straight across. */
+export function setMusicMood(mood) {
+  if (M_MOODS[mood]) mMood = mood;
+}
 
 /** On unless the profile says otherwise — same contract as soundOn. */
 export const musicOn = () => !active || !active.settings || active.settings.music !== 'off';
@@ -86,7 +110,7 @@ function musicGraph() {
 
   // Dotted-eighth feedback delay — the classic synthwave echo.
   const delay = c.createDelay(1.5);
-  delay.delayTime.value = M_SPB * 0.75;
+  delay.delayTime.value = mSpb() * 0.75;
   const feedback = c.createGain();
   feedback.gain.value = 0.38;
   const wet = c.createGain();
@@ -123,7 +147,7 @@ function musicGraph() {
 // -- the players --------------------------------------------------------------
 
 function mPad(c, chord, t) {
-  const barDur = M_SPB * 4;
+  const barDur = mSpb() * 4;
   chord.pad.forEach(n => [-6, 6].forEach(cents => {
     const osc = c.createOscillator();
     osc.type = 'sawtooth';
@@ -170,6 +194,26 @@ function mKick(c, t) {
   osc.stop(t + 0.15);
 }
 
+/** Offbeat hat for the combat mood: a 60ms puff of highpassed noise. */
+function mHat(c, t) {
+  const frames = (0.06 * c.sampleRate) | 0;
+  const buf = c.createBuffer(1, frames, c.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < frames; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / frames);
+  const src = c.createBufferSource();
+  src.buffer = buf;
+  const hp = c.createBiquadFilter();
+  hp.type = 'highpass';
+  hp.frequency.value = 6000;
+  const g = c.createGain();
+  g.gain.setValueAtTime(0.05, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+  src.connect(hp);
+  hp.connect(g);
+  g.connect(mBus);
+  src.start(t);
+}
+
 function mArp(c, midi, t) {
   const osc = c.createOscillator();
   osc.type = 'triangle';
@@ -186,17 +230,20 @@ function mArp(c, midi, t) {
 
 /** Book one beat of music at absolute time t. */
 function mScheduleBeat(c, beat, t) {
-  const chord = M_PROG[(beat >> 2) % M_PROG.length];
+  const mood = moodDef();
+  const spb = mSpb();
+  const chord = mood.prog[(beat >> 2) % mood.prog.length];
   if (beat % 4 === 0) mPad(c, chord, t);
   mKick(c, t);
+  if (mood.hat) mHat(c, t + spb / 2);
   // Driving eighths on the root; every fourth eighth jumps the octave.
   mBass(c, chord.bass + ((beat * 2) % 4 === 2 ? 12 : 0), t);
-  mBass(c, chord.bass + ((beat * 2 + 1) % 4 === 2 ? 12 : 0), t + M_SPB / 2);
-  // Sparse shimmer: an arp note on roughly half the eighths, register high.
+  mBass(c, chord.bass + ((beat * 2 + 1) % 4 === 2 ? 12 : 0), t + spb / 2);
+  // Shimmer: an arp note on some of the eighths, register high.
   for (const half of [0, 1]) {
-    if (Math.random() < 0.45) continue;
+    if (Math.random() > mood.arpChance) continue;
     const pool = chord.arp;
-    mArp(c, pool[(beat * 2 + half + ((Math.random() * 2) | 0)) % pool.length], t + half * M_SPB / 2);
+    mArp(c, pool[(beat * 2 + half + ((Math.random() * 2) | 0)) % pool.length], t + half * spb / 2);
   }
 }
 
@@ -205,7 +252,7 @@ function mTick() {
   if (!c) return;
   while (mNext < c.currentTime + 0.6) {
     mScheduleBeat(c, mBeat, mNext);
-    mNext += M_SPB;
+    mNext += mSpb();
     mBeat++;
   }
 }

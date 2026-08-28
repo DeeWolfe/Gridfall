@@ -10,7 +10,7 @@ import {enterProfile, opRun} from '../rules/run.js';
 import {$, show} from './dom.js';
 import {portrait} from './art.js';
 import {startScene} from './battlefield.js';
-import {applyUiMode, uiModeLabel} from './uimode.js';
+import {applyUiMode} from './uimode.js';
 import {syncMusic} from './music.js';
 
 /** A thumbnail of an operation's map: zones, edges, and cleared nodes. */
@@ -69,7 +69,6 @@ export function leadCardHTML() {
       <div class="leadbio">${L.bio}</div>
       ${L.passive ? `<div class="leadperk"><b>Passive · ${L.passive.n}</b>${L.passive.d}</div>` : ''}
       ${def ? `<div class="leadperk strat"><b>Stratagem · ${def.n} · ${def.dp} DP</b>${def.d} Once per mission; resolves at the start of the following turn.</div>` : ''}
-      <div class="leadchain">Runs the squad. Reports to <b>${active.callsign}</b> · ${rankName(active.progress.rank)}</div>
     </div></div>`;
 }
 
@@ -121,8 +120,6 @@ export function paintHold() {
   // The profile carries the interface preference, so re-apply it on entry.
   applyUiMode();
   syncMusic();
-  const chip = $('uiswap');
-  if (chip) chip.textContent = 'UI · ' + uiModeLabel();
 
   const left = MAPDEF.nodes.length - opRun().cleared.length;
   $('deploysub').textContent = left > 0

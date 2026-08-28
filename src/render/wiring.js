@@ -11,7 +11,8 @@ import {launchGauntlet, GAUNTLET_LEGS} from '../rules/mission.js';
 import {$, show} from './dom.js';
 import {ask, notify, dlgClose} from './dialog.js';
 import {closeFocus, setFocusFollowUp, setLeadFollowUp} from './focus.js';
-import {startMusic} from './music.js';
+import {sfx} from './sound.js';
+import {startMusic, musicOn, toggleMusic, setMusicMood} from './music.js';
 import {renderSlots} from './boot-screen.js';
 import {enter, paintHold, foldRoster} from './hold.js';
 import {startScene, stopScene, sizeScene, sceneRunning} from './battlefield.js';
@@ -78,14 +79,28 @@ function wireRecordScreen() {
     enter(p);
   };
   $('callsign').addEventListener('keydown', e => { if (e.key === 'Enter') $('create').click(); });
-  $('switch').onclick = () => { commit(); stopScene(); setActive(null); show('boot'); renderSlots(); };
-  // A visible swap on the hold screen, mirroring the Settings row.
-  const uiChip = $('uiswap');
-  if (uiChip) {
-    const label = () => { uiChip.textContent = 'UI · ' + uiModeLabel(); };
-    uiChip.onclick = () => { cycleUiMode(); label(); };
-    label();
-  }
+  // The pull-up drawer: one tab on every out-of-combat screen. Tap to slide
+  // the menu up, tap again to slide it back down.
+  const drawer = $('drawer');
+  const paintDrawer = () => {
+    $('drawtab').textContent = drawer.classList.contains('up') ? '▼' : '▲';
+    $('drawui').textContent = 'UI · ' + uiModeLabel();
+    $('drawmus').textContent = 'Music · ' + (musicOn() ? 'On' : 'Off');
+  };
+  $('drawtab').onclick = () => { sfx('tap'); drawer.classList.toggle('up'); paintDrawer(); };
+  $('drawset').onclick = () => { drawer.classList.remove('up'); paintDrawer(); openPanel('settings'); };
+  $('drawui').onclick = () => { cycleUiMode(); paintDrawer(); };
+  $('drawmus').onclick = () => { toggleMusic(); paintDrawer(); };
+  $('drawhome').onclick = () => {
+    drawer.classList.remove('up');
+    paintDrawer();
+    commit();
+    stopScene();
+    setActive(null);
+    show('boot');
+    renderSlots();
+  };
+  paintDrawer();
 }
 
 function wireNavigation() {
@@ -190,7 +205,7 @@ export function boot() {
       if (!animate || !frames.length || !$('combat').classList.contains('on')) return false;
       return playTurn(frames, repaint);
     },
-    enterCombat: () => { show('combat'); drawAll(); maybeStartTutorial(); },
+    enterCombat: () => { setMusicMood('combat'); show('combat'); drawAll(); maybeStartTutorial(); },
     showResult,
     notify,
     ask,

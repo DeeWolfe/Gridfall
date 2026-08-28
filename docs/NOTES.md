@@ -746,6 +746,35 @@ a synthetic `.click()` fires no pointerdown, so the gesture list includes
 'click' — which is also what lets the Playwright checks (and a
 MediaRecorder capture of the live bus) exercise the engine headlessly.
 
+## Combat track, pull-up drawer, achievements
+
+The music engine grew a second mood: `M_MOODS` holds the 92 BPM Am·F·C·G
+hold cruise and a 108 BPM combat track on the Andalusian cadence
+(Am·G·F·E) with a denser arp and an offbeat noise hat — same key, same
+bus/delay/hall, so `setMusicMood()` crossfades for free at the next
+scheduled beat. The `enterCombat` hook flips to combat; `leaveCombat`
+flips back.
+
+Navigation reorganised around a **pull-up drawer**: one tab centred on
+the bottom edge of every out-of-combat screen (pure-CSS hidden on
+title/boot/combat via sibling selectors — the drawer div sits after every
+`.scr` in the shell). Tap slides the menu up, tap again slides it down;
+it carries Settings, the UI-mode cycler, a live Music On/Off toggle, and
+Title screen. The hold's footer buttons (UI chip, Settings, Switch
+record) are gone — its footer is just the save flag now — and Switch
+record lives on as a Settings "Sign out" row. The #panel overlay was
+already global, so Settings opens over ops/map/modes without leaving
+them. The ops screen's footnote got a rule and real margin (`.mnote`
+finally has CSS), and the lead card dropped its "Runs the squad. Reports
+to…" chain line.
+
+**Achievements** folded into Service Record rather than getting a page:
+fifteen of them, each a pure function of what the profile already tracks
+(stats, unlocks, usage, bests, ops runs) — nothing new is persisted, so
+they can never desync from the record they sit beside. Earned rows go
+gold with ◆, unearned show live progress fractions. uitest points at the
+drawer's UI button; csstest registers `swrec`.
+
 A dead-code sweep followed the UI churn (unused imports in five render
 modules, four internal-only functions un-exported, seven orphaned CSS
 rules from removed layouts, a leftover `LEAD_DP_BONUS` const). The sweep

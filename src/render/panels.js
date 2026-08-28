@@ -8,18 +8,21 @@ import {GEAR} from '../content/gear.js';
 import {BEST} from '../content/hostiles.js';
 import {OPS} from '../content/operations.js';
 import {TIERNAME} from '../content/ranks.js';
-import {active, profiles} from '../state/session.js';
+import {LEADS} from '../content/leads.js';
+import {active, profiles, setActive} from '../state/session.js';
 import {store} from '../save/store.js';
 import {commit, migrate, saveAll} from '../save/profile.js';
-import {rankName, costOf, vetOf} from '../save/progression.js';
+import {rankName, costOf, vetOf, leadUnlocked} from '../save/progression.js';
 import {genRun} from '../rules/run.js';
 import {purchasePack, PACK_PRICE} from '../rules/packs.js';
-import {$, attr} from './dom.js';
+import {$, attr, show} from './dom.js';
 import {sigil} from './art.js';
 import {ask, notify} from './dialog.js';
 import {cardEl} from './card-html.js';
 import {focusCard, focusEnemy, focusGear, focusLead} from './focus.js';
 import {leadCardHTML, leadTilesHTML, toggleRoster, paintHold, enter} from './hold.js';
+import {renderSlots} from './boot-screen.js';
+import {stopScene} from './battlefield.js';
 import {showPack, setAfterPacks} from './packs.js';
 import {soundOn, toggleSound} from './sound.js';
 import {musicOn, toggleMusic} from './music.js';
@@ -151,6 +154,34 @@ function databasePanel() {
      ${TIERS.map(tier).join('')}`;
 }
 
+/** Achievements are pure functions of the profile — nothing new is tracked,
+ * so they can never desync from the record they sit beside. */
+function achievementList() {
+  const s = active.stats;
+  const opsDone = Object.values(OPS).filter(o => {
+    const r = active.ops[o.k];
+    return r && r.cleared.length >= o.nodes.length;
+  }).length;
+  const maxVet = Math.max(0, ...Object.keys(active.usage || {}).map(id => vetOf(id).t));
+  return [
+    {n: 'First Strike', d: 'Secure your first objective.', have: s.held, need: 1},
+    {n: 'Line Holder', d: 'Secure ten objectives.', have: s.held, need: 10},
+    {n: 'Iron Wall', d: 'Secure twenty-five objectives.', have: s.held, need: 25},
+    {n: 'Exterminator', d: 'Destroy 100 hostiles.', have: s.kills, need: 100},
+    {n: 'Annihilator', d: 'Destroy 1,000 hostiles.', have: s.kills, need: 1000},
+    {n: 'Zero Ground', d: 'Clear every node of one operation.', have: opsDone, need: 1},
+    {n: 'Theatre Commander', d: 'Clear every operation on the shelf.', have: opsDone, need: Object.keys(OPS).length},
+    {n: 'Sworn Officer', d: 'Reach rank 5.', have: active.progress.rank, need: 5},
+    {n: 'Living Legend', d: 'Raise any card to Legend rank.', have: maxVet, need: 3},
+    {n: 'Full Manifest', d: 'Own every card in the pool.', have: active.unlocks.cards.length, need: Object.keys(POOL).length},
+    {n: 'Armourer', d: 'Own every piece of gear.', have: active.unlocks.gear.length, need: Object.keys(GEAR).length},
+    {n: 'Head-hunter', d: 'Recruit every team lead.', have: Object.keys(LEADS).filter(leadUnlocked).length, need: Object.keys(LEADS).length},
+    {n: 'Bestiary', d: 'Log every hostile in the Database.', have: active.unlocks.enemies.length, need: Object.keys(BEST).length},
+    {n: 'Stormbreaker', d: 'Hold ten waves in one Onslaught.', have: active.bests.onslaught || 0, need: 10},
+    {n: 'Chainrunner', d: 'Complete a Gauntlet chain.', have: active.bests.gauntlet || 0, need: 1},
+  ];
+}
+
 function recordPanel() {
   const s = active.stats;
   const fieldRecord = [
@@ -178,6 +209,13 @@ function recordPanel() {
    <div class="bar"><div>${active.callsign} · <b style="color:var(--zan)">${rankName(active.progress.rank)}</b></div>
      <div style="color:var(--dim);font-size:0.625rem">Task force command · XP ${active.progress.xp}</div></div>
    <div class="sect">Field record</div><div class="rows">${fieldRecord}</div>
+   <div class="sect">Achievements — ${achievementList().filter(a => a.have >= a.need).length} / ${achievementList().length} earned</div>
+   <div class="rows">${achievementList().map(a => {
+    const done = a.have >= a.need;
+    return `<div class="row${done ? '' : ' locked'}"><span><b style="color:${done ? 'var(--gold)' : 'var(--dim)'}">${done ? '◆' : '◇'} ${a.n}</b>
+     <div style="font-size:0.5938rem;color:var(--dim);margin-top:4px">${a.d}</div></span>
+     <span class="r${done ? ' hot' : ''}">${done ? 'Earned' : Math.min(a.have, a.need) + ' / ' + a.need}</span></div>`;
+  }).join('')}</div>
    <div class="sect">Veteran roster</div><div class="rows">${veterans}</div>
    <div class="sect">Modes</div><div class="rows">
    <div class="row"><span>Onslaught best</span><span class="r hot">${active.bests.onslaught || 0} waves</span></div>
@@ -201,6 +239,8 @@ const settingsPanel = () => `<div class="sect">Interface</div><div class="rows">
    <div class="row"><span>Storage</span><span class="r">${store.ephemeral ? 'Blocked — session only' : 'This device'}</span></div>
    <div class="row"><span>Save version</span><span class="r">v${active.version}</span></div>
    <div class="row" id="shipren" style="cursor:pointer"><span>Dropship name</span><span class="r hot">DS ${active.ship || 'ANVIL-7'}</span></div>
+   <div class="row" id="swrec" style="cursor:pointer"><span>Switch record<div style="font-size:0.5938rem;color:var(--dim);margin-top:4px">Back to command authentication.</div></span>
+     <span class="r hot">Sign out</span></div>
    <div class="row" id="expo" style="cursor:pointer"><span>Export save</span><span class="r hot">Copy JSON</span></div>
    <div class="row" id="impo" style="cursor:pointer"><span>Import save<div style="font-size:0.5938rem;color:var(--dim);margin-top:4px">Paste an exported record — it is repaired to the current version on the way in.</div></span>
      <span class="r hot">Paste JSON</span></div>
@@ -307,6 +347,18 @@ export function openPanel(key) {
 
   const musicRow = $('musrow');
   if (musicRow) musicRow.onclick = () => { toggleMusic(); openPanel('settings'); };
+
+  const swRow = $('swrec');
+  if (swRow) {
+    swRow.onclick = () => {
+      $('panel').classList.remove('on');
+      commit();
+      stopScene();
+      setActive(null);
+      show('boot');
+      renderSlots();
+    };
+  }
 
   const importRow = $('impo');
   if (importRow) importRow.onclick = () => importRecordFlow();

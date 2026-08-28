@@ -54,7 +54,7 @@ const stamp = () => document.documentElement.dataset.ui;
 
 // --- both swap controls exist and are wired ---
 {
-  if (!head.includes('id="uiswap"')) F.push('no layout swap on the hold screen');
+  if (!head.includes('id="drawui"')) F.push('no layout swap in the pull-up drawer');
   openPanel('settings');
   const panel = get('pbody')._html;
   UI_MODES.forEach(m => {

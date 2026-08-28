@@ -31,6 +31,7 @@ import {focusCard, focusEnemy, closeFocus} from './focus.js';
 import {renderMap} from './map.js';
 import {renderModes} from './modes.js';
 import {sfx} from './sound.js';
+import {setMusicMood} from './music.js';
 
 const LOG_LINES = 40;
 
@@ -39,6 +40,7 @@ export function leaveCombat() {
   const {wasEndless, wasGauntlet} = abortMission();
   $('result').classList.remove('on');
   closeFocus();
+  setMusicMood('hold');
   if (wasEndless || wasGauntlet) { show('modes'); renderModes(); return; }
   show('map');
   renderMap();

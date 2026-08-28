@@ -468,9 +468,6 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .leadbio{font-size:0.6562rem;color:var(--dim);line-height:1.55}
 .leadperk{font-size:0.6562rem;color:var(--dim);line-height:1.55;border-left:2px solid var(--lc);padding-left:8px}
 .leadperk b{display:block;color:var(--lc);letter-spacing:.1em;text-transform:uppercase;font-size:0.6562rem;margin-bottom:3px}
-.leadchain{margin-top:9px;padding-top:8px;border-top:1px solid var(--line);
-  font-size:0.625rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
-.leadchain b{color:var(--cyan)}
 /* The lead roster: one tile per lead, shared between Squad and the store. */
 .leadgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(96px,8.6vw,132px),1fr));gap:8px}
 .leadtile{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;
@@ -944,3 +941,26 @@ body{font-size:1rem}
 }
 
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ============ OPS FOOTNOTE ============ */
+.mnote{margin-top:22px;padding-top:14px;border-top:1px solid var(--line);
+  color:var(--dim);font-size:0.625rem;line-height:1.65;max-width:64ch}
+
+/* ============ PULL-UP DRAWER ============ */
+/* One tab on every out-of-combat screen: tap, the menu slides up; tap again,
+   it slides back down. Sibling selectors hide it where it has no business. */
+#drawer{position:fixed;left:50%;transform:translateX(-50%);bottom:0;z-index:60;
+  display:flex;flex-direction:column;align-items:center}
+#title.on ~ #drawer,#boot.on ~ #drawer,#combat.on ~ #drawer{display:none}
+#drawtab{width:52px;height:20px;border:1px solid var(--line2);border-bottom:none;
+  background:var(--panel2);color:var(--dim);font-size:0.5938rem;cursor:pointer;
+  clip-path:polygon(9px 0,calc(100% - 9px) 0,100% 100%,0 100%);transition:.15s}
+#drawtab:hover{color:var(--zan);border-color:var(--zan)}
+.drawmenu{position:absolute;bottom:26px;display:flex;flex-direction:column;gap:6px;
+  padding:10px;background:var(--panel2);border:1px solid var(--line2);min-width:150px;
+  clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));
+  transform:translateY(70%);opacity:0;pointer-events:none;
+  transition:transform .26s cubic-bezier(.2,.9,.3,1.1),opacity .18s}
+#drawer.up .drawmenu{transform:none;opacity:1;pointer-events:auto}
+.drawmenu .mini{text-align:left;white-space:nowrap}
+@media (prefers-reduced-motion: reduce){.drawmenu{transition:none}}
