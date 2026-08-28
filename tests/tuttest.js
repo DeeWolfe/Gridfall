@@ -7,7 +7,7 @@ import './support/install-dom.js';
 import * as A from './support/api.js';
 import {get} from './support/dom.js';
 import {failures} from './support/harness.js';
-import {unlockAll} from './support/fixtures.js';
+import {unlockAll, stillAir} from './support/fixtures.js';
 import {tutorialActive, skipTutorial} from '../src/render/tutorial.js';
 import {openPanel} from '../src/render/panels.js';
 import {boot} from '../src/render/wiring.js';
@@ -29,6 +29,7 @@ const firstNode = () => Object.keys(A.opRun().nodes)[0];
 {
   enter(unlockAll(A.blankProfile('NEW'), ['rifle', 'wall', 'scout', 'marks']));
   A.launch(firstNode());
+  stillAir();
   if (!tutorialActive()) F.push('briefing did not start for a fresh commander');
   if (!shown()) F.push('briefing overlay not visible');
   if (!/Command briefing/.test(card())) F.push('briefing did not open on the first step');
@@ -67,6 +68,7 @@ const firstNode = () => Object.keys(A.opRun().nodes)[0];
   if (A.active.settings.tutorial !== 'done') F.push('completion was not recorded');
 
   A.launch(firstNode());
+  stillAir();
   if (tutorialActive()) F.push('briefing re-ran for a commander who finished it');
 
   const reloaded = A.initProfiles().find(p => p.callsign === 'NEW');
@@ -79,6 +81,7 @@ const firstNode = () => Object.keys(A.opRun().nodes)[0];
   vet.stats.deployments = 12;
   enter(vet);
   A.launch(firstNode());
+  stillAir();
   if (tutorialActive()) F.push('briefing ran for a veteran commander');
 }
 
@@ -87,6 +90,7 @@ const firstNode = () => Object.keys(A.opRun().nodes)[0];
   const p = unlockAll(A.blankProfile('SKIP'), ['rifle', 'wall', 'scout', 'marks']);
   enter(p);
   A.launch(firstNode());
+  stillAir();
   if (!tutorialActive()) F.push('briefing did not start for the skip test');
   skipTutorial();
   if (tutorialActive() || shown()) F.push('skip did not close the briefing');
@@ -103,6 +107,7 @@ const firstNode = () => Object.keys(A.opRun().nodes)[0];
     row.onclick();
     if (A.active.settings.tutorial !== 'replay') F.push('replay was not queued');
     A.launch(firstNode());
+  stillAir();
     if (!tutorialActive()) F.push('queued replay did not run');
     skipTutorial();
     if (A.active.settings.tutorial !== 'done') F.push('finishing the replay did not settle back to done');
@@ -114,6 +119,7 @@ const firstNode = () => Object.keys(A.opRun().nodes)[0];
   const p = unlockAll(A.blankProfile('ONS'), ['rifle', 'wall', 'scout', 'marks']);
   enter(p);
   A.launch(firstNode());
+  stillAir();
   if (!tutorialActive()) F.push('briefing did not start before the abort test');
   A.abortMission();
   A.launchOnslaught();

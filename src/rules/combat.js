@@ -8,6 +8,7 @@ import {unitAt, foeAt, civAt, scorched} from './board.js';
 import {buffOf, leadBonus} from './units.js';
 import {leadOf} from '../save/progression.js';
 import {targetsFor, laneFloor} from './targeting.js';
+import {eventTechBonus} from './events.js';
 import {clog} from './log.js';
 import {tapeEvent} from './tape.js';
 
@@ -41,6 +42,36 @@ export function dmgEnemy(e, d, src, pen) {
   if (D.deathrush) screamerRush(e);
 }
 
+/**
+ * A hostile crossing the line. Each lane carries one Last-Stand charge: the
+ * first breach in a lane fires the defense grid instead of counting — the
+ * breacher and every hostile in the lane are destroyed (through dmgEnemy, so
+ * kills, quotas, splits and screams all resolve normally) and the lane goes
+ * naked. Breaches in a spent lane count against the mission's allowance.
+ */
+export function breachAt(e, how) {
+  G.enemies = G.enemies.filter(x => x.uid !== e.uid);
+  if (G.gridCharge && G.gridCharge[e.lane]) {
+    G.gridCharge[e.lane] = 0;
+    tapeEvent({type: 'clash', lane: e.lane, col: 0});
+    clog(`<span class="g">LAST-STAND PROTOCOL</span> — lane ${e.lane + 1}'s grid charge fires. The lane is swept clean.`, 'order');
+    e.hp = 1;
+    G.enemies.push(e);                    // back in play so the grid can claim it
+    // The purge is a save, not a harvest: kills and quota progress it would
+    // have earned are rolled back, though splits and screams still resolve.
+    const kills = G.kills;
+    const quota = G.quotaHit;
+    [...G.enemies].filter(x => x.lane === e.lane)
+      .forEach(x => { if (x.hp > 0) dmgEnemy(x, 999, 'Defense Grid', true); });
+    G.kills = kills;
+    G.quotaHit = quota;
+    return;
+  }
+  G.breaches++;
+  tapeEvent({type: 'breach', lane: e.lane});
+  clog(`<span class="d">BREACH</span> — ${BEST[e.k].n} ${how || 'crossed the line'}.`, 'loss');
+}
+
 /** A Husk falls apart: Crawlers spill into its cell and the free ground around it. */
 function huskSplit(e, count) {
   const spots = [[e.lane, e.col], [e.lane, e.col + 1], [e.lane, e.col - 1],
@@ -71,10 +102,7 @@ function screamerRush(e) {
     if (o.hp <= 0 || BEST[o.k].spd === 0) return;
     const nc = o.col - 1;
     if (nc < 0) {
-      G.breaches++;
-      G.enemies = G.enemies.filter(x => x.uid !== o.uid);
-      tapeEvent({type: 'breach', lane: o.lane});
-      clog(`<span class="d">BREACH</span> — ${BEST[o.k].n} carried over the line by the scream.`, 'loss');
+      breachAt(o, 'carried over the line by the scream');
       return;
     }
     if (G.ter[o.lane][nc] === 'x') return;
@@ -152,7 +180,8 @@ export function fire(u, onPlay) {
   const k = POOL[u.id];
   const pristine = u.pristine && u.hp >= u.max ? u.pristine : 0;
   const gearBonus = u.dmg - (k.dmg || 0);
-  const base = (onPlay && k.burst ? k.burst + gearBonus : u.dmg) + buffOf(u) + leadBonus(u) + pristine;
+  const base = (onPlay && k.burst ? k.burst + gearBonus : u.dmg)
+    + buffOf(u) + leadBonus(u) + pristine + eventTechBonus(u);
 
   for (let shot = 0; shot < (u.att.cannon ? 2 : 1); shot++) {
     const ts = targetsFor(u);

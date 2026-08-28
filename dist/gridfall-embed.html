@@ -556,8 +556,21 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .cell.underthreat{box-shadow:inset 0 0 0 2px var(--mag),0 0 12px rgba(255,77,143,.4)}
 .incdmg{position:absolute;top:0;left:1px;font-size:0.625rem;font-weight:700;color:var(--mag);
   text-shadow:0 0 5px rgba(255,77,143,.9);z-index:2}
-.striking{position:absolute;top:0;left:2px;font-size:0.6562rem;font-weight:700;color:#fff;
-  text-shadow:0 0 6px var(--mag);animation:blip 1s ease-in-out infinite}
+/* Intent badges: what each hostile will do next turn, per enemyIntent(). */
+.intent{position:absolute;top:0;left:1px;font-size:0.5938rem;font-weight:700;z-index:2;line-height:1.2}
+.intent.atk{color:#fff;text-shadow:0 0 6px var(--mag);animation:blip 1s ease-in-out infinite}
+.intent.mov{color:var(--dim)}
+.intent.mend{color:var(--green);text-shadow:0 0 5px rgba(93,255,160,.8)}
+.intent.spwn{color:var(--gold)}
+.intent.idle{color:var(--dim);opacity:.7}
+.fglyph{margin-right:3px;opacity:.9}
+/* Last-Stand charges on the home column: armed glows, spent goes dark. */
+.gridpip{position:absolute;left:1px;top:50%;transform:translateY(-50%);font-size:0.6562rem;
+  color:var(--cyan);text-shadow:0 0 7px rgba(77,232,255,.8);z-index:1;pointer-events:none}
+.gridpip.spent{color:#3a3564;text-shadow:none;opacity:.8}
+/* Field-event chips in the incoming strip. */
+.incp.evt{color:var(--violet);border-color:var(--violet);box-shadow:0 0 12px -4px var(--violet);cursor:pointer}
+.incp.evtnext{color:var(--dim);border-color:var(--line2);cursor:pointer}
 .lockpip{position:absolute;top:0;right:1px;font-size:0.6562rem;color:var(--gold);
   text-shadow:0 0 6px rgba(255,201,77,.9);z-index:2}
 .minihp{position:absolute;left:1px;right:1px;bottom:0;height:2px;background:rgba(0,0,0,.55)}
@@ -2066,6 +2079,20 @@ const POOL = {
     recharge: 1,
     d: "Reaches the furthest hostile on the board, any lane, for eight. Needs a turn to cycle — it cannot fire twice running.",
   },
+  dynamo: {
+    n: "Dynamo",
+    t: "common",
+    single: 0,
+    dp: 2,
+    hp: 3,
+    price: 110,
+    mob: 0,
+    tg: "none",
+    dmg: 0,
+    tech: 1,
+    dynamo: 1,
+    d: "Generates +1 deploy point at the start of each turn while it stands, stacking up to +2. No weapon, thin hull — greed responsibly.",
+  },
 };
 
 /* ==== src/content/gear.js =========================================== */
@@ -2379,7 +2406,7 @@ const store = {
 const LANES = 5;
 const COLS = 8;
 const MAXDP = 6;
-const MAXBREACH = 3;
+const MAXBREACH = 1;
 const DECKSIZE = 12;
 const SAVE_VERSION = 4;
 const STARTER = ["scout", "rifle", "marks", "wall", "medic", "turret", "lancer", "bulwark", "assassin"];
@@ -2520,7 +2547,7 @@ const MISSIONS = {
   stronghold: {
     n: "Defend Stronghold",
     waves: 8,
-    d: "Hold the line through every wave. Three breaches ends it.",
+    d: "Hold the line through every wave. Each lane's grid charge absorbs one breach — after that, one body through ends it.",
   },
   civilians: {
     n: "Protect Civilians",
@@ -2995,9 +3022,14 @@ const DOCTRINE = [
  */
 function wave(t) {
   if (t > G.waves) return null;
+  // Dead Air: the tunnels are silent — the manifest this event promised on
+  // is empty. Rolled AFTER eventTick(), so G.event is this turn's event.
+  if (G.event === 'calm') return {};
 
-  // Hot operations (op-level `heat`) run every wave over budget.
-  let budget = Math.round(2 + (G.heat || 0) + t * (G.endless ? 1.9 : 1.5));
+  // Hot operations (op-level `heat`) run every wave over budget, and a Hive
+  // Surge event runs this one wave heavier still.
+  let budget = Math.round(2 + (G.heat || 0) + (G.event === 'surge' ? 2 : 0)
+    + t * (G.endless ? 1.9 : 1.5));
   const pool = ['crawler'];
   if (t >= 2) pool.push('hulk', 'breacher', 'husk');
   if (t >= 3) pool.push('spitter', 'burrower');
@@ -3300,6 +3332,79 @@ const STRATAGEMS = {
   },
 };
 
+/* ==== src/rules/log.js ============================================== */
+// The combat log. Newest first, capped so a long Onslaught cannot grow it
+// without bound. Entries carry a category so the renderer can colour them.
+
+const MAX_ENTRIES = 120;
+
+/**
+ * @param {string} html  entry body, may contain markup
+ * @param {'info'|'order'|'kill'|'loss'|'wave'} [cat]
+ */
+function clog(html, cat) {
+  if (!G) return;
+  G.logs.unshift({h: html, c: cat || 'info'});
+  if (G.logs.length > MAX_ENTRIES) G.logs.pop();
+}
+
+/* ==== src/rules/events.js =========================================== */
+// Turn events: one-turn field conditions run on the same promise contract as
+// the spawn markers. Each event is announced a full turn before it lands
+// (G.eventNext), becomes G.event for exactly one turn, then expires. Effects
+// live where the numbers they touch live — strike()/forecastThreat for the
+// tremor, fire()/dmgPreview for the overclock, wave() for the hive's mood,
+// the end-of-turn DP grant for the supply drop — and every pair must stay
+// mirrored, or the banner lies to the player.
+
+const EVENTS = {
+  supply: {n: 'Supply Drop', icon: '▼',
+    d: 'A requisition pod lands behind the line — +2 deploy points this turn.'},
+  tremor: {n: 'Seismic Tremor', icon: '≈',
+    d: 'The ground heaves under the horde — every hostile strike deals 1 less this turn.'},
+  overclock: {n: 'Grid Overclock', icon: '⌁',
+    d: 'The power grid spikes — your Tech units strike for +1 this turn.'},
+  surge: {n: 'Hive Surge', icon: '▲',
+    d: 'The tunnels drum louder — the wave marked this turn arrives +2 threat heavy.'},
+  calm: {n: 'Dead Air', icon: '○',
+    d: 'The tunnels go quiet — no hostiles spawn at the end of this turn.'},
+};
+
+const EVENT_CHANCE = 0.35;
+
+/** Roll the event telegraphed for the coming turn — usually nothing. */
+function rollEvent() {
+  if (!chance(EVENT_CHANCE)) return null;
+  const keys = Object.keys(EVENTS);
+  return keys[randInt(keys.length)];
+}
+
+/**
+ * Advance the event clock at end of turn: the telegraphed event goes live for
+ * the coming turn, and the one after is rolled and announced. Runs BEFORE the
+ * next wave is rolled, so surge/calm shape the manifest they promised to.
+ */
+function eventTick() {
+  // Determinism valve for the guard suite: a mission flagged noEvents never
+  // rolls, so exact-number assertions hold. Balance harnesses leave it unset.
+  if (G.noEvents) { G.event = null; G.eventNext = null; return; }
+  G.event = G.eventNext || null;
+  G.eventNext = rollEvent();
+  if (G.event) {
+    const ev = EVENTS[G.event];
+    clog(`<span style="color:var(--violet)">${ev.icon} ${ev.n}</span> — ${ev.d}`, 'order');
+  }
+  if (G.eventNext) {
+    clog(`Field report: <span style="color:var(--violet)">${EVENTS[G.eventNext].n}</span> expected next turn.`, 'info');
+  }
+}
+
+/** The tremor's bite on one hostile strike. Mirrored by forecastThreat. */
+const eventStrikeMalus = () => (G.event === 'tremor' ? 1 : 0);
+
+/** The overclock's edge on one Tech unit's shot. Mirrored by dmgPreview. */
+const eventTechBonus = u => (G.event === 'overclock' && u.tech ? 1 : 0);
+
 /* ==== src/rules/units.js ============================================ */
 // Turning a card into a unit on the board, and the friendly buffs acting on it.
 
@@ -3365,6 +3470,7 @@ function mkUnit(cid, l, c) {
     choose: !!k.choose,
     tgt: null,
     pristine: k.pristine || 0,
+    dynamo: k.dynamo || 0,
     tech: !!k.tech,
     regen: !!k.regen,
     riposte: k.riposte || 0,
@@ -3418,7 +3524,7 @@ function leadBonus(u) {
 /** Damage this unit would deal right now, buffs and pristine bonus included. */
 function dmgPreview(u) {
   const pristine = u.pristine && u.hp >= u.max ? u.pristine : 0;
-  return Math.max(0, u.dmg + buffOf(u) + leadBonus(u) + pristine);
+  return Math.max(0, u.dmg + buffOf(u) + leadBonus(u) + pristine + eventTechBonus(u));
 }
 
 /* ==== src/rules/targeting.js ======================================== */
@@ -3528,22 +3634,6 @@ function targetsFor(u) {
   return [locked || g[0]];
 }
 
-/* ==== src/rules/log.js ============================================== */
-// The combat log. Newest first, capped so a long Onslaught cannot grow it
-// without bound. Entries carry a category so the renderer can colour them.
-
-const MAX_ENTRIES = 120;
-
-/**
- * @param {string} html  entry body, may contain markup
- * @param {'info'|'order'|'kill'|'loss'|'wave'} [cat]
- */
-function clog(html, cat) {
-  if (!G) return;
-  G.logs.unshift({h: html, c: cat || 'info'});
-  if (G.logs.length > MAX_ENTRIES) G.logs.pop();
-}
-
 /* ==== src/rules/combat.js =========================================== */
 // Damage: dealing it, taking it, and repairing it.
 
@@ -3577,6 +3667,36 @@ function dmgEnemy(e, d, src, pen) {
   if (D.deathrush) screamerRush(e);
 }
 
+/**
+ * A hostile crossing the line. Each lane carries one Last-Stand charge: the
+ * first breach in a lane fires the defense grid instead of counting — the
+ * breacher and every hostile in the lane are destroyed (through dmgEnemy, so
+ * kills, quotas, splits and screams all resolve normally) and the lane goes
+ * naked. Breaches in a spent lane count against the mission's allowance.
+ */
+function breachAt(e, how) {
+  G.enemies = G.enemies.filter(x => x.uid !== e.uid);
+  if (G.gridCharge && G.gridCharge[e.lane]) {
+    G.gridCharge[e.lane] = 0;
+    tapeEvent({type: 'clash', lane: e.lane, col: 0});
+    clog(`<span class="g">LAST-STAND PROTOCOL</span> — lane ${e.lane + 1}'s grid charge fires. The lane is swept clean.`, 'order');
+    e.hp = 1;
+    G.enemies.push(e);                    // back in play so the grid can claim it
+    // The purge is a save, not a harvest: kills and quota progress it would
+    // have earned are rolled back, though splits and screams still resolve.
+    const kills = G.kills;
+    const quota = G.quotaHit;
+    [...G.enemies].filter(x => x.lane === e.lane)
+      .forEach(x => { if (x.hp > 0) dmgEnemy(x, 999, 'Defense Grid', true); });
+    G.kills = kills;
+    G.quotaHit = quota;
+    return;
+  }
+  G.breaches++;
+  tapeEvent({type: 'breach', lane: e.lane});
+  clog(`<span class="d">BREACH</span> — ${BEST[e.k].n} ${how || 'crossed the line'}.`, 'loss');
+}
+
 /** A Husk falls apart: Crawlers spill into its cell and the free ground around it. */
 function huskSplit(e, count) {
   const spots = [[e.lane, e.col], [e.lane, e.col + 1], [e.lane, e.col - 1],
@@ -3607,10 +3727,7 @@ function screamerRush(e) {
     if (o.hp <= 0 || BEST[o.k].spd === 0) return;
     const nc = o.col - 1;
     if (nc < 0) {
-      G.breaches++;
-      G.enemies = G.enemies.filter(x => x.uid !== o.uid);
-      tapeEvent({type: 'breach', lane: o.lane});
-      clog(`<span class="d">BREACH</span> — ${BEST[o.k].n} carried over the line by the scream.`, 'loss');
+      breachAt(o, 'carried over the line by the scream');
       return;
     }
     if (G.ter[o.lane][nc] === 'x') return;
@@ -3688,7 +3805,8 @@ function fire(u, onPlay) {
   const k = POOL[u.id];
   const pristine = u.pristine && u.hp >= u.max ? u.pristine : 0;
   const gearBonus = u.dmg - (k.dmg || 0);
-  const base = (onPlay && k.burst ? k.burst + gearBonus : u.dmg) + buffOf(u) + leadBonus(u) + pristine;
+  const base = (onPlay && k.burst ? k.burst + gearBonus : u.dmg)
+    + buffOf(u) + leadBonus(u) + pristine + eventTechBonus(u);
 
   for (let shot = 0; shot < (u.att.cannon ? 2 : 1); shot++) {
     const ts = targetsFor(u);
@@ -3927,6 +4045,7 @@ function launchSpec(nd) {
     civ: [], crystals: [], quota: 0, quotaK: null, quotaHit: 0,
     uplinkAt: null, uplinkHeld: 0,
     strat: null, freeDrop: 0,
+    gridCharge: Array(LANES).fill(1), event: null, eventNext: null,
     predict: [], held: [], result: null,
   });
 
@@ -3947,6 +4066,9 @@ function launchSpec(nd) {
 
   for (let i = 0; i < Math.min(5, G.deck.length); i++) G.hand.push(G.deck.pop());
   seedStratagem();               // the lead's one call, outside the deck
+  // The first field event can land as early as turn 2 — telegraphed now.
+  G.eventNext = rollEvent();
+  if (G.eventNext) clog(`Field report: <span style="color:var(--violet)">${EVENTS[G.eventNext].n}</span> expected next turn.`, 'info');
   G.manifest = wave(1);
   G.doctrine = rollDoctrine();
   predictSpawns();
@@ -4494,6 +4616,13 @@ const pxDraw = {
   cannon: c => pxBody.cannon(c),
   turret: c => pxBody.turret(c),
   relay: c => pxBody.relay(c),
+  dynamo: c => `<rect x="34" y="92" width="32" height="26" rx="3" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
+    <circle cx="50" cy="105" r="7" fill="none" stroke="${c}" stroke-width="1.6"/>
+    <path d="M50 100 V110 M45 105 H55" stroke="${c}" stroke-width="1.2" opacity=".6"/>
+    <path d="M50 92 V74 M50 74 L44 80 M50 74 L56 80" stroke="${c}" stroke-width="1.6" fill="none"/>
+    <path d="M38 66 Q50 56 62 66" stroke="${c}" stroke-width="1.2" fill="none" opacity=".55"/>
+    <path d="M32 58 Q50 44 68 58" stroke="${c}" stroke-width="1" fill="none" opacity=".35"/>
+    <path d="M58 84 L53 92 L58 92 L52 102" stroke="${c}" stroke-width="1.4" fill="none" opacity=".9"/>`,
   techblade: c => pxBust(c, 'trooper') + pxProp.blade(c),
   pulse: c => pxBody.pulse(c),
   scrambler: c => pxBody.scrambler(c),
@@ -6285,9 +6414,10 @@ function playerPhase() {
 
 /** A hostile attacking rather than advancing. Civilians in front come first. */
 function strike(e, D, chorus, pressing) {
+  const dmg = Math.max(1, D.dmg + chorus - eventStrikeMalus());
   const cv = civAt(e.lane, e.col - 1);
   if (cv) {
-    cv.hp -= D.dmg + chorus;
+    cv.hp -= dmg;
     if (cv.hp <= 0) clog('<span class="d">A civilian pod was destroyed.</span>', 'loss');
     return;
   }
@@ -6303,7 +6433,7 @@ function strike(e, D, chorus, pressing) {
     clog(`${t.n}'s I-Field absorbed ${D.n}'s ranged fire.`, 'info');
     return;
   }
-  dmgUnit(t, D.dmg + chorus, D.n + (pressing ? ' (pressing)' : ''), e);
+  dmgUnit(t, dmg, D.n + (pressing ? ' (pressing)' : ''), e);
 }
 
 /** Spore Node: release a Crawler into the first free cell behind it. */
@@ -6361,10 +6491,7 @@ function actHostile(e, chorus) {
   for (let s = 0; s < steps; s++) {
     const nc = e.col - 1;
     if (nc < 0) {
-      G.breaches++;
-      G.enemies = G.enemies.filter(x => x.uid !== e.uid);
-      tapeEvent({type: 'breach', lane: e.lane});
-      clog(`<span class="d">BREACH</span> — ${D.n} crossed the line.`, 'loss');
+      breachAt(e);
       break;
     }
     if (G.ter[e.lane][nc] === 'x') break;
@@ -6414,7 +6541,9 @@ function territoryPhase() {
 /** Losing conditions checked every turn, in the order the reference used. */
 function lossCheck() {
   if (G.type === 'civilians' && G.civ.every(v => v.hp <= 0)) return 'All civilian pods lost.';
-  if (G.breaches >= MAXBREACH) return 'Three breaches.';
+  if (G.breaches >= MAXBREACH) {
+    return MAXBREACH === 1 ? 'The line was breached.' : MAXBREACH + ' breaches.';
+  }
   if (held() < 6) return 'Ground lost — no viable deployment line.';
   return null;
 }
@@ -6484,6 +6613,10 @@ function endTurn() {
   const wasLast = G.turn >= G.waves;
   spawnPhase();                      // deliver exactly what the markers promised
 
+  // The event clock advances BEFORE the next wave is rolled, so a surge or
+  // dead-air event shapes the manifest it was telegraphed against.
+  eventTick();
+
   if (!wasLast) {
     G.turn++;
     G.manifest = wave(G.turn);
@@ -6500,6 +6633,13 @@ function endTurn() {
   }
 
   G.dp = MAXDP;
+  // Dynamos hum: +1 DP each, capped at +2 — greed has a ceiling.
+  const dynamos = Math.min(2, G.units.filter(u => u.dynamo).length);
+  if (dynamos) {
+    G.dp += dynamos;
+    clog(`<span class="g">Dynamo</span> — +${dynamos} deploy point${dynamos > 1 ? 's' : ''} generated.`, 'order');
+  }
+  if (G.event === 'supply') G.dp += 2;
   if (leadOf().passive && leadOf().passive.n === 'Firebrand' && G.lost > lostBefore) {
     G.dp += 2;
     clog('<span class="g">Firebrand</span> — losses answered with +2 deploy points.', 'order');
@@ -6556,17 +6696,51 @@ function forecastThreat() {
     const cv = civAt(e.lane, e.col - 1);
     atk[e.uid] = true;
 
+    // Mirrors strike(): the chorus aura and a Seismic Tremor shift every blow.
+    const chorus = G.enemies.some(o => BEST[o.k].aura) ? 1 : 0;
+    const raw = Math.max(1, D.dmg + chorus - eventStrikeMalus());
     if (cv) {
       const key = 'c' + cv.l + ',' + cv.c;
-      hits[key] = (hits[key] || 0) + D.dmg;
+      hits[key] = (hits[key] || 0) + raw;
     } else if (target) {
       // Mirrors strike(): an I-Field swallows any hit that is not adjacent.
       if (target.ifield && target.col + target.size - 1 < e.col - 1) return;
-      hits[target.uid] = (hits[target.uid] || 0) + Math.max(1, D.dmg - dampenIn(target.lane));
+      hits[target.uid] = (hits[target.uid] || 0) + Math.max(1, raw - dampenIn(target.lane));
     }
   });
 
   return {hits, atk};
+}
+
+/**
+ * What one hostile will do this coming turn, for the intent badge on its
+ * chip. Mirrors actHostile() the way forecastThreat mirrors the strike half:
+ * if the two drift, the badge lies.
+ *   {k:'strike', dmg}    it will attack for dmg
+ *   {k:'advance', steps} it will move toward the line
+ *   {k:'mend'}           it will heal a wounded hostile
+ *   {k:'spawn'}          it will (eventually) release a crawler
+ *   {k:'hold'}           it will do nothing visible
+ */
+function enemyIntent(e) {
+  const D = BEST[e.k];
+  if (e.stun) return {k: 'hold'};
+  if (D.spawn) return {k: 'spawn'};
+  if (D.spd === 0) return {k: 'hold'};
+
+  const chorus = G.enemies.some(o => BEST[o.k].aura) ? 1 : 0;
+  const dmg = Math.max(1, (D.dmg || 0) + chorus - eventStrikeMalus());
+
+  if (D.mend && G.enemies.some(o =>
+    o.uid !== e.uid && o.lane === e.lane && o.hp < BEST[o.k].hp)) return {k: 'mend'};
+  if (D.hold !== undefined && e.col <= D.hold) return {k: 'strike', dmg};
+
+  const ahead = e.col - 1;
+  const au = ahead >= 0 ? unitAt(e.lane, ahead) : null;
+  const blocked = ahead >= 0 && ((au && !D.tunnel && !au.mine) || civAt(e.lane, ahead));
+  const queued = ahead >= 0 && foeAt(e.lane, ahead);
+  if (blocked || queued) return D.dmg ? {k: 'strike', dmg} : {k: 'hold'};
+  return {k: 'advance', steps: Math.max(1, Math.floor((e.mv || 0) + D.spd))};
 }
 
 /** Cells this unit is helping — buffs, heals, regeneration. Rendered blue. */
@@ -6935,15 +7109,32 @@ function unitMarkup(u, incoming) {
         <div class="nm">${u.n.split(' ')[0]}${u.size > 1 ? '▸' : ''}</div><div class="hp">${u.hp}</div></div>`;
 }
 
+/** Every hostile type carries its own glyph — identity at cell size. */
+const FOE_GLYPH = {
+  crawler: '▪', hulk: '⬢', breacher: '◣', spitter: '◆', burrower: '⋒',
+  spore: '✱', jammer: '⌁', pylon: '▣', harrower: '✠', mender: '✚',
+  husk: '◍', screamer: '◉', chorus: '≋', sovereign: '♚',
+};
+
+/** The intent badge: what this hostile will do next turn, per enemyIntent(). */
+function intentBadge(e) {
+  const it = enemyIntent(e);
+  if (it.k === 'strike') return `<span class="intent atk">⚔${it.dmg}</span>`;
+  if (it.k === 'advance') return `<span class="intent mov">${'▸'.repeat(Math.min(it.steps, 2))}</span>`;
+  if (it.k === 'mend') return '<span class="intent mend">✚</span>';
+  if (it.k === 'spawn') return '<span class="intent spwn">✱</span>';
+  return '<span class="intent idle">…</span>';
+}
+
 /** Markup for a hostile standing in a cell. */
-function foeMarkup(e, striking, locked) {
+function foeMarkup(e, locked) {
   const D = BEST[e.k];
   const kind = D.t === 'special' ? 'e-spec' : D.t === 'tech' ? 'e-tech' : 'e-unit';
   return `<div class="ent ${kind}${e.stun ? ' stunned' : ''}">
-        ${striking ? '<span class="striking">!</span>' : ''}
+        ${intentBadge(e)}
         ${locked ? '<span class="lockpip">⌖</span>' : ''}
         <span class="minihp foe"><i style="width:${Math.max(0, e.hp / D.hp * 100)}%"></i></span>
-        <div class="nm">${D.n.split(' ')[0]}</div><div class="hp">${e.hp}</div></div>`;
+        <div class="nm"><span class="fglyph">${FOE_GLYPH[e.k] || '▪'}</span>${D.n.split(' ')[0]}</div><div class="hp">${e.hp}</div></div>`;
 }
 
 function drawBoard() {
@@ -7001,8 +7192,14 @@ function drawBoard() {
     if (aimable.has(i)) cls += ' aimable';
     cell.className = cls;
 
-    const marker = c === COLS - 1 && spawnLanes[l]
+    let marker = c === COLS - 1 && spawnLanes[l]
       ? `<span class="spawnmark">◀${spawnLanes[l] > 1 ? spawnLanes[l] : ''}</span>` : '';
+    // The lane's Last-Stand charge, standing (bright) or spent (dark).
+    if (c === 0 && G.gridCharge) {
+      marker += `<span class="gridpip${G.gridCharge[l] ? '' : ' spent'}" title="${G.gridCharge[l]
+        ? 'Last-Stand charge armed — the first breach in this lane fires the grid instead of counting'
+        : 'Charge spent — breaches in this lane now count'}">⛨</span>`;
+    }
 
     const u = unitAt(l, c);
     const e = foeAt(l, c);
@@ -7023,7 +7220,7 @@ function drawBoard() {
       cell.innerHTML = marker + `<div class="ent p-civ"><div class="nm">CIV</div><div class="hp">${v.hp}</div></div>`;
     } else if (e) {
       const locked = G.units.some(x => x.tgt === e.uid);
-      cell.innerHTML = marker + foeMarkup(e, threat.atk[e.uid], locked);
+      cell.innerHTML = marker + foeMarkup(e, locked);
       cell.classList.add('clickable');
       if (aimable.has(i) && mover && !mover.acted) cell.onclick = () => { sfx('zap'); doAttack(mover, e); };
       else cell.onclick = () => focusEnemy(e.k);
@@ -7152,15 +7349,26 @@ function drawAll() {
   $('c-obj').textContent = objText();
   $('c-dp').textContent = G.dp;
   $('c-ter').textContent = held();
-  $('c-br').innerHTML = G.breaches + '<span class="of">/3</span>';
+  $('c-br').innerHTML = G.breaches + '<span class="of">/' + MAXBREACH + '</span>';
   $('c-deck').textContent = G.deck.length;
 
+  // Field events ride at the front of the incoming strip: the live one bright,
+  // the telegraphed one dim — the same promise contract as the spawn markers.
+  const evChips = (G.event ? `<span class="incp evt" data-evt="${G.event}">${EVENTS[G.event].icon} ${EVENTS[G.event].n}</span>` : '')
+    + (G.eventNext ? `<span class="incp evtnext" data-evt="${G.eventNext}">next · ${EVENTS[G.eventNext].n}</span>` : '');
+
   const blind = G.mod === 'blackout';
-  $('man').innerHTML = G.manifest && !blind
-    ? Object.entries(G.manifest)
-      .map(([k, v]) => `<span class="incp" data-foe="${k}">${BEST[k].n}<b>${v}</b></span>`).join('')
+  const manChips = G.manifest && !blind
+    ? (Object.keys(G.manifest).length
+      ? Object.entries(G.manifest)
+        .map(([k, v]) => `<span class="incp" data-foe="${k}"><span class="fglyph">${FOE_GLYPH[k] || '▪'}</span>${BEST[k].n}<b>${v}</b></span>`).join('')
+      : '<span class="incp">Dead air — no spawns</span>')
     : G.manifest ? '<span class="incp">Blackout — no preview</span>'
       : '<span class="incp">No further hostiles</span>';
+  $('man').innerHTML = evChips + manChips;
+  document.querySelectorAll('#man [data-evt]').forEach(el => {
+    el.onclick = () => notify(EVENTS[el.dataset.evt].n, EVENTS[el.dataset.evt].d);
+  });
 
   const doctrine = DOCTRINE.find(d => d.k === G.doctrine);
   $('c-doc').textContent = G.manifest
@@ -7879,8 +8087,10 @@ const STEPS = [
   },
   {
     title: 'Hold the line',
-    body: 'Three breaches loses the mission. Falling below 6 tiles loses the ' +
-      'mission. Everything else is yours to decide. Good hunting, Commander.',
+    body: 'The ⛨ charge on each lane fires once — the first hostile to cross ' +
+      'that line is vaporised along with everything behind it, and the lane ' +
+      'goes naked. After that, one body through loses the mission, and so ' +
+      'does falling below 6 tiles. Good hunting, Commander.',
     btn: 'Dismiss',
   },
 ];

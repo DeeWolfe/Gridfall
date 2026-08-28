@@ -3,6 +3,7 @@
 import {POOL} from '../content/cards.js';
 import {G, nextUid} from '../state/session.js';
 import {gearOf, leadOf} from '../save/progression.js';
+import {eventTechBonus} from './events.js';
 
 /** Buffs stack but are capped, so a Scout/Relay/Herald stack cannot run away. */
 const MAX_BUFF = 2;
@@ -66,6 +67,7 @@ export function mkUnit(cid, l, c) {
     choose: !!k.choose,
     tgt: null,
     pristine: k.pristine || 0,
+    dynamo: k.dynamo || 0,
     tech: !!k.tech,
     regen: !!k.regen,
     riposte: k.riposte || 0,
@@ -119,5 +121,5 @@ export function leadBonus(u) {
 /** Damage this unit would deal right now, buffs and pristine bonus included. */
 export function dmgPreview(u) {
   const pristine = u.pristine && u.hp >= u.max ? u.pristine : 0;
-  return Math.max(0, u.dmg + buffOf(u) + leadBonus(u) + pristine);
+  return Math.max(0, u.dmg + buffOf(u) + leadBonus(u) + pristine + eventTechBonus(u));
 }

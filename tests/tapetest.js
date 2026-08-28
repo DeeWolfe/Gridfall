@@ -9,7 +9,7 @@ import './support/install-dom.js';
 import * as A from './support/api.js';
 import {get, flushTimers} from './support/dom.js';
 import {failures} from './support/harness.js';
-import {spawnUnit, spawnFoe, clearBoard, unlockAll} from './support/fixtures.js';
+import {spawnUnit, spawnFoe, clearBoard, unlockAll, stillAir} from './support/fixtures.js';
 import {enableTape, tapeBegin, tapeEnd} from '../src/rules/tape.js';
 import {playTurn, skipReplay, isReplaying} from '../src/render/playback.js';
 import {drawAll, drawActions} from '../src/render/combat.js';
@@ -25,6 +25,7 @@ A.setHooks({
 
 A.enterProfile(unlockAll(A.blankProfile('TP'), ['rifle', 'wall', 'scout', 'marks']));
 A.launch(Object.keys(A.opRun().nodes)[0]);
+  stillAir();
 
 // 1. before anyone enables recording, the tape stays empty and free
 A.endTurn();

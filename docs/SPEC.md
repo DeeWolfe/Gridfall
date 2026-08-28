@@ -7,7 +7,7 @@ Extracted from the reference build. Numbers here match `gridfall-data.json`; tha
 - **5 lanes x 8 columns.** Columns 0-2 start yours, 5-7 hostile, 3-4 neutral.
 - **6 deploy points per turn**, flat. Unspent points are lost.
 - **Deck: 12 cards, no duplicates.** Opening hand 5, draw 2 per turn, reshuffles when empty.
-- **3 breaches loses.** Holding fewer than 6 tiles also loses.
+- **Last-Stand Protocol.** Each lane carries one grid charge: the first hostile to cross that lane's line is destroyed along with every hostile in the lane (kills and quota progress from the purge do not count), and the charge is spent. **One breach past a spent lane loses.** Holding fewer than 6 tiles also loses.
 - Tiles flip to whoever ends the turn on them. You may only deploy on tiles you hold.
 
 ## Turn order
@@ -22,11 +22,12 @@ Extracted from the reference build. Numbers here match `gridfall-data.json`; tha
 
 ## Cards
 
-### Common (22)
+### Common (23)
 
 | Card | DP | Hull | Targeting | Notes |
 |---|---|---|---|---|
 | Scout | 1 | 3 | — | — |
+| Dynamo | 2 | 3 | — | +1 DP each turn while it stands, stacking to +2. Tech, unarmed. |
 | Recon Lark | 1 | 2 | — | — |
 | Pathfinder | 1 | 4 | First hostile in lane | single-target |
 | Vanguard | 3 | 7 | Adjacent cell | single-target |
@@ -150,14 +151,14 @@ Unlockable leads are Quartermaster goods, recruited with credits.
 
 | Type | Waves | Objective |
 |---|---|---|
-| Defend Stronghold | 8 | Hold the line through every wave. Three breaches ends it. |
+| Defend Stronghold | 8 | Hold the line through every wave. Each lane's grid charge absorbs one breach - after that, one body through ends it. |
 | Protect Civilians | 7 | Three civilian pods sit on your ground. Lose all three and the operation fails. |
 | Acquire Specimens | 7 | Destroy the marked hostile type to fill the quota. |
 | Fight for Crystals | 6 | Four crystal nodes on the field. Hold three when the last wave clears. |
 | Retake Ground | 7 | Hold 3 or more tiles in the hostile half when the last wave clears. Bring something that deploys behind their line. |
 | Extraction | 6 | Short and heavy. Survive to extraction. Reserved for the final node of every operation. |
 | Establish Uplink | 7 | A marked relay tile in the neutral band. Hold it three turns IN A ROW - losing it resets the charge. |
-| Eradication Blitz | 6 | Destroy ten hostiles before the wave count runs out. |
+| Eradication Blitz | 6 | Destroy nine hostiles before the wave count runs out. |
 
 ## Campaign map structure
 
@@ -196,6 +197,34 @@ overrides it (Shallowhelm's mandatory Crystals hold runs at 1, not 3).
   (always Uplink), and the Cleanse wing - gated on power, ending in the
   Cleanse Core (always Blitz). Extraction is back at the Gatehouse, gated
   on the armed Self-Cleanse.
+
+## Field events
+
+One-turn conditions on the spawn-marker promise contract: each is telegraphed
+a full turn ahead ("Field report: ... expected next turn"), lives for exactly
+one turn, then expires. Roughly one turn in three carries one.
+
+| Event | Effect while live |
+|---|---|
+| Supply Drop | +2 deploy points this turn. |
+| Seismic Tremor | Every hostile strike deals 1 less (min 1). |
+| Grid Overclock | Your Tech units strike +1. |
+| Hive Surge | The wave marked this turn rolls +2 threat. |
+| Dead Air | The wave marked this turn is empty. |
+
+Surge and Dead Air shape the manifest rolled while they are live, so the
+markers the player reads already reflect them. The tremor and overclock are
+mirrored in forecastThreat/dmgPreview - the previews never lie.
+
+## Enemy intents
+
+Every hostile chip carries an intent badge for the coming turn, computed by
+`enemyIntent()` (a strict mirror of `actHostile()`): ⚔n strike for n, ▸/▸▸
+advance (fractional speeds show banked steps), ✚ mend, ✱ spawn, … hold. Each
+hostile type also carries a fixed glyph (▪ Crawler, ⬢ Hulk, ◣ Breacher, ◆
+Spitter, ⋒ Burrower, ✱ Spore, ⌁ Jammer, ▣ Pylon, ✠ Harrower, ✚ Mender, ◍
+Husk, ◉ Screamer, ≋ Chorus, ♚ Sovereign) shown on its chip and in the
+incoming strip.
 
 ## Modifiers
 

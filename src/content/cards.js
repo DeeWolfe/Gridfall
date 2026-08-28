@@ -588,4 +588,18 @@ export const POOL = {
     recharge: 1,
     d: "Reaches the furthest hostile on the board, any lane, for eight. Needs a turn to cycle — it cannot fire twice running.",
   },
+  dynamo: {
+    n: "Dynamo",
+    t: "common",
+    single: 0,
+    dp: 2,
+    hp: 3,
+    price: 110,
+    mob: 0,
+    tg: "none",
+    dmg: 0,
+    tech: 1,
+    dynamo: 1,
+    d: "Generates +1 deploy point at the start of each turn while it stands, stacking up to +2. No weapon, thin hull — greed responsibly.",
+  },
 };

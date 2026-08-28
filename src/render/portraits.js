@@ -226,6 +226,13 @@ const pxDraw = {
   cannon: c => pxBody.cannon(c),
   turret: c => pxBody.turret(c),
   relay: c => pxBody.relay(c),
+  dynamo: c => `<rect x="34" y="92" width="32" height="26" rx="3" fill="${PXFILL}" stroke="${c}" stroke-width="1.6"/>
+    <circle cx="50" cy="105" r="7" fill="none" stroke="${c}" stroke-width="1.6"/>
+    <path d="M50 100 V110 M45 105 H55" stroke="${c}" stroke-width="1.2" opacity=".6"/>
+    <path d="M50 92 V74 M50 74 L44 80 M50 74 L56 80" stroke="${c}" stroke-width="1.6" fill="none"/>
+    <path d="M38 66 Q50 56 62 66" stroke="${c}" stroke-width="1.2" fill="none" opacity=".55"/>
+    <path d="M32 58 Q50 44 68 58" stroke="${c}" stroke-width="1" fill="none" opacity=".35"/>
+    <path d="M58 84 L53 92 L58 92 L52 102" stroke="${c}" stroke-width="1.4" fill="none" opacity=".9"/>`,
   techblade: c => pxBust(c, 'trooper') + pxProp.blade(c),
   pulse: c => pxBody.pulse(c),
   scrambler: c => pxBody.scrambler(c),

@@ -620,6 +620,45 @@ pulses once (`absorb`). State lives in `hold.js` (`toggleRoster`,
 only; the Quartermaster's grid never folds. The tiles stay in the DOM when
 folded (CSS `display:none`), which keeps the render guards honest.
 
+## The fun patch — variety, drama, and honest enemies
+
+Built from the game-loop review: a near-random bot was winning most missions,
+turtling was optimal, every turn felt like the last one, and players couldn't
+tell hostiles apart. Four systems landed together:
+
+**Field events** (`src/rules/events.js`) — one-turn conditions on the same
+promise contract as the spawn markers: telegraphed a full turn ahead, live
+for one turn, gone. Supply Drop (+2 DP), Seismic Tremor (hostile strikes −1),
+Grid Overclock (Tech +1), Hive Surge (next manifest +2 threat), Dead Air
+(next manifest empty). ~1 turn in 3 carries one. The event clock ticks in
+`endTurn` BEFORE the next wave is rolled, so surge/calm shape the manifest
+they promised on; tremor and overclock are mirrored in
+`forecastThreat`/`dmgPreview` so the previews never lie.
+
+**Last-Stand Protocol** (`breachAt` in combat.js, `G.gridCharge`) — the PvZ
+lawnmower, in zanshin colours. Each lane's grid charge answers its first
+breach: the breacher and every hostile in the lane die (through `dmgEnemy`,
+so splits and screams still resolve — but kills and quota progress are
+rolled back; the purge is a save, not a harvest) and the lane goes naked,
+its ⛨ pip dark. MAXBREACH dropped 3 → 1: past a spent lane, one body
+through ends it. Measured: charges at cap 3 ballooned the bot floors
+(stronghold 93%!), cap 1 landed them back in band — stronghold 57%, retake
+61%, blitz 63%, crystals 42%, Gauntlet still ~1-in-11.
+
+**Dynamo** — the missing sunflower. Common, 2 DP, 3 hull, unarmed, +1 DP at
+the start of each turn while it stands, stacking to +2. Turn one finally has
+a greed-or-guns question.
+
+**Enemy legibility** — every hostile chip now carries an intent badge
+(`enemyIntent()` in forecast.js, a strict mirror of `actHostile`): ⚔n
+strike, ▸/▸▸ advance with banked fractional steps, ✚ mend, ✱ spawn, … hold.
+Every type has a fixed glyph on its chip and in the incoming strip, and
+tapping any hostile still opens its dossier. The old lone `!` badge is gone.
+
+All of it guarded by `eventtest` (36 guards now): the event clock, both
+mirror pairs, the exact surge/calm budgets, the charge spending and the
+naked-lane loss, the Dynamo cap, and one truth check per intent kind.
+
 ## The readability pass
 
 Players reported the text still read busy and small. The root cause was

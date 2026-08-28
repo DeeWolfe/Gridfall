@@ -1,11 +1,12 @@
 // Immediate actions: move, attack and ability all commit the unit on the spot.
 import * as A from './support/api.js';
 import {failures} from './support/harness.js';
-import {spawnUnit, spawnFoe, clearBoard, unlockAll} from './support/fixtures.js';
+import {spawnUnit, spawnFoe, clearBoard, unlockAll, stillAir} from './support/fixtures.js';
 
 const F = failures();
 A.enterProfile(unlockAll(A.blankProfile('AC'), ['rifle', 'archer', 'assassin', 'lancer']));
 A.launch(Object.keys(A.opRun().nodes)[0]);
+  stillAir();
 clearBoard();
 
 // 1. movement is immediate and commits the unit

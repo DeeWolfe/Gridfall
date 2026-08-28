@@ -29,6 +29,17 @@ export function clearBoard() {
   G.enemies.length = 0;
 }
 
+/**
+ * Determinism for exact-number guards: no field events this mission. Call
+ * right after launchSpec. The balance harnesses never call it — events are
+ * part of the game they measure.
+ */
+export function stillAir() {
+  G.event = null;
+  G.eventNext = null;
+  G.noEvents = true;
+}
+
 /** Give a profile the whole collection, and optionally a specific deck. */
 export function unlockAll(p, deck) {
   p.unlocks.cards = Object.keys(POOL);

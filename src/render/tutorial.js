@@ -43,8 +43,10 @@ const STEPS = [
   },
   {
     title: 'Hold the line',
-    body: 'Three breaches loses the mission. Falling below 6 tiles loses the ' +
-      'mission. Everything else is yours to decide. Good hunting, Commander.',
+    body: 'The ⛨ charge on each lane fires once — the first hostile to cross ' +
+      'that line is vaporised along with everything behind it, and the lane ' +
+      'goes naked. After that, one body through loses the mission, and so ' +
+      'does falling below 6 tiles. Good hunting, Commander.',
     btn: 'Dismiss',
   },
 ];

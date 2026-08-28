@@ -3,13 +3,14 @@ import './support/install-dom.js';
 import * as A from './support/api.js';
 import {get} from './support/dom.js';
 import {failures} from './support/harness.js';
-import {spawnUnit, spawnFoe, unlockAll} from './support/fixtures.js';
+import {spawnUnit, spawnFoe, unlockAll, stillAir} from './support/fixtures.js';
 import {drawAll} from '../src/render/combat.js';
 
 const F = failures();
 A.enterProfile(unlockAll(A.blankProfile('AIM'),
   ['assassin', 'dragoon', 'rifle', 'marks', 'wall', 'scout']));
 A.launch(Object.keys(A.opRun().nodes)[0]);
+  stillAir();
 
 // Push a few turns so hostiles actually arrive.
 for (let t = 0; t < 5; t++) A.endTurn();

@@ -2,7 +2,7 @@
 // promise that a freshly played unit fires exactly once on the turn it lands.
 import * as A from './support/api.js';
 import {failures} from './support/harness.js';
-import {unlockAll} from './support/fixtures.js';
+import {unlockAll, stillAir} from './support/fixtures.js';
 
 const F = failures();
 const RUNS = 30;
@@ -15,6 +15,7 @@ let honoured = 0;
 for (let run = 0; run < RUNS; run++) {
   A.enterProfile(unlockAll(A.blankProfile('S' + run), Object.keys(A.POOL).slice(0, 12)));
   A.launch(Object.keys(A.opRun().nodes)[0]);
+  stillAir();
 
   for (let t = 0; t < TURNS && A.G && !A.G.over; t++) {
     // Play cards so lanes get congested and the promise is actually stressed.
@@ -57,6 +58,7 @@ if (promised < 200) F.push(`only ${promised} spawns exercised — the contract i
   p.loadout.deck = ['rifle'];
   A.enterProfile(p);
   A.launch(Object.keys(A.opRun().nodes)[0]);
+  stillAir();
   for (let t = 0; t < 3; t++) A.endTurn();
 
   const foe = A.G.enemies.find(e => e.col >= 2);

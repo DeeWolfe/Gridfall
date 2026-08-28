@@ -1,6 +1,6 @@
 # Test suite
 
-35 guards and 3 balance harnesses. Run them all with `npm test`, one at a time
+36 guards and 3 balance harnesses. Run them all with `npm test`, one at a time
 with `node tests/run-all.js <name>`, or directly with `node tests/<name>.js`.
 
 The guards must pass. The balance harnesses only report — their numbers come

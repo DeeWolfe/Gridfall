@@ -40,7 +40,7 @@ export {wave, laneScore, rollDoctrine, predictSpawns} from '../../src/rules/wave
 export {mkUnit, buffOf, dmgPreview, leadBonus} from '../../src/rules/units.js';
 export {seedStratagem, stratReady, canPlayStratagem, playStratagem, stratMarkers, resolveStratagem, BREACH_HULL} from '../../src/rules/stratagems.js';
 export {laneJammed, laneFloor, laneAhead, geomFor, candidatesFor, targetsFor} from '../../src/rules/targeting.js';
-export {dampenIn, dmgEnemy, blast, dmgUnit, fire, healPass} from '../../src/rules/combat.js';
+export {dampenIn, dmgEnemy, blast, dmgUnit, fire, healPass, breachAt} from '../../src/rules/combat.js';
 export {useAbility} from '../../src/rules/abilities.js';
 export {moveTargets, doMove, doAttack, doAbility, swapTargets, doSwap} from '../../src/rules/actions.js';
 export {deploy} from '../../src/rules/deploy.js';
@@ -51,5 +51,6 @@ export {
   launch, launchSpec, launchOnslaught, launchGauntlet, abortMission, objText, finish,
 } from '../../src/rules/mission.js';
 export {packOffer, claimPack, queuePack, purchasePack, PACK_PRICE, PRIORITY_CHANCE} from '../../src/rules/packs.js';
-export {forecastThreat, supportTargets, influenceCells, supportLabel} from '../../src/rules/forecast.js';
+export {forecastThreat, enemyIntent, supportTargets, influenceCells, supportLabel} from '../../src/rules/forecast.js';
+export {EVENTS, rollEvent, eventTick} from '../../src/rules/events.js';
 export {clog} from '../../src/rules/log.js';

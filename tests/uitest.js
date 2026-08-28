@@ -9,6 +9,7 @@ import './support/install-dom.js';
 import * as A from './support/api.js';
 import {get} from './support/dom.js';
 import {failures, builtPage, pageParts} from './support/harness.js';
+import {stillAir} from './support/fixtures.js';
 import {
   UI_MODES, uiPreference, resolvedMode, applyUiMode, setUiMode, cycleUiMode, uiModeLabel,
 } from '../src/render/uimode.js';
@@ -86,6 +87,7 @@ const stamp = () => document.documentElement.dataset.ui;
   A.enterProfile(A.blankProfile('LOG'));
   setUiMode('pc');
   A.launch(Object.keys(A.opRun().nodes)[0]);
+  stillAir();
   A.endTurn();
   drawAll();
   const log = get('cblog')._html;

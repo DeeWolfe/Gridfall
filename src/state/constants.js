@@ -5,7 +5,7 @@
 export const LANES = 5;
 export const COLS = 8;
 export const MAXDP = 6;
-export const MAXBREACH = 3;
+export const MAXBREACH = 1;
 export const DECKSIZE = 12;
 export const SAVE_VERSION = 4;
 export const STARTER = ["scout", "rifle", "marks", "wall", "medic", "turret", "lancer", "bulwark", "assassin"];

@@ -95,7 +95,7 @@ node tests/run-all.js --no-build
 node tests/run-all.js acttest # one harness
 ```
 
-35 guards must pass. Three balance harnesses report win rates and never fail —
+36 guards must pass. Three balance harnesses report win rates and never fail —
 their numbers come from a bot that plays close to randomly, so read every figure
 as a floor rather than a measurement.
 

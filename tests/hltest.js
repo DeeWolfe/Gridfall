@@ -4,7 +4,7 @@ import './support/install-dom.js';
 import * as A from './support/api.js';
 import {get} from './support/dom.js';
 import {failures} from './support/harness.js';
-import {spawnUnit, spawnFoe, clearBoard, unlockAll} from './support/fixtures.js';
+import {spawnUnit, spawnFoe, clearBoard, unlockAll, stillAir} from './support/fixtures.js';
 import {drawAll} from '../src/render/combat.js';
 
 const F = failures();
@@ -12,6 +12,7 @@ const cell = u => u.lane * A.COLS + u.col;
 
 A.enterProfile(unlockAll(A.blankProfile('HL'), Object.keys(A.POOL).slice(0, 12)));
 A.launch(Object.keys(A.opRun().nodes)[0]);
+  stillAir();
 clearBoard();
 
 // Scout buffs the four orthogonal neighbours

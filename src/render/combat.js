@@ -4,7 +4,7 @@
 // rebuilds the screen from scratch each time rather than patching it, which is
 // why the rules layer only has to say "something changed".
 
-import {LANES, COLS} from '../state/constants.js';
+import {LANES, COLS, MAXBREACH} from '../state/constants.js';
 import {POOL} from '../content/cards.js';
 import {BEST} from '../content/hostiles.js';
 import {MISSIONS} from '../content/missions.js';
@@ -23,7 +23,8 @@ import {moveTargets, doMove, doAttack, doAbility, swapTargets, doSwap} from '../
 import {deploy} from '../rules/deploy.js';
 import {endTurn} from '../rules/phases.js';
 import {objText, abortMission} from '../rules/mission.js';
-import {forecastThreat, supportTargets, influenceCells, supportLabel} from '../rules/forecast.js';
+import {forecastThreat, enemyIntent, supportTargets, influenceCells, supportLabel} from '../rules/forecast.js';
+import {EVENTS} from '../rules/events.js';
 import {clog} from '../rules/log.js';
 import {$, show} from './dom.js';
 import {portrait, artFor} from './art.js';
@@ -224,15 +225,32 @@ function unitMarkup(u, incoming) {
         <div class="nm">${u.n.split(' ')[0]}${u.size > 1 ? '▸' : ''}</div><div class="hp">${u.hp}</div></div>`;
 }
 
+/** Every hostile type carries its own glyph — identity at cell size. */
+export const FOE_GLYPH = {
+  crawler: '▪', hulk: '⬢', breacher: '◣', spitter: '◆', burrower: '⋒',
+  spore: '✱', jammer: '⌁', pylon: '▣', harrower: '✠', mender: '✚',
+  husk: '◍', screamer: '◉', chorus: '≋', sovereign: '♚',
+};
+
+/** The intent badge: what this hostile will do next turn, per enemyIntent(). */
+function intentBadge(e) {
+  const it = enemyIntent(e);
+  if (it.k === 'strike') return `<span class="intent atk">⚔${it.dmg}</span>`;
+  if (it.k === 'advance') return `<span class="intent mov">${'▸'.repeat(Math.min(it.steps, 2))}</span>`;
+  if (it.k === 'mend') return '<span class="intent mend">✚</span>';
+  if (it.k === 'spawn') return '<span class="intent spwn">✱</span>';
+  return '<span class="intent idle">…</span>';
+}
+
 /** Markup for a hostile standing in a cell. */
-function foeMarkup(e, striking, locked) {
+function foeMarkup(e, locked) {
   const D = BEST[e.k];
   const kind = D.t === 'special' ? 'e-spec' : D.t === 'tech' ? 'e-tech' : 'e-unit';
   return `<div class="ent ${kind}${e.stun ? ' stunned' : ''}">
-        ${striking ? '<span class="striking">!</span>' : ''}
+        ${intentBadge(e)}
         ${locked ? '<span class="lockpip">⌖</span>' : ''}
         <span class="minihp foe"><i style="width:${Math.max(0, e.hp / D.hp * 100)}%"></i></span>
-        <div class="nm">${D.n.split(' ')[0]}</div><div class="hp">${e.hp}</div></div>`;
+        <div class="nm"><span class="fglyph">${FOE_GLYPH[e.k] || '▪'}</span>${D.n.split(' ')[0]}</div><div class="hp">${e.hp}</div></div>`;
 }
 
 export function drawBoard() {
@@ -290,8 +308,14 @@ export function drawBoard() {
     if (aimable.has(i)) cls += ' aimable';
     cell.className = cls;
 
-    const marker = c === COLS - 1 && spawnLanes[l]
+    let marker = c === COLS - 1 && spawnLanes[l]
       ? `<span class="spawnmark">◀${spawnLanes[l] > 1 ? spawnLanes[l] : ''}</span>` : '';
+    // The lane's Last-Stand charge, standing (bright) or spent (dark).
+    if (c === 0 && G.gridCharge) {
+      marker += `<span class="gridpip${G.gridCharge[l] ? '' : ' spent'}" title="${G.gridCharge[l]
+        ? 'Last-Stand charge armed — the first breach in this lane fires the grid instead of counting'
+        : 'Charge spent — breaches in this lane now count'}">⛨</span>`;
+    }
 
     const u = unitAt(l, c);
     const e = foeAt(l, c);
@@ -312,7 +336,7 @@ export function drawBoard() {
       cell.innerHTML = marker + `<div class="ent p-civ"><div class="nm">CIV</div><div class="hp">${v.hp}</div></div>`;
     } else if (e) {
       const locked = G.units.some(x => x.tgt === e.uid);
-      cell.innerHTML = marker + foeMarkup(e, threat.atk[e.uid], locked);
+      cell.innerHTML = marker + foeMarkup(e, locked);
       cell.classList.add('clickable');
       if (aimable.has(i) && mover && !mover.acted) cell.onclick = () => { sfx('zap'); doAttack(mover, e); };
       else cell.onclick = () => focusEnemy(e.k);
@@ -441,15 +465,26 @@ export function drawAll() {
   $('c-obj').textContent = objText();
   $('c-dp').textContent = G.dp;
   $('c-ter').textContent = held();
-  $('c-br').innerHTML = G.breaches + '<span class="of">/3</span>';
+  $('c-br').innerHTML = G.breaches + '<span class="of">/' + MAXBREACH + '</span>';
   $('c-deck').textContent = G.deck.length;
 
+  // Field events ride at the front of the incoming strip: the live one bright,
+  // the telegraphed one dim — the same promise contract as the spawn markers.
+  const evChips = (G.event ? `<span class="incp evt" data-evt="${G.event}">${EVENTS[G.event].icon} ${EVENTS[G.event].n}</span>` : '')
+    + (G.eventNext ? `<span class="incp evtnext" data-evt="${G.eventNext}">next · ${EVENTS[G.eventNext].n}</span>` : '');
+
   const blind = G.mod === 'blackout';
-  $('man').innerHTML = G.manifest && !blind
-    ? Object.entries(G.manifest)
-      .map(([k, v]) => `<span class="incp" data-foe="${k}">${BEST[k].n}<b>${v}</b></span>`).join('')
+  const manChips = G.manifest && !blind
+    ? (Object.keys(G.manifest).length
+      ? Object.entries(G.manifest)
+        .map(([k, v]) => `<span class="incp" data-foe="${k}"><span class="fglyph">${FOE_GLYPH[k] || '▪'}</span>${BEST[k].n}<b>${v}</b></span>`).join('')
+      : '<span class="incp">Dead air — no spawns</span>')
     : G.manifest ? '<span class="incp">Blackout — no preview</span>'
       : '<span class="incp">No further hostiles</span>';
+  $('man').innerHTML = evChips + manChips;
+  document.querySelectorAll('#man [data-evt]').forEach(el => {
+    el.onclick = () => notify(EVENTS[el.dataset.evt].n, EVENTS[el.dataset.evt].d);
+  });
 
   const doctrine = DOCTRINE.find(d => d.k === G.doctrine);
   $('c-doc').textContent = G.manifest

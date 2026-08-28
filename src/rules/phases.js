@@ -14,7 +14,8 @@ import {G, active, nextUid, clearSelection, replaying} from '../state/session.js
 import {hooks} from '../state/hooks.js';
 import {leadOf} from '../save/progression.js';
 import {unitAt, foeAt, civAt, held, heldEnemyHalf, crystalsHeld, scorched} from './board.js';
-import {fire, healPass, dmgUnit, dmgEnemy} from './combat.js';
+import {fire, healPass, dmgUnit, dmgEnemy, breachAt} from './combat.js';
+import {eventTick, eventStrikeMalus} from './events.js';
 import {wave, rollDoctrine, predictSpawns} from './waves.js';
 import {spawnPhase} from './spawn.js';
 import {drawCard} from './deck.js';
@@ -83,9 +84,10 @@ export function playerPhase() {
 
 /** A hostile attacking rather than advancing. Civilians in front come first. */
 export function strike(e, D, chorus, pressing) {
+  const dmg = Math.max(1, D.dmg + chorus - eventStrikeMalus());
   const cv = civAt(e.lane, e.col - 1);
   if (cv) {
-    cv.hp -= D.dmg + chorus;
+    cv.hp -= dmg;
     if (cv.hp <= 0) clog('<span class="d">A civilian pod was destroyed.</span>', 'loss');
     return;
   }
@@ -101,7 +103,7 @@ export function strike(e, D, chorus, pressing) {
     clog(`${t.n}'s I-Field absorbed ${D.n}'s ranged fire.`, 'info');
     return;
   }
-  dmgUnit(t, D.dmg + chorus, D.n + (pressing ? ' (pressing)' : ''), e);
+  dmgUnit(t, dmg, D.n + (pressing ? ' (pressing)' : ''), e);
 }
 
 /** Spore Node: release a Crawler into the first free cell behind it. */
@@ -159,10 +161,7 @@ function actHostile(e, chorus) {
   for (let s = 0; s < steps; s++) {
     const nc = e.col - 1;
     if (nc < 0) {
-      G.breaches++;
-      G.enemies = G.enemies.filter(x => x.uid !== e.uid);
-      tapeEvent({type: 'breach', lane: e.lane});
-      clog(`<span class="d">BREACH</span> — ${D.n} crossed the line.`, 'loss');
+      breachAt(e);
       break;
     }
     if (G.ter[e.lane][nc] === 'x') break;
@@ -212,7 +211,9 @@ export function territoryPhase() {
 /** Losing conditions checked every turn, in the order the reference used. */
 function lossCheck() {
   if (G.type === 'civilians' && G.civ.every(v => v.hp <= 0)) return 'All civilian pods lost.';
-  if (G.breaches >= MAXBREACH) return 'Three breaches.';
+  if (G.breaches >= MAXBREACH) {
+    return MAXBREACH === 1 ? 'The line was breached.' : MAXBREACH + ' breaches.';
+  }
   if (held() < 6) return 'Ground lost — no viable deployment line.';
   return null;
 }
@@ -282,6 +283,10 @@ export function endTurn() {
   const wasLast = G.turn >= G.waves;
   spawnPhase();                      // deliver exactly what the markers promised
 
+  // The event clock advances BEFORE the next wave is rolled, so a surge or
+  // dead-air event shapes the manifest it was telegraphed against.
+  eventTick();
+
   if (!wasLast) {
     G.turn++;
     G.manifest = wave(G.turn);
@@ -298,6 +303,13 @@ export function endTurn() {
   }
 
   G.dp = MAXDP;
+  // Dynamos hum: +1 DP each, capped at +2 — greed has a ceiling.
+  const dynamos = Math.min(2, G.units.filter(u => u.dynamo).length);
+  if (dynamos) {
+    G.dp += dynamos;
+    clog(`<span class="g">Dynamo</span> — +${dynamos} deploy point${dynamos > 1 ? 's' : ''} generated.`, 'order');
+  }
+  if (G.event === 'supply') G.dp += 2;
   if (leadOf().passive && leadOf().passive.n === 'Firebrand' && G.lost > lostBefore) {
     G.dp += 2;
     clog('<span class="g">Firebrand</span> — losses answered with +2 deploy points.', 'order');

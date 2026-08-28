@@ -19,9 +19,14 @@ import {randInt} from '../state/rng.js';
  */
 export function wave(t) {
   if (t > G.waves) return null;
+  // Dead Air: the tunnels are silent — the manifest this event promised on
+  // is empty. Rolled AFTER eventTick(), so G.event is this turn's event.
+  if (G.event === 'calm') return {};
 
-  // Hot operations (op-level `heat`) run every wave over budget.
-  let budget = Math.round(2 + (G.heat || 0) + t * (G.endless ? 1.9 : 1.5));
+  // Hot operations (op-level `heat`) run every wave over budget, and a Hive
+  // Surge event runs this one wave heavier still.
+  let budget = Math.round(2 + (G.heat || 0) + (G.event === 'surge' ? 2 : 0)
+    + t * (G.endless ? 1.9 : 1.5));
   const pool = ['crawler'];
   if (t >= 2) pool.push('hulk', 'breacher', 'husk');
   if (t >= 3) pool.push('spitter', 'burrower');

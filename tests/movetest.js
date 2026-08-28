@@ -1,13 +1,14 @@
 // Movement legality: chains, blocked cells, and one move per unit per turn.
 import * as A from './support/api.js';
 import {failures} from './support/harness.js';
-import {spawnUnit, spawnFoe, clearBoard, unlockAll} from './support/fixtures.js';
+import {spawnUnit, spawnFoe, clearBoard, unlockAll, stillAir} from './support/fixtures.js';
 
 const F = failures();
 const cell = (l, c) => l * A.COLS + c;
 
 A.enterProfile(unlockAll(A.blankProfile('MV'), ['scout', 'rifle', 'marks', 'wall']));
 A.launch(Object.keys(A.opRun().nodes)[0]);
+  stillAir();
 clearBoard();
 
 // A: an occupied cell is blocked

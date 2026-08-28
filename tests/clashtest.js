@@ -2,13 +2,14 @@
 // landing still happens in the lane the marker named.
 import * as A from './support/api.js';
 import {failures} from './support/harness.js';
-import {spawnUnit, spawnFoe, clearBoard, unlockAll} from './support/fixtures.js';
+import {spawnUnit, spawnFoe, clearBoard, unlockAll, stillAir} from './support/fixtures.js';
 
 const F = failures();
 const G = () => A.G;
 
 A.enterProfile(unlockAll(A.blankProfile('CL'), ['assassin', 'wall', 'bulwark', 'rifle']));
 A.launch(Object.keys(A.opRun().nodes)[0]);
+  stillAir();
 
 function clear() {
   clearBoard();

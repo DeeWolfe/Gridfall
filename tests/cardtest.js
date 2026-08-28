@@ -3,6 +3,7 @@
 // gear are picked up automatically from the pool.
 import * as A from './support/api.js';
 import {failures} from './support/harness.js';
+import {stillAir} from './support/fixtures.js';
 
 const F = failures();
 const ids = Object.keys(A.POOL);
@@ -24,6 +25,7 @@ for (const id of ids) {
       A.setActive(p);
       A.genRun();
       A.launch(Object.keys(p.ops[p.op].nodes)[0]);
+  stillAir();
 
       for (let turn = 0; turn < TURNS && A.G && !A.G.over; turn++) {
         for (let n = 0; n < PLAYS_PER_TURN; n++) {

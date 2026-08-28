@@ -2,13 +2,14 @@
 // Screamer's death rush — each fires under its condition and nowhere else.
 import * as A from './support/api.js';
 import {failures} from './support/harness.js';
-import {spawnUnit, spawnFoe, clearBoard, unlockAll} from './support/fixtures.js';
+import {spawnUnit, spawnFoe, clearBoard, unlockAll, stillAir} from './support/fixtures.js';
 
 const F = failures();
 
 const start = () => {
   A.enterProfile(unlockAll(A.blankProfile('FO'), ['rifle', 'marks', 'wall', 'medic']));
   A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0, salv: 0});
+  stillAir();
   clearBoard();
 };
 
@@ -89,6 +90,7 @@ const start = () => {
   start();
   const s = spawnFoe('screamer', 2, 5, 1);
   spawnFoe('crawler', 4, 0, 20);                 // already at your edge
+  A.G.gridCharge[4] = 0;                         // lane's Last-Stand already spent
   const before = A.G.breaches;
   A.dmgEnemy(s, 9, 'test', true);
   if (A.G.breaches !== before + 1) F.push('a scream at the line should breach');

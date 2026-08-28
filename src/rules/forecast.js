@@ -10,6 +10,7 @@ import {BEST} from '../content/hostiles.js';
 import {G} from '../state/session.js';
 import {unitAt, foeAt, civAt} from './board.js';
 import {dampenIn} from './combat.js';
+import {eventStrikeMalus} from './events.js';
 
 /**
  * @returns {{hits: Object<string, number>, atk: Object<string, boolean>}}
@@ -46,17 +47,51 @@ export function forecastThreat() {
     const cv = civAt(e.lane, e.col - 1);
     atk[e.uid] = true;
 
+    // Mirrors strike(): the chorus aura and a Seismic Tremor shift every blow.
+    const chorus = G.enemies.some(o => BEST[o.k].aura) ? 1 : 0;
+    const raw = Math.max(1, D.dmg + chorus - eventStrikeMalus());
     if (cv) {
       const key = 'c' + cv.l + ',' + cv.c;
-      hits[key] = (hits[key] || 0) + D.dmg;
+      hits[key] = (hits[key] || 0) + raw;
     } else if (target) {
       // Mirrors strike(): an I-Field swallows any hit that is not adjacent.
       if (target.ifield && target.col + target.size - 1 < e.col - 1) return;
-      hits[target.uid] = (hits[target.uid] || 0) + Math.max(1, D.dmg - dampenIn(target.lane));
+      hits[target.uid] = (hits[target.uid] || 0) + Math.max(1, raw - dampenIn(target.lane));
     }
   });
 
   return {hits, atk};
+}
+
+/**
+ * What one hostile will do this coming turn, for the intent badge on its
+ * chip. Mirrors actHostile() the way forecastThreat mirrors the strike half:
+ * if the two drift, the badge lies.
+ *   {k:'strike', dmg}    it will attack for dmg
+ *   {k:'advance', steps} it will move toward the line
+ *   {k:'mend'}           it will heal a wounded hostile
+ *   {k:'spawn'}          it will (eventually) release a crawler
+ *   {k:'hold'}           it will do nothing visible
+ */
+export function enemyIntent(e) {
+  const D = BEST[e.k];
+  if (e.stun) return {k: 'hold'};
+  if (D.spawn) return {k: 'spawn'};
+  if (D.spd === 0) return {k: 'hold'};
+
+  const chorus = G.enemies.some(o => BEST[o.k].aura) ? 1 : 0;
+  const dmg = Math.max(1, (D.dmg || 0) + chorus - eventStrikeMalus());
+
+  if (D.mend && G.enemies.some(o =>
+    o.uid !== e.uid && o.lane === e.lane && o.hp < BEST[o.k].hp)) return {k: 'mend'};
+  if (D.hold !== undefined && e.col <= D.hold) return {k: 'strike', dmg};
+
+  const ahead = e.col - 1;
+  const au = ahead >= 0 ? unitAt(e.lane, ahead) : null;
+  const blocked = ahead >= 0 && ((au && !D.tunnel && !au.mine) || civAt(e.lane, ahead));
+  const queued = ahead >= 0 && foeAt(e.lane, ahead);
+  if (blocked || queued) return D.dmg ? {k: 'strike', dmg} : {k: 'hold'};
+  return {k: 'advance', steps: Math.max(1, Math.floor((e.mv || 0) + D.spd))};
 }
 
 /** Cells this unit is helping — buffs, heals, regeneration. Rendered blue. */

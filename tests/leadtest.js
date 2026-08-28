@@ -3,7 +3,7 @@ import './support/install-dom.js';
 import * as A from './support/api.js';
 import {get} from './support/dom.js';
 import {failures, builtPage, pageParts} from './support/harness.js';
-import {spawnFoe, clearBoard, unlockAll} from './support/fixtures.js';
+import {spawnFoe, clearBoard, unlockAll, stillAir} from './support/fixtures.js';
 import {portrait} from '../src/render/art.js';
 import {leadCardHTML, leadTilesHTML, toggleRoster, closeRoster} from '../src/render/hold.js';
 import {renderOps} from '../src/render/ops.js';
@@ -39,6 +39,7 @@ renderOps();
 // --- Ironbrand: +1 hull on every unit deployed ---
 A.active.lead = 'ironbrand';
 A.launch(firstNode());
+  stillAir();
 {
   const u = A.mkUnit('rifle', 2, 1);
   if (u.max !== A.POOL.rifle.hp + 1) F.push(`Ironbrand hull bonus missing (${u.max} vs ${A.POOL.rifle.hp + 1})`);
@@ -52,6 +53,7 @@ A.active.lead = 'wildfire';
 // --- Coldwire: +1 hull repaired at the end of every turn ---
 A.active.lead = 'coldwire';
 A.launch(firstNode());
+  stillAir();
 {
   clearBoard();
   const u = A.mkUnit('rifle', 2, 1);
@@ -67,6 +69,7 @@ A.launch(firstNode());
 // --- Wildfire's call is once per mission, and the badge says so ---
 A.active.lead = 'wildfire';
 A.launch(firstNode());
+  stillAir();
 {
   if (!A.G.strat || A.G.strat.k !== 'requisition') F.push('Wildfire mission did not seed her stratagem');
   if (A.G.strat.played) F.push('the call should start unspent');
@@ -91,6 +94,7 @@ drawAll();
 
   A.active.loadout.gear = {rifle: 'dropod'};
   A.launch(firstNode());
+  stillAir();
   clearBoard();
   A.G.hand = ['rifle'];
   A.G.dp = 9;
@@ -129,6 +133,7 @@ drawAll();
 // --- doctrine variety, and what each posture does to lane spread ---
 {
   A.launch(firstNode());
+  stillAir();
   const seen = {};
   for (let i = 0; i < 400; i++) seen[A.rollDoctrine()] = 1;
   if (Object.keys(seen).length < 3) F.push('doctrine roll never produced all three postures');

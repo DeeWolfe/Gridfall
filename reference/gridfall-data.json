@@ -3,7 +3,7 @@
   "LANES": 5,
   "COLS": 8,
   "MAXDP": 6,
-  "MAXBREACH": 3,
+  "MAXBREACH": 1,
   "DECKSIZE": 12,
   "SAVE_VERSION": 4,
   "STARTER": [
@@ -617,6 +617,20 @@
    "single": 1,
    "recharge": 1,
    "d": "Reaches the furthest hostile on the board, any lane, for eight. Needs a turn to cycle — it cannot fire twice running."
+  },
+  "dynamo": {
+   "n": "Dynamo",
+   "t": "common",
+   "single": 0,
+   "dp": 2,
+   "hp": 3,
+   "price": 110,
+   "mob": 0,
+   "tg": "none",
+   "dmg": 0,
+   "tech": 1,
+   "dynamo": 1,
+   "d": "Generates +1 deploy point at the start of each turn while it stands, stacking up to +2. No weapon, thin hull — greed responsibly."
   }
  },
  "gear": {
@@ -925,7 +939,7 @@
   "stronghold": {
    "n": "Defend Stronghold",
    "waves": 8,
-   "d": "Hold the line through every wave. Three breaches ends it."
+   "d": "Hold the line through every wave. Each lane's grid charge absorbs one breach — after that, one body through ends it."
   },
   "civilians": {
    "n": "Protect Civilians",

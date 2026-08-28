@@ -4,7 +4,7 @@
 // delayed-timing contract itself is stratagemtest's job.
 import * as A from './support/api.js';
 import {failures} from './support/harness.js';
-import {spawnUnit, spawnFoe, clearBoard, unlockAll} from './support/fixtures.js';
+import {spawnUnit, spawnFoe, clearBoard, unlockAll, stillAir} from './support/fixtures.js';
 
 const F = failures();
 
@@ -13,6 +13,7 @@ const start = () => {
   A.enterProfile(p);
   p.lead = 'riptide';                              // carries Grapple Net
   A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0, salv: 0});
+  stillAir();
   clearBoard();
 };
 
