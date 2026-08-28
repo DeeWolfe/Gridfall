@@ -1,10 +1,17 @@
-// Turn events: one-turn field conditions run on the same promise contract as
-// the spawn markers. Each event is announced a full turn before it lands
-// (G.eventNext), becomes G.event for exactly one turn, then expires. Effects
-// live where the numbers they touch live — strike()/forecastThreat for the
+// Turn events: field conditions run on the same promise contract as the
+// spawn markers. Each event is announced a full turn before it lands
+// (G.eventNext), and G.event itself carries it for exactly one turn before
+// expiring. Most effects live and die with that single turn — they live
+// where the numbers they touch live: strike()/forecastThreat for the
 // tremor, fire()/dmgPreview for the overclock, wave() for the hive's mood,
 // the end-of-turn DP grant for the supply drop — and every pair must stay
-// mirrored, or the banner lies to the player.
+// mirrored, or the banner lies to the player. Bombardment and Research Team
+// are the two exceptions: each fires a one-time effect the instant G.event
+// picks it up (phases.js, alongside the supply grant), but that effect
+// outlives the turn on its own separate clock — G.rubble for the crater,
+// a timer on the G.civ entry for the research team — same pattern as
+// G.scorch already uses for plasma burn. The event flag still only lasts
+// one turn; what it started doesn't have to.
 
 import {G} from '../state/session.js';
 import {chance, randInt} from '../state/rng.js';
@@ -21,14 +28,20 @@ export const EVENTS = {
     d: 'The tunnels drum louder — the wave marked this turn arrives +2 threat heavy.'},
   calm: {n: 'Dead Air', icon: '○',
     d: 'The tunnels go quiet — no hostiles spawn at the end of this turn.'},
+  bombard: {n: 'Bombardment', icon: '☄',
+    d: 'The hive lobs spike ordnance downrange — three tiles take a direct hit and craters for a few turns after.'},
+  research: {n: 'Research Team', icon: '⚗',
+    d: 'A field team drops in to tag a live specimen. Keep it standing a few turns and it extracts clean — credits for the escort.'},
 };
 
 const EVENT_CHANCE = 0.35;
 
-/** Roll the event telegraphed for the coming turn — usually nothing. */
+/** Roll the event telegraphed for the coming turn — usually nothing. Research
+ * Team sits out a Civilians mission: it rides G.civ same as the pods do, and
+ * a fifth entry there would throw off that mode's own "N of 3" tracking. */
 export function rollEvent() {
   if (!chance(EVENT_CHANCE)) return null;
-  const keys = Object.keys(EVENTS);
+  const keys = Object.keys(EVENTS).filter(k => !(k === 'research' && G.type === 'civilians'));
   return keys[randInt(keys.length)];
 }
 

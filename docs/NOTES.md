@@ -1787,6 +1787,60 @@ sim (which rolls modifiers onto hundreds of simulated missions,
 `crumble` included now) ran clean — zero errors across every mission
 type and modifier combination.
 
+## Two new field events, and why neither is really one turn long
+
+Third and fourth off the field-idea list: Bombardment and Research Team,
+both new entries in the turn-event pool (`events.js`) — but both break the
+pool's original contract, on purpose.
+
+Every existing event — Supply Drop, Seismic Tremor, Grid Overclock, Hive
+Surge, Dead Air — is a pure number tweak that lives and dies inside the
+one turn `G.event` names it. Bombardment and Research Team fire a
+one-time effect the instant they go live, then hand off to a separate
+clock that outlives the event flag entirely — the same move `G.scorch`
+already made for plasma burn, just reused for two new purposes instead
+of invented a third time:
+
+- **Bombardment**: a hive artillery strike on three consecutive tiles in
+  one lane (kept inside columns 0-4 — contested ground, not empty
+  hostile territory nobody's near). Anything standing there takes 6
+  through the existing `dmgUnit()` path — shields, Phase Cloak, riposte
+  all apply exactly as they would to a hostile's own strike, because
+  it's the same function. The three tiles then go impassable — the same
+  `'x'` Hull Breach and Crumbling Ground already use, so every existing
+  rule that blocks movement or deployment through it just works — on a
+  new `G.rubble` timer (3 turns) instead of forever. `territoryPhase()`
+  decrements it and clears the tile back to neutral when it hits zero,
+  before the normal flip pass runs, so an expired crater immediately
+  reflects whoever's standing there that same turn.
+
+- **Research Team**: rather than build a second "defendable object on
+  the grid" system next to the one Civilians missions already have, it
+  rides `G.civ` directly — a plain civilian pod in every way that
+  matters (hostiles prioritize striking it over your units, holding it
+  claims the tile, losing it doesn't end the mission), just flagged
+  `research` and carrying its own `timer`. Survive 3 turns and
+  `territoryPhase()` extracts it — +60 credits, logged distinctly from a
+  destroyed pod — die before that and it's just gone, same as any pod.
+  The one real wrinkle: a research team spawning during an actual
+  Civilians mission would inflate that mode's own "N of 3 pods" count
+  and loss condition, both of which only check `G.civ` by shape, not by
+  `research` flag. Simplest fix was the right one — `rollEvent()` just
+  never offers Research Team while `G.type === 'civilians'`.
+
+Board rendering needed one line: the civ marker on the grid said `CIV`
+unconditionally; now it reads `RSCH` for a flagged entry so it doesn't
+look like a stray civilian in a Defend Stronghold mission.
+
+Verified against the rules directly, not just read: over simulated
+missions, watched a bombardment turn 0 impassable tiles into 3 with
+matching rubble-timer entries, watched those entries clear back to zero
+naturally a few turns later, watched a research team spawn with the
+right shape (`hp 5, timer 3`, on neutral ground) and watched it convert
+into a +60 credit jump on schedule. Full 37-guard suite passes,
+including hundreds of simulated Civilians missions in the balance sim
+with the exclusion holding — no inflated pod counts, no stray losses.
+
 ## Still open
 
 1. **Crystals still loses to "Three breaches"** more than anything else — the

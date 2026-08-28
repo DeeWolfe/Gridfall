@@ -89,7 +89,10 @@ export function strike(e, D, chorus, pressing) {
   const cv = civAt(e.lane, e.col - 1);
   if (cv) {
     cv.hp -= dmg;
-    if (cv.hp <= 0) clog('<span class="d">A civilian pod was destroyed.</span>', 'loss');
+    if (cv.hp <= 0) {
+      clog(cv.research ? '<span class="d">Research Team lost — the specimen got away.</span>'
+        : '<span class="d">A civilian pod was destroyed.</span>', 'loss');
+    }
     return;
   }
   let t = null;
@@ -196,6 +199,17 @@ export function enemyPhase() {
 
 /** Step 4. Tiles flip to whoever ends the turn on them; plasma burns down. */
 export function territoryPhase() {
+  // Bombardment rubble runs its own clock, separate from the permanent 'x'
+  // Hull Breach/Crumbling Ground set — clear it back to neutral before the
+  // flip pass below picks the tile up again on its own merits.
+  Object.keys(G.rubble).forEach(k => {
+    G.rubble[k]--;
+    if (G.rubble[k] <= 0) {
+      delete G.rubble[k];
+      const [l, c] = k.split(',').map(Number);
+      G.ter[l][c] = 'n';
+    }
+  });
   for (let l = 0; l < LANES; l++) for (let c = 0; c < COLS; c++) {
     if (G.ter[l][c] === 'x') continue;
     const u = unitAt(l, c);
@@ -206,6 +220,15 @@ export function territoryPhase() {
   Object.keys(G.scorch).forEach(k => {
     G.scorch[k]--;
     if (G.scorch[k] <= 0) delete G.scorch[k];
+  });
+  // The Research Team event's clock — a plain civilian pod otherwise, ticking
+  // down to extraction instead of just sitting there waiting to be lost.
+  G.civ.filter(v => v.research && v.hp > 0).forEach(v => {
+    v.timer--;
+    if (v.timer > 0) return;
+    G.civ = G.civ.filter(x => x !== v);
+    active.progress.credits += 60;
+    clog('<span class="g">Research team extracted</span> — specimen data logged, +60 credits.', 'order');
   });
 }
 
@@ -229,6 +252,52 @@ function crumbleTick() {
   const [l, c] = open[randInt(open.length)];
   G.ter[l][c] = 'x';
   clog(`<span style="color:var(--violet)">Structural collapse</span> — lane ${l + 1}, col ${c + 1} is impassable now.`, 'order');
+}
+
+const RUBBLE_TURNS = 3;
+const RESEARCH_HP = 5;
+const RESEARCH_TURNS = 3;
+const RESEARCH_REWARD = 60;
+
+/**
+ * The Bombardment event lands: a hive artillery strike on three consecutive
+ * cells in one lane, direct damage to anything caught standing in it, then
+ * rubble that blocks the same three tiles — both sides — for a few turns
+ * after. Kept out of columns 5+ (deep hostile ground): the threat is to
+ * ground you're actually contesting, not empty tiles neither side is near.
+ */
+function bombardStrike() {
+  const l = randInt(LANES);
+  const start = randInt(3); // a run of 3 somewhere inside columns 0-4
+  clog('<span style="color:var(--violet)">BOMBARDMENT</span> inbound.', 'loss');
+  for (let i = 0; i < 3; i++) {
+    const c = start + i;
+    const u = unitAt(l, c);
+    if (u) dmgUnit(u, 6, 'Bombardment');
+    G.ter[l][c] = 'x';
+    G.rubble[l + ',' + c] = RUBBLE_TURNS;
+  }
+  clog(`Lane ${l + 1}, columns ${start + 1}-${start + 3} cratered — impassable for ${RUBBLE_TURNS} turns.`, 'loss');
+}
+
+/**
+ * The Research Team event lands: a field team drops onto open neutral ground
+ * to tag a specimen. It rides G.civ — same fragile, defend-in-place object a
+ * civilian pod already is, so every hostile-targeting and territory rule
+ * already treats it correctly — flagged `research` and carrying its own
+ * countdown so territoryPhase() can extract it once it survives long enough.
+ * Fizzles quietly if there's nowhere open to put it down.
+ */
+function spawnResearchTeam() {
+  const open = [];
+  for (let l = 0; l < LANES; l++) for (let c = 3; c <= 4; c++) {
+    if (unitAt(l, c) || foeAt(l, c) || civAt(l, c)) continue;
+    open.push([l, c]);
+  }
+  if (!open.length) return;
+  const [l, c] = open[randInt(open.length)];
+  G.civ.push({l, c, hp: RESEARCH_HP, research: true, timer: RESEARCH_TURNS});
+  clog(`<span style="color:var(--violet)">Research Team</span> on the ground — lane ${l + 1}. Hold ${RESEARCH_TURNS} turns for extraction.`, 'order');
 }
 
 /** Losing conditions checked every turn, in the order the reference used. */
@@ -334,6 +403,8 @@ export function endTurn() {
     clog(`<span class="g">Dynamo</span> — +${dynamos} deploy point${dynamos > 1 ? 's' : ''} generated.`, 'order');
   }
   if (G.event === 'supply') G.dp += 2;
+  if (G.event === 'bombard') bombardStrike();
+  if (G.event === 'research') spawnResearchTeam();
   if (leadOf().passive && leadOf().passive.n === 'Firebrand' && G.lost > lostBefore) {
     G.dp += 2;
     clog('<span class="g">Firebrand</span> — losses answered with +2 deploy points.', 'order');
