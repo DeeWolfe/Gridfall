@@ -792,9 +792,16 @@ body{font-size:1rem}
 .selbox #selinfo{font-size:0.7188rem;color:var(--dim);line-height:1.6;flex:1;min-height:0;overflow-y:auto}
 .handbox{flex:0 0 auto;display:flex;flex-direction:column;min-height:0}
 .handbox h3{display:flex;justify-content:space-between;align-items:center}
+.handhead-r{display:flex;align-items:center;gap:9px}
 .dpchip{font-size:0.6875rem;letter-spacing:.1em;color:var(--dim)}
 .dpchip b{color:var(--gold);font-size:0.8125rem;margin-right:3px}
 .handbox .hcards{flex:0 0 auto}
+/* Collapse the tray to see more board — the header (and its DP total) stays
+   put so a collapsed hand still reads at a glance. */
+.handtog{width:26px;height:20px;flex:0 0 auto;border:1px solid var(--line2);background:transparent;
+  color:var(--dim);font-size:0.6875rem;line-height:1;cursor:pointer;transition:.15s}
+.handtog:hover{color:var(--zan);border-color:var(--zan)}
+.handbox.collapsed .hcards{display:none}
 .cbfoot{flex:0 0 auto;display:grid;grid-template-columns:minmax(0,1fr);
   gap:clamp(7px,.8vw,12px);padding:0 clamp(8px,.9vw,14px) clamp(8px,.9vw,14px)}
 .cbacts{flex:0 0 auto;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
@@ -845,6 +852,8 @@ body{font-size:1rem}
   .cbcol{overflow-y:auto}
   .cbcol.mid{overflow:hidden;justify-content:center}
   .field{max-width:min(100%,calc((100vh - 24rem) * 1.62))}
+  /* A collapsed hand gives the board back the room its tray used to own. */
+  #combat.handclosed .field{max-width:min(100%,calc((100vh - 15rem) * 1.62))}
   .cbfoot{grid-template-columns:minmax(0,1fr) clamp(240px,19vw,360px)}
 }
 @media(min-width:1800px){.cbmain{grid-template-columns:minmax(0,1fr) clamp(300px,17vw,420px)}}
@@ -901,6 +910,7 @@ body{font-size:1rem}
 :root[data-ui="pc"] .cbcol.mid{overflow:hidden;justify-content:center}
 :root[data-ui="pc"] .cbcol.side{overflow-y:auto}
 :root[data-ui="pc"] .field{max-width:min(100%,calc((100vh - 23.5rem) * 1.62));padding:clamp(7px,.7vw,12px)}
+:root[data-ui="pc"] #combat.handclosed .field{max-width:min(100%,calc((100vh - 14.5rem) * 1.62))}
 
 /* Denser chrome throughout — a mouse does not need 44px targets. */
 :root[data-ui="pc"] .cbhead{padding:6px clamp(9px,.9vw,15px);row-gap:4px}

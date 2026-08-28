@@ -43,6 +43,11 @@ export const setPackQueue = q => { packQueue = q; };
 export let replaying = false;
 export const setReplaying = v => { replaying = v; };
 
+/** True while the combat hand tray is expanded. Collapse it to see more
+ * board — a per-session preference, not saved to the profile. */
+export let handOpen = true;
+export const setHandOpen = v => { handOpen = !!v; };
+
 let uid = 0;
 /** Monotonic id for units and hostiles. Unique within a session. */
 export const nextUid = () => ++uid;

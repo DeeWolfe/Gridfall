@@ -1636,6 +1636,48 @@ name text, no overlap with the chop. Full suite still passes; nothing
 in `arttest.js` asserted on the nameplate text, so no test changes
 needed.
 
+## The hand tray collapses to give the board back its room
+
+Request: let players see more of the board. The hand strip is the
+single biggest fixed cost in the combat screen's vertical budget — on
+any layout wide enough to size the board off remaining height (the
+`.field{max-width:calc((100vh - Nrem)*1.62)}` formula, both the compact
+≥1000px layout and desktop), that budget is a flat rem constant standing
+in for "everything that isn't the board," and the hand tray is most of
+it.
+
+Added a small `▾`/`▸` toggle next to the DP chip in the Hand header
+(`#handtog`). Collapsing sets `display:none` on `.hcards` and adds
+`.handclosed` to `#combat`, which swaps the board's height-budget
+constant to a smaller one (24rem → 15rem compact, 23.5rem → 14.5rem
+desktop) — the same formula, just with less reserved for a tray that
+isn't there. The header itself (title, DP total, the toggle) stays put
+either way, so a collapsed hand still tells you what you have to spend
+even though you can't see the cards to spend it on.
+
+State lives as a new `handOpen`/`setHandOpen` pair in `state/session.js`,
+following the same module-level pattern as `sel`/`mover`/`stratSel` —
+but deliberately *not* reset by `clearSelection()` (which fires on every
+board change) or on mission launch. It's a per-session viewing
+preference, not per-mission combat state; collapsing it once shouldn't
+un-collapse itself the next time a unit moves.
+
+One iteration during this: `paintHandToggle()` first used
+`tog.setAttribute('aria-label', ...)` to keep the accessible label in
+sync with state. `npm test` caught it immediately — the DOM-stub test
+harness's element stub has no `setAttribute` (nothing else in the
+codebase calls it, which in hindsight was the tell). Switched to
+`tog.title`, the same plain-property pattern the hand cards themselves
+already use for their tooltips, and kept a static, state-neutral
+`aria-label="Toggle hand"` in the markup instead of trying to keep an
+attribute in lockstep with render state.
+
+Verified live at a board-constrained width (1100px): the board's
+rendered size went from 432×269 to 687×429 on collapse — about 59%
+larger in both dimensions — and back to the exact original 432×269 on
+reopen. Full 37-guard suite passes, including `handtest.js`'s layout
+structure checks against the built page, unchanged.
+
 ## Still open
 
 1. **Crystals still loses to "Three breaches"** more than anything else — the

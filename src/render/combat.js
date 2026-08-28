@@ -11,7 +11,7 @@ import {MISSIONS} from '../content/missions.js';
 import {MODS} from '../content/modifiers.js';
 import {DOCTRINE} from '../content/doctrines.js';
 import {TGNAME} from '../content/targeting-names.js';
-import {G, active, sel, mover, replaying, stratSel, setSel, setMover, setStratSel} from '../state/session.js';
+import {G, active, sel, mover, replaying, stratSel, handOpen, setSel, setMover, setStratSel, setHandOpen} from '../state/session.js';
 import {STRATAGEMS} from '../content/stratagems.js';
 import {stratReady, canPlayStratagem, playStratagem, stratMarkers} from '../rules/stratagems.js';
 import {costOf, gearOf, vetOf, leadOf} from '../save/progression.js';
@@ -397,7 +397,23 @@ function drawLog() {
     : '<div class="logline l-info">Awaiting contact.</div>';
 }
 
+/** The tray can be collapsed to give the board back its room — see
+ * #combat.handclosed in the stylesheet, which shrinks the board's height
+ * budget to match. The DP total stays visible on the header either way. */
+function paintHandToggle() {
+  const box = $('handbox');
+  const tog = $('handtog');
+  const scr = $('combat');
+  if (!box || !tog || !scr) return;
+  box.classList.toggle('collapsed', !handOpen);
+  scr.classList.toggle('handclosed', !handOpen);
+  tog.textContent = handOpen ? '▾' : '▸';
+  tog.title = handOpen ? 'Collapse hand' : 'Expand hand';
+  tog.onclick = () => { setHandOpen(!handOpen); drawAll(); };
+}
+
 export function drawHand() {
+  paintHandToggle();
   const h = $('hcards');
   h.innerHTML = '';
 
