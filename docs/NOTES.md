@@ -1472,6 +1472,48 @@ the old every-other-win math — the only thing this one-line balance
 change actually broke — now reads `PACK_METER_GOAL` too instead of a
 second hardcoded `2`.
 
+## Six new gear pieces, all hybrids of what already existed
+
+Gear is one slot per card, which makes a plain "bigger version of an
+existing piece" (a Barrel that gives +2 instead of +1) a weak kind of new
+content — it doesn't add a decision, just a bigger number on the same
+decision. The slot constraint is exactly what makes a *hybrid* piece
+interesting instead: bundling two existing single-effect pieces onto one
+item is the only way to get both effects on the same unit at all, since
+normally picking one gear means giving up the other.
+
+Added six, each priced below the sum of the two standalone pieces it
+combines (you're trading flexibility for the bundle, not getting it
+free): **Twin-Link Servo** (Servo Legs + Extended Barrel), **Adaptive
+Plating** (bigger Reactive Plating + Ablative Weave), **Overclocked
+Uplink** (Targeting Uplink + Coolant Core), **Vanguard Rig** (a plain
+damage+hull hybrid with no direct precedent), **Ghost Plating** (Phase
+Cloak + Ablative Weave — two survival mechanics on one card is the
+strongest combo in the batch, priced accordingly at 140), and **Rapid
+Kit** (Field Kit + Servo Legs, a tempo piece).
+
+Even lighter to ship than the cards: gear focus art is `sigil()`, a
+hash-seeded procedural SVG (`art.js`), not a hand-authored asset, so
+there's no kanji/sprite to add — this was purely
+`reference/gridfall-data.json` plus a regen. `cardtest.js` already
+smoke-tests every card against every gear piece automatically
+(`Object.keys(A.GEAR)`), so the new pieces got full coverage for free —
+58 cards × 18 gear combinations (including "none") ran clean without
+touching that test.
+
+Verified fitting one onto a card end-to-end in a real browser: opened a
+card's focus view in `gear` mode, clicked the new piece's chip, confirmed
+`loadout.gear` actually recorded the assignment. First attempt through
+this hit a pure testing-script bug worth naming since it looked like an
+app bug at first: I closed a *gear-piece* focus popup (opened from the
+Quartermaster, via `focusGear`) by clicking `#pclose` — which closes the
+underlying *panel*, not the focus overlay (`#pclose` and the focus
+popup's own close button are different elements). The stale overlay sat
+on top through the next few steps and made a later click look like it
+failed. Reproduced clean in an isolated script with nothing left open
+between steps — fit the gear, the save shows `{rifle: 'rapidkit'}`, no
+page errors.
+
 ## Still open
 
 1. **Crystals still loses to "Three breaches"** more than anything else — the
