@@ -1612,6 +1612,30 @@ and no faction cyan/magenta. `pixtest.js`'s scheme guards (distinctness,
 contrast, complete field set) covered the new four automatically —
 10 schemes, all checks pass, no test changes needed.
 
+## Card art stops printing the name twice
+
+`cardPortrait()` (the full seal face — combat hand, focus view, pack
+reveals) baked a small caps nameplate into the bottom-left of the SVG
+itself, on top of the ensō and kanji. Every surface that shows this
+portrait already prints the card's name right next to it — `.n` under
+the combat hand tile, `.fname` in the focus popup, the pack card's own
+title line — so the art was saying the name a second time nobody asked
+for. Dropped the nameplate `<text>` and the `name` variable that fed it
+entirely; nothing downstream reads it, so the art now only knows the
+kanji and the accent colour.
+
+That freed the vertical space the nameplate used to own, so the ensō
+and kanji move from `cy 58` to `cy 70` — true vertical centre of the
+140-tall frame instead of pushed up to leave room below. Checked the
+seal's new footprint against the chop stamp (still bottom-right,
+untouched) before committing to it: the ring's bottom-right arc comes
+close but doesn't cross into the chop's box at the sizes actually
+rendered. Confirmed live — Exo Juggernaut's focus portrait and a combat
+hand with two different cards both show a centred seal, no leftover
+name text, no overlap with the chop. Full suite still passes; nothing
+in `arttest.js` asserted on the nameplate text, so no test changes
+needed.
+
 ## Still open
 
 1. **Crystals still loses to "Three breaches"** more than anything else — the
