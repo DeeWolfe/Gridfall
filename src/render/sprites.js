@@ -96,7 +96,7 @@ const KNEEL = [
   '............',
 ];
 
-// -- the 46 tokens -----------------------------------------------------------
+// -- the 58 tokens -----------------------------------------------------------
 
 const PIXMAP = {
   // scouts and skirmish troopers
@@ -161,6 +161,10 @@ const PIXMAP = {
   cipher: ov(TROOPER, sparse({0: '....G..G....', 1: '....GG.GG...'})),
   engineer: ov(TROOPER, sparse({5: '.g.......w..', 6: '.g.......ww.', 4: '.gg.........'})),
   mortar: ov(KNEEL, sparse({2: '.........ww.', 3: '........ww..', 4: '.......ww...', 5: '......ow....'})),
+  ashigaru: ov(TROOPER, sparse({6: '.......ww...', 7: '......ww....', 8: '.....o......'})),
+  pikewall: ov(TROOPER, sparse({0: '.........w..', 1: '........w...', 2: '.......w....', 3: '......w.....', 8: '.oo.........'})),
+  sentry: ov(TROOPER, sparse({1: '..........v.', 8: '..........w.', 9: '.........ww.', 10: '........w...'})),
+  falconer: ov(TROOPER, sparse({1: '..G......G..', 6: '.........ww.', 7: '..........wv'})),
 
   // tech emplacements and devices
   wall: [
@@ -360,6 +364,50 @@ const PIXMAP = {
     '............',
     '............',
   ],
+  rampart: ov(HEAVY, sparse({7: '.o.bwwwwb.o.', 8: '...bssssb...'})),
+  piercer: ov(HEAVY, sparse({2: '.........www', 3: '..obbbbbbwwv'})),
+  suppressor: [
+    '............',
+    '.G..........',
+    '..G.....G...',
+    '...oo..oo...',
+    '....oooo....',
+    '...obbbbo...',
+    '..obbssbbo..',
+    '...obbbbo...',
+    '...oooooo...',
+    '............',
+    '............',
+    '............',
+  ],
+  reactor: [
+    '............',
+    '....G..G....',
+    '...oo..oo...',
+    '..obbbbbbo..',
+    '..obggggbo..',
+    '..obgGGgbo..',
+    '..obggggbo..',
+    '..obbbbbbo..',
+    '...oooooo...',
+    '............',
+    '............',
+    '............',
+  ],
+  bore: [
+    '............',
+    '.....vW.....',
+    '.....vW.....',
+    '.....vW.....',
+    '.....oo.....',
+    '.....oo.....',
+    '....obbo....',
+    '...obssbo...',
+    '...obbbbo...',
+    '..oooooooo..',
+    '............',
+    '............',
+  ],
 
   // specialists — gold-trimmed
   aegis: ov(HEAVY, sparse({2: '.go.........', 3: '.gb.........', 4: '.gb.........', 5: '.gb.........', 6: '.gb.........', 7: '.gb.........', 8: '.gb.........', 9: '.go.........', 1: '...gooooog..'})),
@@ -397,6 +445,9 @@ const PIXMAP = {
     '..oo....oo..',
     '............',
   ],
+  kessen: ov(TROOPER, sparse({0: '....gg..gg..', 3: '...ovvssvo..', 5: '..oosssso...', 8: '.........gg.', 9: '.........gg.'})),
+  ram: ov(HEAVY, sparse({1: '..gooooooog.', 5: '.wwwbssssb..', 6: '.wwwbssssb..'})),
+  marshal: ov(TROOPER, sparse({0: '....gg..gg..', 1: '...oggggggo.', 8: '.g..........', 9: '.gg.........', 10: '.g..........'})),
 };
 
 // -- uniform schemes ----------------------------------------------------------

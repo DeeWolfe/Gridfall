@@ -1397,6 +1397,67 @@ the code says it should do:
   zero square — the mood switch un-does itself, no stuck state.
 - No page errors across any of the runs.
 
+## Twelve new cards, because the collection finished too fast
+
+Player feedback: with a free pack every second node held (plus specialist
+packs off ops and gauntlets), the whole 46-card collection was maxed out
+in well under a real weekend — packs stopped feeling like a reward and
+started feeling like a formality. Two ways to fix that: shrink the drip,
+or grow what it's dripping into. Cutting the free-pack cadence was the
+one-line option, but packs are also the delivery mechanism for gear,
+veterancy promotions and salvage, not just cards — throttling them back
+would have dulled three reward loops to fix pacing on one. Grew the pool
+instead: 46 → 58 cards, roughly the same math (the guaranteed-unowned
+slot still clears the standard pool in at most one pack per card) now
+taking noticeably longer to run out of new things to pull.
+
+Every one of the twelve reuses fields the combat engine already
+understands — no changes to `targeting.js`, `units.js` or `combat.js` —
+so this was purely a content patch: `reference/gridfall-data.json`,
+regenerate, then a kanji glyph (`portraits.js`) and a pixel sprite
+(`sprites.js`) per card, since both are guarded (`arttest.js`/`pixtest.js`
+fail the build if any card in `POOL` is missing a portrait or a token, or
+if any two render identically).
+
+Filled real gaps in the existing roster rather than reskinning it:
+**Ashigaru Line** (a cheaper `squad` swarm below Zaku), **Pike Wall**
+(reach *and* a blocker, a combination nothing else has), **Sentry Ronin**
+(a glass-cannon riposte counter-puncher, lighter than Knight's
+block+regen+riposte kit), **Falconer** (armed, unlike the unarmed Recon
+Lark), **Rampart** (the paid middle ground between free Barricade and
+Bulwark), **Piercer Turret** and **Bore Lance** (armour-piercing versions
+of Lance Battery and Tech Blade), **Suppressor** (Scrambler's dampen,
+doubled, as a standalone card instead of a stack), **Reactor Core** (a
+bigger, thinner-hulled Supply Drone), and three Specialists — **Kessen
+Vanguard** (Assassin's any-tile strike at Specialist stats), **Thruster
+Ram** (Outrider's charge+push with a blocker bolted on), **Field
+Marshal** (the first card to buff its lane and its column at once).
+
+Also fixed while in `gen-content.js`: the banner comments on
+`cards.js`/`gear.js`/`hostiles.js` were hardcoded counts ("39 deployable
+cards", "8 gear pieces", "11 hostile types") that had already drifted
+from the real 46/11/14 before this patch — same mistake this change
+would have repeated at 58 if left alone. Now computed from the data file
+each regen, so the comment can't lie again.
+
+Verified in a real browser: seeded a save with all 58 cards owned before
+the app's own boot script could run (the straightforward "write
+localStorage then reload" approach kept losing the edit to the
+`beforeunload → commit()` handler saving the stale in-memory profile
+over it — a testing-script gotcha, not an app bug, fixed by seeding via
+`page.addInitScript` ahead of the first load instead). All twelve new
+`data-focus` ids render in the Squad reserve grid, the Database panel
+reports "Assets on file 58", and a Kessen Vanguard focus card opens
+cleanly with its own kanji seal and full stat block. `npm test` — all 37
+guards, including the two art-coverage guards for the newly-added ids —
+pass clean.
+
+Deliberately did not touch the free-pack cadence (`packMeter` in
+`mission.js`, currently one pack per two node wins) — the pool growth
+alone should meaningfully slow full collection without changing a system
+players are already used to. If it still clears too fast, nudging that
+threshold from 2 to 3 is a one-line follow-up (see Still open).
+
 ## Still open
 
 1. **Crystals still loses to "Three breaches"** more than anything else — the
@@ -1411,6 +1472,9 @@ the code says it should do:
 4. **Forward Base is the riskiest of the new cards** — repair plus cooldown
    acceleration in the contested half props up Retake and Crystals directly.
    If it proves dominant in play, cut the cooldown half and keep the repair.
+5. **If 58 cards still clears too fast**, the next lever is the free-pack
+   cadence itself — `packMeter` in `mission.js` awards one standard pack
+   per two node wins; bumping the threshold to 3 is a one-line change.
 
 Two things the structure now makes cheap:
 
