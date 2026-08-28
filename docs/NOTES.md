@@ -1994,6 +1994,37 @@ Research Team at ~60% of Sunderglass's triggered events (vs. ~16% at
 Ironveil) and Bombardment at ~57% of Crownring's (same baseline
 contrast). Full 37-guard suite passes.
 
+## The other three operations get a signature hazard too
+
+Follow-up to the last entry — three operations had a themed lean, three
+didn't. Filled in the rest, same `modBias`/`eventBias` fields, same
+65%/55% lean-not-guarantee behaviour, no code changes (`run.js` and
+`events.js` already read the fields generically):
+
+- **Ironveil** (orbital shipyard, "the docks went silent") → **Hull
+  Breach** modifier. The pun was sitting right there — a shipyard is
+  where hulls get breached.
+- **Lumenspire** (a research spire's labs, evacuated mid-experiment) →
+  **Grid Overclock** event. Research already belongs to Sunderglass, but
+  a spire full of lab power infrastructure spiking under hive pressure
+  fits the same idea from a different angle.
+- **Shallowhelm** ("gone dark, no distress call, gates sealed from
+  inside") → **Blackout** modifier. About as literal a match as this
+  roster has.
+
+Deliberately didn't force a hazard onto every remaining modifier/event —
+Nest, Scavenge, Swarm, Supply, Tremor, Surge and Calm stay unbiased
+everywhere. Six operations, six distinct signature hazards, no repeats;
+padding the assignment out further would have meant reaching for a fit
+that isn't really there.
+
+Verified the same way as the first three: `genRun()` sampled 300 times
+each for Ironveil and Shallowhelm put their signature modifier on
+~34-35% of modified nodes against ~7% for the other five (vs. a flat
+~13% at an unbiased op); 2000 `rollEvent()` samples put Lumenspire's
+Grid Overclock at ~58% of its triggered events against ~6% each for the
+rest. Full 37-guard suite passes.
+
 ## Still open
 
 1. **Crystals still loses to "Three breaches"** more than anything else — the

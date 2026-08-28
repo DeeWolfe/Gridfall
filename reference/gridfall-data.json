@@ -1307,7 +1307,8 @@
      "n6"
     ]
    ],
-   "lore": "The Delta Shelf yards built half the fleet that holds this sector, and three weeks ago the hive came up through the ore elevators mid-shift. The docks went silent between one bell and the next. Command wants the slipways back before the hulls on them are lost — the yards are worth more than the ground they stand on."
+   "lore": "The Delta Shelf yards built half the fleet that holds this sector, and three weeks ago the hive came up through the ore elevators mid-shift. The docks went silent between one bell and the next. Command wants the slipways back before the hulls on them are lost — the yards are worth more than the ground they stand on.",
+   "modBias": "breach"
   },
   "blackmarrow": {
    "k": "blackmarrow",
@@ -1624,7 +1625,8 @@
      "n6"
     ]
    ],
-   "lore": "Meridian City evacuated in six hours; the Lumenspire research division never made the manifest. Whatever their labs were close to, command wants it badly enough to send a squad back into a dead city for it. The researchers barricaded in the dorms are listed as an optional objective. Their families have been told otherwise."
+   "lore": "Meridian City evacuated in six hours; the Lumenspire research division never made the manifest. Whatever their labs were close to, command wants it badly enough to send a squad back into a dead city for it. The researchers barricaded in the dorms are listed as an optional objective. Their families have been told otherwise.",
+   "eventBias": "overclock"
   },
   "crownring": {
    "k": "crownring",
@@ -1873,7 +1875,8 @@
      "n8"
     ]
    ],
-   "lore": "Fortress Shallow Helm held the pass for forty years and never missed a check-in. Nine days ago it simply stopped — no distress call, no survivors on the walls, the gates sealed from the inside. Whatever is in there now wears the Helm like a shell. Put the fortress through its own Self-Cleanse, and come back out the way you went in."
+   "lore": "Fortress Shallow Helm held the pass for forty years and never missed a check-in. Nine days ago it simply stopped — no distress call, no survivors on the walls, the gates sealed from the inside. Whatever is in there now wears the Helm like a shell. Put the fortress through its own Self-Cleanse, and come back out the way you went in.",
+   "modBias": "blackout"
   }
  },
  "doctrines": [
