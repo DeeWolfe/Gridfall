@@ -11,7 +11,6 @@ import {MISSIONS} from '../content/missions.js';
 import {MODS} from '../content/modifiers.js';
 import {DOCTRINE} from '../content/doctrines.js';
 import {TGNAME} from '../content/targeting-names.js';
-import {TIERNAME} from '../content/ranks.js';
 import {G, active, sel, mover, replaying, stratSel, setSel, setMover, setStratSel} from '../state/session.js';
 import {STRATAGEMS} from '../content/stratagems.js';
 import {stratReady, canPlayStratagem, playStratagem, stratMarkers} from '../rules/stratagems.js';
@@ -402,10 +401,8 @@ export function drawHand() {
     const el = document.createElement('div');
     const cant = !canPlayStratagem() || G.over || replaying;
     el.className = 'hc strat' + (cant ? ' poor' : '') + (stratSel ? ' sel' : '');
-    el.innerHTML = `<div class="hcost">${def.dp}</div>
-      <div class="hart"><div class="stratmark-art">⬡</div></div>
-      <div class="n">${def.n}</div>
-      <div class="hsub">Stratagem · once</div>`;
+    el.innerHTML = `<div class="hart"><div class="stratmark-art">⬡</div></div>
+      <div class="n">${def.n}</div>`;
     el.title = def.n + ' — ' + def.d + ' Resolves at the start of your next turn.';
     el.onclick = () => {
       if (cant) return;
@@ -427,19 +424,16 @@ export function drawHand() {
 
     const el = document.createElement('div');
     el.className = `hc t-${k.t} v${v.t}` + (unaffordable ? ' poor' : '') + (sel === cid ? ' sel' : '');
-    // A trading card: cost in the corner, the sigil as art, name and tier
-    // beneath. No rules text — that lives in the details panel when the card
-    // is selected, and in full behind the ⌕ badge.
-    el.innerHTML = `<div class="hcost">${cost}</div>
-      ${index < 9 ? `<div class="hkey">${index + 1}</div>` : ''}
-      <div class="zoom" data-z="${cid}">⌕</div>${v.t ? `<div class="hpips">${'◆'.repeat(v.t)}</div>` : ''}
+    // A trading card: the seal face and the name, nothing else. Cost, hull
+    // and tier live in the details panel when the card is selected, and in
+    // full behind its View card button.
+    el.innerHTML = `${index < 9 ? `<div class="hkey">${index + 1}</div>` : ''}
+      ${v.t ? `<div class="hpips">${'◆'.repeat(v.t)}</div>` : ''}
       <div class="hart">${artFor(cid, k.t, null, v.t >= 2 ? v.col : null)}</div>
       <div class="n">${k.n}</div>
-      <div class="hsub">${TIERNAME[k.t]}${k.hp ? ' · ' + (k.hp + (g && g.hp ? g.hp : 0)) + ' hull' : ''}</div>
       ${g ? `<div class="gtag">${g.n}</div>` : ''}`;
     el.title = k.n + ' — ' + k.d;   // hover tooltip carries the rules text
-    el.onclick = ev => {
-      if (ev.target.dataset.z) { focusCard(cid, 'hand'); return; }
+    el.onclick = () => {
       if (unaffordable) return;
       sfx(sel === cid ? 'tap' : 'select');
       setSel(sel === cid ? null : cid);

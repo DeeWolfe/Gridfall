@@ -1,7 +1,7 @@
 // The small card tile used in the Squad, Quartermaster and Database grids.
-// Ghost layout: no art panel — cost, name, hull and price as a requisition
-// line-item, with the card's ink-seal mark as a faint watermark behind the
-// text. The full seal face lives in the focus view, one tap away.
+// Ghost layout: no art panel, no stat chips — just the name over the card's
+// ink-seal watermark, plus the tile's action state in the footer. Cost, hull
+// and tier live in the focus view, one tap away (and in the hover tooltip).
 
 import {DECKSIZE} from '../state/constants.js';
 import {POOL} from '../content/cards.js';
@@ -47,7 +47,6 @@ export function cardEl(id, mode) {
   return `<button class="gcard t-${k.t}${cls} v${v.t}" title="${attr(tip)}" data-focus="${id}" data-mode="${mode}">
     ${cardMark(id, v.t >= 2 ? v.col : null)}
     <div class="tn">${k.n}</div>
-    <div class="tstat"><span class="gcost">${costOf(id)}</span>${k.hp ? `<span class="thull">${hull} HULL</span>` : ''}
-      ${v.t ? `<span class="pips">${'◆'.repeat(v.t)}</span>` : ''}</div>
+    ${v.t ? `<span class="pips">${'◆'.repeat(v.t)}</span>` : ''}
     ${g ? `<div class="gtag">◈ ${g.n}</div>` : ''}${foot}</button>`;
 }

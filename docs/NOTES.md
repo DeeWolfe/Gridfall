@@ -677,6 +677,18 @@ stack (Hiragino/Yu Mincho/Noto Serif JP); a device with no CJK fonts would
 show boxes — acceptable for now, and the embedding pipeline is the fix if
 it ever bites.
 
+A follow-up pass stripped the tiles further: no cost chip, no HULL tag, no
+tier/rarity line anywhere a card is a tile — grid tiles are name + seal +
+action footer, hand cards are seal + name (the details panel shows cost and
+record on select; unaffordable cards still dim), pack picks are seal +
+name + rules text. The ⌕ inspect badge and its focus path are gone from
+hand and pack cards — the hand's View card button already covers it, and a
+pack pick's text is printed on the card. Grid tiles keep the hover tooltip
+with the full statline, and non-card pack picks keep their kind label
+("Gear", "Field promotion", "Supplies") since that says what the pick IS,
+not its rarity. packtest now guards the badge's absence; help and tutorial
+copy updated to point at select → View card.
+
 ## The fun patch — variety, drama, and honest enemies
 
 Built from the game-loop review: a near-random bot was winning most missions,

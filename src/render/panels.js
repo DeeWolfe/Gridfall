@@ -209,7 +209,7 @@ const settingsPanel = () => `<div class="sect">Interface</div><div class="rows">
    <div class="row"><span>End turn</span><span class="r">Space · Enter</span></div>
    <div class="row"><span>Deploy the nth card in hand</span><span class="r">1 – 9</span></div>
    <div class="row"><span>Deselect / close</span><span class="r">Escape</span></div>
-   <div class="row"><span>Inspect a hand card</span><span class="r">⌕ badge</span></div></div>`;
+   <div class="row"><span>Inspect a hand card</span><span class="r">Select it · View card</span></div></div>`;
 
 export const PANELS = {
   squad: squadPanel,

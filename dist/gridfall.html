@@ -293,12 +293,8 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .tn{font-size:0.625rem;font-weight:700;line-height:1.15;padding:.3rem .3rem 0;position:relative;
   min-height:calc(1.15em * 2 + 4px);display:-webkit-box;-webkit-line-clamp:2;
   -webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
-.tstat{display:flex;gap:5px;align-items:center;padding:.26rem .3rem .1rem;min-height:15px;
-  font-size:0.5312rem;font-weight:700;position:relative}
-.tstat .gcost{position:static;flex:none}
-.thull{color:var(--cyan);white-space:nowrap}
-.tstat .pips{position:static;font-size:0.5rem}
 .gcard .gtag{position:relative}
+.gcard > .pips{top:4px;right:5px;bottom:auto}
 .gfoot{padding:.22rem .34rem;margin-top:auto;border-top:1px solid var(--line);font-size:0.5312rem;letter-spacing:0;
   text-transform:uppercase;text-align:right;font-weight:700;white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis}
@@ -428,11 +424,6 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .note{font-size:0.6562rem;color:var(--dim);margin-top:7px;line-height:1.5}
 
 @media(max-width:1079px){}
-
-.hc .zoom{position:absolute;top:4px;right:5px;font-size:0.9375rem;color:var(--txt);
-  width:1.8rem;height:1.8rem;display:flex;align-items:center;justify-content:center;
-  border:1px solid var(--line2);background:rgba(13,11,28,.82)}
-.hc .zoom:hover{color:var(--zan);border-color:var(--zan)}
 
 .result{position:fixed;inset:0;background:rgba(6,5,13,.94);display:none;align-items:center;
   justify-content:center;z-index:70;padding:24px}
@@ -637,7 +628,7 @@ body{font-size:1rem}
 .pips{position:absolute;bottom:2px;right:3px;font-size:0.5rem;letter-spacing:1px;
   color:var(--vc,#b8c4dd);text-shadow:0 0 6px var(--vc,#b8c4dd)}
 .pips.big{bottom:10px;right:12px;font-size:0.8125rem;letter-spacing:2px}
-.hpips{position:absolute;top:5px;right:2.4rem;font-size:0.5938rem;letter-spacing:1px;color:var(--vc,#b8c4dd)}
+.hpips{position:absolute;top:5px;right:.45rem;font-size:0.5938rem;letter-spacing:1px;color:var(--vc,#b8c4dd)}
 .v1{--vc:#b8c4dd}
 .v2{--vc:#ffc94d}
 .v3{--vc:#9d6bff}
@@ -731,13 +722,6 @@ body{font-size:1rem}
 .packcard:hover{filter:brightness(1.12)}
 .pcart{position:relative;height:clamp(94px,11vw,176px);display:flex;align-items:center;justify-content:center;
   background:radial-gradient(ellipse at 50% 118%,#332771,#0b0918 74%);border-bottom:1px solid var(--line)}
-.pccost{position:absolute;top:.45rem;left:.45rem;min-width:1.5rem;height:1.5rem;display:flex;align-items:center;
-  justify-content:center;background:var(--gold);color:#140f02;font-size:0.6875rem;font-weight:700;padding:0 4px}
-.pchp{position:absolute;top:7px;right:7px;font-size:0.625rem;font-weight:700;color:var(--cyan);
-  background:rgba(7,6,15,.85);padding:3px 5px}
-.pcart .zoom{position:absolute;bottom:6px;right:7px;font-size:0.9375rem;color:var(--txt);
-  background:rgba(7,6,15,.85);border:1px solid var(--line2);padding:1px 7px;line-height:1.5;cursor:zoom-in}
-.pcart .zoom:hover{color:var(--zan);border-color:var(--zan)}
 .pcname{font-size:0.75rem;font-weight:700;letter-spacing:.06em;padding:.6rem .7rem 0}
 .pcsub{font-size:0.625rem;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);padding:3px 11px 0}
 .pctxt{font-size:0.6562rem;color:var(--dim);line-height:1.5;padding:.5rem .7rem;flex:1}
@@ -842,11 +826,9 @@ body{font-size:1rem}
 /* The seal face is a full 5:7 composition (frame, nameplate, chop): in the
    focus and pack frames it gets a true 5:7 window so nothing crops away. */
 .fart svg.artfill,.pcart svg.artfill{height:100%;width:auto;aspect-ratio:5/7;display:block;margin:0 auto;opacity:1}
-.hsub{font-size:0.6562rem;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
 .hc:hover{filter:brightness(1.18)}
 /* The one stratagem call: violet-framed, unmistakably not a deployable. */
 .hc.strat{border-color:var(--violet);box-shadow:0 0 22px -6px var(--violet)}
-.hc.strat .hcost{background:var(--violet);color:#160822}
 .hc.strat .n{color:var(--violet)}
 .stratmark-art{font-size:2.4rem;color:var(--violet);text-shadow:0 0 18px rgba(157,107,255,.8);
   animation:tblink 2.2s ease-in-out infinite}
@@ -857,8 +839,6 @@ body{font-size:1rem}
 .hc.poor{opacity:.3;cursor:not-allowed;filter:none}
 .hc .n{font-size:0.6875rem;font-weight:700;line-height:1.25;color:var(--txt);
   text-align:center;overflow-wrap:anywhere}
-.hcost{position:absolute;top:6px;left:8px;font-size:0.8125rem;font-weight:700;
-  line-height:1;color:var(--gold);letter-spacing:.04em}
 
 @media(min-width:1000px){
   .cbmain{grid-template-columns:minmax(0,1fr) clamp(212px,17vw,340px);overflow:hidden}
@@ -905,7 +885,7 @@ body{font-size:1rem}
 .logline .t{color:var(--zan)}
 
 /* The number-key badge is a desktop affordance; hidden without a keyboard. */
-.hkey{display:none;position:absolute;top:1.65rem;left:.55rem;font-size:0.625rem;
+.hkey{display:none;position:absolute;top:.5rem;left:.55rem;font-size:0.625rem;
   letter-spacing:0;color:var(--dim);border:1px solid var(--line2);padding:0 3px;line-height:1.5;
   background:rgba(7,6,15,.72)}
 .uipick{display:flex;gap:5px;flex-wrap:wrap}
@@ -7127,10 +7107,8 @@ function drawHand() {
     const el = document.createElement('div');
     const cant = !canPlayStratagem() || G.over || replaying;
     el.className = 'hc strat' + (cant ? ' poor' : '') + (stratSel ? ' sel' : '');
-    el.innerHTML = `<div class="hcost">${def.dp}</div>
-      <div class="hart"><div class="stratmark-art">⬡</div></div>
-      <div class="n">${def.n}</div>
-      <div class="hsub">Stratagem · once</div>`;
+    el.innerHTML = `<div class="hart"><div class="stratmark-art">⬡</div></div>
+      <div class="n">${def.n}</div>`;
     el.title = def.n + ' — ' + def.d + ' Resolves at the start of your next turn.';
     el.onclick = () => {
       if (cant) return;
@@ -7152,19 +7130,16 @@ function drawHand() {
 
     const el = document.createElement('div');
     el.className = `hc t-${k.t} v${v.t}` + (unaffordable ? ' poor' : '') + (sel === cid ? ' sel' : '');
-    // A trading card: cost in the corner, the sigil as art, name and tier
-    // beneath. No rules text — that lives in the details panel when the card
-    // is selected, and in full behind the ⌕ badge.
-    el.innerHTML = `<div class="hcost">${cost}</div>
-      ${index < 9 ? `<div class="hkey">${index + 1}</div>` : ''}
-      <div class="zoom" data-z="${cid}">⌕</div>${v.t ? `<div class="hpips">${'◆'.repeat(v.t)}</div>` : ''}
+    // A trading card: the seal face and the name, nothing else. Cost, hull
+    // and tier live in the details panel when the card is selected, and in
+    // full behind its View card button.
+    el.innerHTML = `${index < 9 ? `<div class="hkey">${index + 1}</div>` : ''}
+      ${v.t ? `<div class="hpips">${'◆'.repeat(v.t)}</div>` : ''}
       <div class="hart">${artFor(cid, k.t, null, v.t >= 2 ? v.col : null)}</div>
       <div class="n">${k.n}</div>
-      <div class="hsub">${TIERNAME[k.t]}${k.hp ? ' · ' + (k.hp + (g && g.hp ? g.hp : 0)) + ' hull' : ''}</div>
       ${g ? `<div class="gtag">${g.n}</div>` : ''}`;
     el.title = k.n + ' — ' + k.d;   // hover tooltip carries the rules text
-    el.onclick = ev => {
-      if (ev.target.dataset.z) { focusCard(cid, 'hand'); return; }
+    el.onclick = () => {
       if (unaffordable) return;
       sfx(sel === cid ? 'tap' : 'select');
       setSel(sel === cid ? null : cid);
@@ -7229,9 +7204,9 @@ function drawAll() {
 
 /* ==== src/render/card-html.js ======================================= */
 // The small card tile used in the Squad, Quartermaster and Database grids.
-// Ghost layout: no art panel — cost, name, hull and price as a requisition
-// line-item, with the card's ink-seal mark as a faint watermark behind the
-// text. The full seal face lives in the focus view, one tap away.
+// Ghost layout: no art panel, no stat chips — just the name over the card's
+// ink-seal watermark, plus the tile's action state in the footer. Cost, hull
+// and tier live in the focus view, one tap away (and in the hover tooltip).
 
 /**
  * @param {string} id    card id
@@ -7269,8 +7244,7 @@ function cardEl(id, mode) {
   return `<button class="gcard t-${k.t}${cls} v${v.t}" title="${attr(tip)}" data-focus="${id}" data-mode="${mode}">
     ${cardMark(id, v.t >= 2 ? v.col : null)}
     <div class="tn">${k.n}</div>
-    <div class="tstat"><span class="gcost">${costOf(id)}</span>${k.hp ? `<span class="thull">${hull} HULL</span>` : ''}
-      ${v.t ? `<span class="pips">${'◆'.repeat(v.t)}</span>` : ''}</div>
+    ${v.t ? `<span class="pips">${'◆'.repeat(v.t)}</span>` : ''}
     ${g ? `<div class="gtag">◈ ${g.n}</div>` : ''}${foot}</button>`;
 }
 
@@ -7287,25 +7261,26 @@ let packOpen = false;
 let afterPacks = () => {};
 const setAfterPacks = fn => { afterPacks = fn; };
 
-/** Everything the pack card needs to render one offer. */
+/** Everything the pack card needs to render one offer. Card picks carry no
+ * sub-line — tier and stats stay in the shop and squad views; the pick's
+ * rules text is already on the card. Non-card picks keep a kind label. */
 function packArt(p) {
   if (p.kind === 'card') {
     const k = POOL[p.id];
-    return {title: k.n, sub: TIERNAME[k.t], body: k.d, art: artFor(p.id, k.t, 86),
-      cost: costOf(p.id), hp: k.hp, tier: k.t};
+    return {title: k.n, sub: '', body: k.d, art: artFor(p.id, k.t, 86), tier: k.t};
   }
   if (p.kind === 'gear') {
     const g = GEAR[p.id];
-    return {title: g.n, sub: 'Gear', body: g.d, art: sigil(p.id, 'tech', 86), cost: '◈', hp: 0, tier: 'tech'};
+    return {title: g.n, sub: 'Gear', body: g.d, art: sigil(p.id, 'tech', 86), tier: 'tech'};
   }
   if (p.kind === 'vet') {
     const k = POOL[p.id];
     return {title: k.n, sub: 'Field promotion',
       body: `+${p.amount} deployments logged — advances this card toward its next rank.`,
-      art: artFor(p.id, k.t, 86, '#9d6bff'), cost: '★', hp: 0, tier: 'special'};
+      art: artFor(p.id, k.t, 86, '#9d6bff'), tier: 'special'};
   }
   return {title: p.amount + ' Salvage', sub: 'Supplies', body: 'Raw materials for the Quartermaster.',
-    art: sigil('salvage', 'tech', 86), cost: '◈', hp: 0, tier: 'tech'};
+    art: sigil('salvage', 'tech', 86), tier: 'tech'};
 }
 
 /** Present the next owed pack. Returns false when the queue is empty. */
@@ -7351,33 +7326,17 @@ function burstPack() {
     $('packstage').innerHTML = `<div class="packfan">${packPicks.map((p, i) => {
       const a = packArt(p);
       return `<button class="packcard t-${a.tier}" data-pick="${i}" style="animation-delay:${i * 110}ms">
-        <span class="pcart">${a.art}<span class="pccost">${a.cost}</span>
-          ${a.hp ? `<span class="pchp">${a.hp} HULL</span>` : ''}
-          ${p.kind !== 'salvage' ? `<span class="zoom" data-zoom="${i}">⌕</span>` : ''}</span>
+        <span class="pcart">${a.art}</span>
         <span class="pcname">${a.title}</span>
-        <span class="pcsub">${a.sub}</span>
+        ${a.sub ? `<span class="pcsub">${a.sub}</span>` : ''}
         <span class="pctxt">${a.body}</span>
         <span class="pctake">Keep this</span>
       </button>`;
     }).join('')}</div>`;
     document.querySelectorAll('#packstage [data-pick]').forEach(b => {
-      // The ⌕ badge inspects without committing; anywhere else keeps the pick.
-      b.onclick = ev => {
-        if (ev && ev.target && ev.target.dataset && ev.target.dataset.zoom !== undefined) {
-          inspectPick(packPicks[+ev.target.dataset.zoom]);
-          return;
-        }
-        takePack(+b.dataset.pick);
-      };
+      b.onclick = () => takePack(+b.dataset.pick);
     });
   }, BURST_MS);
-}
-
-/** Open the full details view over the pack, read-only — nothing is claimed. */
-function inspectPick(p) {
-  if (!p) return;
-  if (p.kind === 'gear') focusGear(p.id, true);
-  else if (p.id) focusCard(p.id, 'info');
 }
 
 function takePack(i) {
@@ -7588,7 +7547,7 @@ const settingsPanel = () => `<div class="sect">Interface</div><div class="rows">
    <div class="row"><span>End turn</span><span class="r">Space · Enter</span></div>
    <div class="row"><span>Deploy the nth card in hand</span><span class="r">1 – 9</span></div>
    <div class="row"><span>Deselect / close</span><span class="r">Escape</span></div>
-   <div class="row"><span>Inspect a hand card</span><span class="r">⌕ badge</span></div></div>`;
+   <div class="row"><span>Inspect a hand card</span><span class="r">Select it · View card</span></div></div>`;
 
 const PANELS = {
   squad: squadPanel,
@@ -7905,8 +7864,8 @@ const STEPS = [
   {
     title: 'Deploy',
     body: 'Tap a card in your hand, then a lit tile. Every card costs deploy ' +
-      'points — you get 6 a turn, and unspent points are lost. The ⌕ badge on ' +
-      'a card shows its full record.',
+      'points — you get 6 a turn, and unspent points are lost. Selecting a ' +
+      'card shows its cost and record in the side panel.',
     wait: 'Deploy a card to continue',
     done: () => G && G.units.length > 0,
   },

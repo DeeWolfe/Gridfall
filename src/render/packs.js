@@ -3,13 +3,10 @@
 
 import {POOL} from '../content/cards.js';
 import {GEAR} from '../content/gear.js';
-import {TIERNAME} from '../content/ranks.js';
 import {packQueue} from '../state/session.js';
-import {costOf} from '../save/progression.js';
 import {packOffer, claimPack} from '../rules/packs.js';
 import {$} from './dom.js';
 import {sigil, artFor, bokehLayer} from './art.js';
-import {focusCard, focusGear} from './focus.js';
 import {sfx} from './sound.js';
 
 const BURST_MS = 260;
@@ -21,25 +18,26 @@ let packOpen = false;
 let afterPacks = () => {};
 export const setAfterPacks = fn => { afterPacks = fn; };
 
-/** Everything the pack card needs to render one offer. */
+/** Everything the pack card needs to render one offer. Card picks carry no
+ * sub-line — tier and stats stay in the shop and squad views; the pick's
+ * rules text is already on the card. Non-card picks keep a kind label. */
 export function packArt(p) {
   if (p.kind === 'card') {
     const k = POOL[p.id];
-    return {title: k.n, sub: TIERNAME[k.t], body: k.d, art: artFor(p.id, k.t, 86),
-      cost: costOf(p.id), hp: k.hp, tier: k.t};
+    return {title: k.n, sub: '', body: k.d, art: artFor(p.id, k.t, 86), tier: k.t};
   }
   if (p.kind === 'gear') {
     const g = GEAR[p.id];
-    return {title: g.n, sub: 'Gear', body: g.d, art: sigil(p.id, 'tech', 86), cost: '◈', hp: 0, tier: 'tech'};
+    return {title: g.n, sub: 'Gear', body: g.d, art: sigil(p.id, 'tech', 86), tier: 'tech'};
   }
   if (p.kind === 'vet') {
     const k = POOL[p.id];
     return {title: k.n, sub: 'Field promotion',
       body: `+${p.amount} deployments logged — advances this card toward its next rank.`,
-      art: artFor(p.id, k.t, 86, '#9d6bff'), cost: '★', hp: 0, tier: 'special'};
+      art: artFor(p.id, k.t, 86, '#9d6bff'), tier: 'special'};
   }
   return {title: p.amount + ' Salvage', sub: 'Supplies', body: 'Raw materials for the Quartermaster.',
-    art: sigil('salvage', 'tech', 86), cost: '◈', hp: 0, tier: 'tech'};
+    art: sigil('salvage', 'tech', 86), tier: 'tech'};
 }
 
 /** Present the next owed pack. Returns false when the queue is empty. */
@@ -85,33 +83,17 @@ export function burstPack() {
     $('packstage').innerHTML = `<div class="packfan">${packPicks.map((p, i) => {
       const a = packArt(p);
       return `<button class="packcard t-${a.tier}" data-pick="${i}" style="animation-delay:${i * 110}ms">
-        <span class="pcart">${a.art}<span class="pccost">${a.cost}</span>
-          ${a.hp ? `<span class="pchp">${a.hp} HULL</span>` : ''}
-          ${p.kind !== 'salvage' ? `<span class="zoom" data-zoom="${i}">⌕</span>` : ''}</span>
+        <span class="pcart">${a.art}</span>
         <span class="pcname">${a.title}</span>
-        <span class="pcsub">${a.sub}</span>
+        ${a.sub ? `<span class="pcsub">${a.sub}</span>` : ''}
         <span class="pctxt">${a.body}</span>
         <span class="pctake">Keep this</span>
       </button>`;
     }).join('')}</div>`;
     document.querySelectorAll('#packstage [data-pick]').forEach(b => {
-      // The ⌕ badge inspects without committing; anywhere else keeps the pick.
-      b.onclick = ev => {
-        if (ev && ev.target && ev.target.dataset && ev.target.dataset.zoom !== undefined) {
-          inspectPick(packPicks[+ev.target.dataset.zoom]);
-          return;
-        }
-        takePack(+b.dataset.pick);
-      };
+      b.onclick = () => takePack(+b.dataset.pick);
     });
   }, BURST_MS);
-}
-
-/** Open the full details view over the pack, read-only — nothing is claimed. */
-function inspectPick(p) {
-  if (!p) return;
-  if (p.kind === 'gear') focusGear(p.id, true);
-  else if (p.id) focusCard(p.id, 'info');
 }
 
 export function takePack(i) {

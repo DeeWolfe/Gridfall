@@ -21,8 +21,8 @@ const STEPS = [
   {
     title: 'Deploy',
     body: 'Tap a card in your hand, then a lit tile. Every card costs deploy ' +
-      'points — you get 6 a turn, and unspent points are lost. The ⌕ badge on ' +
-      'a card shows its full record.',
+      'points — you get 6 a turn, and unspent points are lost. Selecting a ' +
+      'card shows its cost and record in the side panel.',
     wait: 'Deploy a card to continue',
     done: () => G && G.units.length > 0,
   },
