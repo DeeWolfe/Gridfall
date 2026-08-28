@@ -58,8 +58,8 @@ function quartermasterPanel() {
        const affordable = active.progress.salvage >= g.cost;
        return `<button class="gcard t-tech${owned ? ' owned' : affordable ? '' : ' cant'}" data-gear="${gi}"
          title="${attr(g.n + ' — ' + g.cost + ' salvage\n' + g.d)}">
-         <div class="gart">${sigil(gi, 'tech')}<div class="gcost" style="background:var(--cyan);color:#06121a">◈</div></div>
-         <div class="gname">${g.n}</div><div class="gtype">Gear</div>
+         <div class="inkmark">${sigil(gi, 'tech')}</div>
+         <div class="tn">${g.n}</div>
          <div class="gfoot ${owned ? 'own' : affordable ? 'buy' : 'no'}">${owned ? 'Owned' : g.cost + ' sv'}</div></button>`;
      }).join('')}</div>`;
 

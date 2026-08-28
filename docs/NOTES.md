@@ -689,6 +689,22 @@ with the full statline, and non-card pack picks keep their kind label
 not its rarity. packtest now guards the badge's absence; help and tutorial
 copy updated to point at select → View card.
 
+A third pass unified the tile shapes. Every grid tile is now a 5:7 chip
+(`aspect-ratio:5/7`, matching the hand cards) with the same clip-path
+corner cut: card tiles (name over seal watermark, footer), **gear tiles**
+(converted from the last surviving art-panel layout to the same ghost
+chip, their procedural sigil as the watermark — `.inkmark` now also works
+as a wrapper div around a plain sigil svg, constrained to 74%), and
+**team-lead tiles** (portrait art removed; a nameplate chip — callsign and
+role centred, lock pinned to the corner, price/assign state in the
+footer; perk names moved into the hover tooltip, full details still in
+the buy dialog and the squad lead card). The squad's fold-into-portrait
+roster uses the same tiles and the ltflow/ltsuck animations survived
+untouched — only the toggle keeps its portrait, since that is the control
+the roster folds into, not a card. The 1700px-wide `.cgrid` override drops
+from 196px to 108px columns so chips stay chip-sized on big screens; the
+`.gart`/`.gname`/`.gcost` era CSS is finally deleted outright.
+
 ## The fun patch — variety, drama, and honest enemies
 
 Built from the game-loop review: a near-random bot was winning most missions,

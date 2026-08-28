@@ -260,7 +260,7 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 
 .gcard{position:relative;background:linear-gradient(170deg,var(--panel2) 0%,var(--deep) 62%);
   border:1px solid var(--line2);text-align:left;overflow:hidden;transition:.14s;
-  display:flex;flex-direction:column;
+  display:flex;flex-direction:column;aspect-ratio:5/7;
   clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px))}
 .gcard:hover{filter:brightness(1.1)}
 .gcard.t-common{border-color:#4a5570}
@@ -271,20 +271,10 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .gcard.t-special:hover{border-color:var(--gold);box-shadow:0 0 28px rgba(255,201,77,.28)}
 .gcard.owned{opacity:.5} .gcard.cant{opacity:.32}
 .gcard.indeck{border-color:var(--green);box-shadow:0 0 0 1px rgba(93,255,160,.5)}
-.gart{position:relative;background:radial-gradient(ellipse at 50% 120%,#2a2158 0%,#0d0b1c 72%);
-  border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:center}
-.gart svg{width:62%;height:62%;opacity:.94}
-.gcost{position:absolute;top:2px;left:2px;width:14px;height:14px;font-size:0.625rem;display:flex;align-items:center;
-  justify-content:center;background:var(--gold);color:#140f02;font-size:0.6875rem;font-weight:700}
-.ghp{position:absolute;top:2px;right:2px;font-size:0.5312rem;font-weight:700;color:var(--cyan);
-  background:rgba(7,6,15,.85);padding:2px 3px}
-.gname{font-size:0.625rem;font-weight:700;letter-spacing:0;padding:.28rem .28rem 0;line-height:1.15;
-  min-height:calc(1.15em * 2 + 4px);display:-webkit-box;-webkit-line-clamp:2;
-  -webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
-.gtype{display:none}
-.gtxt{display:none}
 /* Ghost card tiles: text-forward, the ink-seal mark as a watermark behind. */
-.inkmark{position:absolute;inset:0;width:100%;height:100%;opacity:.15;pointer-events:none}
+.inkmark{position:absolute;inset:0;width:100%;height:100%;opacity:.15;pointer-events:none;
+  display:flex;align-items:center;justify-content:center}
+.inkmark svg{width:100%;height:100%;max-width:74%;max-height:74%;display:block}
 .tn{font-size:0.625rem;font-weight:700;line-height:1.15;padding:.3rem .3rem 0;position:relative;
   min-height:calc(1.15em * 2 + 4px);display:-webkit-box;-webkit-line-clamp:2;
   -webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
@@ -492,20 +482,21 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
   font-size:0.625rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
 .leadchain b{color:var(--cyan)}
 /* The lead roster: one tile per lead, shared between Squad and the store. */
-.leadgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(150px,13vw,210px),1fr));gap:8px}
-.leadtile{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;
-  padding:10px 8px 8px;background:linear-gradient(170deg,var(--panel2),var(--deep));
-  border:1px solid var(--line2);cursor:pointer;transition:.12s}
+.leadgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(96px,8.6vw,132px),1fr));gap:8px}
+.leadtile{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;
+  aspect-ratio:5/7;padding:8px 6px 0;background:linear-gradient(170deg,var(--panel2) 0%,var(--deep) 62%);
+  border:1px solid var(--line2);cursor:pointer;transition:.12s;overflow:hidden;
+  clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px))}
 .leadtile:hover{border-color:var(--lc);box-shadow:0 0 20px -6px var(--lc)}
 .leadtile.on{border-color:var(--lc);box-shadow:0 0 24px -4px var(--lc);background:linear-gradient(170deg,#221c4a,var(--deep))}
 .leadtile.locked{opacity:.66}
-.ltpic{width:52px;height:52px;overflow:hidden;border:1px solid var(--line2)}
-.ltpic svg{width:100%;height:100%;display:block}
+.ltlock{position:absolute;top:5px;right:7px;font-size:0.5938rem;opacity:.8}
+.ltcore{margin:auto 0;display:flex;flex-direction:column;gap:5px;align-items:center}
 .ltname{font-size:0.6562rem;font-weight:700;letter-spacing:.12em;color:var(--lc)}
 .ltrole{font-size:0.5938rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
-.ltperk{font-size:0.5938rem;color:var(--txt);opacity:.85;line-height:1.45;min-height:2em}
-.ltfoot{margin-top:auto;font-size:0.625rem;letter-spacing:.12em;text-transform:uppercase;
-  color:var(--green);border-top:1px solid var(--line);width:100%;padding-top:6px}
+.ltfoot{margin-top:auto;font-size:0.5312rem;letter-spacing:.08em;text-transform:uppercase;font-weight:700;
+  color:var(--green);border-top:1px solid var(--line);width:100%;padding:.22rem .34rem;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ltfoot.price{color:var(--gold)}
 /* On Squad the roster folds behind the lead portrait: the portrait toggles it
    open (tiles flow out, staggered) and picking a lead sucks them back in. */
@@ -608,7 +599,7 @@ body{font-size:1rem}
 @media(min-width:1700px){
   .pbody{max-width:1760px}
   .mapbody{max-width:1600px}
-  .cgrid{grid-template-columns:repeat(auto-fill,minmax(196px,1fr))}
+  .cgrid{grid-template-columns:repeat(auto-fill,minmax(108px,1fr))}
   
 }
 
@@ -617,7 +608,6 @@ body{font-size:1rem}
 .fart svg{width:clamp(100px,9vw,210px);height:clamp(100px,9vw,210px)}
 
 .gcard{min-height:0}
-.gart{height:auto;aspect-ratio:1}
 
 /* ===== veterancy ===== */
 .pips{position:absolute;bottom:2px;right:3px;font-size:0.5rem;letter-spacing:1px;
@@ -817,7 +807,7 @@ body{font-size:1rem}
   image-rendering:auto;pointer-events:none}
 .hart .artimg{border:none}
 /* Placeholder portraits fill their frame too, overriding the sigil sizing. */
-.hart svg.artfill,.gart svg.artfill{width:100%;height:100%;opacity:1}
+.hart svg.artfill{width:100%;height:100%;opacity:1}
 /* The seal face is a full 5:7 composition (frame, nameplate, chop): in the
    focus and pack frames it gets a true 5:7 window so nothing crops away. */
 .fart svg.artfill,.pcart svg.artfill{height:100%;width:auto;aspect-ratio:5/7;display:block;margin:0 auto;opacity:1}
@@ -5341,17 +5331,18 @@ function leadTilesHTML(mode) {
     const o = LEADS[k];
     const open = leadUnlocked(k);
     const def = o.stratagem ? STRATAGEMS[o.stratagem] : null;
-    const perk = o.passive ? o.passive.n : def ? def.n : '';
+    const perk = [o.passive ? '◈ ' + o.passive.n : '', def ? '⬡ ' + def.n : '']
+      .filter(Boolean).join(' · ');
     const foot = mode === 'shop'
       ? (open ? (LEADGATES[k] ? 'Owned' : 'Standard issue') : leadPrice(k) + ' cr')
-      : (k === current ? 'Assigned' : open ? 'Tap to assign' : leadPrice(k) + ' cr · Quartermaster');
+      : (k === current ? 'Assigned' : open ? 'Tap to assign' : leadPrice(k) + ' cr');
     const attr = mode === 'shop' ? (open ? '' : ` data-leadbuy="${k}"`) : ` data-lead="${k}"`;
     return `<button class="leadtile${mode === 'squad' && k === current ? ' on' : ''}${open ? '' : ' locked'}"
-        ${attr} style="--lc:${o.col};--i:${i}" title="${o.call} — ${o.role}. ${o.bio}">
-      <span class="ltpic">${portrait(k)}</span>
-      <span class="ltname">${open ? '' : '🔒 '}${o.call}</span>
-      <span class="ltrole">${o.role}</span>
-      <span class="ltperk">${o.passive ? '◈ ' + perk : ''}${o.passive && def ? ' · ' : ''}${def ? '⬡ ' + def.n : ''}</span>
+        ${attr} style="--lc:${o.col};--i:${i}"
+        title="${o.call} — ${o.role}.${perk ? ' ' + perk + '.' : ''} ${o.bio}">
+      ${open ? '' : '<span class="ltlock">🔒</span>'}
+      <span class="ltcore"><span class="ltname">${o.call}</span>
+        <span class="ltrole">${o.role}</span></span>
       <span class="ltfoot${open ? '' : ' price'}">${foot}</span>
     </button>`;
   }).join('')}</div>`;
@@ -7389,8 +7380,8 @@ function quartermasterPanel() {
        const affordable = active.progress.salvage >= g.cost;
        return `<button class="gcard t-tech${owned ? ' owned' : affordable ? '' : ' cant'}" data-gear="${gi}"
          title="${attr(g.n + ' — ' + g.cost + ' salvage\n' + g.d)}">
-         <div class="gart">${sigil(gi, 'tech')}<div class="gcost" style="background:var(--cyan);color:#06121a">◈</div></div>
-         <div class="gname">${g.n}</div><div class="gtype">Gear</div>
+         <div class="inkmark">${sigil(gi, 'tech')}</div>
+         <div class="tn">${g.n}</div>
          <div class="gfoot ${owned ? 'own' : affordable ? 'buy' : 'no'}">${owned ? 'Owned' : g.cost + ' sv'}</div></button>`;
      }).join('')}</div>`;
 

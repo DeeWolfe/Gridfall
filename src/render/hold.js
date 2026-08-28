@@ -83,17 +83,18 @@ export function leadTilesHTML(mode) {
     const o = LEADS[k];
     const open = leadUnlocked(k);
     const def = o.stratagem ? STRATAGEMS[o.stratagem] : null;
-    const perk = o.passive ? o.passive.n : def ? def.n : '';
+    const perk = [o.passive ? '◈ ' + o.passive.n : '', def ? '⬡ ' + def.n : '']
+      .filter(Boolean).join(' · ');
     const foot = mode === 'shop'
       ? (open ? (LEADGATES[k] ? 'Owned' : 'Standard issue') : leadPrice(k) + ' cr')
-      : (k === current ? 'Assigned' : open ? 'Tap to assign' : leadPrice(k) + ' cr · Quartermaster');
+      : (k === current ? 'Assigned' : open ? 'Tap to assign' : leadPrice(k) + ' cr');
     const attr = mode === 'shop' ? (open ? '' : ` data-leadbuy="${k}"`) : ` data-lead="${k}"`;
     return `<button class="leadtile${mode === 'squad' && k === current ? ' on' : ''}${open ? '' : ' locked'}"
-        ${attr} style="--lc:${o.col};--i:${i}" title="${o.call} — ${o.role}. ${o.bio}">
-      <span class="ltpic">${portrait(k)}</span>
-      <span class="ltname">${open ? '' : '🔒 '}${o.call}</span>
-      <span class="ltrole">${o.role}</span>
-      <span class="ltperk">${o.passive ? '◈ ' + perk : ''}${o.passive && def ? ' · ' : ''}${def ? '⬡ ' + def.n : ''}</span>
+        ${attr} style="--lc:${o.col};--i:${i}"
+        title="${o.call} — ${o.role}.${perk ? ' ' + perk + '.' : ''} ${o.bio}">
+      ${open ? '' : '<span class="ltlock">🔒</span>'}
+      <span class="ltcore"><span class="ltname">${o.call}</span>
+        <span class="ltrole">${o.role}</span></span>
       <span class="ltfoot${open ? '' : ' price'}">${foot}</span>
     </button>`;
   }).join('')}</div>`;
