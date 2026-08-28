@@ -1278,6 +1278,54 @@ All four verified together: `node build.js`, 37/37 guards green, and
 real-browser screenshots of the title screen, boot screen, hold panel
 hint (open and dismissed), and mode-select grid with the new card.
 
+## Panel briefings became coach cards, not dismissible sidebars
+
+Follow-up on the hold-panel hints from the previous entry: "make them a
+one-time thing, use the combat tutorial as reference, keep it
+consistent." The inline `.hint` cards (violet-bordered, sat inline in
+the panel flow, dismissed to a small pill you could re-tap) were a
+different visual language from the game's one other onboarding surface
+— the gold coach card that walks a new commander through their first
+mission. Two teaching moments, two looks. Fixed by throwing the inline
+version out and building the hold-panel version directly off
+`tutorial.js`'s chrome instead of a lookalike.
+
+`panel-hints.js` is new and reuses `tutorial.js`'s CSS classes verbatim
+— `.tutcard`, `.tuttitle`, `.tutbody`, `.tutacts` — nothing new to keep
+in sync by hand. What differs is the host and the trigger: `#tut` sits
+inside `#combat` and steps through five stages tied to what the player
+does on the board; `#paneltut` sits inside `#panel` (same absolute
+positioning, same z-index, added to the same `#tut,#paneltut{...}` CSS
+rule) and shows exactly one message with one "Got it" button, because a
+menu screen doesn't have "do the thing" checkpoints to advance on.
+
+**One-time means once, not dismiss-and-reopen.** `openPanel(key)` now
+calls `maybeShowPanelHint(key)` after every render, which checks
+`active.settings.hints[key]` and shows the card only if that commander
+has never dismissed it for this panel — not per-visit, and it does NOT
+reappear on the next `openPanel()` call the way the old inline pill did.
+Dismissing is the only thing that sets the flag, matching how the
+combat briefing only marks itself `'done'` when a step is actually
+finished or skipped, never on a bare render.
+
+**Reappearing lives in Settings, next to its sibling.** The existing
+"Combat briefing" row (queues a replay for the next campaign mission)
+now has a "Panel briefings" row directly under it, same row markup,
+same `Replay` action label. Clicking it clears `active.settings.hints`
+to `{}` — unlike the combat briefing, there's no queued/deferred state
+to track, since the next `openPanel()` call (which could be the very
+next tap) picks it straight back up.
+
+Verified with a DOM-stub script driving the real render/state code (no
+browser): all four panels show their card on first-ever open; a panel
+re-opened without dismissing shows it again (expected — only dismiss
+marks it seen, not display); dismissing sets the flag and it stays gone
+on every subsequent open; the Settings row clears the flags and the
+card comes back. Confirmed visually too — the Squad panel's coach card
+is pixel-for-pixel the same gold chrome as the combat briefing, and
+Settings shows "Panel briefings — Replay" sitting right under "Combat
+briefing — Replay."
+
 ## Still open
 
 1. **Crystals still loses to "Three breaches"** more than anything else — the

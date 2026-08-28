@@ -253,13 +253,6 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .bar{display:flex;justify-content:space-between;align-items:center;gap:.8rem;background:var(--panel);
   border:1px solid var(--line);padding:.8rem 1rem;font-size:0.75rem;flex-wrap:wrap}
 .bar b{color:var(--gold);font-size:1rem}
-.hint{display:flex;justify-content:space-between;align-items:flex-start;gap:.8rem;
-  background:rgba(157,107,255,.08);border:1px solid var(--line2);border-left:2px solid var(--violet);
-  padding:.7rem .9rem;font-size:0.6875rem;line-height:1.55;color:var(--txt);margin-bottom:12px}
-.hint button{flex:0 0 auto;font-size:0.625rem;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--dim);border:1px solid var(--line);padding:.35rem .6rem;white-space:nowrap}
-button.hint.dismissed{display:inline-block;background:none;border:1px solid var(--line);padding:.4rem .7rem;
-  font-size:0.6562rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:12px}
 .tabs{display:flex;gap:6px;margin-top:12px;overflow-x:auto;overscroll-behavior-x:contain;
   scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
 .tabs::-webkit-scrollbar{height:4px}
@@ -927,10 +920,12 @@ body{font-size:1rem}
 
 /* ============ FIRST-MISSION BRIEFING ============
    A gold coach card over the combat screen. The do-it steps advance on the
-   player's own actions, so the card never blocks the board's controls. */
-#tut{position:absolute;z-index:30;top:clamp(52px,9vh,96px);left:50%;transform:translateX(-50%);
+   player's own actions, so the card never blocks the board's controls.
+   #paneltut (hold panels, see panel-hints.js) is the same coach card over a
+   different host — one-shot instead of stepped, otherwise identical chrome. */
+#tut,#paneltut{position:absolute;z-index:30;top:clamp(52px,9vh,96px);left:50%;transform:translateX(-50%);
   display:none;width:clamp(272px,40vw,400px);max-width:calc(100vw - 18px)}
-#tut.on{display:block}
+#tut.on,#paneltut.on{display:block}
 .tutcard{background:linear-gradient(180deg,#151228,#0b0919);border:1px solid var(--gold);
   box-shadow:0 10px 44px rgba(0,0,0,.6),0 0 26px rgba(255,201,77,.14);padding:.85rem .95rem}
 .tutpips{display:flex;gap:5px;margin-bottom:8px}

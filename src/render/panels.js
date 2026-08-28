@@ -28,30 +28,11 @@ import {showPack, setAfterPacks} from './packs.js';
 import {soundOn, toggleSound} from './sound.js';
 import {musicOn, toggleMusic} from './music.js';
 import {UI_MODES, UI_LABELS, uiPreference, uiModeLabel, setUiMode} from './uimode.js';
+import {maybeShowPanelHint} from './panel-hints.js';
 
 const TIERS = ['common', 'special', 'tech'];
 let dbTab = 'cards';
 let recTab = 'field';
-let curPanel = null;
-
-// One-line field briefings, same terse "Commander" voice as the combat
-// tutorial. Dismissed state is per-key and lives on the profile so it stays
-// gone; the collapsed pill lets a commander bring it back on demand.
-const HINTS = {
-  squad: 'Your lead sets the squad\'s passive — pick one before you touch the deck. ' +
-    'Tap any card to inspect it, fit gear, or move it between deck and reserve.',
-  quartermaster: 'Credits buy cards and uniforms, salvage buys gear — spend accordingly. ' +
-    'A duplicate from a requisition drop promotes the card instead of wasting the pull, ' +
-    'so nothing here is ever a dead end.',
-  database: 'Every asset, piece of gear, and hostile you have ever met gets an entry here. ' +
-    'A hostile\'s file unlocks the moment you land the kill that reveals it.',
-  record: 'Your service history, earned commendations, veteran roster, and operation ' +
-    'progress — tap a tab above to switch views.',
-};
-
-const hintCard = key => (active.settings.hints || {})[key]
-  ? `<button class="hint dismissed" data-hintshow="${key}">▸ Briefing</button>`
-  : `<div class="hint"><span>${HINTS[key]}</span><button data-hintdismiss="${key}">Dismiss</button></div>`;
 
 const cardGrid = (ids, mode) => `<div class="cgrid">${ids.map(c => cardEl(c, mode)).join('')}</div>`;
 
@@ -61,7 +42,7 @@ const cardGridEmpty = text => `<div class="cgrid"><div class="cempty">${text}</d
 function squadPanel() {
   const deck = active.loadout.deck;
   const reserve = active.unlocks.cards.filter(c => !deck.includes(c));
-  return `${hintCard('squad')}<div class="sect">Team lead — answers to you</div>${leadCardHTML()}
+  return `<div class="sect">Team lead — answers to you</div>${leadCardHTML()}
    ${leadTilesHTML('squad')}
    <div class="sect">Deck</div>
    <div class="bar"><div><b>${deck.length}</b> / ${DECKSIZE} in deck · <b style="color:var(--cyan)">${Object.keys(active.loadout.gear).length}</b> geared</div>
@@ -104,7 +85,7 @@ function quartermasterPanel() {
      }).join('')}</div>`;
 
   const canBuyPack = active.progress.credits >= PACK_PRICE;
-  return `${hintCard('quartermaster')}<div class="bar"><div>Credits <b>${active.progress.credits}</b> · Salvage <b style="color:var(--cyan)">${active.progress.salvage}</b></div>
+  return `<div class="bar"><div>Credits <b>${active.progress.credits}</b> · Salvage <b style="color:var(--cyan)">${active.progress.salvage}</b></div>
      <div style="color:var(--dim);font-size:0.6875rem">Tap a card to enlarge and buy. Credits buy cards, salvage buys gear.</div></div>
    <div class="bar"><div><b>Requisition drop</b>
      <div style="color:var(--dim);font-size:0.6875rem;margin-top:3px">Three offers, keep one — duplicates promote the card instead. Now and then one arrives as a priority requisition.</div></div>
@@ -147,7 +128,7 @@ function databasePanel() {
       return `<div class="sect">${TIERNAME[t]} — ${owned}/${ids.length} owned</div>` +
         `<div class="rows">${rows}</div>`;
     };
-    return `${hintCard('database')}<div class="bar"><div>Assets on file <b>${Object.keys(POOL).length}</b></div>
+    return `<div class="bar"><div>Assets on file <b>${Object.keys(POOL).length}</b></div>
        <div style="color:var(--dim);font-size:0.6875rem">Tap an entry to enlarge — full stats, targeting and abilities</div></div>${dbTabs()}
        ${TIERS.map(tier).join('')}`;
   }
@@ -165,7 +146,7 @@ function databasePanel() {
         attrs: ` data-gear="${gi}"`,
       });
     }).join('');
-    return `${hintCard('database')}<div class="bar"><div>Gear on file <b>${Object.keys(GEAR).length}</b></div>
+    return `<div class="bar"><div>Gear on file <b>${Object.keys(GEAR).length}</b></div>
      <div style="color:var(--dim);font-size:0.6875rem">One slot per card, bought with salvage</div></div>${dbTabs()}
      <div class="sect">Field gear</div><div class="rows">${rows}</div>`;
   }
@@ -187,7 +168,7 @@ function databasePanel() {
     return `<div class="sect">${TIERNAME[t]} — ${ids.filter(k => seen.includes(k)).length}/${ids.length}</div>
      <div class="rows">${rows}</div>`;
   };
-  return `${hintCard('database')}<div class="bar"><div>Hostiles logged <b>${seen.length}</b> / ${Object.keys(BEST).length}</div>
+  return `<div class="bar"><div>Hostiles logged <b>${seen.length}</b> / ${Object.keys(BEST).length}</div>
      <div style="color:var(--dim);font-size:0.6875rem">Entries unlock on first kill</div></div>${dbTabs()}
      ${TIERS.map(tier).join('')}`;
 }
@@ -228,7 +209,7 @@ const recTabs = () => `<div class="tabs">
 
 function recordPanel() {
   const s = active.stats;
-  const bar = `${hintCard('record')}<div class="bar"><div>${active.callsign} · <b style="color:var(--zan)">${rankName(active.progress.rank)}</b></div>
+  const bar = `<div class="bar"><div>${active.callsign} · <b style="color:var(--zan)">${rankName(active.progress.rank)}</b></div>
      <div style="color:var(--dim);font-size:0.6875rem">Task force command · XP ${active.progress.xp}</div></div>${recTabs()}`;
 
   if (recTab === 'ach') {
@@ -297,7 +278,9 @@ const settingsPanel = () => `<div class="sect">Interface</div><div class="rows">
      <span class="r hot">Paste JSON</span></div>
    <div class="row" id="newrun" style="cursor:pointer"><span>Regenerate current operation</span><span class="r" style="color:var(--mag)">Reroll missions</span></div>
    <div class="row" id="tutreplay" style="cursor:pointer"><span>Combat briefing<div style="font-size:0.6562rem;color:var(--dim);margin-top:4px">Runs at the start of your next campaign mission.</div></span>
-     <span class="r hot">${active.settings.tutorial === 'replay' ? 'Queued' : 'Replay'}</span></div></div>
+     <span class="r hot">${active.settings.tutorial === 'replay' ? 'Queued' : 'Replay'}</span></div>
+   <div class="row" id="hintreplay" style="cursor:pointer"><span>Panel briefings<div style="font-size:0.6562rem;color:var(--dim);margin-top:4px">Squad, Quartermaster, Database and Service Record each show a one-time coach card.</div></span>
+     <span class="r hot">Replay</span></div></div>
    <div class="sect">Controls</div><div class="rows">
    <div class="row"><span>End turn</span><span class="r">Space · Enter</span></div>
    <div class="row"><span>Deploy the nth card in hand</span><span class="r">1 – 9</span></div>
@@ -361,11 +344,10 @@ export function importRecordFlow(after) {
 
 export function openPanel(key) {
   if (!active || !PANELS[key]) return;
-  curPanel = key;
-  active.settings.hints = active.settings.hints || {};
   $('ptitle').textContent = TITLES[key] || key;
   $('pbody').innerHTML = PANELS[key]();
   $('panel').classList.add('on');
+  maybeShowPanelHint(key);
 
   const each = (sel, fn) => document.querySelectorAll('#pbody ' + sel).forEach(el => { el.onclick = () => fn(el); });
   each('[data-rosterbtn]', () => { toggleRoster(); openPanel('squad'); });
@@ -401,16 +383,6 @@ export function openPanel(key) {
   each('[data-tab]', el => { dbTab = el.dataset.tab; openPanel('database'); });
   each('[data-rectab]', el => { recTab = el.dataset.rectab; openPanel('record'); });
   each('[data-ui]', el => { setUiMode(el.dataset.ui); paintHold(); openPanel('settings'); });
-  each('[data-hintdismiss]', el => {
-    active.settings.hints[el.dataset.hintdismiss] = true;
-    commit();
-    openPanel(curPanel);
-  });
-  each('[data-hintshow]', el => {
-    delete active.settings.hints[el.dataset.hintshow];
-    commit();
-    openPanel(curPanel);
-  });
 
   const buyPack = $('buypack');
   if (buyPack) {
@@ -459,6 +431,15 @@ export function openPanel(key) {
       active.settings.tutorial = 'replay';
       commit();
       openPanel('settings');
+    };
+  }
+
+  const hintRow = $('hintreplay');
+  if (hintRow) {
+    hintRow.onclick = () => {
+      active.settings.hints = {};
+      commit();
+      notify('Panel briefings reset', 'They\'ll show again the next time you open each panel.');
     };
   }
 
