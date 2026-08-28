@@ -177,17 +177,17 @@ A.enterProfile(p);
   A.setPackQueue([]);
 }
 
-// 8. campaign packs arrive every SECOND node secured
+// 8. campaign packs arrive every PACK_METER_GOAL-th node secured
 {
   const q = A.blankProfile('METER');
   A.enterProfile(q);
   A.setPackQueue([]);
-  for (let win = 1; win <= 4; win++) {
+  for (let win = 1; win <= A.PACK_METER_GOAL * 2; win++) {
     const open = Object.keys(A.opRun().nodes).filter(id => A.nodeState(id) === 'open');
     A.launch(open[0]);
     A.finish(true, '');
     A.setG(null);
-    const expected = Math.floor(win / 2);
+    const expected = Math.floor(win / A.PACK_METER_GOAL);
     // Completing the whole operation also queues a specialist pack; only count
     // the standard drip here.
     const standard = A.packQueue.filter(x => x.tier === 'standard').length;

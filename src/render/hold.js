@@ -7,6 +7,7 @@ import {OPS} from '../content/operations.js';
 import {active, MAPDEF, setMapdef} from '../state/session.js';
 import {rankName, leadUnlocked, leadPrice} from '../save/progression.js';
 import {enterProfile, opRun} from '../rules/run.js';
+import {PACK_METER_GOAL} from '../rules/mission.js';
 import {$, show} from './dom.js';
 import {portrait} from './art.js';
 import {startScene} from './battlefield.js';
@@ -140,12 +141,15 @@ function paintReadout() {
   if (!el) return;
   const run = opRun();
   const meter = active.progress.packMeter || 0;
+  const left = PACK_METER_GOAL - meter;
+  const pips = Array.from({length: PACK_METER_GOAL - 1},
+    (_, i) => `<span class="rqpip${i < meter ? ' on' : ''}"></span>`).join('');
   el.innerHTML = `<span class="dmap">${opThumb(MAPDEF, run)}</span>
     <span class="dinfo">
       <span class="dhead">作戦 · Current deployment</span>
       <span class="drow"><b>${MAPDEF.n}</b></span>
-      <span class="drow">Requisition drop · <b>${meter >= 1 ? 'one node out' : 'two nodes out'}</b>
-        <span class="rqpips"><span class="rqpip${meter >= 1 ? ' on' : ''}"></span><span class="rqpip"></span></span></span>
+      <span class="drow">Requisition drop · <b>${left} node${left === 1 ? '' : 's'} out</b>
+        <span class="rqpips">${pips}</span></span>
       <span class="dgo">Open the sector map ▸</span>
     </span>`;
 }

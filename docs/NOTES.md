@@ -1453,10 +1453,24 @@ guards, including the two art-coverage guards for the newly-added ids —
 pass clean.
 
 Deliberately did not touch the free-pack cadence (`packMeter` in
-`mission.js`, currently one pack per two node wins) — the pool growth
-alone should meaningfully slow full collection without changing a system
-players are already used to. If it still clears too fast, nudging that
-threshold from 2 to 3 is a one-line follow-up (see Still open).
+`mission.js`, currently one pack per two node wins) at the time this
+patch shipped — the pool growth alone seemed likely to slow full
+collection enough on its own without changing a system players were
+already used to. Bumped to 3 shortly after; see below.
+
+## packMeter bumped to 3, to see how it feels
+
+Follow-up to the 58-card patch above. Nudged the free-pack threshold from
+2 node wins to 3 — `PACK_METER_GOAL` in `mission.js`, now a named
+constant instead of an inline `2`/`3` so the next tuning pass (up or back
+down) is a one-line change with nothing else to hunt for. The hold
+readout's "N nodes out" pip counter reads off the same constant, so it
+already understood a 2-pip layout without being told; verified all three
+states in a real browser (0/1/2 progress correctly text as "3/2/1 nodes
+out" with 0/1/2 pips lit). `packtest.js`'s cadence guard was hardcoded to
+the old every-other-win math — the only thing this one-line balance
+change actually broke — now reads `PACK_METER_GOAL` too instead of a
+second hardcoded `2`.
 
 ## Still open
 
@@ -1472,9 +1486,9 @@ threshold from 2 to 3 is a one-line follow-up (see Still open).
 4. **Forward Base is the riskiest of the new cards** — repair plus cooldown
    acceleration in the contested half props up Retake and Crystals directly.
    If it proves dominant in play, cut the cooldown half and keep the repair.
-5. **If 58 cards still clears too fast**, the next lever is the free-pack
-   cadence itself — `packMeter` in `mission.js` awards one standard pack
-   per two node wins; bumping the threshold to 3 is a one-line change.
+5. **`PACK_METER_GOAL` (3) is an untested guess.** If collection still races
+   ahead or the drip now feels too slow, it's a one-line tune in
+   `mission.js` either direction.
 
 Two things the structure now makes cheap:
 

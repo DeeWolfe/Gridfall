@@ -4205,6 +4205,9 @@ const QUOTA_TYPES = ['crawler', 'breacher', 'spitter', 'hulk'];
 // Three legs is the difference between a mode and a lottery ticket.
 const GAUNTLET_LEGS = 3;
 
+/** Node wins per free standard pack — the hold readout counts down to this. */
+const PACK_METER_GOAL = 3;
+
 /** Fresh, neutral-in-the-middle territory grid. */
 function freshTerritory() {
   const ter = [];
@@ -4468,10 +4471,11 @@ function settleCampaign(win, why) {
     active.stats.held++;
     active.progress.xp += 20;
     if (active.progress.xp >= active.progress.rank * 60) active.progress.rank++;
-    // A pack every second node secured — the drip that filled the collection
-    // in a weekend when it came with every win.
+    // A pack every third node secured — slowed from every second (and,
+    // before that, every) node once a bigger card pool alone wasn't enough
+    // to keep the collection from finishing in a weekend.
     active.progress.packMeter = (active.progress.packMeter || 0) + 1;
-    if (active.progress.packMeter >= 2) {
+    if (active.progress.packMeter >= PACK_METER_GOAL) {
       active.progress.packMeter = 0;
       queuePack('standard', 'Node secured');
     }
@@ -6253,12 +6257,15 @@ function paintReadout() {
   if (!el) return;
   const run = opRun();
   const meter = active.progress.packMeter || 0;
+  const left = PACK_METER_GOAL - meter;
+  const pips = Array.from({length: PACK_METER_GOAL - 1},
+    (_, i) => `<span class="rqpip${i < meter ? ' on' : ''}"></span>`).join('');
   el.innerHTML = `<span class="dmap">${opThumb(MAPDEF, run)}</span>
     <span class="dinfo">
       <span class="dhead">作戦 · Current deployment</span>
       <span class="drow"><b>${MAPDEF.n}</b></span>
-      <span class="drow">Requisition drop · <b>${meter >= 1 ? 'one node out' : 'two nodes out'}</b>
-        <span class="rqpips"><span class="rqpip${meter >= 1 ? ' on' : ''}"></span><span class="rqpip"></span></span></span>
+      <span class="drow">Requisition drop · <b>${left} node${left === 1 ? '' : 's'} out</b>
+        <span class="rqpips">${pips}</span></span>
       <span class="dgo">Open the sector map ▸</span>
     </span>`;
 }

@@ -30,6 +30,9 @@ const QUOTA_TYPES = ['crawler', 'breacher', 'spitter', 'hulk'];
 // Three legs is the difference between a mode and a lottery ticket.
 export const GAUNTLET_LEGS = 3;
 
+/** Node wins per free standard pack — the hold readout counts down to this. */
+export const PACK_METER_GOAL = 3;
+
 /** Fresh, neutral-in-the-middle territory grid. */
 function freshTerritory() {
   const ter = [];
@@ -293,10 +296,11 @@ function settleCampaign(win, why) {
     active.stats.held++;
     active.progress.xp += 20;
     if (active.progress.xp >= active.progress.rank * 60) active.progress.rank++;
-    // A pack every second node secured — the drip that filled the collection
-    // in a weekend when it came with every win.
+    // A pack every third node secured — slowed from every second (and,
+    // before that, every) node once a bigger card pool alone wasn't enough
+    // to keep the collection from finishing in a weekend.
     active.progress.packMeter = (active.progress.packMeter || 0) + 1;
-    if (active.progress.packMeter >= 2) {
+    if (active.progress.packMeter >= PACK_METER_GOAL) {
       active.progress.packMeter = 0;
       queuePack('standard', 'Node secured');
     }
