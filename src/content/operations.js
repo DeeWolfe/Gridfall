@@ -100,11 +100,11 @@ export const OPS = {
       from: {n: "Hikaru", r: "CC Liaison"},
       beats: [
         {
-          say: ["Commander. Blackmarrow's forward crew called it in — their last transmission before they sealed the winch station and pulled everyone topside.", "They didn't explain what they saw down there. They just wanted it shut."],
+          say: ["Commander. Blackmarrow's drill team called it in — their last transmission before they sealed the winch station and pulled everyone topside.", "They didn't explain what they saw down there. They just wanted it shut."],
           reply: "Copy. What's confirmed?",
         },
         {
-          say: ["The nest is confirmed, not just suspected. Whatever's been hollowing out those lower seams has been at it a while.", "Power's been down on gallery two for a month — command has no eyes past that line. You're going in dark."],
+          say: ["Forward team has confirmed nests. Whatever's been hollowing out those lower tunnels has been at it a while.", "Note, power's been down at gallery two for a month — central has no eyes past that line. You're going in dark."],
           reply: "Understood. We clear top-down and burn out whatever's holding gallery two.",
         },
         {
