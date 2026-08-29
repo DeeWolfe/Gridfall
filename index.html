@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Gridfall: Zanshin Protocol</title>
+<link rel="stylesheet" href="./styles/gridfall.css">
+</head>
+<body>
+<div class="scr on" id="title">
+  <div class="titlebg"></div>
+  <div class="titlewrap">
+    <div class="tkanji">残心</div>
+    <div class="twordmark">GRIDFALL</div>
+    <div class="tsub">Zanshin Protocol</div>
+    <div class="tprompt" id="titlego">▸ Tap to authenticate</div>
+    <button class="btn ghost timport" id="titleimport">Import record</button>
+  </div>
+  <div class="tfoot">Designed by DeeWolf · <span id="titlever">v0.0</span></div>
+  <div class="scanlines"></div>
+</div>
+
+<div class="scr" id="boot"><div class="bootwrap">
+  <div class="console">
+    <div class="conbar">
+      <span class="condot"></span>
+      <span class="contitle">Zanshin Protocol</span>
+      <span class="conid">NODE 07 · SECURE</span>
+    </div>
+    <div class="conbody">
+      <div class="authtitle">Commander authentication</div>
+      <div class="authkanji">認証 · 残心ネット</div>
+
+      <ol class="bootlog">
+        <li><span class="jp">接続</span>orbital uplink established</li>
+        <li><span class="jp">暗号</span>crypto handshake · ok</li>
+        <li><span class="jp">登録</span>task force registry mounted</li>
+        <li class="warn"><span class="jp">待機</span>awaiting command authentication</li>
+      </ol>
+
+      <div class="conreads">
+        <div><span>Uplink</span><b>Stable</b></div>
+        <div><span>Registry</span><b>3 slots</b></div>
+        <div><span>Clearance</span><b>Command</b></div>
+      </div>
+
+      <div class="conlabel">Command records · 指揮記録</div>
+      <div class="slots" id="slots"></div>
+
+      <div id="newform">
+        <label class="prompt" for="callsign">Commander callsign</label>
+        <div class="promptline">
+          <span class="caret">&gt;</span>
+          <input id="callsign" maxlength="12" placeholder="CALLSIGN" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="conacts"><button class="btn" id="create">Authenticate</button>
+          <button class="btn ghost" id="cancelnew">Back</button></div>
+      </div>
+
+      <div class="confoot">You command the task force. Records are held on this device only.</div>
+    </div>
+    <div class="scanlines"></div>
+  </div>
+</div></div>
+
+<div class="scr" id="hold"><div id="vibe"><div class="holdgrid">
+  <div class="port"><canvas id="sky"></canvas><div class="portframe"></div>
+    <div class="strut" style="left:31%;top:0;bottom:0;width:9px"></div>
+    <div class="strut" style="left:67%;top:0;bottom:0;width:9px"></div>
+    <div class="strut" style="left:0;right:0;top:37%;height:9px"></div>
+    <div class="portlabel"><b id="shipname">—</b> · <span id="phase">Descent</span> <b id="eta">T−0:00</b> · <span id="sectorname">—</span></div></div>
+  <div class="bay">
+    <div class="baytop"><div class="who"><div class="cs" id="h-cs">—</div><div class="rk" id="h-rk">—</div></div>
+      <div class="purse"><div class="cr"><div class="k">Credits</div><div class="v" id="h-cr">0</div></div></div></div>
+    <div class="baymain">
+      <button class="deploy" id="gomap"><div class="lamp"></div><h2>OPERATIONS</h2>
+        <div class="sub" id="deploysub">Select a node and commit the squad.</div></button>
+      <div class="tiles">
+        <button class="tile sq" data-p="squad"><div class="tn">Squad</div><div class="td">Build the deck you deploy from.</div></button>
+        <button class="tile qm" data-p="quartermaster"><div class="tn">Quartermaster</div><div class="td">Requisition new assets.</div></button>
+        <button class="tile db" data-p="database"><div class="tn">Database</div><div class="td">Assets and hostiles on file.</div></button>
+        <button class="tile rec" data-p="record"><div class="tn">Service Record</div><div class="td">Deployments, standing, achievements.</div></button></div>
+      <button class="dread" id="readout"></button>
+      <div class="tickline"><div class="tickin" id="ticker"></div></div></div>
+    <div class="bayfoot"><div style="font-size:0.5312rem;color:var(--dim)" id="saveflag">Saved</div></div>
+  </div></div></div></div>
+
+<div id="panel">
+  <div class="pbody" id="pbody"></div>
+  <div id="paneltut"></div>
+  <div class="navfoot"><h2 id="ptitle">—</h2>
+    <button class="btn ghost" id="pclose">Close</button></div>
+</div>
+
+<div class="scr" id="modes">
+  <div class="mapbody" id="modesbody"></div>
+  <div class="navfoot"><h2>MODES</h2>
+    <button class="btn ghost" id="modesback">Return to hold</button></div>
+</div>
+<div class="scr" id="ops">
+  <div class="mapbody" id="opsbody"></div>
+  <div class="navfoot"><h2>CAMPAIGN OPERATIONS</h2>
+    <button class="btn ghost" id="opsback">Back to modes</button></div>
+</div>
+<div class="scr" id="map">
+  <div class="mapbody" id="mapbody"></div>
+  <div class="navfoot"><h2 id="maptitle">DELTA SHELF</h2>
+    <button class="btn ghost" id="mapback">Back to operations</button></div>
+</div>
+
+<div class="scr" id="combat">
+  <div class="cbhead">
+    <div class="mtitle">
+      <b id="c-title">—</b>
+      <span class="doctrine" id="c-doc">—</span>
+      <span id="c-obj">—</span>
+    </div>
+    <div class="incoming" id="man"></div>
+    <button class="leadbadge" id="leadbadge"></button>
+  </div>
+  <div class="cbmain">
+    <div class="cbcol intel">
+      <div class="box logbox">
+        <h3>Combat log</h3>
+        <div class="cblog" id="cblog"></div>
+      </div>
+    </div>
+    <div class="cbcol mid">
+      <div class="field">
+        <div class="board" id="board"></div>
+        <div class="terbar" id="terbar"></div>
+        <div class="bstats">
+          <span>Ground <b id="c-ter">0</b></span>
+          <span>Breaches <b id="c-br">0</b></span>
+          <span>Deck <b id="c-deck">0</b></span>
+        </div>
+      </div>
+    </div>
+    <div class="cbcol side">
+      <div class="box grow selbox"><div id="selinfo">Nothing selected.</div></div>
+    </div>
+  </div>
+  <div class="cbfoot">
+    <div class="box handbox" id="handbox">
+      <h3>Hand<span class="handhead-r"><span class="dpchip"><b id="c-dp">6</b> DP</span>
+        <button class="handtog" id="handtog" aria-label="Toggle hand">▾</button></span></h3>
+      <div class="hcards" id="hcards"></div>
+    </div>
+    <div class="cbacts">
+      <button class="btn" id="actPrimary">End turn</button>
+      <button class="btn ghost" id="actSecondary">Abort</button>
+    </div>
+  </div>
+  <div id="tut"></div>
+</div>
+
+<div class="result" id="result"><div class="rcard" id="rcard"><h2 id="rt">—</h2>
+  <div class="rs" id="rs"></div><button class="btn" id="rok" style="width:100%">Continue</button></div></div>
+
+<div id="dlg"><div class="dlgbg"></div><div class="dlgbox">
+  <button class="dlgx" id="dlgx" aria-label="Close">✕</button>
+  <div class="dlgtitle" id="dlgtitle">—</div>
+  <div class="dlgmsg" id="dlgmsg"></div>
+  <input id="dlginput" maxlength="14" autocomplete="off" spellcheck="false" style="display:none">
+  <textarea id="dlgpaste" spellcheck="false" style="display:none"></textarea>
+  <div class="dlgacts" id="dlgacts"><button class="btn" id="dlgok">Confirm</button>
+    <button class="btn ghost" id="dlgno">Cancel</button></div></div></div>
+<div id="pack">
+  <div class="packbg" id="packbg"></div>
+  <div class="packflash" id="packflash"></div>
+  <div class="packwrap">
+    <div class="packlabel" id="packlabel">Requisition</div>
+    <div class="packhint" id="packhint">Tap the pack to open</div>
+    <div class="packstage" id="packstage"></div>
+    <div class="packfoot" id="packfoot"></div>
+  </div>
+</div>
+<div id="focus"><div class="fbg" id="fbg"></div><div class="fwrap" id="fwrap"></div></div>
+
+<div id="drawer">
+  <div class="drawmenu">
+    <button class="mini" id="drawset">Settings</button>
+    <button class="mini" id="drawui">UI</button>
+    <button class="mini" id="drawmus">Music</button>
+    <button class="mini" id="drawpatch">Patch notes</button>
+    <button class="mini" id="drawhome">Title screen</button>
+  </div>
+  <button id="drawtab" aria-label="Menu">▲</button>
+</div>
+
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
