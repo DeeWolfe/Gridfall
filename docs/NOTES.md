@@ -2446,6 +2446,49 @@ nothing; Supply Cache still pays +3 DP and still loses one card at random
 untouched, left no emplacement, and no-ops safely against an empty home
 line.
 
+## Pixel tokens: centred visors, and weapons you can actually see
+
+Two reported problems with the on-grid sprites, both real and both with a
+single root cause each rather than 62 sprites needing hand-touching.
+
+**Visors sat left of centre.** In the shared `TROOPER` and `KNEEL` chassis the
+head row read `...ovvbbo...` — outline at cols 3 and 8, so the interior is
+cols 4-7, but the 2-wide visor occupied 4-5, flush against the left edge.
+`HEAVY` had the same shape one cell wider. Centred is cols 5-6, so the rows
+became `...obvvbo...` and `..obbvvbbo..`. Because almost everything is built
+by `ov()`-ing an overlay onto those three chassis, that one change fixed the
+majority of the roster at once; the handful that draw their own heads
+(`recon`, `zaku`, `outrider`, `exo`) plus the four that override the visor
+row (`rearguard`, `assassin`, `kunoichi`, `cannon`) were corrected to match.
+`recon` also had its middle row spanning cols 2-8 while the rows above and
+below spanned 3-8, which read as an off-centre bulge; it now matches.
+
+**Weapons were the darkest thing on the sprite.** `w` was `#5b6284`, which
+measures **1.97:1** against the player tile — the body (`#ccd3ea`) sits at
+**7.85:1**. So the armour shouted and the weapon vanished, which is why a
+Rifleman, a Marksman and a Lancer all read as the same green body. Measured
+several replacements rather than eyeballing: `#aebbd2` gives **6.05:1** on
+the worst of the three tile colours while staying in the cool family, so it
+never competes with gold's "yours and alive" meaning. Uniform schemes
+override `b`/`s`/`v`/`o` but not `w`, so weapon metal now reads consistently
+across all ten schemes.
+
+Colour alone wasn't enough for "which unit is this" — most weapons were only
+2-3 pixels. 20 overlays were redrawn to project clear of the body with a gold
+muzzle/tip glint marking the business end, and to differ in *shape*, not just
+presence: Rifleman a short barrel, Marksman a long sniper barrel, Lancer a
+full-width lance, Samurai a long katana diagonal, Ronin twin blades pointing
+both forward *and* back (which is literally its rules text), Archer a bow with
+a nocked arrow, Herald a large standard. `pixtest`'s distinctness guard still
+passes, so no two tokens collapsed into each other.
+
+Checked at three scales rather than trusting a contact sheet: a full 62-sprite
+sheet, a pixel-level before/after against the committed version (rendered from
+`git show HEAD:` so the comparison is real, not remembered), and a strip at
+true in-game cell size (93px) across normal, **spent** (the grayscale/dim state
+an acted unit wears) and hostile-ground tiles — weapons stay legible in all
+three.
+
 ## Still open
 
 1. **Crystals at a hot operation is better, not soft.** Auto-rolled Crystals
