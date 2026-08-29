@@ -2537,6 +2537,25 @@ renderer reaching for it would have thrown under test rather than been caught.
 It has one now, wired into `dataset` for `data-*` names the way the browser
 does.
 
+## Blackmarrow gets its own codec call
+
+*2026-08-29*
+
+Operation Blackmarrow now opens with its own transmission from Hikaru, the
+second entry in `operations.<k>.intro` — Ironveil's was the first. Same
+mechanism as before: no code changed, only `reference/gridfall-data.json`, and
+`codectest.js` already covers a second intro by construction since it validates
+every operation's `intro` block generically rather than naming Ironveil.
+
+The call leans on the lore already in `operations.blackmarrow.lore` — the
+sealed winch station, the confirmed nest, the dead power on gallery two — so
+nothing it says contradicts the map page underneath. Own frequency (`203.14`,
+vs. Ironveil's `141.80`) so the two calls don't read as the same broadcast.
+
+Four operations still play straight to the map with no call: Sunderglass,
+Lumenspire, Crownring, Shallowhelm. Same JSON-only pattern whenever one is
+wanted.
+
 ## Still open
 
 1. **Crystals at a hot operation is better, not soft.** Auto-rolled Crystals

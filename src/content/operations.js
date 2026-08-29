@@ -94,6 +94,26 @@ export const OPS = {
     ],
     lore: "The Blackmarrow seams run deeper than any survey admits, and something has been hollowing them out from below. The last crew up sealed the winch station behind them and never said what they saw. The nest is confirmed. Burn it out — and mind the dark below the second gallery, where the power has been out for a month.",
     modBias: "crumble",
+    intro: {
+      freq: "203.14",
+      net: "残心ネット",
+      from: {n: "Hikaru", r: "CC Liaison"},
+      beats: [
+        {
+          say: ["Commander. Blackmarrow's drill team called it in — their last transmission before they sealed the winch station and pulled everyone topside.", "They didn't explain what they saw down there. They just wanted it shut."],
+          reply: "Copy. What's confirmed?",
+        },
+        {
+          say: ["Forward team has confirmed nests. Whatever's been hollowing out those lower tunnels has been at it a while.", "Note, power's been down at gallery two for a month — central has no eyes past that line. You're going in dark."],
+          reply: "Understood. We clear top-down and burn out whatever's holding gallery two.",
+        },
+        {
+          say: ["One more thing. Nobody who went past that line came back with a full account of it. Watch your footing, watch each other.", "Good hunting, Commander."],
+          reply: "Copy. Descending now.",
+        },
+      ],
+      close: "Channel closed. Descent vector locked — Blackmarrow, Winch Station.",
+    },
   },
   sunderglass: {
     k: "sunderglass",
