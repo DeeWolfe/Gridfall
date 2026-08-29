@@ -18,7 +18,7 @@ import {unitAt, foeAt, civAt, held, heldEnemyHalf, crystalsHeld, scorched, breac
 import {fire, healPass, dmgUnit, dmgEnemy, breachAt} from './combat.js';
 import {eventTick, eventStrikeMalus} from './events.js';
 import {wave, rollDoctrine, predictSpawns} from './waves.js';
-import {spawnPhase} from './spawn.js';
+import {spawnPhase, mkFoe} from './spawn.js';
 import {drawCard} from './deck.js';
 import {finish} from './mission.js';
 import {clog} from './log.js';
@@ -347,6 +347,42 @@ function spawnResearchTeam() {
   clog(`<span style="color:var(--violet)">Research Team</span> on the ground — lane ${l + 1}. Hold ${RESEARCH_TURNS} turns for extraction.`, 'order');
 }
 
+/**
+ * The Burrow Breach event is announced the instant it becomes G.eventNext —
+ * a full turn before it lands, same as every other event, but this one also
+ * names a tile so the warning has somewhere to point. Drawn from ground you
+ * actually hold; fizzles quietly if you hold none.
+ */
+function pickBurrowTile() {
+  const open = [];
+  for (let l = 0; l < LANES; l++) for (let c = 0; c < COLS; c++) {
+    if (G.ter[l][c] === 'p') open.push([l, c]);
+  }
+  if (!open.length) { G.burrowAt = null; return; }
+  const [l, c] = open[randInt(open.length)];
+  G.burrowAt = {l, c};
+}
+
+/**
+ * The Burrow Breach event lands: the marked tile gives way. Whatever is
+ * standing on it falls through with the ground itself — not a hit, so a
+ * shield, riposte or Phase Cloak has nothing to answer — then a burrower
+ * claws up out of the breach and holds the cell.
+ */
+function burrowErupt() {
+  if (!G.burrowAt) return;
+  const {l, c} = G.burrowAt;
+  G.burrowAt = null;
+  const u = unitAt(l, c);
+  if (u) {
+    G.units = G.units.filter(x => x.uid !== u.uid);
+    G.lost++;
+    clog(`<span class="d">The ground opens under ${u.n}</span> — swallowed whole.`, 'loss');
+  }
+  G.enemies.push(mkFoe('burrower', l, c, BEST.burrower.hp));
+  clog(`<span style="color:var(--violet)">Burrow Breach</span> — a burrower claws up at lane ${l + 1}.`, 'loss');
+}
+
 const CIV_SPAWN_HP = 4;
 // A mission runs roughly 10 turns (waves + grace). Every-3-turns was the
 // first cut and it under-shipped badly — 3 spawns can't reach a goal of 4,
@@ -483,6 +519,9 @@ export function endTurn() {
   // The event clock advances BEFORE the next wave is rolled, so a surge or
   // dead-air event shapes the manifest it was telegraphed against.
   eventTick();
+  // Burrow Breach names its tile the instant it's announced, not when it
+  // lands — the warning needs a full turn on the board same as the event.
+  if (G.eventNext === 'burrow') pickBurrowTile();
 
   if (!wasLast) {
     G.turn++;
@@ -509,6 +548,7 @@ export function endTurn() {
   if (G.event === 'supply') G.dp += 2;
   if (G.event === 'bombard') bombardStrike();
   if (G.event === 'research') spawnResearchTeam();
+  if (G.event === 'burrow') burrowErupt();
   if (leadOf().passive && leadOf().passive.n === 'Firebrand' && G.lost > lostBefore) {
     G.dp += 2;
     clog('<span class="g">Firebrand</span> — losses answered with +2 deploy points.', 'order');

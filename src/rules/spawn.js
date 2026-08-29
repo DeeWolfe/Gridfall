@@ -16,7 +16,7 @@ import {dampenIn} from './combat.js';
 import {clog} from './log.js';
 import {tapeEvent, tapeMark} from './tape.js';
 
-const mkFoe = (k, lane, col, hp) => {
+export const mkFoe = (k, lane, col, hp) => {
   tapeEvent({type: 'spawn', lane, col});
   return {uid: nextUid(), k, lane, col, hp, mv: 0, acc: 0, stun: 0};
 };

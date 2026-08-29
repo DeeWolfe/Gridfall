@@ -312,6 +312,8 @@ export function drawBoard() {
     if (buffed.has(i)) cls += ' buffed';
     if (influenced.has(i)) cls += ' influence';
     if (aimable.has(i)) cls += ' aimable';
+    const burrowWarn = G.burrowAt && G.burrowAt.l === l && G.burrowAt.c === c;
+    if (burrowWarn) cls += ' burrowmark';
     cell.className = cls;
 
     let marker = c === COLS - 1 && spawnLanes[l]
@@ -360,6 +362,10 @@ export function drawBoard() {
         cell.classList.add('clickable');
         cell.onclick = () => notify(`${EVENTS.bombard.icon} Bombardment crater`,
           `Hive artillery scarred this ground — impassable to both sides while it holds.<br><br>Clears itself in <b>${rubble}</b> more turn${rubble === 1 ? '' : 's'}.`);
+      } else if (burrowWarn) {
+        cell.classList.add('clickable');
+        cell.onclick = () => notify(`${EVENTS.burrow.icon} ${EVENTS.burrow.n}`,
+          `${EVENTS.burrow.d}<br><br>This tile is the one marked — whatever is left standing here when it opens falls through with it.`);
       }
     }
 

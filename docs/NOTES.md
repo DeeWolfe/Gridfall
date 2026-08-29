@@ -2239,6 +2239,42 @@ away; it just reads as low-priority next to the brighter hostile-manifest
 chips beside it. Left alone for now — scope stayed on the two tiles that
 were actually missing information, not the one that was only styled quietly.
 
+## Burrow Breach: a new event that names a tile, not just a turn
+
+Every event so far only ever telegraphed a *kind* — "something's coming" —
+never a *place*. Burrow Breach is the first that does both: announced a
+turn ahead like any other event, but it also marks one specific tile you
+currently hold, the same one-turn promise the spawn markers keep, just
+pointed at a location instead of a lane.
+
+`pickBurrowTile()` (phases.js) fires the instant Burrow Breach becomes
+`G.eventNext` — not when it lands — and picks uniformly from whatever
+you're currently holding (`G.ter[l][c] === 'p'`). That tile gets a slow,
+heavy violet pulse on the board (`.cell.burrowmark`, tuned to a different
+rhythm than an armed stratagem's pulse so the two warnings don't read as
+the same thing) and is tappable for the same `notify()` explanation the
+other events already use — the pattern from the last entry, extended to a
+telegraph tile instead of a landed one.
+
+When it lands, `burrowErupt()` does the thing the marker promised: whatever
+is standing on that tile is swallowed outright. Not damage — no shield,
+riposte or Phase Cloak gets a say, because the ground itself isn't there
+anymore, not a hit landing on it. A `burrower` (an existing hostile, already
+themed around tunneling) claws up and holds the cell afterward. An empty
+tile at eruption just gets a burrower on open ground — no unit, no cost,
+same as any other spawn — so the event is never a pure trap with no
+counterplay: moving off the marked tile in time is the whole point of the
+one-turn warning, and ignoring it trades a unit for skipping that fight
+somewhere else on the board.
+
+Verified with a forced-tile run (Math.random pinned to avoid the reroll
+re-picking the same event mid-test): a unit placed on the marked tile was
+gone after eruption, a burrower stood in its exact cell, `G.lost` ticked up,
+and the log carried the right lines throughout. No operation was given
+`eventBias: 'burrow'` — every operation already has its one signature
+hazard filled from the last two rounds of this work, so it joins the flat
+random pool everywhere instead of displacing one.
+
 ## Still open
 
 1. **Crystals at a hot operation is better, not soft.** Auto-rolled Crystals

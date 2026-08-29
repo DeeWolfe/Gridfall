@@ -80,7 +80,7 @@ export function launchSpec(nd) {
     heat: nd.heat || 0, endless: !!nd.endless, gauntlet: !!nd.gauntlet, daily: !!nd.daily,
     waves: nd.endless ? 9999 : m.waves,
     turn: 1, dp: MAXDP, breaches: 0, over: false,
-    ter: freshTerritory(), scorch: {}, rubble: {},
+    ter: freshTerritory(), scorch: {}, rubble: {}, burrowAt: null,
     deck: shuffle([...deck]), hand: [], units: [], enemies: [],
     logs: [], kills: 0, lost: 0, extra: 0, doctrine: 'probe', leadUsed: false,
     civ: [], crystals: [], quota: 0, quotaK: null, quotaHit: 0,

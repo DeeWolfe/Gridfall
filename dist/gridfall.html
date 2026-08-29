@@ -401,6 +401,14 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
   animation:stratpulse 1.4s ease-in-out infinite;z-index:2}
 @keyframes stratpulse{0%,100%{box-shadow:inset 0 0 0 2px var(--violet),0 0 16px rgba(157,107,255,.5)}
   50%{box-shadow:inset 0 0 0 2px var(--violet),0 0 4px rgba(157,107,255,.2)}}
+/* Burrow Breach's telegraphed tile — same violet warning language as an
+   armed stratagem, on a slower, heavier pulse so a hazard reads differently
+   from a stratagem the player armed themselves. Shows whether or not a
+   unit is standing on it — that's the whole point of the warning. */
+.cell.burrowmark{box-shadow:inset 0 0 0 2px var(--violet),0 0 20px rgba(157,107,255,.6);
+  animation:burrowpulse 2s ease-in-out infinite;z-index:2}
+@keyframes burrowpulse{0%,100%{box-shadow:inset 0 0 0 2px var(--violet),0 0 20px rgba(157,107,255,.6)}
+  50%{box-shadow:inset 0 0 0 3px var(--violet),0 0 6px rgba(157,107,255,.25)}}
 .cell.strattgt{cursor:pointer;box-shadow:inset 0 0 0 1px rgba(157,107,255,.55)}
 .cell.strattgt:hover{filter:brightness(1.35)}
 .cell.orderdest{box-shadow:inset 0 0 0 2px var(--green)}
@@ -3715,6 +3723,8 @@ const EVENTS = {
     d: 'The hive lobs spike ordnance downrange — three tiles take a direct hit and craters for a few turns after.'},
   research: {n: 'Research Team', icon: '⚗',
     d: 'A field team drops in to tag a live specimen. Keep it standing a few turns and it extracts clean — credits for the escort.'},
+  burrow: {n: 'Burrow Breach', icon: '▽',
+    d: 'The ground groans under your line — one tile is marked a turn ahead of the break. Whatever is left standing there when it opens falls through with it, shields and all; a burrower claws up out of the breach in its place.'},
 };
 
 const EVENT_CHANCE = 0.35;
@@ -4424,7 +4434,7 @@ function launchSpec(nd) {
     heat: nd.heat || 0, endless: !!nd.endless, gauntlet: !!nd.gauntlet, daily: !!nd.daily,
     waves: nd.endless ? 9999 : m.waves,
     turn: 1, dp: MAXDP, breaches: 0, over: false,
-    ter: freshTerritory(), scorch: {}, rubble: {},
+    ter: freshTerritory(), scorch: {}, rubble: {}, burrowAt: null,
     deck: shuffle([...deck]), hand: [], units: [], enemies: [],
     logs: [], kills: 0, lost: 0, extra: 0, doctrine: 'probe', leadUsed: false,
     civ: [], crystals: [], quota: 0, quotaK: null, quotaHit: 0,
@@ -7602,6 +7612,42 @@ function spawnResearchTeam() {
   clog(`<span style="color:var(--violet)">Research Team</span> on the ground — lane ${l + 1}. Hold ${RESEARCH_TURNS} turns for extraction.`, 'order');
 }
 
+/**
+ * The Burrow Breach event is announced the instant it becomes G.eventNext —
+ * a full turn before it lands, same as every other event, but this one also
+ * names a tile so the warning has somewhere to point. Drawn from ground you
+ * actually hold; fizzles quietly if you hold none.
+ */
+function pickBurrowTile() {
+  const open = [];
+  for (let l = 0; l < LANES; l++) for (let c = 0; c < COLS; c++) {
+    if (G.ter[l][c] === 'p') open.push([l, c]);
+  }
+  if (!open.length) { G.burrowAt = null; return; }
+  const [l, c] = open[randInt(open.length)];
+  G.burrowAt = {l, c};
+}
+
+/**
+ * The Burrow Breach event lands: the marked tile gives way. Whatever is
+ * standing on it falls through with the ground itself — not a hit, so a
+ * shield, riposte or Phase Cloak has nothing to answer — then a burrower
+ * claws up out of the breach and holds the cell.
+ */
+function burrowErupt() {
+  if (!G.burrowAt) return;
+  const {l, c} = G.burrowAt;
+  G.burrowAt = null;
+  const u = unitAt(l, c);
+  if (u) {
+    G.units = G.units.filter(x => x.uid !== u.uid);
+    G.lost++;
+    clog(`<span class="d">The ground opens under ${u.n}</span> — swallowed whole.`, 'loss');
+  }
+  G.enemies.push(mkFoe('burrower', l, c, BEST.burrower.hp));
+  clog(`<span style="color:var(--violet)">Burrow Breach</span> — a burrower claws up at lane ${l + 1}.`, 'loss');
+}
+
 const CIV_SPAWN_HP = 4;
 // A mission runs roughly 10 turns (waves + grace). Every-3-turns was the
 // first cut and it under-shipped badly — 3 spawns can't reach a goal of 4,
@@ -7738,6 +7784,9 @@ function endTurn() {
   // The event clock advances BEFORE the next wave is rolled, so a surge or
   // dead-air event shapes the manifest it was telegraphed against.
   eventTick();
+  // Burrow Breach names its tile the instant it's announced, not when it
+  // lands — the warning needs a full turn on the board same as the event.
+  if (G.eventNext === 'burrow') pickBurrowTile();
 
   if (!wasLast) {
     G.turn++;
@@ -7764,6 +7813,7 @@ function endTurn() {
   if (G.event === 'supply') G.dp += 2;
   if (G.event === 'bombard') bombardStrike();
   if (G.event === 'research') spawnResearchTeam();
+  if (G.event === 'burrow') burrowErupt();
   if (leadOf().passive && leadOf().passive.n === 'Firebrand' && G.lost > lostBefore) {
     G.dp += 2;
     clog('<span class="g">Firebrand</span> — losses answered with +2 deploy points.', 'order');
@@ -8959,6 +9009,8 @@ function drawBoard() {
     if (buffed.has(i)) cls += ' buffed';
     if (influenced.has(i)) cls += ' influence';
     if (aimable.has(i)) cls += ' aimable';
+    const burrowWarn = G.burrowAt && G.burrowAt.l === l && G.burrowAt.c === c;
+    if (burrowWarn) cls += ' burrowmark';
     cell.className = cls;
 
     let marker = c === COLS - 1 && spawnLanes[l]
@@ -9007,6 +9059,10 @@ function drawBoard() {
         cell.classList.add('clickable');
         cell.onclick = () => notify(`${EVENTS.bombard.icon} Bombardment crater`,
           `Hive artillery scarred this ground — impassable to both sides while it holds.<br><br>Clears itself in <b>${rubble}</b> more turn${rubble === 1 ? '' : 's'}.`);
+      } else if (burrowWarn) {
+        cell.classList.add('clickable');
+        cell.onclick = () => notify(`${EVENTS.burrow.icon} ${EVENTS.burrow.n}`,
+          `${EVENTS.burrow.d}<br><br>This tile is the one marked — whatever is left standing here when it opens falls through with it.`);
       }
     }
 

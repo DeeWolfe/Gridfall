@@ -33,6 +33,8 @@ export const EVENTS = {
     d: 'The hive lobs spike ordnance downrange — three tiles take a direct hit and craters for a few turns after.'},
   research: {n: 'Research Team', icon: '⚗',
     d: 'A field team drops in to tag a live specimen. Keep it standing a few turns and it extracts clean — credits for the escort.'},
+  burrow: {n: 'Burrow Breach', icon: '▽',
+    d: 'The ground groans under your line — one tile is marked a turn ahead of the break. Whatever is left standing there when it opens falls through with it, shields and all; a burrower claws up out of the breach in its place.'},
 };
 
 const EVENT_CHANCE = 0.35;
