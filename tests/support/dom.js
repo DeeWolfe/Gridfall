@@ -49,6 +49,12 @@ function makeElement(id) {
     addEventListener() {},
     focus() {},
     select() {},
+    _attrs: {},
+    setAttribute(name, value) {
+      this._attrs[name] = String(value);
+      if (name.startsWith('data-')) this.dataset[camel(name.slice(5))] = String(value);
+    },
+    getAttribute(name) { return this._attrs[name] ?? null; },
   };
   e.classList = {
     add: c => e._cls.add(c),

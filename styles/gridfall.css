@@ -1018,6 +1018,120 @@ body{font-size:1rem}
 
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
+/* ============ CODEC CALL ============
+   The pre-operation transmission. Above the focus view (92) and below the
+   dialog (95): it is a full takeover of the ops screen, but a confirm must
+   still be able to land on top of it. */
+#codec{position:fixed;inset:0;z-index:93;display:none;align-items:center;justify-content:center;
+  padding:clamp(10px,2.4vw,28px)}
+#codec.on{display:flex;animation:fadein .2s ease-out}
+.cbg{position:absolute;inset:0;background:rgba(7,6,15,.58);
+  backdrop-filter:blur(11px) saturate(.7);-webkit-backdrop-filter:blur(11px) saturate(.7)}
+.cbok{position:absolute;inset:0;overflow:hidden;pointer-events:none;opacity:.5}
+
+.cbox{position:relative;z-index:2;width:100%;max-width:760px;max-height:100%;overflow:auto;
+  background:linear-gradient(170deg,var(--panel2) 0%,var(--deep) 66%);border:1px solid var(--line2);
+  clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,18px 100%,0 calc(100% - 18px));
+  box-shadow:0 30px 90px -26px rgba(0,0,0,.95);
+  animation:crise .4s cubic-bezier(.2,1.1,.4,1) both}
+@keyframes crise{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
+
+.cfreq{display:flex;align-items:center;gap:11px;flex-wrap:wrap;padding:9px 16px;
+  border-bottom:1px solid var(--line);background:rgba(7,6,15,.6);
+  font-size:0.6875rem;letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
+.cfreq .cjp{font-family:'Hiragino Mincho ProN','Yu Mincho','Noto Serif JP','MS Mincho',serif;
+  letter-spacing:.18em;color:var(--violet);text-transform:none}
+.cfreq .cnum{color:var(--cyan);font-variant-numeric:tabular-nums;letter-spacing:.14em}
+.cfreq .cdot{width:7px;height:7px;border-radius:50%;background:var(--green);flex:0 0 auto;
+  box-shadow:0 0 9px var(--green);animation:clive 2.6s infinite}
+@keyframes clive{0%,100%{opacity:1}50%{opacity:.3}}
+.cfreq .cr{margin-left:auto;color:var(--line2)}
+
+.crow{display:grid;grid-template-columns:126px minmax(0,1fr) 126px;align-items:stretch}
+.cport{position:relative;padding:13px 9px;display:flex;flex-direction:column;align-items:center;gap:7px;
+  background:rgba(7,6,15,.42)}
+.cport.l{border-right:1px solid var(--line);--ctone:var(--cyan)}
+.cport.r{border-left:1px solid var(--line);--ctone:var(--gold)}
+.cpic{width:100%;aspect-ratio:1;filter:saturate(.3) brightness(.46);transition:filter .28s ease}
+.cpic svg{width:100%;height:100%;display:block}
+.cport.on .cpic{filter:none}
+.cwho{font-size:0.5938rem;letter-spacing:.14em;text-transform:uppercase;text-align:center;
+  color:var(--line2);transition:color .28s ease;line-height:1.4}
+.cport.on .cwho{color:var(--ctone)}
+.cwho b{display:block;font-weight:700;font-size:0.7188rem;letter-spacing:.18em}
+.ceq{display:flex;gap:2px;height:10px;align-items:flex-end;opacity:0;transition:opacity .2s}
+.cport.on .ceq{opacity:1}
+.ceq i{width:3px;height:30%;background:var(--ctone);animation:cbars .7s ease-in-out infinite}
+.ceq i:nth-child(2){animation-delay:.1s}
+.ceq i:nth-child(3){animation-delay:.22s}
+.ceq i:nth-child(4){animation-delay:.34s}
+.ceq i:nth-child(5){animation-delay:.46s}
+@keyframes cbars{0%,100%{height:25%}50%{height:100%}}
+
+.cwell{padding:17px 20px;display:flex;flex-direction:column;gap:14px;min-height:214px;
+  background:rgba(7,6,15,.22)}
+.cwell[data-who="them"]{--ctone:var(--cyan)}
+.cwell[data-who="you"]{--ctone:var(--gold)}
+.csaid{font-size:0.8125rem;line-height:1.78;color:var(--txt);max-width:60ch;white-space:pre-wrap}
+.csaid.you{color:var(--gold)}
+.ccur{display:inline-block;width:7px;height:1em;vertical-align:-2px;
+  background:var(--ctone,var(--cyan));animation:cblink .9s steps(1) infinite}
+@keyframes cblink{0%,49%{opacity:1}50%,100%{opacity:0}}
+
+.cacts{margin-top:auto;display:flex;flex-wrap:wrap;gap:9px;align-items:center;min-height:38px}
+.creply{font-family:inherit;font-size:0.75rem;line-height:1.5;text-align:left;color:var(--gold);
+  background:rgba(255,201,77,.07);border:1px solid rgba(255,201,77,.45);padding:9px 13px;
+  clip-path:polygon(0 0,calc(100% - 9px) 0,100% 9px,100% 100%,9px 100%,0 calc(100% - 9px));
+  transition:background .16s,border-color .16s}
+.creply:hover{background:rgba(255,201,77,.16);border-color:var(--gold)}
+.creply:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.creply::before{content:'\25b8 ';opacity:.8}
+.cgo{color:var(--green);background:rgba(93,255,160,.08);border-color:rgba(93,255,160,.5)}
+.cgo:hover{background:rgba(93,255,160,.18);border-color:var(--green)}
+.cgo::before{content:''}
+
+/* Read at your own pace: three dots cycling . / .. / ... and nothing else.
+   A monospace period carries a ~0.6em advance, which would space three of them
+   out like status pips — so each dot gets a narrower box and the glyphs close
+   up into a real ellipsis. All three slots are always reserved, so the button
+   never changes width as it cycles. */
+.cmore{font-family:inherit;padding:10px 18px 12px 4px;display:inline-flex;color:var(--cyan);
+  font-size:1.6rem;line-height:.7}
+.cmore:hover{color:var(--txt)}
+.cmore:focus-visible{outline:1px solid var(--cyan-d);outline-offset:3px}
+.cmore .cell{display:inline-flex;gap:0}
+.cmore .cell i{font-style:normal;opacity:0;width:.38em}
+.cmore .cell i:nth-child(1){animation:cdot1 1.5s infinite}
+.cmore .cell i:nth-child(2){animation:cdot2 1.5s infinite}
+.cmore .cell i:nth-child(3){animation:cdot3 1.5s infinite}
+@keyframes cdot1{0%,100%{opacity:1}}
+@keyframes cdot2{0%,32%{opacity:0}33%,100%{opacity:1}}
+@keyframes cdot3{0%,65%{opacity:0}66%,100%{opacity:1}}
+
+.cfoot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:9px 16px;
+  border-top:1px solid var(--line);background:rgba(7,6,15,.6)}
+.cpips{display:flex;gap:5px}
+.cpips i{width:16px;height:2px;background:var(--line2);transition:background .25s}
+.cpips i.on{background:var(--cyan)}
+.ccap{font-size:0.625rem;color:var(--line2);letter-spacing:.12em;text-transform:uppercase}
+.cskip{margin-left:auto;font-family:inherit;font-size:0.6875rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--dim);padding:3px}
+.cskip:hover{color:var(--txt)}
+.cskip:focus-visible{outline:1px solid var(--line2);outline-offset:2px}
+
+@media(max-width:640px){
+  .crow{grid-template-columns:76px minmax(0,1fr) 76px}
+  .cwell{padding:14px 15px;min-height:196px}
+  .cwho b{font-size:0.625rem;letter-spacing:.1em}
+  .cwho{font-size:0.5313rem;letter-spacing:.08em}
+  .cfreq{gap:8px;padding:8px 12px;font-size:0.625rem}
+  .cfoot{padding:8px 12px;flex-wrap:nowrap}
+  /* The operation name is redundant on a narrow footer — the player tapped
+     that card a second ago — and keeping it wraps Skip onto its own line. */
+  .ccap{display:none}
+}
+@media(prefers-reduced-motion:reduce){.ccur{opacity:0}.cmore .cell i{opacity:1}}
+
 /* ============ OPS FOOTNOTE ============ */
 .mnote{margin-top:22px;padding-top:14px;border-top:1px solid var(--line);
   color:var(--dim);font-size:0.6875rem;line-height:1.65;max-width:64ch}

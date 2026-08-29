@@ -8,6 +8,7 @@ import {$, show} from './dom.js';
 import {leadCardHTML, leadTilesHTML, toggleRoster, opThumb} from './hold.js';
 import {focusLead} from './focus.js';
 import {renderMap} from './map.js';
+import {playIntro} from './codec.js';
 
 export function renderOps() {
   if (!active) return;
@@ -42,8 +43,10 @@ export function renderOps() {
       setMapdef(active.op);
       if (!active.ops[active.op]) genRun();
       commit();
-      show('map');
-      renderMap();
+      // The first time a commander opens an operation, Central Command calls
+      // ahead of the drop. The map waits behind the transmission.
+      const go = () => { show('map'); renderMap(); };
+      if (!playIntro(active.op, go)) go();
     };
   });
 }

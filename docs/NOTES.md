@@ -2489,6 +2489,54 @@ true in-game cell size (93px) across normal, **spent** (the grayscale/dim state
 an acted unit wears) and hostile-ground tiles — weapons stay legible in all
 three.
 
+## The codec call: Central Command opens an operation
+
+*2026-08-29*
+
+The first time a commander taps an operation, Central Command calls ahead of
+the drop. Hikaru, the CC liaison, takes three beats to hand over the situation;
+the commander answers each; and then the channel closes and the sector map
+opens behind it. Metal Gear's codec is the reference, down to the two portraits
+lighting up in turn.
+
+**Nothing in it moves on a timer.** Hikaru's line types out, you tap your reply
+when you have read it, your reply types out, and then a cycling `.` / `..` /
+`...` sits there until you are ready for the next beat. Three dots and no label
+— the word "Continue" lives in `aria-label` so a screen reader announces it
+without a caption sitting next to the ellipsis. (A monospace period carries a
+~0.6em advance, which spaces three of them out like status pips rather than an
+ellipsis; each dot gets a `.38em` box so the glyphs close up. All three slots
+are always reserved, so the button never changes width as it cycles.)
+
+**The scene is data, not code.** `operations.ironveil.intro` in
+`reference/gridfall-data.json` carries the frequency, the caller, the beats and
+the sign-off; `tools/gen-content.js` passes it through untouched. Writing
+Blackmarrow's call is a JSON edit. An operation with no `intro` block plays
+nothing and falls straight through to the map — `playIntro()` returns false,
+having done nothing, and the caller runs its own `go()`.
+
+**`#codec` is an overlay, not a screen.** It joins `#focus`, `#pack` and `#dlg`
+as a sibling of the screen stack rather than an eighth entry in `SCREENS`,
+which keeps csstest's "exactly one screen carries `.on`" invariant intact: the
+ops screen stays the visible screen while the call sits on top of it, dimmed and
+bokeh'd through the same `bokehLayer()` the focus view uses. Verified in a real
+browser — `screens on: ['ops']` throughout the call, `['map']` after.
+
+It plays once per commander per operation, recorded in
+`settings.intros[opKey]`, with a **Command transmissions → Replay** row in
+Settings that clears the flags. Under `prefers-reduced-motion` every line lands
+whole instead of typing.
+
+`codectest.js` (guard 38) walks the whole scene beat by beat and guards the
+thing that would actually strand a player: the call must always hand control
+back. It checks the sign-off path, the skip path, the play-once gate and the
+Settings reset, plus the shape of every intro block that ships.
+
+**One harness gap this turned up:** the DOM stub had no `setAttribute`, so any
+renderer reaching for it would have thrown under test rather than been caught.
+It has one now, wired into `dataset` for `data-*` names the way the browser
+does.
+
 ## Still open
 
 1. **Crystals at a hot operation is better, not soft.** Auto-rolled Crystals
