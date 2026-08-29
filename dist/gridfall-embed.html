@@ -1662,7 +1662,7 @@ const OPS = {
   shallowhelm: {
     k: "shallowhelm",
     n: "OPERATION SHALLOWHELM",
-    sub: "Fortress Shallow Helm · gone dark, no distress call",
+    sub: "Fortress Shallow Helm · breached from within",
     col: "#ff5a5a",
     heat: 3,
     zones: [
@@ -1696,7 +1696,7 @@ const OPS = {
         id: "n6",
         x: 240,
         y: 152,
-        l: "Cleanse Antechamber",
+        l: "Purge Antechamber",
         req: ["n3"],
         reqText: "No power on the deck — restore the Power Vault first",
       },
@@ -1704,9 +1704,9 @@ const OPS = {
         id: "n7",
         x: 356,
         y: 158,
-        l: "Cleanse Core",
+        l: "Purge Core",
         type: "blitz",
-        lore: "Arm the Self-Cleanse and purge everything it flushes at you.",
+        lore: "Arm the Purge Protocol and burn out everything it flushes at you.",
       },
       {
         id: "n8",
@@ -1715,7 +1715,7 @@ const OPS = {
         role: "final",
         l: "Gatehouse Extraction",
         req: ["n7"],
-        reqText: "The Self-Cleanse is not armed — fight back to the Cleanse Core first",
+        reqText: "The Purge Protocol isn't armed — fight back to the Purge Core first",
       },
     ],
     edges: [
@@ -1727,7 +1727,7 @@ const OPS = {
       ["n6", "n7"],
       ["n1", "n8"],
     ],
-    lore: "Fortress Shallow Helm held the pass for forty years and never missed a check-in. Nine days ago it simply stopped — no distress call, no survivors on the walls, the gates sealed from the inside. Whatever is in there now wears the Helm like a shell. Put the fortress through its own Self-Cleanse, and come back out the way you went in.",
+    lore: "Fortress Shallow Helm anchors the whole defensive line — while it holds, the hive breaks against the pass instead of the cities behind it. Nine days ago, a cult that had spent months quietly worshiping the invaders threw the gates open from the inside, and the wards went dark with them. No distress call went out; there was no one left topside to send one. Arm the Purge Protocol and scour the fortress clean — cultists, hive, and whatever the two have made of each other — then come back out the way you went in.",
     modBias: "blackout",
     intro: {
       freq: "55.13",
@@ -1735,15 +1735,15 @@ const OPS = {
       from: {n: "Hikaru", r: "CC Liaison"},
       beats: [
         {
-          say: ["Commander. Fortress Shallow Helm held that pass for forty years and never missed a check-in. Nine days ago it just stopped.", "No distress call. No survivors on the walls. The gates were sealed from the inside."],
+          say: ["Commander. Shallow Helm is the anchor of the whole line — while it holds, the hive breaks on that pass instead of the cities behind it.", "Nine days ago it went dark. No distress call. No survivors on the walls. The gates were sealed from the inside."],
           reply: "Copy. Sealed from the inside — by who?",
         },
         {
-          say: ["Command doesn't have an answer to that, and neither do I. Whatever's in there now, it's wearing the Helm like a shell.", "You put that fortress through its own Self-Cleanse protocol. That's not a suggestion."],
-          reply: "Understood. We clear it room by room if we have to.",
+          say: ["By us, near enough. Command's confirmed a cult inside the garrison — they'd been worshiping the invaders for months and finally opened the gates for them.", "The wards didn't fail, Commander. Someone switched them off. The hive's inside now, and so are the people who let them in."],
+          reply: "Understood. We put both down.",
         },
         {
-          say: ["One thing, Commander — come back out the way you went in. Don't get creative with the route.", "Good hunting."],
+          say: ["Arm the Purge Protocol and scour that fortress clean — cultists, hive, all of it. Shallow Helm doesn't get to become a hole in the line.", "Come back out the way you went in. Good hunting, Commander."],
           reply: "Copy. Going in.",
         },
       ],

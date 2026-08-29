@@ -192,11 +192,11 @@ overrides it (Shallowhelm's mandatory Crystals hold runs at 1, not 3).
   X routes from the Summit Hall to the second ring, a plus of ward gates
   beyond it. The Northgate Delegation (always Civilians) must be walked out
   before the Accord Extraction unlocks; the west and east gates are bonus.
-- **Shallowhelm** (heat 3) - a fortress gone dark. Three branches off the
-  Gatehouse: the Power Vault (always Crystals), the optional Records Hall
-  (always Uplink), and the Cleanse wing - gated on power, ending in the
-  Cleanse Core (always Blitz). Extraction is back at the Gatehouse, gated
-  on the armed Self-Cleanse.
+- **Shallowhelm** (heat 3) - a fortress breached from within by a cult that
+  opened its gates to the hive. Three branches off the Gatehouse: the Power
+  Vault (always Crystals), the optional Records Hall (always Uplink), and
+  the Purge wing - gated on power, ending in the Purge Core (always Blitz).
+  Extraction is back at the Gatehouse, gated on the armed Purge Protocol.
 
 ## Field events
 

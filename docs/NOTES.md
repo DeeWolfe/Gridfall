@@ -2592,6 +2592,32 @@ Six operations, six calls, one frequency each so no two reference the same
 broadcast: Ironveil 141.80, Blackmarrow 203.14, Sunderglass 118.62,
 Lumenspire 174.05, Crownring 96.40, Shallowhelm 55.13.
 
+## Shallowhelm rewrite: cultists, a named breach, and the Purge Protocol
+
+*2026-08-29*
+
+Shallowhelm's story gets a real cause instead of an unanswered mystery.
+Fortress Shallow Helm is now explicitly the anchor of the whole defensive
+line — while it holds, the hive breaks on the pass instead of the cities
+behind it — and the nine days of silence has a reason: a cult that had
+been quietly worshiping the invaders threw the gates open from the inside
+and killed the wards with them. The mission is to arm what used to be
+called "the Self-Cleanse" and scour the fortress clean of cultists and
+hive alike.
+
+Renamed throughout to **the Purge Protocol**, since "Self-Cleanse" never
+had anything to purge that wasn't already implied — now there's an actual
+enemy that got let in on purpose. The two map nodes it touches follow suit:
+Cleanse Antechamber → Purge Antechamber, Cleanse Core → Purge Core (plus
+the node lore and the final gate's reqText). `docs/SPEC.md`'s operation
+summary was carrying the old names too and got the same pass.
+
+The codec call was rewritten to match — beat two is now the actual reveal
+(the cult, not fate, opened the gates) rather than a shrug at an unanswered
+question. `sub` changed from "gone dark, no distress call" (now folded into
+the lore) to "breached from within," which reads correctly on the ops list
+now that the breach has an author.
+
 ## Still open
 
 1. **Crystals at a hot operation is better, not soft.** Auto-rolled Crystals
