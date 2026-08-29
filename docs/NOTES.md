@@ -2556,6 +2556,20 @@ Four operations still play straight to the map with no call: Sunderglass,
 Lumenspire, Crownring, Shallowhelm. Same JSON-only pattern whenever one is
 wanted.
 
+## Sunderglass gets a codec call, with a different register
+
+*2026-08-29*
+
+Third entry in `operations.<k>.intro`, same JSON-only mechanism as Ironveil
+and Blackmarrow. This one leans on the urgency already in Sunderglass's own
+lore rather than mystery or dread: the crystal fields are actively shrinking,
+and the call names the zones the map already shows (the Shallows, Prism
+Ridge) plus the hazard the third zone implies — the Glassing, what's left
+once the hive finishes feeding a field. Own frequency, `118.62`.
+
+Three operations still play straight to the map: Lumenspire, Crownring,
+Shallowhelm.
+
 ## Still open
 
 1. **Crystals at a hot operation is better, not soft.** Auto-rolled Crystals
