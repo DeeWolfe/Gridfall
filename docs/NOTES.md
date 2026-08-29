@@ -2570,6 +2570,28 @@ once the hive finishes feeding a field. Own frequency, `118.62`.
 Three operations still play straight to the map: Lumenspire, Crownring,
 Shallowhelm.
 
+## Every operation now opens with a codec call
+
+*2026-08-29*
+
+The last three: Lumenspire, Crownring, Shallowhelm. Same data-only mechanism
+throughout — `codectest` validates all six generically and required no
+changes. Each leans on its own lore rather than repeating a formula:
+
+- **Lumenspire** carries the moral weight already in its lore — the
+  barricaded researchers are an "optional objective" on paper, but their
+  families were told they were already out, and Hikaru says so before the
+  Commander ever sees the dorms.
+- **Crownring** is pure urgency — the burrowers are already inside the walls
+  mid-summit, and the order is "whatever it costs," verbatim.
+- **Shallowhelm** plays the dread the base lore sets up (gates sealed from
+  the inside, "wears the Helm like a shell") without answering the question
+  it raises — Hikaru doesn't know what's inside either, and says so.
+
+Six operations, six calls, one frequency each so no two reference the same
+broadcast: Ironveil 141.80, Blackmarrow 203.14, Sunderglass 118.62,
+Lumenspire 174.05, Crownring 96.40, Shallowhelm 55.13.
+
 ## Still open
 
 1. **Crystals at a hot operation is better, not soft.** Auto-rolled Crystals

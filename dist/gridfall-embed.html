@@ -1565,6 +1565,26 @@ const OPS = {
     ],
     lore: "Meridian City evacuated in six hours; the Lumenspire research division never made the manifest. Whatever their labs were close to, command wants it badly enough to send a squad back into a dead city for it. The researchers barricaded in the dorms are listed as an optional objective. Their families have been told otherwise.",
     eventBias: "overclock",
+    intro: {
+      freq: "174.05",
+      net: "残心ネット",
+      from: {n: "Hikaru", r: "CC Liaison"},
+      beats: [
+        {
+          say: ["Commander. Meridian evacuated clean six hours ago — except Lumenspire's research division. They never made the manifest.", "Whatever they were working on, command wants it enough to send you back into a dead city for it."],
+          reply: "Copy. What's the priority — the research, or the people?",
+        },
+        {
+          say: ["Officially, the research. The dorms where the barricaded researchers are holed up are listed as an optional objective.", "Unofficially — their families were told they were already out. That's not sitting well with me, and it shouldn't sit well with you either."],
+          reply: "Understood. We're not leaving anyone we find breathing behind a locked door.",
+        },
+        {
+          say: ["That's your call to make down there, Commander, not mine. I just wanted you going in with the full picture.", "Good hunting."],
+          reply: "Copy. Moving in.",
+        },
+      ],
+      close: "Channel closed. Descent vector locked — Lumenspire, City Gates.",
+    },
   },
   crownring: {
     k: "crownring",
@@ -1618,6 +1638,26 @@ const OPS = {
     ],
     lore: "Once a year the Concordat factions meet under one roof to keep the alliance stitched together. This year the burrowers came up through the foundations mid-session — past every checkpoint, straight for the Summit Hall. If the delegations die in the wards, the alliance dies with them and the whole region tips. Walk them out. Whatever it costs.",
     eventBias: "bombard",
+    intro: {
+      freq: "96.40",
+      net: "残心ネット",
+      from: {n: "Hikaru", r: "CC Liaison"},
+      beats: [
+        {
+          say: ["Commander, this one's live right now. The Concordat summit is in session and the burrowers came up through the foundations mid-meeting — every checkpoint bypassed.", "They're inside the walls, heading for the Summit Hall."],
+          reply: "Copy. What's at stake if we're slow?",
+        },
+        {
+          say: ["Every delegation the alliance runs on is sitting in that hall. If they die in the wards, the alliance goes with them, and the whole region tips.", "This isn't extraction with extra steps, Commander. Walk them out."],
+          reply: "Understood. Whatever it costs.",
+        },
+        {
+          say: ["That's the order, verbatim. Command isn't asking for restraint on this one.", "Good hunting, Commander."],
+          reply: "Copy. Moving to the Summit Hall now.",
+        },
+      ],
+      close: "Channel closed. Descent vector locked — Crownring, Summit Hall.",
+    },
   },
   shallowhelm: {
     k: "shallowhelm",
@@ -1689,6 +1729,26 @@ const OPS = {
     ],
     lore: "Fortress Shallow Helm held the pass for forty years and never missed a check-in. Nine days ago it simply stopped — no distress call, no survivors on the walls, the gates sealed from the inside. Whatever is in there now wears the Helm like a shell. Put the fortress through its own Self-Cleanse, and come back out the way you went in.",
     modBias: "blackout",
+    intro: {
+      freq: "55.13",
+      net: "残心ネット",
+      from: {n: "Hikaru", r: "CC Liaison"},
+      beats: [
+        {
+          say: ["Commander. Fortress Shallow Helm held that pass for forty years and never missed a check-in. Nine days ago it just stopped.", "No distress call. No survivors on the walls. The gates were sealed from the inside."],
+          reply: "Copy. Sealed from the inside — by who?",
+        },
+        {
+          say: ["Command doesn't have an answer to that, and neither do I. Whatever's in there now, it's wearing the Helm like a shell.", "You put that fortress through its own Self-Cleanse protocol. That's not a suggestion."],
+          reply: "Understood. We clear it room by room if we have to.",
+        },
+        {
+          say: ["One thing, Commander — come back out the way you went in. Don't get creative with the route.", "Good hunting."],
+          reply: "Copy. Going in.",
+        },
+      ],
+      close: "Channel closed. Descent vector locked — Shallowhelm, Gatehouse.",
+    },
   },
 };
 
