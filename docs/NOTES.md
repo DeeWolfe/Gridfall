@@ -2395,6 +2395,57 @@ while ignoring anything at column 2 or deeper; a Rifleman fitted with Rear
 Sights covered the cell ahead and the cell behind at once, and still fired
 nothing while stunned.
 
+## Recon Lark and Backstop Battery become instants — and `instant` grows up
+
+Both cards' whole value was what they did on arrival; the body left behind
+was noise. Converting them turned out to need the underlying mechanic fixed
+first.
+
+**`instant` was one card's behaviour wearing a generic name.** `playInstant()`
+hardcoded Supply Cache exactly: add `k.gain` DP, then discard a card from
+hand at random. Flagging any other card `instant` would have silently given
+it Supply Cache's penalty while dropping its own effect entirely — Recon
+Lark's `draw: 2` lived in the non-instant branch of `deploy()` and would
+never have run. So `playInstant()` is now effect-driven: it reads `gain`,
+`draw`, `homestrike` and `discard` off the card and composes whatever is
+declared. Supply Cache's random discard became an explicit `discard: 1` in
+its data — being an instant no longer *implies* a penalty, which is the
+whole point. Instants also share `consume()` now instead of half-copying
+it, which incidentally fixes instants never logging a veterancy promotion.
+
+- **Recon Lark** — instant, `draw: 2`, no airframe. Same 1 DP, same two
+  cards, minus the drone.
+- **Backstop Battery** — instant, `homestrike: 5`: one volley across both
+  home columns in every lane at once, then spent. Reworked from the
+  emplacement version shipped an hour earlier, which re-fired *every* turn
+  across all five lanes and was the strongest thing in the pool by some
+  distance. 5 damage kills a Crawler (3) or Spitter (5) outright and wounds
+  a Breacher (7) — it clears what typically leaks, without being a wall.
+
+Worth recording why this changed direction twice: the first instinct was to
+leave the bodies, on the theory that a useless leftover is a deliberate
+cost. It isn't a cost. A unit flips the tile it stands on to yours at
+territory phase, and `held() < 6` is a loss condition — so even an unarmed
+2-hull drone is feeding a stat you can lose the mission on, *and* blocking
+a lane (hostile movement `break`s on any friendly body). The leftover was a
+quiet bonus, not a downside, which is why removing it is a real trade and
+not a freebie.
+
+`homeline` targeting is deleted along with the emplacement — it existed for
+exactly one card and nothing uses it now, so it does not stay behind as
+dead data. `rear` and `laneBehind()` stay; Rearguard still uses them.
+`statRows()` also stops printing Footprint and Mobility for instants (a
+card that never lands has neither — Supply Cache had been claiming "1 cell,
+Anchored" all along) and gains rows for the effects themselves, so the
+numbers are in the stat block and not only in the prose.
+
+Verified on a live board: Recon Lark leaves no unit, draws 2, and discards
+nothing; Supply Cache still pays +3 DP and still loses one card at random
+(4 in hand → 2); Backstop killed intruders at column 0 and column 1 in two
+*different* lanes while leaving a column-2 and a column-7 hostile
+untouched, left no emplacement, and no-ops safely against an empty home
+line.
+
 ## Still open
 
 1. **Crystals at a hot operation is better, not soft.** Auto-rolled Crystals

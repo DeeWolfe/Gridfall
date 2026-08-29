@@ -1604,12 +1604,11 @@ const POOL = {
     n: "Recon Lark",
     t: "common",
     dp: 1,
-    hp: 2,
+    hp: 0,
     price: 80,
-    mob: 1,
-    tg: "none",
+    instant: 1,
     draw: 2,
-    d: "Spotter drone. On deployment it calls in two more cards. Fragile and unarmed — its value is the opening hand it buys you.",
+    d: "Spotter sweep. Calls in two more cards and is gone — no airframe to shoot down, no tile tied up. Best on turn one, when the hand is what you are short of.",
   },
   pathfinder: {
     n: "Pathfinder",
@@ -1848,6 +1847,7 @@ const POOL = {
     gain: 3,
     tech: 1,
     d: "Crack it open for 3 extra deploy points this turn — but the scramble costs you a card at random from your hand. Best on turn one when the hand is deep and the board is empty.",
+    discard: 1,
   },
   shield: {
     n: "Shield",
@@ -2381,13 +2381,13 @@ const POOL = {
   backstop: {
     n: "Backstop Battery",
     t: "tech",
-    dp: 4,
-    hp: 8,
-    price: 300,
+    dp: 3,
+    hp: 0,
+    price: 260,
     tech: 1,
-    tg: "homeline",
-    dmg: 3,
-    d: "Anchored on the home line. Hits every hostile standing in your two home columns, in any lane at once — one last volley before anything there crosses over.",
+    instant: 1,
+    homestrike: 5,
+    d: "Calls one volley down across both home columns, every lane at once, for 5. Anything standing there breaches on the next step — this is the last word before it does. Fired once, then spent.",
   },
 };
 
@@ -4053,10 +4053,6 @@ function geomBase(u) {
     return [[...G.enemies].sort((a, b) => b.col - a.col || a.uid - b.uid)[0]];
   }
 
-  // The home columns, any lane: anything standing here breaches on the hive's
-  // next step, so this is the last turn it can be answered at all.
-  if (u.tg === 'homeline') return G.enemies.filter(e => e.col <= 1);
-
   const inLane = laneAhead(u, L);
   switch (u.tg) {
     case 'adj': return inLane.filter(e => e.col === front + 1);
@@ -4969,7 +4965,6 @@ const TGNAME = {
   range2: "Exactly two cells ahead",
   boardFurthest: "Furthest hostile on the board",
   rear: "Nearest hostile BEHIND it in the lane",
-  homeline: "Any hostile in your home columns, any lane",
 };
 
 /* ==== src/content/card-art.js ======================================= */
@@ -5201,8 +5196,9 @@ function statRows(id) {
     ['Deploy cost', costOf(id) + ' DP' + (g && g.dp ? ' (geared)' : '')],
     k.hp ? ['Hull', k.hp + (g && g.hp ? ' +' + g.hp : '')] : null,
     ['Class', TIERNAME[k.t]],
-    ['Footprint', k.size > 1 ? '2 cells' : k.attach ? 'Attachment' : '1 cell'],
-    ['Mobility', k.attach ? '—' : k.mob ? (g && g.servo ? 'Mobile · fires while moving' : 'Mobile') : 'Anchored'],
+    // An instant never lands, so it has neither of these to report.
+    k.instant ? null : ['Footprint', k.size > 1 ? '2 cells' : k.attach ? 'Attachment' : '1 cell'],
+    k.instant ? null : ['Mobility', k.attach ? '—' : k.mob ? (g && g.servo ? 'Mobile · fires while moving' : 'Mobile') : 'Anchored'],
     k.dmg ? ['Damage', (k.dmg + (g && g.dmg ? g.dmg : 0)) + (k.burst ? ` (${k.burst} on play)` : '')] : null,
     k.tg && k.tg !== 'none' ? ['Targeting', TGNAME[k.tg] || k.tg] : null,
     (k.indirect || (g && g.indirect)) ? ['Line of fire', 'Indirect — fires over blockers'] : null,
@@ -5222,6 +5218,10 @@ function statRows(id) {
     k.pristine ? ['Pristine bonus', '+' + k.pristine + ' damage at full hull'] : null,
     k.claim ? ['On deployment', 'Claims ' + k.claim + ' tiles ahead'] : null,
     k.instant ? ['Type', 'Instant — no body left behind'] : null,
+    k.gain ? ['Deploy points', `+${k.gain} this turn`] : null,
+    k.draw ? ['Cards called in', '+' + k.draw] : null,
+    k.homestrike ? ['Home volley', `${k.homestrike} to every hostile in your two home columns`] : null,
+    k.discard ? ['Cost', 'One card at random from your hand'] : null,
     g && g.crush ? ['Deployment', 'Onto a hostile — crushes it outright'] : null,
     (k.heal || k.hot) ? ['Support', 'Heals ' + (k.healType === 'tech' ? 'Tech' : 'Common') + ' units'] : null,
   ].filter(Boolean);
@@ -7142,26 +7142,47 @@ function consume(cid) {
   hooks.invalidate();
 }
 
-/** Supply Cache and friends: points now, at the cost of a card from hand. */
+/** The home columns a Backstop volley covers. */
+const HOME_COLS = 2;
+
+/** Backstop Battery: one volley across both home columns, every lane at once. */
+function homeStrike(k) {
+  const caught = G.enemies.filter(e => e.col < HOME_COLS);
+  if (!caught.length) return 'nothing was standing on the home line';
+  caught.forEach(e => dmgEnemy(e, k.homestrike, k.n));
+  return `${caught.length} hostile${caught.length > 1 ? 's' : ''} on the home line hit for ${k.homestrike}`;
+}
+
+/**
+ * An instant resolves and is gone — no body, no tile taken. Each one declares
+ * the effects it carries rather than sharing one hardcoded behaviour, so a new
+ * instant is a data entry instead of another branch in here. The card is still
+ * in hand while these run; consume() clears it afterwards.
+ */
 function playInstant(cid) {
   const k = POOL[cid];
-  G.dp += k.gain || 0;
-  G.hand.splice(G.hand.indexOf(cid), 1);
+  const done = [];
 
-  const pool = G.hand.filter(x => x !== cid);
-  if (pool.length) {
-    const drop = pool[randInt(pool.length)];
-    G.hand.splice(G.hand.indexOf(drop), 1);
-    clog(`<span class="g">${k.n}</span> — +${k.gain} DP, but <span class="d">${POOL[drop].n}</span> was lost in the scramble.`);
-  } else {
-    clog(`<span class="g">${k.n}</span> — +${k.gain} DP. Nothing left to lose.`);
+  if (k.gain) { G.dp += k.gain; done.push(`+${k.gain} DP`); }
+  if (k.homestrike) done.push(homeStrike(k));
+  if (k.draw) {
+    for (let i = 0; i < k.draw; i++) drawCard();
+    done.push(`${k.draw} cards called in`);
+  }
+  // Supply Cache's own price, declared on the card — being an instant does
+  // not imply the penalty, which is why the flag is data and not a default.
+  if (k.discard) {
+    const pool = G.hand.filter(x => x !== cid);
+    if (pool.length) {
+      const drop = pool[randInt(pool.length)];
+      G.hand.splice(G.hand.indexOf(drop), 1);
+      done.push(`<span class="d">${POOL[drop].n}</span> lost in the scramble`);
+    } else {
+      done.push('nothing left to lose');
+    }
   }
 
-  G.dp -= costOf(cid);
-  active.usage = active.usage || {};
-  active.usage[cid] = (active.usage[cid] || 0) + 1;
-  clearSelection();
-  hooks.invalidate();
+  clog(`<span class="g">${k.n}</span> — ${done.join(', ')}.`, 'order');
 }
 
 /** Claim the cells directly ahead of a unit as your ground. */
@@ -7209,7 +7230,9 @@ function placeSquad(cid, l, c) {
 function deploy(cid, l, c) {
   const k = POOL[cid];
 
-  if (k.instant) return playInstant(cid);
+  // An instant shares consume() with everything else, so it bills its deploy
+  // points, logs a promotion and clears the selection by the same path.
+  if (k.instant) { playInstant(cid); return consume(cid); }
 
   if (k.attach) {
     const u = unitAt(l, c);

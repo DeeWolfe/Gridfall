@@ -89,10 +89,6 @@ function geomBase(u) {
     return [[...G.enemies].sort((a, b) => b.col - a.col || a.uid - b.uid)[0]];
   }
 
-  // The home columns, any lane: anything standing here breaches on the hive's
-  // next step, so this is the last turn it can be answered at all.
-  if (u.tg === 'homeline') return G.enemies.filter(e => e.col <= 1);
-
   const inLane = laneAhead(u, L);
   switch (u.tg) {
     case 'adj': return inLane.filter(e => e.col === front + 1);
