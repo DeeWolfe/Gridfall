@@ -786,6 +786,29 @@
    "laneB": 2,
    "col": 1,
    "d": "Command presence. The only card that buffs its lane and its column at once — a Herald and a Relay in one requisition."
+  },
+  "longshot": {
+   "n": "Longshot",
+   "t": "common",
+   "dp": 3,
+   "hp": 3,
+   "price": 160,
+   "mob": 1,
+   "tg": "furthest",
+   "indirect": 1,
+   "dmg": 2,
+   "d": "Hits the furthest hostile in the lane — through anything in the way. No burst, no mercy, just distance."
+  },
+  "sapper": {
+   "n": "Sapper Turret",
+   "t": "tech",
+   "dp": 4,
+   "hp": 10,
+   "price": 280,
+   "tg": "ahead2",
+   "drop": 1,
+   "dmg": 2,
+   "d": "Deploys on ANY tile, including hostile ground. Strikes both cells ahead of wherever it lands — planted deep, it opens up on the hive's own rear."
   }
  },
  "gear": {
@@ -914,6 +937,13 @@
    "dp": -1,
    "servo": 1,
    "role": "utility"
+  },
+  "opticsrelay": {
+   "n": "Optics Relay",
+   "cost": 300,
+   "d": "Direct fire ignores blockers in the lane — reaches whatever the weapon would otherwise be denied.",
+   "indirect": 1,
+   "role": "offense"
   }
  },
  "hostiles": {

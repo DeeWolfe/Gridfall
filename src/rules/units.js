@@ -35,7 +35,7 @@ export function mkUnit(cid, l, c) {
     mob: !!k.mob,
     tg: k.tg || 'none',
     dmg: (k.dmg || 0) + (g && g.dmg ? g.dmg : 0),
-    indirect: !!k.indirect,
+    indirect: !!k.indirect || !!(g && g.indirect),
     // NOTE: the reference build dropped this flag on the floor, which quietly
     // turned every single-target card into an area attack in live play. The
     // data, the spec, the targeting UI and the test suite all assume it is

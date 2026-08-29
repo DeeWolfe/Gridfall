@@ -2313,6 +2313,44 @@ that inspecting opens the right focus view, shows the right name, and
 closing it leaves the pack offer exactly as it was — taking a pick still
 works the same single tap it always did.
 
+## Three ways to hit the backline, none of them the same trick
+
+Requested: 2-3 cards that reach a hostile's back line, each by a genuinely
+different mechanism rather than three reskins of "more range." The pool
+already had three approaches — Marksman's furthest-in-lane (still blocked by
+a friendly in the way), Mortar/Plasma's fixed 3x3 at exactly four cells, and
+Hecate's true board-furthest snipe — so the new pieces had to earn a
+different verb, not just a bigger number.
+
+- **Longshot** (`longshot`, Common unit, 160cr) — Marksman's furthest-in-lane
+  targeting, but flagged `indirect`, so it fires *through* a friendly
+  blocker instead of stopping at it. Lower damage (2 vs. Marksman's 3, no
+  burst) pays for the consistency: never blocked, never a maybe.
+- **Optics Relay** (`opticsrelay`, Gear, 300cr) — the same `indirect` flag,
+  but as gear rather than baked into one card. Fits onto anything with a
+  blockable pattern (adj/first/furthest/lane/ahead2/ahead3) and makes that
+  card pierce blockers too — a build choice, not a fixed unit. Required one
+  real code change: `mkUnit()` only read `k.indirect` off the card's own
+  data, never gear, so a card wearing this wouldn't actually pierce
+  anything. Fixed alongside (`indirect: !!k.indirect || !!(g && g.indirect)`),
+  and the focus panel's "Line of fire" stat row gets the same fix — it was
+  checking the card's own flag only, so a geared indirect wouldn't even
+  show it had one.
+- **Sapper Turret** (`sapper`, Tech emplacement, 280cr) — the odd one out on
+  purpose: no new targeting logic, no piercing. It reuses `drop` (the same
+  flag Assassin and Kunoichi already have) to land on hostile ground, then
+  fires `ahead2` from wherever it's planted. The "reach" comes from
+  *position*, not range or penetration — smuggle it deep enough and the
+  hive's own rear is now two cells away instead of most of the board.
+
+Verified each mechanism directly rather than trusting the data alone: a
+Longshot with its own Wall blocker in the lane still hit the far hostile
+(a plain Marksman under the same setup correctly hit nothing); a Sapper
+Turret deployed at column 5 hit both hostiles ahead of it on hostile
+ground; a Rifleman fitted with Optics Relay picked up `indirect: true` and
+fired through its own Wall the same as Longshot. `arttest`/`pixtest` cover
+the two new cards' portraits and pixel tokens (60 cards now, up from 58).
+
 ## Still open
 
 1. **Crystals at a hot operation is better, not soft.** Auto-rolled Crystals
