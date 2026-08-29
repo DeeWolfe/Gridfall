@@ -2275,6 +2275,44 @@ and the log carried the right lines throughout. No operation was given
 hazard filled from the last two rounds of this work, so it joins the flat
 random pool everywhere instead of displacing one.
 
+## Two player-reported bugs: a dead CSS rule, and a reversed design call
+
+**Specialist card art looked off-center.** Traced it to `.inkmark svg` in
+`gridfall.css` — a descendant-combinator rule that has matched nothing since
+`cardMark()` last changed shape: the function puts `class="inkmark"`
+directly on the `<svg>` it returns, there's no wrapper element for a
+descendant rule to reach. The mark rendered at a flat `inset:0` full-bleed
+size instead of the intended 74%-capped, centred watermark. Every tier was
+technically affected the same way, but specialists made it visible: their
+heavier ensō stroke (`heavy` in `enso()`) draws more attention to the same
+proportional slack that a thinner common/tech ring hides. Fixed by folding
+the sizing into `.inkmark` itself (`inset:13%` in place of `inset:0` —
+algebraically the same as a 74%-capped, centred box) instead of a rule
+aimed at an element that doesn't exist. Verified by measuring real DOM
+`getBoundingClientRect()` offsets in the Quartermaster grid before and
+after: common/special/tech all now land at the same `dx`/`dy` and the same
+~72% width, where before the rule simply never applied to anyone.
+
+**Gauntlet (and every other) pack offer had no way to preview a card before
+choosing.** This one reverses an earlier call on purpose, not by accident —
+worth being honest about. A past pass deliberately removed the pack cards'
+⌕ inspect button, reasoning that "a pick's rules text is printed on the
+card" made a separate inspect step redundant, and `packtest.js` grew a
+guard asserting the button's absence. That reasoning covered the card's
+*ability* text, which is indeed already on the card — it didn't cover the
+*stat block* (DP cost, hull, targeting pattern) that a shop or squad tile's
+focus popup shows and a pack card never did. That gap is exactly what got
+reported. Restored it, but not as the old bespoke badge: each pack card
+now splits into a `.pclook` button (art, name, ability text — tapping it
+opens the same `focusCard()`/`focusGear(id, true)` popup a shop tile
+already uses, view-only, no commit action) and a separate `.pctake` button
+("Keep this," the only thing that actually claims the pick) — plain
+credits payouts have nothing further to show, so they skip the inspect
+button entirely. `packtest.js`'s guard is rewritten to check the opposite:
+that inspecting opens the right focus view, shows the right name, and
+closing it leaves the pack offer exactly as it was — taking a pick still
+works the same single tap it always did.
+
 ## Still open
 
 1. **Crystals at a hot operation is better, not soft.** Auto-rolled Crystals

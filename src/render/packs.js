@@ -8,6 +8,7 @@ import {packOffer, claimPack} from '../rules/packs.js';
 import {$} from './dom.js';
 import {sigil, artFor, bokehLayer} from './art.js';
 import {sfx} from './sound.js';
+import {focusCard, focusGear} from './focus.js';
 
 const BURST_MS = 260;
 
@@ -82,16 +83,29 @@ export function burstPack() {
   setTimeout(() => {
     $('packstage').innerHTML = `<div class="packfan">${packPicks.map((p, i) => {
       const a = packArt(p);
-      return `<button class="packcard t-${a.tier}" data-pick="${i}" style="animation-delay:${i * 110}ms">
-        <span class="pcart">${a.art}</span>
-        <span class="pcname">${a.title}</span>
-        ${a.sub ? `<span class="pcsub">${a.sub}</span>` : ''}
-        <span class="pctxt">${a.body}</span>
-        <span class="pctake">Keep this</span>
-      </button>`;
+      // A pack pick's flavour text alone isn't the full story — the same
+      // stats a shop or squad tile shows a tap away live behind this one too,
+      // so choosing doesn't mean choosing blind.
+      const inspectable = p.kind === 'card' || p.kind === 'gear' || p.kind === 'vet';
+      return `<div class="packcard t-${a.tier}" data-pick="${i}" style="animation-delay:${i * 110}ms">
+        <button class="pclook"${inspectable ? ` data-inspect="${i}"` : ' disabled'} title="${inspectable ? 'Tap to inspect' : ''}">
+          <span class="pcart">${a.art}</span>
+          <span class="pcname">${a.title}</span>
+          ${a.sub ? `<span class="pcsub">${a.sub}</span>` : ''}
+          <span class="pctxt">${a.body}</span>
+        </button>
+        <button class="pctake" data-take="${i}">Keep this</button>
+      </div>`;
     }).join('')}</div>`;
-    document.querySelectorAll('#packstage [data-pick]').forEach(b => {
-      b.onclick = () => takePack(+b.dataset.pick);
+    document.querySelectorAll('#packstage [data-take]').forEach(b => {
+      b.onclick = () => takePack(+b.dataset.take);
+    });
+    document.querySelectorAll('#packstage [data-inspect]').forEach(b => {
+      b.onclick = () => {
+        const p = packPicks[+b.dataset.inspect];
+        if (p.kind === 'gear') focusGear(p.id, true);
+        else focusCard(p.id);
+      };
     });
   }, BURST_MS);
 }
@@ -102,10 +116,11 @@ export function takePack(i) {
   claimPack(p);
   const a = packArt(p);
 
-  document.querySelectorAll('#packstage [data-pick]').forEach(b => {
-    b.classList.add(+b.dataset.pick === i ? 'taken' : 'returned');
-    b.onclick = null;
+  document.querySelectorAll('#packstage [data-pick]').forEach(el => {
+    el.classList.add(+el.dataset.pick === i ? 'taken' : 'returned');
   });
+  document.querySelectorAll('#packstage [data-take]').forEach(b => { b.onclick = null; });
+  document.querySelectorAll('#packstage [data-inspect]').forEach(b => { b.onclick = null; });
   $('packhint').textContent = '';
   $('packfoot').innerHTML = `<div class="packgot"><b>${a.title}</b> added to your collection</div>
     <button class="btn" id="packnext">${packQueue.length ? 'Next pack' : 'Continue'}</button>`;

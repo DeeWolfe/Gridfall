@@ -289,10 +289,14 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .gcard.t-special:hover{border-color:var(--gold);box-shadow:0 0 28px rgba(255,201,77,.28)}
 .gcard.owned{opacity:.5} .gcard.cant{opacity:.32}
 .gcard.indeck{border-color:var(--green);box-shadow:0 0 0 1px rgba(93,255,160,.5)}
-/* Ghost card tiles: text-forward, the ink-seal mark as a watermark behind. */
-.inkmark{position:absolute;inset:0;width:100%;height:100%;opacity:.15;pointer-events:none;
-  display:flex;align-items:center;justify-content:center}
-.inkmark svg{width:100%;height:100%;max-width:74%;max-height:74%;display:block}
+/* Ghost card tiles: text-forward, the ink-seal mark as a watermark behind.
+   cardMark() puts class="inkmark" on the <svg> itself — there is no wrapper
+   element for a descendant rule to reach — so the 74% cap that keeps this a
+   subtle watermark instead of a full-bleed image has to live on .inkmark's
+   own box. A flat inset:0 fill (the old rule) stretched the mark edge to
+   edge instead, which is most visible on specialists: their heavier ensō
+   stroke reads as noticeably off-balance at that larger, uncapped size. */
+.inkmark{position:absolute;inset:13%;opacity:.15;pointer-events:none;display:block}
 .tn{font-size:0.6875rem;font-weight:700;line-height:1.15;padding:.3rem .3rem 0;position:relative;
   min-height:calc(1.15em * 2 + 4px);display:-webkit-box;-webkit-line-clamp:2;
   -webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
@@ -745,13 +749,18 @@ body{font-size:1rem}
 .packcard.t-tech{border-color:var(--cyan);box-shadow:0 0 34px -8px var(--cyan)}
 .packcard.t-special{border-color:var(--gold);box-shadow:0 0 38px -8px var(--gold)}
 .packcard:hover{filter:brightness(1.12)}
+/* The look-then-take split: .pclook previews (a tap opens the same focus
+   popup a shop or squad tile would), .pctake is the one action that actually
+   commits the pick. Both are real buttons now, not one big clickable card. */
+.pclook{display:flex;flex-direction:column;flex:1;text-align:left;width:100%;cursor:pointer}
+.pclook:disabled{cursor:default}
 .pcart{position:relative;height:clamp(94px,11vw,176px);display:flex;align-items:center;justify-content:center;
   background:radial-gradient(ellipse at 50% 118%,#332771,#0b0918 74%);border-bottom:1px solid var(--line)}
 .pcname{font-size:0.8125rem;font-weight:700;letter-spacing:.06em;padding:.6rem .7rem 0}
 .pcsub{font-size:0.6875rem;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);padding:3px 11px 0}
 .pctxt{font-size:0.7188rem;color:var(--dim);line-height:1.5;padding:.5rem .7rem;flex:1}
 .pctake{padding:.6rem;border-top:1px solid var(--line);text-align:center;font-size:0.6875rem;
-  letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--zan)}
+  letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--zan);width:100%}
 .packcard.taken{border-color:var(--green);box-shadow:0 0 44px -6px var(--green)}
 .packcard.taken .pctake{color:var(--green)}
 .packcard.returned{opacity:.22;filter:grayscale(.9);transform:scale(.92);transition:.35s}
