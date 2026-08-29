@@ -134,6 +134,9 @@ const PIXMAP = {
   vanguard: ov(TROOPER, sparse({4: '.ss.........', 5: '.ss.........', 6: '.ss.........', 7: '.ss.........'})),
   marks: ov(KNEEL, sparse({5: '.........www', 6: '..........v.'})),
   longshot: ov(KNEEL, sparse({4: '.........w..', 5: '........www.', 6: '.......w.v..', 7: '.......w....'})),
+  // Rearguard faces the other way — weapon out the LEFT edge, toward your
+  // own line, which is the whole point of the card.
+  rearguard: ov(TROOPER, sparse({3: '...ovvbbo...', 5: '.www........', 6: 'v...........'})),
   archer: ov(TROOPER, sparse({3: '.........w..', 4: '..........w.', 5: '..........w.', 6: '..........w.', 7: '.........w..'})),
   assassin: ov(TROOPER, sparse({3: '...ovvsso...', 5: '..oosssso...', 8: '.........w..', 9: '.........w..'})),
   kunoichi: ov(TROOPER, sparse({5: '.w.......w..', 6: '.w.......w..', 3: '...ossvvo...'})),
@@ -349,6 +352,20 @@ const PIXMAP = {
     '..oobssboo..',
     '.obbbbbbbbo.',
     '..oooooooo..',
+    '............',
+  ],
+  backstop: [
+    '............',
+    '..v......v..',
+    '..w......w..',
+    '..w......w..',
+    '.oooooooooo.',
+    '.obbbbbbbbo.',
+    '.obGbbbbGbo.',
+    '.obbbbbbbbo.',
+    '.obssssssbo.',
+    '.oooooooooo.',
+    '.oo......oo.',
     '............',
   ],
   sapper: [

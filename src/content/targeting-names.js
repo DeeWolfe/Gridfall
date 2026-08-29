@@ -19,4 +19,6 @@ export const TGNAME = {
   diag: "The four diagonals only",
   range2: "Exactly two cells ahead",
   boardFurthest: "Furthest hostile on the board",
+  rear: "Nearest hostile BEHIND it in the lane",
+  homeline: "Any hostile in your home columns, any lane",
 };

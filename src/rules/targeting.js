@@ -42,13 +42,45 @@ export function laneAhead(u, L) {
   return list;
 }
 
+/**
+ * Hostiles BEHIND `u` in lane `L` — anything that already slipped past the
+ * line — nearest first. The mirror of laneAhead in every respect, blockers
+ * included: your own wall cuts your own beam going backwards too.
+ */
+export function laneBehind(u, L) {
+  let list = G.enemies.filter(e => e.lane === L && e.col < u.col).sort((a, b) => b.col - a.col);
+  if (!u.indirect) {
+    let limit = -1;
+    for (let c = u.col - 1; c >= 0; c--) {
+      const f = unitAt(L, c);
+      if (f && f.blocker && f.uid !== u.uid) { limit = c; break; }
+    }
+    list = list.filter(e => e.col > limit);
+  }
+  return list;
+}
+
 /** Every hostile inside this unit's firing geometry right now. */
 export function geomFor(u) {
-  const front = u.col + u.size - 1;
-  const L = u.lane;
   if (u.tg === 'none' || !u.dmg || u.stun) return [];
   if (u.cycling > 0) return [];                  // a recharge weapon mid-cycle
-  if (u.indirect && laneJammed(L)) return [];
+  if (u.indirect && laneJammed(u.lane)) return [];
+
+  const base = geomBase(u);
+  // Rear Sights (gear) bolts the cell directly behind onto whatever the card
+  // already covers, so a forward-facing weapon stops being flankable. Added
+  // here rather than inside the switch so it composes with every pattern.
+  if (!u.rearsight) return base;
+  const behind = G.enemies.filter(e => e.lane === u.lane && e.col === u.col - 1);
+  if (!behind.length) return base;
+  const seen = new Set(base.map(e => e.uid));
+  return base.concat(behind.filter(e => !seen.has(e.uid)));
+}
+
+/** The card's own printed firing pattern, before any gear rider. */
+function geomBase(u) {
+  const front = u.col + u.size - 1;
+  const L = u.lane;
 
   // Board-wide targeting: the hostile deepest into any lane, ignoring lanes
   // and blockers alike. The answer to a Chorus dug in behind the horde.
@@ -57,11 +89,17 @@ export function geomFor(u) {
     return [[...G.enemies].sort((a, b) => b.col - a.col || a.uid - b.uid)[0]];
   }
 
+  // The home columns, any lane: anything standing here breaches on the hive's
+  // next step, so this is the last turn it can be answered at all.
+  if (u.tg === 'homeline') return G.enemies.filter(e => e.col <= 1);
+
   const inLane = laneAhead(u, L);
   switch (u.tg) {
     case 'adj': return inLane.filter(e => e.col === front + 1);
     case 'first': return inLane.slice(0, 1);
     case 'furthest': return inLane.slice(-1);
+    // Turn around: the nearest thing that already got past this unit.
+    case 'rear': return laneBehind(u, L).slice(0, 1);
     case 'lane': return inLane;
     case 'ahead2': return inLane.filter(e => e.col <= front + 2);
     case 'ahead3': return inLane.filter(e => e.col <= front + 3);

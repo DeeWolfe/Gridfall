@@ -809,6 +809,29 @@
    "drop": 1,
    "dmg": 2,
    "d": "Deploys on ANY tile, including hostile ground. Strikes both cells ahead of wherever it lands — planted deep, it opens up on the hive's own rear."
+  },
+  "rearguard": {
+   "n": "Rearguard",
+   "t": "common",
+   "single": 1,
+   "dp": 3,
+   "hp": 4,
+   "price": 150,
+   "mob": 1,
+   "tg": "rear",
+   "dmg": 3,
+   "d": "Faces the wrong way on purpose. Strikes the nearest hostile BEHIND it in the lane, at any range — the only ranged answer to something already past your line."
+  },
+  "backstop": {
+   "n": "Backstop Battery",
+   "t": "tech",
+   "dp": 4,
+   "hp": 8,
+   "price": 300,
+   "tech": 1,
+   "tg": "homeline",
+   "dmg": 3,
+   "d": "Anchored on the home line. Hits every hostile standing in your two home columns, in any lane at once — one last volley before anything there crosses over."
   }
  },
  "gear": {
@@ -944,6 +967,13 @@
    "d": "Direct fire ignores blockers in the lane — reaches whatever the weapon would otherwise be denied.",
    "indirect": 1,
    "role": "offense"
+  },
+  "rearsights": {
+   "n": "Rear Sights",
+   "cost": 240,
+   "d": "Also strikes the cell directly behind this unit. Nothing flanks it.",
+   "rearsight": 1,
+   "role": "defense"
   }
  },
  "hostiles": {
@@ -1959,7 +1989,9 @@
   "range3": "Exactly three cells ahead",
   "diag": "The four diagonals only",
   "range2": "Exactly two cells ahead",
-  "boardFurthest": "Furthest hostile on the board"
+  "boardFurthest": "Furthest hostile on the board",
+  "rear": "Nearest hostile BEHIND it in the lane",
+  "homeline": "Any hostile in your home columns, any lane"
  },
  "emptyProfile": {
   "version": 5,

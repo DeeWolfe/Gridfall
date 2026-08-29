@@ -2351,6 +2351,50 @@ ground; a Rifleman fitted with Optics Relay picked up `indirect: true` and
 fired through its own Wall the same as Longshot. `arttest`/`pixtest` cover
 the two new cards' portraits and pixel tokens (60 cards now, up from 58).
 
+## Defending your OWN back line — the gap nothing in the pool covered
+
+I misread the previous request and built three ways to reach the *hive's*
+rear. The actual ask was the mirror image: hostiles get behind your line,
+and almost nothing in the pool can answer them once they do.
+
+Confirmed the gap before building. Every rear-capable card in the game is a
+**1-cell melee radius** — Ronin's `bothsides` (the cell behind), Samurai /
+Pulse Emitter / Hell Jumpers' `around` (eight surrounding), Kunoichi's
+`diag`, Assassin / Kessen's `adj4`, Archer's two rear diagonals. There was
+no *ranged* rearward option at all, and nothing that watched the home
+columns. A hostile three cells behind your firing line simply could not be
+shot; you had to walk a body over to it and lose the tempo.
+
+Three answers, again deliberately different verbs:
+
+- **Rearguard** (`rearguard`, Common unit, 150cr) — new `rear` targeting:
+  the nearest hostile BEHIND it in the lane, at any range. `laneBehind()`
+  is a strict mirror of `laneAhead()`, blockers included — your own wall
+  cuts your own beam going backwards exactly as it does going forwards,
+  which keeps the rule one rule instead of two.
+- **Backstop Battery** (`backstop`, Tech emplacement, 300cr) — new
+  `homeline` targeting: every hostile standing in your two home columns, in
+  *any* lane at once. Anything at column 0 breaches on the hive's next step
+  (`enemyPhase` walks it to `col -1` and calls `breachAt`), so this is
+  explicitly the last turn a breach can still be answered — priced as the
+  safety net it is, not a general-purpose gun.
+- **Rear Sights** (`rearsights`, Gear, 240cr) — bolts the cell directly
+  behind onto whatever pattern the card already prints, so a forward-facing
+  weapon stops being flankable. Implemented as a rider *outside* the
+  targeting switch (`geomFor` now wraps a `geomBase`), so it composes with
+  all 18 patterns instead of needing a case each — and the stun / cycling /
+  jammed guards stay upstream of it, so gear can never fire a weapon the
+  card itself couldn't.
+
+Verified all three against a live board rather than trusting the data:
+Rearguard hit the nearer of two intruders behind it and ignored the one
+still out front (a Rifleman in the same spot correctly hit nothing — the
+baseline gap, reproduced); Rearguard respected a friendly wall placed
+behind it; Backstop swept two home-column intruders in two *other* lanes
+while ignoring anything at column 2 or deeper; a Rifleman fitted with Rear
+Sights covered the cell ahead and the cell behind at once, and still fired
+nothing while stunned.
+
 ## Still open
 
 1. **Crystals at a hot operation is better, not soft.** Auto-rolled Crystals
