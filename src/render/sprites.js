@@ -33,8 +33,14 @@ import {POOL} from '../content/cards.js';
 // not a lookalike palette that happens to be close. Everything else here
 // (armour tone, weapon metal, cloth shade) stays its own material colour;
 // forcing all of it onto UI tokens would flatten the sprites, not unify them.
+// Weapon metal (w) is deliberately the second-brightest thing on a sprite.
+// It started as #5b6284, which measured 1.97:1 against the player tile — the
+// body sat at 7.85:1, so every weapon sank into the board and a Rifleman, a
+// Marksman and a Lancer all read as the same green body. #aebbd2 puts it at
+// 6.05:1 on the worst of the three tile colours while staying in the cool
+// family, so it never competes with gold's "yours and alive" meaning.
 const PX_COLOR = {
-  o: '#0e0c1e', b: '#ccd3ea', s: '#8b93b6', w: '#5b6284',
+  o: '#0e0c1e', b: '#ccd3ea', s: '#8b93b6', w: '#aebbd2',
   g: '#ffc94d', W: '#f4f6ff', v: '#ffc94d', G: '#ffc94d', f: '#ff9a3d',
 };
 const PX_BLINK = {v: 1, G: 1, f: 1};
@@ -55,7 +61,7 @@ const TROOPER = [
   '............',
   '............',
   '....oooo....',
-  '...ovvbbo...',
+  '...obvvbo...',
   '...obbbbo...',
   '..oobssboo..',
   '..o.bbbb.o..',
@@ -70,7 +76,7 @@ const HEAVY = [
   '............',
   '...oooooo...',
   '..obbbbbbo..',
-  '..obvvbbbo..',
+  '..obbvvbbo..',
   '..obbbbbbo..',
   '.oobssssboo.',
   '.o.bbbbbb.o.',
@@ -86,7 +92,7 @@ const KNEEL = [
   '............',
   '............',
   '....oooo....',
-  '...ovvbbo...',
+  '...obvvbo...',
   '...obbbbo...',
   '..oobssboo..',
   '..o.bbbb.o..',
@@ -96,7 +102,7 @@ const KNEEL = [
   '............',
 ];
 
-// -- the 58 tokens -----------------------------------------------------------
+// -- the 62 tokens -----------------------------------------------------------
 
 const PIXMAP = {
   // scouts and skirmish troopers
@@ -107,7 +113,7 @@ const PIXMAP = {
     '..G......G..',
     '..oo....oo..',
     '...osbbso...',
-    '..obvvbbo...',
+    '...obvvbo...',
     '...osbbso...',
     '..oo....oo..',
     '..G......G..',
@@ -115,13 +121,13 @@ const PIXMAP = {
     '............',
     '............',
   ],
-  pathfinder: ov(TROOPER, sparse({1: '.........gg.', 2: '.........wg.', 3: '.........w..', 4: '.........w..', 5: '.........w..'})),
-  rifle: ov(TROOPER, sparse({5: '.........ww.', 6: '..........wv'})),
+  pathfinder: ov(TROOPER, sparse({0: '.........gg.', 1: '.........gg.', 2: '.........wg.', 3: '.........w..', 4: '.........w..', 5: '.........w..'})),
+  rifle: ov(TROOPER, sparse({5: '.........w..', 6: '........wwwv'})),
   zaku: [
     '............',
     '............',
     '.ooo....ooo.',
-    '.ovbo..ovbo.',
+    '.ovvo..ovvo.',
     '.obbo..obbo.',
     '.obbo..obbo.',
     '.bssb..bssb.',
@@ -132,15 +138,19 @@ const PIXMAP = {
     '............',
   ],
   vanguard: ov(TROOPER, sparse({4: '.ss.........', 5: '.ss.........', 6: '.ss.........', 7: '.ss.........'})),
-  marks: ov(KNEEL, sparse({5: '.........www', 6: '..........v.'})),
-  archer: ov(TROOPER, sparse({3: '.........w..', 4: '..........w.', 5: '..........w.', 6: '..........w.', 7: '.........w..'})),
-  assassin: ov(TROOPER, sparse({3: '...ovvsso...', 5: '..oosssso...', 8: '.........w..', 9: '.........w..'})),
-  kunoichi: ov(TROOPER, sparse({5: '.w.......w..', 6: '.w.......w..', 3: '...ossvvo...'})),
-  samurai: ov(TROOPER, sparse({1: '.....gg.....', 2: '....goog....', 8: '.........w..', 9: '..........w.', 10: '...........w'})),
-  ronin: ov(TROOPER, sparse({2: '....ssss....', 8: '.w..........', 9: '.w..........', 10: '.w..........'})),
-  naginata: ov(TROOPER, sparse({1: '.........v..', 2: '.........w..', 3: '.........w..', 4: '.........w..', 5: '.........w..', 6: '.........w..', 7: '.........w..', 8: '.........w..'})),
-  lancer: ov(TROOPER, sparse({5: '........wwwv'})),
-  herald: ov(TROOPER, sparse({1: '.........wgg', 2: '.........wgg', 3: '.........w..', 4: '.........w..', 5: '.........w..'})),
+  marks: ov(KNEEL, sparse({5: '......wwwwwv', 6: '......w.....'})),
+  longshot: ov(KNEEL, sparse({2: '..........wv', 3: '.........w..', 4: '........w...', 5: '.......w....', 6: '......w.....'})),
+  // Rearguard faces the other way — weapon out the LEFT edge, toward your
+  // own line, which is the whole point of the card.
+  rearguard: ov(TROOPER, sparse({3: '...obvvbo...', 5: '..w.........', 6: 'vwww........'})),
+  archer: ov(TROOPER, sparse({2: '.........w..', 3: '..........w.', 4: '.......wwwv.', 5: '..........w.', 6: '..........w.', 7: '.........w..'})),
+  assassin: ov(TROOPER, sparse({3: '...osvvso...', 5: '..oosssso...', 7: '.........w..', 8: '..........wv'})),
+  kunoichi: ov(TROOPER, sparse({3: '...osvvso...', 4: 'v.........v.', 5: '.w.......w..', 6: '..w.....w...'})),
+  samurai: ov(TROOPER, sparse({1: '.....gg.....', 2: '....goog....', 6: '.........w..', 7: '..........w.', 8: '..........w.', 9: '..........wv'})),
+  ronin: ov(TROOPER, sparse({2: '....ssss....', 7: '.w........w.', 8: 'w..........w', 9: 'v..........v'})),
+  naginata: ov(TROOPER, sparse({0: '........vv..', 1: '.........w..', 2: '.........w..', 3: '.........w..', 4: '.........w..', 5: '.........w..', 6: '.........w..', 7: '.........w..', 8: '.........w..'})),
+  lancer: ov(TROOPER, sparse({6: '.....wwwwwwv'})),
+  herald: ov(TROOPER, sparse({0: '........wggg', 1: '........wggg', 2: '........wgg.', 3: '........w...', 4: '........w...', 5: '........w...'})),
   medic: ov(TROOPER, sparse({5: '..oobWsboo..', 6: '..o.WWWW.o..', 7: '....bWbb....'})),
   knight: ov(HEAVY, sparse({4: '.wo.........', 5: '.wo.........', 6: '.wo.........', 7: '.wo.........', 8: '.wo.........'})),
   bulwark: ov(HEAVY, sparse({3: '.oo.........', 4: '.ob.........', 5: '.ob.........', 6: '.ob.........', 7: '.ob.........', 8: '.ob.........', 9: '.oo.........'})),
@@ -149,7 +159,7 @@ const PIXMAP = {
     '............',
     '............',
     '....oooo....',
-    '...ovvbbo...',
+    '...obvvbo...',
     '...obbbbo...',
     '..oobssboo..',
     '.wwwbbbbwww.',
@@ -159,12 +169,12 @@ const PIXMAP = {
     '............',
   ],
   cipher: ov(TROOPER, sparse({0: '....G..G....', 1: '....GG.GG...'})),
-  engineer: ov(TROOPER, sparse({5: '.g.......w..', 6: '.g.......ww.', 4: '.gg.........'})),
-  mortar: ov(KNEEL, sparse({2: '.........ww.', 3: '........ww..', 4: '.......ww...', 5: '......ow....'})),
-  ashigaru: ov(TROOPER, sparse({6: '.......ww...', 7: '......ww....', 8: '.....o......'})),
-  pikewall: ov(TROOPER, sparse({0: '.........w..', 1: '........w...', 2: '.......w....', 3: '......w.....', 8: '.oo.........'})),
-  sentry: ov(TROOPER, sparse({1: '..........v.', 8: '..........w.', 9: '.........ww.', 10: '........w...'})),
-  falconer: ov(TROOPER, sparse({1: '..G......G..', 6: '.........ww.', 7: '..........wv'})),
+  engineer: ov(TROOPER, sparse({4: '.gg......w..', 5: '.g......www.', 6: '.g.......w..'})),
+  mortar: ov(KNEEL, sparse({1: '..........vv', 2: '.........ww.', 3: '........ww..', 4: '.......ww...', 5: '......ow....'})),
+  ashigaru: ov(TROOPER, sparse({4: '..........vv', 5: '.........ww.', 6: '........ww..', 7: '.......ww...', 8: '.....o......'})),
+  pikewall: ov(TROOPER, sparse({0: '..........vv', 1: '.........ww.', 2: '........ww..', 3: '.......ww...', 4: '......w.....', 8: '.oo.........'})),
+  sentry: ov(TROOPER, sparse({1: '..........v.', 7: '.........www', 8: '..........wv'})),
+  falconer: ov(TROOPER, sparse({1: '..G......G..', 2: '...G....G...', 6: '.........ww.', 7: '..........wv'})),
 
   // tech emplacements and devices
   wall: [
@@ -237,7 +247,7 @@ const PIXMAP = {
     '..oooooooo..',
     '............',
   ],
-  cannon: ov(TROOPER, sparse({1: '......www.wv', 2: '......oss...', 3: '...ovvbss...'})),
+  cannon: ov(TROOPER, sparse({1: '......wwwwwv', 2: '......owww..', 3: '...obvvss...'})),
   turret: [
     '............',
     '............',
@@ -350,6 +360,34 @@ const PIXMAP = {
     '..oooooooo..',
     '............',
   ],
+  backstop: [
+    '............',
+    '..v......v..',
+    '..w......w..',
+    '..w......w..',
+    '.oooooooooo.',
+    '.obbbbbbbbo.',
+    '.obGbbbbGbo.',
+    '.obbbbbbbbo.',
+    '.obssssssbo.',
+    '.oooooooooo.',
+    '.oo......oo.',
+    '............',
+  ],
+  sapper: [
+    '............',
+    '............',
+    '............',
+    '............',
+    '......w.....',
+    '......wv....',
+    '.....oooo...',
+    '....obbbbo..',
+    '..oobssboo..',
+    '.obbbbbbbbo.',
+    '..oooooooo..',
+    '............',
+  ],
   dynamo: [
     '............',
     '.....G......',
@@ -421,7 +459,7 @@ const PIXMAP = {
     '............',
     '..oooooooo..',
     '.obbbbbbbbo.',
-    '.obvvbbssbo.',
+    '.obbbvvssbo.',
     '.obbbbbbsbo.',
     'oobssssssboo',
     'o.bbbbbbbb.o',

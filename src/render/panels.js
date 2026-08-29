@@ -29,6 +29,7 @@ import {soundOn, toggleSound} from './sound.js';
 import {musicOn, toggleMusic} from './music.js';
 import {UI_MODES, UI_LABELS, uiPreference, uiModeLabel, setUiMode} from './uimode.js';
 import {maybeShowPanelHint} from './panel-hints.js';
+import {replayIntros} from './codec.js';
 
 const TIERS = ['common', 'special', 'tech'];
 let dbTab = 'cards';
@@ -280,6 +281,8 @@ const settingsPanel = () => `<div class="sect">Interface</div><div class="rows">
    <div class="row" id="tutreplay" style="cursor:pointer"><span>Combat briefing<div style="font-size:0.6562rem;color:var(--dim);margin-top:4px">Runs at the start of your next campaign mission.</div></span>
      <span class="r hot">${active.settings.tutorial === 'replay' ? 'Queued' : 'Replay'}</span></div>
    <div class="row" id="hintreplay" style="cursor:pointer"><span>Panel briefings<div style="font-size:0.6562rem;color:var(--dim);margin-top:4px">Squad, Quartermaster, Database and Service Record each show a one-time coach card.</div></span>
+     <span class="r hot">Replay</span></div>
+   <div class="row" id="introreplay" style="cursor:pointer"><span>Command transmissions<div style="font-size:0.6562rem;color:var(--dim);margin-top:4px">The codec call that opens an operation plays once. Reset it to take every call again.</div></span>
      <span class="r hot">Replay</span></div></div>
    <div class="sect">Controls</div><div class="rows">
    <div class="row"><span>End turn</span><span class="r">Space · Enter</span></div>
@@ -440,6 +443,14 @@ export function openPanel(key) {
       active.settings.hints = {};
       commit();
       notify('Panel briefings reset', 'They\'ll show again the next time you open each panel.');
+    };
+  }
+
+  const introRow = $('introreplay');
+  if (introRow) {
+    introRow.onclick = () => {
+      replayIntros();
+      notify('Transmissions reset', 'Central Command will call ahead of every operation again.');
     };
   }
 

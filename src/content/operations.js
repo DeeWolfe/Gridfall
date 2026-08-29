@@ -6,7 +6,7 @@ export const OPS = {
   ironveil: {
     k: "ironveil",
     n: "OPERATION IRONVEIL",
-    sub: "Delta Shelf · orbital shipyard, overrun",
+    sub: "Delta Shelf · orbital shipyard, no transmission",
     col: "#4de8ff",
     zones: [
       {l: "ZONE A", p: "22,96 108,44 236,44 286,104 236,182 96,182"},
@@ -31,8 +31,28 @@ export const OPS = {
       ["n4", "n7"],
       ["n3", "n6"],
     ],
-    lore: "The Delta Shelf yards built half the fleet that holds this sector, and three weeks ago the hive came up through the ore elevators mid-shift. The docks went silent between one bell and the next. Command wants the slipways back before the hulls on them are lost — the yards are worth more than the ground they stand on.",
+    lore: "The Delta Shelf yards built half the fleet holding this sector. Three weeks ago a cluster of small meteors struck the facility. Two weeks later, all transmission went silent.<br><br>Command doesn't believe in coincidences.<br><br>Secure the facility and salvage the hulls in dock before the structure gives. The yards are worth far more than the rock they sit on — failure to retrieve them is not an option.",
     modBias: "breach",
+    intro: {
+      freq: "141.80",
+      net: "残心ネット",
+      from: {n: "Hikaru", r: "CC Liaison"},
+      beats: [
+        {
+          say: ["Commander. We’ve taken an unusual ping off the orbital yards over Zentonia.", "Hail went out four hours ago. Nothing came back."],
+          reply: "Copy. Sitrep?",
+        },
+        {
+          say: ["Satellite sweep reads a number of targets moving erratically across the shelf. Origin unknown.", "Nothing on the yard registry moves like that. Command advises you enter combat ready — you are weapons free."],
+          reply: "Understood. Beachhead first — we take ground, then we take the rest.",
+        },
+        {
+          say: ["One more thing, and it came down verbatim. The yards are to be cleared of all hostiles. The yards are of utmost importance.", "Do not lose this one, Commander."],
+          reply: "Understood. Out.",
+        },
+      ],
+      close: "Channel closed. Descent vector locked — Delta Shelf, Beachhead.",
+    },
   },
   blackmarrow: {
     k: "blackmarrow",

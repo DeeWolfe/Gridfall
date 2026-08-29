@@ -34,12 +34,11 @@
    "n": "Recon Lark",
    "t": "common",
    "dp": 1,
-   "hp": 2,
+   "hp": 0,
    "price": 80,
-   "mob": 1,
-   "tg": "none",
+   "instant": 1,
    "draw": 2,
-   "d": "Spotter drone. On deployment it calls in two more cards. Fragile and unarmed — its value is the opening hand it buys you."
+   "d": "Spotter sweep. Calls in two more cards and is gone — no airframe to shoot down, no tile tied up. Best on turn one, when the hand is what you are short of."
   },
   "pathfinder": {
    "n": "Pathfinder",
@@ -281,7 +280,8 @@
    "instant": 1,
    "gain": 3,
    "tech": 1,
-   "d": "Crack it open for 3 extra deploy points this turn — but the scramble costs you a card at random from your hand. Best on turn one when the hand is deep and the board is empty."
+   "d": "Crack it open for 3 extra deploy points this turn — but the scramble costs you a card at random from your hand. Best on turn one when the hand is deep and the board is empty.",
+   "discard": 1
   },
   "shield": {
    "n": "Shield",
@@ -786,6 +786,52 @@
    "laneB": 2,
    "col": 1,
    "d": "Command presence. The only card that buffs its lane and its column at once — a Herald and a Relay in one requisition."
+  },
+  "longshot": {
+   "n": "Longshot",
+   "t": "common",
+   "dp": 3,
+   "hp": 3,
+   "price": 160,
+   "mob": 1,
+   "tg": "furthest",
+   "indirect": 1,
+   "dmg": 2,
+   "d": "Hits the furthest hostile in the lane — through anything in the way. No burst, no mercy, just distance."
+  },
+  "sapper": {
+   "n": "Sapper Turret",
+   "t": "tech",
+   "dp": 4,
+   "hp": 10,
+   "price": 280,
+   "tg": "ahead2",
+   "drop": 1,
+   "dmg": 2,
+   "d": "Deploys on ANY tile, including hostile ground. Strikes both cells ahead of wherever it lands — planted deep, it opens up on the hive's own rear."
+  },
+  "rearguard": {
+   "n": "Rearguard",
+   "t": "common",
+   "single": 1,
+   "dp": 3,
+   "hp": 4,
+   "price": 150,
+   "mob": 1,
+   "tg": "rear",
+   "dmg": 3,
+   "d": "Faces the wrong way on purpose. Strikes the nearest hostile BEHIND it in the lane, at any range — the only ranged answer to something already past your line."
+  },
+  "backstop": {
+   "n": "Backstop Battery",
+   "t": "tech",
+   "dp": 3,
+   "hp": 0,
+   "price": 260,
+   "tech": 1,
+   "instant": 1,
+   "homestrike": 5,
+   "d": "Calls one volley down across both home columns, every lane at once, for 5. Anything standing there breaches on the next step — this is the last word before it does. Fired once, then spent."
   }
  },
  "gear": {
@@ -914,6 +960,20 @@
    "dp": -1,
    "servo": 1,
    "role": "utility"
+  },
+  "opticsrelay": {
+   "n": "Optics Relay",
+   "cost": 300,
+   "d": "Direct fire ignores blockers in the lane — reaches whatever the weapon would otherwise be denied.",
+   "indirect": 1,
+   "role": "offense"
+  },
+  "rearsights": {
+   "n": "Rear Sights",
+   "cost": 240,
+   "d": "Also strikes the cell directly behind this unit. Nothing flanks it.",
+   "rearsight": 1,
+   "role": "defense"
   }
  },
  "hostiles": {
@@ -1235,7 +1295,7 @@
   "ironveil": {
    "k": "ironveil",
    "n": "OPERATION IRONVEIL",
-   "sub": "Delta Shelf · orbital shipyard, overrun",
+   "sub": "Delta Shelf · orbital shipyard, no transmission",
    "col": "#4de8ff",
    "zones": [
     {
@@ -1324,8 +1384,40 @@
      "n6"
     ]
    ],
-   "lore": "The Delta Shelf yards built half the fleet that holds this sector, and three weeks ago the hive came up through the ore elevators mid-shift. The docks went silent between one bell and the next. Command wants the slipways back before the hulls on them are lost — the yards are worth more than the ground they stand on.",
-   "modBias": "breach"
+   "lore": "The Delta Shelf yards built half the fleet holding this sector. Three weeks ago a cluster of small meteors struck the facility. Two weeks later, all transmission went silent.<br><br>Command doesn't believe in coincidences.<br><br>Secure the facility and salvage the hulls in dock before the structure gives. The yards are worth far more than the rock they sit on — failure to retrieve them is not an option.",
+   "modBias": "breach",
+   "intro": {
+    "freq": "141.80",
+    "net": "残心ネット",
+    "from": {
+     "n": "Hikaru",
+     "r": "CC Liaison"
+    },
+    "beats": [
+     {
+      "say": [
+       "Commander. We’ve taken an unusual ping off the orbital yards over Zentonia.",
+       "Hail went out four hours ago. Nothing came back."
+      ],
+      "reply": "Copy. Sitrep?"
+     },
+     {
+      "say": [
+       "Satellite sweep reads a number of targets moving erratically across the shelf. Origin unknown.",
+       "Nothing on the yard registry moves like that. Command advises you enter combat ready — you are weapons free."
+      ],
+      "reply": "Understood. Beachhead first — we take ground, then we take the rest."
+     },
+     {
+      "say": [
+       "One more thing, and it came down verbatim. The yards are to be cleared of all hostiles. The yards are of utmost importance.",
+       "Do not lose this one, Commander."
+      ],
+      "reply": "Understood. Out."
+     }
+    ],
+    "close": "Channel closed. Descent vector locked — Delta Shelf, Beachhead."
+   }
   },
   "blackmarrow": {
    "k": "blackmarrow",
@@ -1929,7 +2021,8 @@
   "range3": "Exactly three cells ahead",
   "diag": "The four diagonals only",
   "range2": "Exactly two cells ahead",
-  "boardFurthest": "Furthest hostile on the board"
+  "boardFurthest": "Furthest hostile on the board",
+  "rear": "Nearest hostile BEHIND it in the lane"
  },
  "emptyProfile": {
   "version": 5,

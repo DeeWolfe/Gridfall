@@ -14,7 +14,7 @@ import {VET} from '../content/ranks.js';
 import {hooks} from '../state/hooks.js';
 import {unitAt, foeAt, civAt} from './board.js';
 import {mkUnit} from './units.js';
-import {fire, blast, healPass} from './combat.js';
+import {fire, blast, healPass, dmgEnemy} from './combat.js';
 import {clog} from './log.js';
 import {drawCard} from './deck.js';
 
@@ -35,26 +35,47 @@ function consume(cid) {
   hooks.invalidate();
 }
 
-/** Supply Cache and friends: points now, at the cost of a card from hand. */
+/** The home columns a Backstop volley covers. */
+const HOME_COLS = 2;
+
+/** Backstop Battery: one volley across both home columns, every lane at once. */
+function homeStrike(k) {
+  const caught = G.enemies.filter(e => e.col < HOME_COLS);
+  if (!caught.length) return 'nothing was standing on the home line';
+  caught.forEach(e => dmgEnemy(e, k.homestrike, k.n));
+  return `${caught.length} hostile${caught.length > 1 ? 's' : ''} on the home line hit for ${k.homestrike}`;
+}
+
+/**
+ * An instant resolves and is gone — no body, no tile taken. Each one declares
+ * the effects it carries rather than sharing one hardcoded behaviour, so a new
+ * instant is a data entry instead of another branch in here. The card is still
+ * in hand while these run; consume() clears it afterwards.
+ */
 function playInstant(cid) {
   const k = POOL[cid];
-  G.dp += k.gain || 0;
-  G.hand.splice(G.hand.indexOf(cid), 1);
+  const done = [];
 
-  const pool = G.hand.filter(x => x !== cid);
-  if (pool.length) {
-    const drop = pool[randInt(pool.length)];
-    G.hand.splice(G.hand.indexOf(drop), 1);
-    clog(`<span class="g">${k.n}</span> — +${k.gain} DP, but <span class="d">${POOL[drop].n}</span> was lost in the scramble.`);
-  } else {
-    clog(`<span class="g">${k.n}</span> — +${k.gain} DP. Nothing left to lose.`);
+  if (k.gain) { G.dp += k.gain; done.push(`+${k.gain} DP`); }
+  if (k.homestrike) done.push(homeStrike(k));
+  if (k.draw) {
+    for (let i = 0; i < k.draw; i++) drawCard();
+    done.push(`${k.draw} cards called in`);
+  }
+  // Supply Cache's own price, declared on the card — being an instant does
+  // not imply the penalty, which is why the flag is data and not a default.
+  if (k.discard) {
+    const pool = G.hand.filter(x => x !== cid);
+    if (pool.length) {
+      const drop = pool[randInt(pool.length)];
+      G.hand.splice(G.hand.indexOf(drop), 1);
+      done.push(`<span class="d">${POOL[drop].n}</span> lost in the scramble`);
+    } else {
+      done.push('nothing left to lose');
+    }
   }
 
-  G.dp -= costOf(cid);
-  active.usage = active.usage || {};
-  active.usage[cid] = (active.usage[cid] || 0) + 1;
-  clearSelection();
-  hooks.invalidate();
+  clog(`<span class="g">${k.n}</span> — ${done.join(', ')}.`, 'order');
 }
 
 /** Claim the cells directly ahead of a unit as your ground. */
@@ -102,7 +123,9 @@ function placeSquad(cid, l, c) {
 export function deploy(cid, l, c) {
   const k = POOL[cid];
 
-  if (k.instant) return playInstant(cid);
+  // An instant shares consume() with everything else, so it bills its deploy
+  // points, logs a promotion and clears the selection by the same path.
+  if (k.instant) { playInstant(cid); return consume(cid); }
 
   if (k.attach) {
     const u = unitAt(l, c);

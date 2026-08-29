@@ -23,12 +23,13 @@ const KANJI = {
   samurai: '侍', ronin: '浪', naginata: '薙', lancer: '槍', herald: '旗',
   medic: '医', knight: '騎', bulwark: '塁', outrider: '駆', cipher: '換',
   engineer: '工', mortar: '臼', ashigaru: '兵', pikewall: '列', sentry: '討',
-  falconer: '隼',
+  falconer: '隼', longshot: '遠', rearguard: '殿',
   // tech emplacements and devices
   wall: '壁', supply: '糧', beacon: '灯', cache: '蔵', shield: '護',
   cannon: '撃', turret: '塔', relay: '波', techblade: '刃', pulse: '響',
   scrambler: '乱', battery: '陣', fob: '営', mine: '罠', dynamo: '電',
   rampart: '塞', piercer: '突', suppressor: '抑', reactor: '核', bore: '穿',
+  sapper: '伏', backstop: '堤',
   // specialists
   aegis: '盾', biomed: '命', techmed: '療', dragoon: '竜', railgun: '貫',
   hell: '焔', plasma: '光', exo: '鎧', hecate: '砲', kessen: '斬', ram: '衝',

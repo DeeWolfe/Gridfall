@@ -2275,6 +2275,268 @@ and the log carried the right lines throughout. No operation was given
 hazard filled from the last two rounds of this work, so it joins the flat
 random pool everywhere instead of displacing one.
 
+## Two player-reported bugs: a dead CSS rule, and a reversed design call
+
+**Specialist card art looked off-center.** Traced it to `.inkmark svg` in
+`gridfall.css` — a descendant-combinator rule that has matched nothing since
+`cardMark()` last changed shape: the function puts `class="inkmark"`
+directly on the `<svg>` it returns, there's no wrapper element for a
+descendant rule to reach. The mark rendered at a flat `inset:0` full-bleed
+size instead of the intended 74%-capped, centred watermark. Every tier was
+technically affected the same way, but specialists made it visible: their
+heavier ensō stroke (`heavy` in `enso()`) draws more attention to the same
+proportional slack that a thinner common/tech ring hides. Fixed by folding
+the sizing into `.inkmark` itself (`inset:13%` in place of `inset:0` —
+algebraically the same as a 74%-capped, centred box) instead of a rule
+aimed at an element that doesn't exist. Verified by measuring real DOM
+`getBoundingClientRect()` offsets in the Quartermaster grid before and
+after: common/special/tech all now land at the same `dx`/`dy` and the same
+~72% width, where before the rule simply never applied to anyone.
+
+**Gauntlet (and every other) pack offer had no way to preview a card before
+choosing.** This one reverses an earlier call on purpose, not by accident —
+worth being honest about. A past pass deliberately removed the pack cards'
+⌕ inspect button, reasoning that "a pick's rules text is printed on the
+card" made a separate inspect step redundant, and `packtest.js` grew a
+guard asserting the button's absence. That reasoning covered the card's
+*ability* text, which is indeed already on the card — it didn't cover the
+*stat block* (DP cost, hull, targeting pattern) that a shop or squad tile's
+focus popup shows and a pack card never did. That gap is exactly what got
+reported. Restored it, but not as the old bespoke badge: each pack card
+now splits into a `.pclook` button (art, name, ability text — tapping it
+opens the same `focusCard()`/`focusGear(id, true)` popup a shop tile
+already uses, view-only, no commit action) and a separate `.pctake` button
+("Keep this," the only thing that actually claims the pick) — plain
+credits payouts have nothing further to show, so they skip the inspect
+button entirely. `packtest.js`'s guard is rewritten to check the opposite:
+that inspecting opens the right focus view, shows the right name, and
+closing it leaves the pack offer exactly as it was — taking a pick still
+works the same single tap it always did.
+
+## Three ways to hit the backline, none of them the same trick
+
+Requested: 2-3 cards that reach a hostile's back line, each by a genuinely
+different mechanism rather than three reskins of "more range." The pool
+already had three approaches — Marksman's furthest-in-lane (still blocked by
+a friendly in the way), Mortar/Plasma's fixed 3x3 at exactly four cells, and
+Hecate's true board-furthest snipe — so the new pieces had to earn a
+different verb, not just a bigger number.
+
+- **Longshot** (`longshot`, Common unit, 160cr) — Marksman's furthest-in-lane
+  targeting, but flagged `indirect`, so it fires *through* a friendly
+  blocker instead of stopping at it. Lower damage (2 vs. Marksman's 3, no
+  burst) pays for the consistency: never blocked, never a maybe.
+- **Optics Relay** (`opticsrelay`, Gear, 300cr) — the same `indirect` flag,
+  but as gear rather than baked into one card. Fits onto anything with a
+  blockable pattern (adj/first/furthest/lane/ahead2/ahead3) and makes that
+  card pierce blockers too — a build choice, not a fixed unit. Required one
+  real code change: `mkUnit()` only read `k.indirect` off the card's own
+  data, never gear, so a card wearing this wouldn't actually pierce
+  anything. Fixed alongside (`indirect: !!k.indirect || !!(g && g.indirect)`),
+  and the focus panel's "Line of fire" stat row gets the same fix — it was
+  checking the card's own flag only, so a geared indirect wouldn't even
+  show it had one.
+- **Sapper Turret** (`sapper`, Tech emplacement, 280cr) — the odd one out on
+  purpose: no new targeting logic, no piercing. It reuses `drop` (the same
+  flag Assassin and Kunoichi already have) to land on hostile ground, then
+  fires `ahead2` from wherever it's planted. The "reach" comes from
+  *position*, not range or penetration — smuggle it deep enough and the
+  hive's own rear is now two cells away instead of most of the board.
+
+Verified each mechanism directly rather than trusting the data alone: a
+Longshot with its own Wall blocker in the lane still hit the far hostile
+(a plain Marksman under the same setup correctly hit nothing); a Sapper
+Turret deployed at column 5 hit both hostiles ahead of it on hostile
+ground; a Rifleman fitted with Optics Relay picked up `indirect: true` and
+fired through its own Wall the same as Longshot. `arttest`/`pixtest` cover
+the two new cards' portraits and pixel tokens (60 cards now, up from 58).
+
+## Defending your OWN back line — the gap nothing in the pool covered
+
+I misread the previous request and built three ways to reach the *hive's*
+rear. The actual ask was the mirror image: hostiles get behind your line,
+and almost nothing in the pool can answer them once they do.
+
+Confirmed the gap before building. Every rear-capable card in the game is a
+**1-cell melee radius** — Ronin's `bothsides` (the cell behind), Samurai /
+Pulse Emitter / Hell Jumpers' `around` (eight surrounding), Kunoichi's
+`diag`, Assassin / Kessen's `adj4`, Archer's two rear diagonals. There was
+no *ranged* rearward option at all, and nothing that watched the home
+columns. A hostile three cells behind your firing line simply could not be
+shot; you had to walk a body over to it and lose the tempo.
+
+Three answers, again deliberately different verbs:
+
+- **Rearguard** (`rearguard`, Common unit, 150cr) — new `rear` targeting:
+  the nearest hostile BEHIND it in the lane, at any range. `laneBehind()`
+  is a strict mirror of `laneAhead()`, blockers included — your own wall
+  cuts your own beam going backwards exactly as it does going forwards,
+  which keeps the rule one rule instead of two.
+- **Backstop Battery** (`backstop`, Tech emplacement, 300cr) — new
+  `homeline` targeting: every hostile standing in your two home columns, in
+  *any* lane at once. Anything at column 0 breaches on the hive's next step
+  (`enemyPhase` walks it to `col -1` and calls `breachAt`), so this is
+  explicitly the last turn a breach can still be answered — priced as the
+  safety net it is, not a general-purpose gun.
+- **Rear Sights** (`rearsights`, Gear, 240cr) — bolts the cell directly
+  behind onto whatever pattern the card already prints, so a forward-facing
+  weapon stops being flankable. Implemented as a rider *outside* the
+  targeting switch (`geomFor` now wraps a `geomBase`), so it composes with
+  all 18 patterns instead of needing a case each — and the stun / cycling /
+  jammed guards stay upstream of it, so gear can never fire a weapon the
+  card itself couldn't.
+
+Verified all three against a live board rather than trusting the data:
+Rearguard hit the nearer of two intruders behind it and ignored the one
+still out front (a Rifleman in the same spot correctly hit nothing — the
+baseline gap, reproduced); Rearguard respected a friendly wall placed
+behind it; Backstop swept two home-column intruders in two *other* lanes
+while ignoring anything at column 2 or deeper; a Rifleman fitted with Rear
+Sights covered the cell ahead and the cell behind at once, and still fired
+nothing while stunned.
+
+## Recon Lark and Backstop Battery become instants — and `instant` grows up
+
+Both cards' whole value was what they did on arrival; the body left behind
+was noise. Converting them turned out to need the underlying mechanic fixed
+first.
+
+**`instant` was one card's behaviour wearing a generic name.** `playInstant()`
+hardcoded Supply Cache exactly: add `k.gain` DP, then discard a card from
+hand at random. Flagging any other card `instant` would have silently given
+it Supply Cache's penalty while dropping its own effect entirely — Recon
+Lark's `draw: 2` lived in the non-instant branch of `deploy()` and would
+never have run. So `playInstant()` is now effect-driven: it reads `gain`,
+`draw`, `homestrike` and `discard` off the card and composes whatever is
+declared. Supply Cache's random discard became an explicit `discard: 1` in
+its data — being an instant no longer *implies* a penalty, which is the
+whole point. Instants also share `consume()` now instead of half-copying
+it, which incidentally fixes instants never logging a veterancy promotion.
+
+- **Recon Lark** — instant, `draw: 2`, no airframe. Same 1 DP, same two
+  cards, minus the drone.
+- **Backstop Battery** — instant, `homestrike: 5`: one volley across both
+  home columns in every lane at once, then spent. Reworked from the
+  emplacement version shipped an hour earlier, which re-fired *every* turn
+  across all five lanes and was the strongest thing in the pool by some
+  distance. 5 damage kills a Crawler (3) or Spitter (5) outright and wounds
+  a Breacher (7) — it clears what typically leaks, without being a wall.
+
+Worth recording why this changed direction twice: the first instinct was to
+leave the bodies, on the theory that a useless leftover is a deliberate
+cost. It isn't a cost. A unit flips the tile it stands on to yours at
+territory phase, and `held() < 6` is a loss condition — so even an unarmed
+2-hull drone is feeding a stat you can lose the mission on, *and* blocking
+a lane (hostile movement `break`s on any friendly body). The leftover was a
+quiet bonus, not a downside, which is why removing it is a real trade and
+not a freebie.
+
+`homeline` targeting is deleted along with the emplacement — it existed for
+exactly one card and nothing uses it now, so it does not stay behind as
+dead data. `rear` and `laneBehind()` stay; Rearguard still uses them.
+`statRows()` also stops printing Footprint and Mobility for instants (a
+card that never lands has neither — Supply Cache had been claiming "1 cell,
+Anchored" all along) and gains rows for the effects themselves, so the
+numbers are in the stat block and not only in the prose.
+
+Verified on a live board: Recon Lark leaves no unit, draws 2, and discards
+nothing; Supply Cache still pays +3 DP and still loses one card at random
+(4 in hand → 2); Backstop killed intruders at column 0 and column 1 in two
+*different* lanes while leaving a column-2 and a column-7 hostile
+untouched, left no emplacement, and no-ops safely against an empty home
+line.
+
+## Pixel tokens: centred visors, and weapons you can actually see
+
+Two reported problems with the on-grid sprites, both real and both with a
+single root cause each rather than 62 sprites needing hand-touching.
+
+**Visors sat left of centre.** In the shared `TROOPER` and `KNEEL` chassis the
+head row read `...ovvbbo...` — outline at cols 3 and 8, so the interior is
+cols 4-7, but the 2-wide visor occupied 4-5, flush against the left edge.
+`HEAVY` had the same shape one cell wider. Centred is cols 5-6, so the rows
+became `...obvvbo...` and `..obbvvbbo..`. Because almost everything is built
+by `ov()`-ing an overlay onto those three chassis, that one change fixed the
+majority of the roster at once; the handful that draw their own heads
+(`recon`, `zaku`, `outrider`, `exo`) plus the four that override the visor
+row (`rearguard`, `assassin`, `kunoichi`, `cannon`) were corrected to match.
+`recon` also had its middle row spanning cols 2-8 while the rows above and
+below spanned 3-8, which read as an off-centre bulge; it now matches.
+
+**Weapons were the darkest thing on the sprite.** `w` was `#5b6284`, which
+measures **1.97:1** against the player tile — the body (`#ccd3ea`) sits at
+**7.85:1**. So the armour shouted and the weapon vanished, which is why a
+Rifleman, a Marksman and a Lancer all read as the same green body. Measured
+several replacements rather than eyeballing: `#aebbd2` gives **6.05:1** on
+the worst of the three tile colours while staying in the cool family, so it
+never competes with gold's "yours and alive" meaning. Uniform schemes
+override `b`/`s`/`v`/`o` but not `w`, so weapon metal now reads consistently
+across all ten schemes.
+
+Colour alone wasn't enough for "which unit is this" — most weapons were only
+2-3 pixels. 20 overlays were redrawn to project clear of the body with a gold
+muzzle/tip glint marking the business end, and to differ in *shape*, not just
+presence: Rifleman a short barrel, Marksman a long sniper barrel, Lancer a
+full-width lance, Samurai a long katana diagonal, Ronin twin blades pointing
+both forward *and* back (which is literally its rules text), Archer a bow with
+a nocked arrow, Herald a large standard. `pixtest`'s distinctness guard still
+passes, so no two tokens collapsed into each other.
+
+Checked at three scales rather than trusting a contact sheet: a full 62-sprite
+sheet, a pixel-level before/after against the committed version (rendered from
+`git show HEAD:` so the comparison is real, not remembered), and a strip at
+true in-game cell size (93px) across normal, **spent** (the grayscale/dim state
+an acted unit wears) and hostile-ground tiles — weapons stay legible in all
+three.
+
+## The codec call: Central Command opens an operation
+
+*2026-08-29*
+
+The first time a commander taps an operation, Central Command calls ahead of
+the drop. Hikaru, the CC liaison, takes three beats to hand over the situation;
+the commander answers each; and then the channel closes and the sector map
+opens behind it. Metal Gear's codec is the reference, down to the two portraits
+lighting up in turn.
+
+**Nothing in it moves on a timer.** Hikaru's line types out, you tap your reply
+when you have read it, your reply types out, and then a cycling `.` / `..` /
+`...` sits there until you are ready for the next beat. Three dots and no label
+— the word "Continue" lives in `aria-label` so a screen reader announces it
+without a caption sitting next to the ellipsis. (A monospace period carries a
+~0.6em advance, which spaces three of them out like status pips rather than an
+ellipsis; each dot gets a `.38em` box so the glyphs close up. All three slots
+are always reserved, so the button never changes width as it cycles.)
+
+**The scene is data, not code.** `operations.ironveil.intro` in
+`reference/gridfall-data.json` carries the frequency, the caller, the beats and
+the sign-off; `tools/gen-content.js` passes it through untouched. Writing
+Blackmarrow's call is a JSON edit. An operation with no `intro` block plays
+nothing and falls straight through to the map — `playIntro()` returns false,
+having done nothing, and the caller runs its own `go()`.
+
+**`#codec` is an overlay, not a screen.** It joins `#focus`, `#pack` and `#dlg`
+as a sibling of the screen stack rather than an eighth entry in `SCREENS`,
+which keeps csstest's "exactly one screen carries `.on`" invariant intact: the
+ops screen stays the visible screen while the call sits on top of it, dimmed and
+bokeh'd through the same `bokehLayer()` the focus view uses. Verified in a real
+browser — `screens on: ['ops']` throughout the call, `['map']` after.
+
+It plays once per commander per operation, recorded in
+`settings.intros[opKey]`, with a **Command transmissions → Replay** row in
+Settings that clears the flags. Under `prefers-reduced-motion` every line lands
+whole instead of typing.
+
+`codectest.js` (guard 38) walks the whole scene beat by beat and guards the
+thing that would actually strand a player: the call must always hand control
+back. It checks the sign-off path, the skip path, the play-once gate and the
+Settings reset, plus the shape of every intro block that ships.
+
+**One harness gap this turned up:** the DOM stub had no `setAttribute`, so any
+renderer reaching for it would have thrown under test rather than been caught.
+It has one now, wired into `dataset` for `data-*` names the way the browser
+does.
+
 ## Still open
 
 1. **Crystals at a hot operation is better, not soft.** Auto-rolled Crystals

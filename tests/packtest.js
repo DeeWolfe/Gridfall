@@ -6,6 +6,7 @@ import {get, flushTimers} from './support/dom.js';
 import {failures} from './support/harness.js';
 import {packOffer} from '../src/rules/packs.js';
 import {showPack, burstPack, takePack, packPicks} from '../src/render/packs.js';
+import {closeFocus} from '../src/render/focus.js';
 
 const F = failures();
 const p = A.blankProfile('PK');
@@ -118,10 +119,24 @@ A.enterProfile(p);
   const revealed = (get('packstage')._html.match(/data-pick=/g) || []).length;
   if (revealed !== 3) F.push('expected 3 revealed cards, got ' + revealed);
 
-  // The ⌕ inspect badge is gone by design — a pick's rules text is printed
-  // on the card itself, so nothing on a pack card opens the focus view.
-  if (get('packstage')._html.includes('data-zoom')) F.push('inspect badge is back on the pack cards');
-  if (get('packstage')._html.includes('⌕')) F.push('a magnifier glyph is back on the pack cards');
+  // A pick's flavour text is on the card, but its hard stats (DP cost, hull,
+  // targeting) are not — that's what the inspect button opens, over the same
+  // focus popup a shop or squad tile uses. Only card/gear/vet picks carry it;
+  // a flat credits bonus has nothing further to show.
+  const inspectButtons = [...document.querySelectorAll('#packstage [data-inspect]')];
+  if (inspectButtons.length !== packPicks.filter(p => p.kind !== 'credits').length) {
+    F.push('expected an inspect button on every non-credits pick');
+  }
+  if (inspectButtons.length) {
+    inspectButtons[0].onclick();
+    if (!get('focus')._cls.has('on')) F.push('inspecting a pick did not open the focus view');
+    const inspected = packPicks[+inspectButtons[0].dataset.inspect];
+    const expectedName = inspected.kind === 'gear' ? A.GEAR[inspected.id].n : A.POOL[inspected.id].n;
+    if (!get('fwrap')._html.includes(expectedName)) F.push('focus view did not show the inspected pick');
+    closeFocus();
+    if (get('focus')._cls.has('on')) F.push('closing the focus view left it open');
+    if (!get('pack')._cls.has('on')) F.push('closing the focus view also closed the pack overlay');
+  }
 
   const owned = [...q.unlocks.cards];
   const firstKind = packPicks[0].kind;
@@ -129,12 +144,13 @@ A.enterProfile(p);
   if (firstKind === 'card' && q.unlocks.cards.length !== owned.length + 1) {
     F.push('taking a card did not grant it');
   }
-  const buttons = document.querySelectorAll('#packstage [data-pick]');
-  const taken = buttons.filter(b => b._cls.has('taken'));
-  const returned = buttons.filter(b => b._cls.has('returned'));
+  const cards = document.querySelectorAll('#packstage [data-pick]');
+  const taken = cards.filter(b => b._cls.has('taken'));
+  const returned = cards.filter(b => b._cls.has('returned'));
   if (taken.length !== 1) F.push('expected exactly one card marked taken, got ' + taken.length);
   if (returned.length !== 2) F.push('expected two cards returned, got ' + returned.length);
-  if (buttons.some(b => b.onclick)) F.push('cards still clickable after a pick');
+  const takeButtons = document.querySelectorAll('#packstage [data-take]');
+  if (takeButtons.some(b => b.onclick)) F.push('cards still clickable after a pick');
   if (!get('packfoot')._html.includes('Continue') && !get('packfoot')._html.includes('Next')) {
     F.push('no continuation control after picking');
   }

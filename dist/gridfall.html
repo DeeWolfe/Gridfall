@@ -296,10 +296,14 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .gcard.t-special:hover{border-color:var(--gold);box-shadow:0 0 28px rgba(255,201,77,.28)}
 .gcard.owned{opacity:.5} .gcard.cant{opacity:.32}
 .gcard.indeck{border-color:var(--green);box-shadow:0 0 0 1px rgba(93,255,160,.5)}
-/* Ghost card tiles: text-forward, the ink-seal mark as a watermark behind. */
-.inkmark{position:absolute;inset:0;width:100%;height:100%;opacity:.15;pointer-events:none;
-  display:flex;align-items:center;justify-content:center}
-.inkmark svg{width:100%;height:100%;max-width:74%;max-height:74%;display:block}
+/* Ghost card tiles: text-forward, the ink-seal mark as a watermark behind.
+   cardMark() puts class="inkmark" on the <svg> itself — there is no wrapper
+   element for a descendant rule to reach — so the 74% cap that keeps this a
+   subtle watermark instead of a full-bleed image has to live on .inkmark's
+   own box. A flat inset:0 fill (the old rule) stretched the mark edge to
+   edge instead, which is most visible on specialists: their heavier ensō
+   stroke reads as noticeably off-balance at that larger, uncapped size. */
+.inkmark{position:absolute;inset:13%;opacity:.15;pointer-events:none;display:block}
 .tn{font-size:0.6875rem;font-weight:700;line-height:1.15;padding:.3rem .3rem 0;position:relative;
   min-height:calc(1.15em * 2 + 4px);display:-webkit-box;-webkit-line-clamp:2;
   -webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
@@ -752,13 +756,18 @@ body{font-size:1rem}
 .packcard.t-tech{border-color:var(--cyan);box-shadow:0 0 34px -8px var(--cyan)}
 .packcard.t-special{border-color:var(--gold);box-shadow:0 0 38px -8px var(--gold)}
 .packcard:hover{filter:brightness(1.12)}
+/* The look-then-take split: .pclook previews (a tap opens the same focus
+   popup a shop or squad tile would), .pctake is the one action that actually
+   commits the pick. Both are real buttons now, not one big clickable card. */
+.pclook{display:flex;flex-direction:column;flex:1;text-align:left;width:100%;cursor:pointer}
+.pclook:disabled{cursor:default}
 .pcart{position:relative;height:clamp(94px,11vw,176px);display:flex;align-items:center;justify-content:center;
   background:radial-gradient(ellipse at 50% 118%,#332771,#0b0918 74%);border-bottom:1px solid var(--line)}
 .pcname{font-size:0.8125rem;font-weight:700;letter-spacing:.06em;padding:.6rem .7rem 0}
 .pcsub{font-size:0.6875rem;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);padding:3px 11px 0}
 .pctxt{font-size:0.7188rem;color:var(--dim);line-height:1.5;padding:.5rem .7rem;flex:1}
 .pctake{padding:.6rem;border-top:1px solid var(--line);text-align:center;font-size:0.6875rem;
-  letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--zan)}
+  letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--zan);width:100%}
 .packcard.taken{border-color:var(--green);box-shadow:0 0 44px -6px var(--green)}
 .packcard.taken .pctake{color:var(--green)}
 .packcard.returned{opacity:.22;filter:grayscale(.9);transform:scale(.92);transition:.35s}
@@ -1016,6 +1025,120 @@ body{font-size:1rem}
 
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
+/* ============ CODEC CALL ============
+   The pre-operation transmission. Above the focus view (92) and below the
+   dialog (95): it is a full takeover of the ops screen, but a confirm must
+   still be able to land on top of it. */
+#codec{position:fixed;inset:0;z-index:93;display:none;align-items:center;justify-content:center;
+  padding:clamp(10px,2.4vw,28px)}
+#codec.on{display:flex;animation:fadein .2s ease-out}
+.cbg{position:absolute;inset:0;background:rgba(7,6,15,.58);
+  backdrop-filter:blur(11px) saturate(.7);-webkit-backdrop-filter:blur(11px) saturate(.7)}
+.cbok{position:absolute;inset:0;overflow:hidden;pointer-events:none;opacity:.5}
+
+.cbox{position:relative;z-index:2;width:100%;max-width:760px;max-height:100%;overflow:auto;
+  background:linear-gradient(170deg,var(--panel2) 0%,var(--deep) 66%);border:1px solid var(--line2);
+  clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,18px 100%,0 calc(100% - 18px));
+  box-shadow:0 30px 90px -26px rgba(0,0,0,.95);
+  animation:crise .4s cubic-bezier(.2,1.1,.4,1) both}
+@keyframes crise{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
+
+.cfreq{display:flex;align-items:center;gap:11px;flex-wrap:wrap;padding:9px 16px;
+  border-bottom:1px solid var(--line);background:rgba(7,6,15,.6);
+  font-size:0.6875rem;letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
+.cfreq .cjp{font-family:'Hiragino Mincho ProN','Yu Mincho','Noto Serif JP','MS Mincho',serif;
+  letter-spacing:.18em;color:var(--violet);text-transform:none}
+.cfreq .cnum{color:var(--cyan);font-variant-numeric:tabular-nums;letter-spacing:.14em}
+.cfreq .cdot{width:7px;height:7px;border-radius:50%;background:var(--green);flex:0 0 auto;
+  box-shadow:0 0 9px var(--green);animation:clive 2.6s infinite}
+@keyframes clive{0%,100%{opacity:1}50%{opacity:.3}}
+.cfreq .cr{margin-left:auto;color:var(--line2)}
+
+.crow{display:grid;grid-template-columns:126px minmax(0,1fr) 126px;align-items:stretch}
+.cport{position:relative;padding:13px 9px;display:flex;flex-direction:column;align-items:center;gap:7px;
+  background:rgba(7,6,15,.42)}
+.cport.l{border-right:1px solid var(--line);--ctone:var(--cyan)}
+.cport.r{border-left:1px solid var(--line);--ctone:var(--gold)}
+.cpic{width:100%;aspect-ratio:1;filter:saturate(.3) brightness(.46);transition:filter .28s ease}
+.cpic svg{width:100%;height:100%;display:block}
+.cport.on .cpic{filter:none}
+.cwho{font-size:0.5938rem;letter-spacing:.14em;text-transform:uppercase;text-align:center;
+  color:var(--line2);transition:color .28s ease;line-height:1.4}
+.cport.on .cwho{color:var(--ctone)}
+.cwho b{display:block;font-weight:700;font-size:0.7188rem;letter-spacing:.18em}
+.ceq{display:flex;gap:2px;height:10px;align-items:flex-end;opacity:0;transition:opacity .2s}
+.cport.on .ceq{opacity:1}
+.ceq i{width:3px;height:30%;background:var(--ctone);animation:cbars .7s ease-in-out infinite}
+.ceq i:nth-child(2){animation-delay:.1s}
+.ceq i:nth-child(3){animation-delay:.22s}
+.ceq i:nth-child(4){animation-delay:.34s}
+.ceq i:nth-child(5){animation-delay:.46s}
+@keyframes cbars{0%,100%{height:25%}50%{height:100%}}
+
+.cwell{padding:17px 20px;display:flex;flex-direction:column;gap:14px;min-height:214px;
+  background:rgba(7,6,15,.22)}
+.cwell[data-who="them"]{--ctone:var(--cyan)}
+.cwell[data-who="you"]{--ctone:var(--gold)}
+.csaid{font-size:0.8125rem;line-height:1.78;color:var(--txt);max-width:60ch;white-space:pre-wrap}
+.csaid.you{color:var(--gold)}
+.ccur{display:inline-block;width:7px;height:1em;vertical-align:-2px;
+  background:var(--ctone,var(--cyan));animation:cblink .9s steps(1) infinite}
+@keyframes cblink{0%,49%{opacity:1}50%,100%{opacity:0}}
+
+.cacts{margin-top:auto;display:flex;flex-wrap:wrap;gap:9px;align-items:center;min-height:38px}
+.creply{font-family:inherit;font-size:0.75rem;line-height:1.5;text-align:left;color:var(--gold);
+  background:rgba(255,201,77,.07);border:1px solid rgba(255,201,77,.45);padding:9px 13px;
+  clip-path:polygon(0 0,calc(100% - 9px) 0,100% 9px,100% 100%,9px 100%,0 calc(100% - 9px));
+  transition:background .16s,border-color .16s}
+.creply:hover{background:rgba(255,201,77,.16);border-color:var(--gold)}
+.creply:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.creply::before{content:'\25b8 ';opacity:.8}
+.cgo{color:var(--green);background:rgba(93,255,160,.08);border-color:rgba(93,255,160,.5)}
+.cgo:hover{background:rgba(93,255,160,.18);border-color:var(--green)}
+.cgo::before{content:''}
+
+/* Read at your own pace: three dots cycling . / .. / ... and nothing else.
+   A monospace period carries a ~0.6em advance, which would space three of them
+   out like status pips — so each dot gets a narrower box and the glyphs close
+   up into a real ellipsis. All three slots are always reserved, so the button
+   never changes width as it cycles. */
+.cmore{font-family:inherit;padding:10px 18px 12px 4px;display:inline-flex;color:var(--cyan);
+  font-size:1.6rem;line-height:.7}
+.cmore:hover{color:var(--txt)}
+.cmore:focus-visible{outline:1px solid var(--cyan-d);outline-offset:3px}
+.cmore .cell{display:inline-flex;gap:0}
+.cmore .cell i{font-style:normal;opacity:0;width:.38em}
+.cmore .cell i:nth-child(1){animation:cdot1 1.5s infinite}
+.cmore .cell i:nth-child(2){animation:cdot2 1.5s infinite}
+.cmore .cell i:nth-child(3){animation:cdot3 1.5s infinite}
+@keyframes cdot1{0%,100%{opacity:1}}
+@keyframes cdot2{0%,32%{opacity:0}33%,100%{opacity:1}}
+@keyframes cdot3{0%,65%{opacity:0}66%,100%{opacity:1}}
+
+.cfoot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:9px 16px;
+  border-top:1px solid var(--line);background:rgba(7,6,15,.6)}
+.cpips{display:flex;gap:5px}
+.cpips i{width:16px;height:2px;background:var(--line2);transition:background .25s}
+.cpips i.on{background:var(--cyan)}
+.ccap{font-size:0.625rem;color:var(--line2);letter-spacing:.12em;text-transform:uppercase}
+.cskip{margin-left:auto;font-family:inherit;font-size:0.6875rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--dim);padding:3px}
+.cskip:hover{color:var(--txt)}
+.cskip:focus-visible{outline:1px solid var(--line2);outline-offset:2px}
+
+@media(max-width:640px){
+  .crow{grid-template-columns:76px minmax(0,1fr) 76px}
+  .cwell{padding:14px 15px;min-height:196px}
+  .cwho b{font-size:0.625rem;letter-spacing:.1em}
+  .cwho{font-size:0.5313rem;letter-spacing:.08em}
+  .cfreq{gap:8px;padding:8px 12px;font-size:0.625rem}
+  .cfoot{padding:8px 12px;flex-wrap:nowrap}
+  /* The operation name is redundant on a narrow footer — the player tapped
+     that card a second ago — and keeping it wraps Skip onto its own line. */
+  .ccap{display:none}
+}
+@media(prefers-reduced-motion:reduce){.ccur{opacity:0}.cmore .cell i{opacity:1}}
+
 /* ============ OPS FOOTNOTE ============ */
 .mnote{margin-top:22px;padding-top:14px;border-top:1px solid var(--line);
   color:var(--dim);font-size:0.6875rem;line-height:1.65;max-width:64ch}
@@ -1212,6 +1335,8 @@ body{font-size:1rem}
 </div>
 <div id="focus"><div class="fbg" id="fbg"></div><div class="fwrap" id="fwrap"></div></div>
 
+<div id="codec"></div>
+
 <div id="drawer">
   <div class="drawmenu">
     <button class="mini" id="drawset">Settings</button>
@@ -1233,7 +1358,7 @@ const OPS = {
   ironveil: {
     k: "ironveil",
     n: "OPERATION IRONVEIL",
-    sub: "Delta Shelf · orbital shipyard, overrun",
+    sub: "Delta Shelf · orbital shipyard, no transmission",
     col: "#4de8ff",
     zones: [
       {l: "ZONE A", p: "22,96 108,44 236,44 286,104 236,182 96,182"},
@@ -1258,8 +1383,28 @@ const OPS = {
       ["n4", "n7"],
       ["n3", "n6"],
     ],
-    lore: "The Delta Shelf yards built half the fleet that holds this sector, and three weeks ago the hive came up through the ore elevators mid-shift. The docks went silent between one bell and the next. Command wants the slipways back before the hulls on them are lost — the yards are worth more than the ground they stand on.",
+    lore: "The Delta Shelf yards built half the fleet holding this sector. Three weeks ago a cluster of small meteors struck the facility. Two weeks later, all transmission went silent.<br><br>Command doesn't believe in coincidences.<br><br>Secure the facility and salvage the hulls in dock before the structure gives. The yards are worth far more than the rock they sit on — failure to retrieve them is not an option.",
     modBias: "breach",
+    intro: {
+      freq: "141.80",
+      net: "残心ネット",
+      from: {n: "Hikaru", r: "CC Liaison"},
+      beats: [
+        {
+          say: ["Commander. We’ve taken an unusual ping off the orbital yards over Zentonia.", "Hail went out four hours ago. Nothing came back."],
+          reply: "Copy. Sitrep?",
+        },
+        {
+          say: ["Satellite sweep reads a number of targets moving erratically across the shelf. Origin unknown.", "Nothing on the yard registry moves like that. Command advises you enter combat ready — you are weapons free."],
+          reply: "Understood. Beachhead first — we take ground, then we take the rest.",
+        },
+        {
+          say: ["One more thing, and it came down verbatim. The yards are to be cleared of all hostiles. The yards are of utmost importance.", "Do not lose this one, Commander."],
+          reply: "Understood. Out.",
+        },
+      ],
+      close: "Channel closed. Descent vector locked — Delta Shelf, Beachhead.",
+    },
   },
   blackmarrow: {
     k: "blackmarrow",
@@ -1577,7 +1722,7 @@ function clearSelection() {
 /* ==== src/content/cards.js ========================================== */
 // GENERATED by tools/gen-content.js from reference/gridfall-data.json.
 // Edit the JSON and re-run `npm run gen:content` — do not edit this file by hand.
-// The 58 deployable cards, keyed by card id.
+// The 62 deployable cards, keyed by card id.
 
 const POOL = {
   scout: {
@@ -1595,12 +1740,11 @@ const POOL = {
     n: "Recon Lark",
     t: "common",
     dp: 1,
-    hp: 2,
+    hp: 0,
     price: 80,
-    mob: 1,
-    tg: "none",
+    instant: 1,
     draw: 2,
-    d: "Spotter drone. On deployment it calls in two more cards. Fragile and unarmed — its value is the opening hand it buys you.",
+    d: "Spotter sweep. Calls in two more cards and is gone — no airframe to shoot down, no tile tied up. Best on turn one, when the hand is what you are short of.",
   },
   pathfinder: {
     n: "Pathfinder",
@@ -1839,6 +1983,7 @@ const POOL = {
     gain: 3,
     tech: 1,
     d: "Crack it open for 3 extra deploy points this turn — but the scramble costs you a card at random from your hand. Best on turn one when the hand is deep and the board is empty.",
+    discard: 1,
   },
   shield: {
     n: "Shield",
@@ -2334,12 +2479,58 @@ const POOL = {
     col: 1,
     d: "Command presence. The only card that buffs its lane and its column at once — a Herald and a Relay in one requisition.",
   },
+  longshot: {
+    n: "Longshot",
+    t: "common",
+    dp: 3,
+    hp: 3,
+    price: 160,
+    mob: 1,
+    tg: "furthest",
+    indirect: 1,
+    dmg: 2,
+    d: "Hits the furthest hostile in the lane — through anything in the way. No burst, no mercy, just distance.",
+  },
+  sapper: {
+    n: "Sapper Turret",
+    t: "tech",
+    dp: 4,
+    hp: 10,
+    price: 280,
+    tg: "ahead2",
+    drop: 1,
+    dmg: 2,
+    d: "Deploys on ANY tile, including hostile ground. Strikes both cells ahead of wherever it lands — planted deep, it opens up on the hive's own rear.",
+  },
+  rearguard: {
+    n: "Rearguard",
+    t: "common",
+    single: 1,
+    dp: 3,
+    hp: 4,
+    price: 150,
+    mob: 1,
+    tg: "rear",
+    dmg: 3,
+    d: "Faces the wrong way on purpose. Strikes the nearest hostile BEHIND it in the lane, at any range — the only ranged answer to something already past your line.",
+  },
+  backstop: {
+    n: "Backstop Battery",
+    t: "tech",
+    dp: 3,
+    hp: 0,
+    price: 260,
+    tech: 1,
+    instant: 1,
+    homestrike: 5,
+    d: "Calls one volley down across both home columns, every lane at once, for 5. Anything standing there breaches on the next step — this is the last word before it does. Fired once, then spent.",
+  },
 };
 
 /* ==== src/content/gear.js =========================================== */
 // GENERATED by tools/gen-content.js from reference/gridfall-data.json.
 // Edit the JSON and re-run `npm run gen:content` — do not edit this file by hand.
-// The 17 gear pieces, one slot per card, bought with credits.
+// The 19 gear pieces, one slot per card, bought with credits.
 
 const GEAR = {
   barrel: {n: "Extended Barrel", cost: 135, d: "+1 damage to this unit.", dmg: 1, role: "offense"},
@@ -2448,6 +2639,20 @@ const GEAR = {
     dp: -1,
     servo: 1,
     role: "utility",
+  },
+  opticsrelay: {
+    n: "Optics Relay",
+    cost: 300,
+    d: "Direct fire ignores blockers in the lane — reaches whatever the weapon would otherwise be denied.",
+    indirect: 1,
+    role: "offense",
+  },
+  rearsights: {
+    n: "Rear Sights",
+    cost: 240,
+    d: "Also strikes the cell directly behind this unit. Nothing flanks it.",
+    rearsight: 1,
+    role: "defense",
   },
 };
 
@@ -3804,7 +4009,8 @@ function mkUnit(cid, l, c) {
     mob: !!k.mob,
     tg: k.tg || 'none',
     dmg: (k.dmg || 0) + (g && g.dmg ? g.dmg : 0),
-    indirect: !!k.indirect,
+    indirect: !!k.indirect || !!(g && g.indirect),
+    rearsight: !!(g && g.rearsight),
     // NOTE: the reference build dropped this flag on the floor, which quietly
     // turned every single-target card into an area attack in live play. The
     // data, the spec, the targeting UI and the test suite all assume it is
@@ -3936,13 +4142,45 @@ function laneAhead(u, L) {
   return list;
 }
 
+/**
+ * Hostiles BEHIND `u` in lane `L` — anything that already slipped past the
+ * line — nearest first. The mirror of laneAhead in every respect, blockers
+ * included: your own wall cuts your own beam going backwards too.
+ */
+function laneBehind(u, L) {
+  let list = G.enemies.filter(e => e.lane === L && e.col < u.col).sort((a, b) => b.col - a.col);
+  if (!u.indirect) {
+    let limit = -1;
+    for (let c = u.col - 1; c >= 0; c--) {
+      const f = unitAt(L, c);
+      if (f && f.blocker && f.uid !== u.uid) { limit = c; break; }
+    }
+    list = list.filter(e => e.col > limit);
+  }
+  return list;
+}
+
 /** Every hostile inside this unit's firing geometry right now. */
 function geomFor(u) {
-  const front = u.col + u.size - 1;
-  const L = u.lane;
   if (u.tg === 'none' || !u.dmg || u.stun) return [];
   if (u.cycling > 0) return [];                  // a recharge weapon mid-cycle
-  if (u.indirect && laneJammed(L)) return [];
+  if (u.indirect && laneJammed(u.lane)) return [];
+
+  const base = geomBase(u);
+  // Rear Sights (gear) bolts the cell directly behind onto whatever the card
+  // already covers, so a forward-facing weapon stops being flankable. Added
+  // here rather than inside the switch so it composes with every pattern.
+  if (!u.rearsight) return base;
+  const behind = G.enemies.filter(e => e.lane === u.lane && e.col === u.col - 1);
+  if (!behind.length) return base;
+  const seen = new Set(base.map(e => e.uid));
+  return base.concat(behind.filter(e => !seen.has(e.uid)));
+}
+
+/** The card's own printed firing pattern, before any gear rider. */
+function geomBase(u) {
+  const front = u.col + u.size - 1;
+  const L = u.lane;
 
   // Board-wide targeting: the hostile deepest into any lane, ignoring lanes
   // and blockers alike. The answer to a Chorus dug in behind the horde.
@@ -3956,6 +4194,8 @@ function geomFor(u) {
     case 'adj': return inLane.filter(e => e.col === front + 1);
     case 'first': return inLane.slice(0, 1);
     case 'furthest': return inLane.slice(-1);
+    // Turn around: the nearest thing that already got past this unit.
+    case 'rear': return laneBehind(u, L).slice(0, 1);
     case 'lane': return inLane;
     case 'ahead2': return inLane.filter(e => e.col <= front + 2);
     case 'ahead3': return inLane.filter(e => e.col <= front + 3);
@@ -4860,6 +5100,7 @@ const TGNAME = {
   diag: "The four diagonals only",
   range2: "Exactly two cells ahead",
   boardFurthest: "Furthest hostile on the board",
+  rear: "Nearest hostile BEHIND it in the lane",
 };
 
 /* ==== src/content/card-art.js ======================================= */
@@ -4895,12 +5136,13 @@ const KANJI = {
   samurai: '侍', ronin: '浪', naginata: '薙', lancer: '槍', herald: '旗',
   medic: '医', knight: '騎', bulwark: '塁', outrider: '駆', cipher: '換',
   engineer: '工', mortar: '臼', ashigaru: '兵', pikewall: '列', sentry: '討',
-  falconer: '隼',
+  falconer: '隼', longshot: '遠', rearguard: '殿',
   // tech emplacements and devices
   wall: '壁', supply: '糧', beacon: '灯', cache: '蔵', shield: '護',
   cannon: '撃', turret: '塔', relay: '波', techblade: '刃', pulse: '響',
   scrambler: '乱', battery: '陣', fob: '営', mine: '罠', dynamo: '電',
   rampart: '塞', piercer: '突', suppressor: '抑', reactor: '核', bore: '穿',
+  sapper: '伏', backstop: '堤',
   // specialists
   aegis: '盾', biomed: '命', techmed: '療', dragoon: '竜', railgun: '貫',
   hell: '焔', plasma: '光', exo: '鎧', hecate: '砲', kessen: '斬', ram: '衝',
@@ -5090,11 +5332,13 @@ function statRows(id) {
     ['Deploy cost', costOf(id) + ' DP' + (g && g.dp ? ' (geared)' : '')],
     k.hp ? ['Hull', k.hp + (g && g.hp ? ' +' + g.hp : '')] : null,
     ['Class', TIERNAME[k.t]],
-    ['Footprint', k.size > 1 ? '2 cells' : k.attach ? 'Attachment' : '1 cell'],
-    ['Mobility', k.attach ? '—' : k.mob ? (g && g.servo ? 'Mobile · fires while moving' : 'Mobile') : 'Anchored'],
+    // An instant never lands, so it has neither of these to report.
+    k.instant ? null : ['Footprint', k.size > 1 ? '2 cells' : k.attach ? 'Attachment' : '1 cell'],
+    k.instant ? null : ['Mobility', k.attach ? '—' : k.mob ? (g && g.servo ? 'Mobile · fires while moving' : 'Mobile') : 'Anchored'],
     k.dmg ? ['Damage', (k.dmg + (g && g.dmg ? g.dmg : 0)) + (k.burst ? ` (${k.burst} on play)` : '')] : null,
     k.tg && k.tg !== 'none' ? ['Targeting', TGNAME[k.tg] || k.tg] : null,
-    k.indirect ? ['Line of fire', 'Indirect — fires over blockers'] : null,
+    (k.indirect || (g && g.indirect)) ? ['Line of fire', 'Indirect — fires over blockers'] : null,
+    g && g.rearsight ? ['Rear guard', 'Also strikes the cell directly behind'] : null,
     k.recharge ? ['Rate of fire', 'Every other turn — needs a turn to cycle'] : null,
     k.charge ? ['Charge', `Moves up to ${k.charge} cells forward`] : null,
     k.push ? ['On hit', 'Drives the survivor back one cell'] : null,
@@ -5110,6 +5354,10 @@ function statRows(id) {
     k.pristine ? ['Pristine bonus', '+' + k.pristine + ' damage at full hull'] : null,
     k.claim ? ['On deployment', 'Claims ' + k.claim + ' tiles ahead'] : null,
     k.instant ? ['Type', 'Instant — no body left behind'] : null,
+    k.gain ? ['Deploy points', `+${k.gain} this turn`] : null,
+    k.draw ? ['Cards called in', '+' + k.draw] : null,
+    k.homestrike ? ['Home volley', `${k.homestrike} to every hostile in your two home columns`] : null,
+    k.discard ? ['Cost', 'One card at random from your hand'] : null,
     g && g.crush ? ['Deployment', 'Onto a hostile — crushes it outright'] : null,
     (k.heal || k.hot) ? ['Support', 'Heals ' + (k.healType === 'tech' ? 'Tech' : 'Common') + ' units'] : null,
   ].filter(Boolean);
@@ -6718,6 +6966,247 @@ function renderMap() {
   }
 }
 
+/* ==== src/render/codec.js =========================================== */
+// The pre-operation codec call.
+//
+// A transmission from Central Command that fires the first time a commander
+// opens an operation, before the sector map. It is pure presentation: the
+// rules layer knows nothing about it, the scene is data (OPS[k].intro) rather
+// than code, and an operation without an intro block simply skips it.
+//
+// Nothing advances on a timer. Hikaru's line types out, you tap your reply,
+// your reply types out, and a cycling "..." waits for you to be ready. That is
+// the whole interaction — the player sets the pace of the whole scene.
+
+/** Who is on the other end. The commander's side is always the player. */
+const CODEC_TONE = {them: 'var(--cyan)', you: 'var(--gold)'};
+
+let codecScene = null;    // the intro block being played
+let codecOp = null;       // its operation, for the footer caption
+let codecDone = null;     // what to run once the channel closes
+let codecType = null;     // in-flight typewriter interval
+
+/**
+ * Whether to land each line whole instead of typing it out. An environment
+ * with no matchMedia at all (the test harness) counts as reduced: nowhere that
+ * cannot answer the question should be driving an animation.
+ */
+const codecReduced = () => {
+  if (typeof matchMedia !== 'function') return true;
+  try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return true; }
+};
+
+/**
+ * Portraits in the language of art.js: one chassis, two ranks. Hikaru wears
+ * the comms headset; the commander wears the same dome and visor under a
+ * command crest, so the pair read as one service rather than two species.
+ */
+function codecFace(accent, kind) {
+  const id = 'codecg-' + kind;
+  const head = kind === 'them'
+    ? `<path d="M30 90 L30 44 Q50 22 70 44 L70 90 Z" fill="url(#${id})" stroke="${accent}" stroke-width="2"/>
+       <path d="M35 52 L65 52 L65 63 Q50 70 35 63 Z" fill="${accent}" opacity=".85"/>
+       <path d="M28 46 Q28 30 50 30 Q72 30 72 46" fill="none" stroke="${accent}" stroke-width="2.4" opacity=".9"/>
+       <rect x="21" y="43" width="9" height="16" rx="2.5" fill="${accent}" opacity=".9"/>
+       <rect x="70" y="43" width="9" height="16" rx="2.5" fill="${accent}" opacity=".9"/>
+       <path d="M26 59 Q25 75 40 78" fill="none" stroke="${accent}" stroke-width="2" opacity=".75"/>
+       <circle cx="42" cy="78" r="3.2" fill="${accent}"/>
+       <path d="M39 76 L61 76" stroke="${accent}" stroke-width="2" opacity=".45"/>`
+    : `<path d="M30 90 L30 44 Q50 22 70 44 L70 90 Z" fill="url(#${id})" stroke="${accent}" stroke-width="2"/>
+       <path d="M35 52 L65 52 L65 63 Q50 70 35 63 Z" fill="${accent}" opacity=".85"/>
+       <path d="M39 76 L61 76" stroke="${accent}" stroke-width="2" opacity=".5"/>
+       <path d="M43 83 L57 83" stroke="${accent}" stroke-width="2" opacity=".32"/>
+       <path d="M50 20 L50 8" stroke="${accent}" stroke-width="3"/>
+       <path d="M42 12 L50 5 L58 12" fill="none" stroke="${accent}" stroke-width="2.2"/>`;
+  return `<svg viewBox="0 0 100 100" aria-hidden="true">
+    <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="${accent}" stop-opacity=".32"/>
+      <stop offset="1" stop-color="${accent}" stop-opacity=".05"/>
+    </linearGradient></defs>
+    <rect width="100" height="100" fill="#0b0918"/>${head}</svg>`;
+}
+
+/** The chassis. Painted once per call; only the well and the pips change after. */
+function codecShell() {
+  const s = codecScene;
+  const pips = s.beats.map(() => '<i></i>').join('');
+  $('codec').innerHTML =
+    `<div class="cbg"></div><div class="cbok">${bokehLayer(['#4de8ff', '#9d6bff', '#5dffa0'])}</div>
+    <div class="cbox" role="dialog" aria-label="Incoming transmission">
+      <div class="cfreq">
+        <span class="cdot"></span><span class="cjp">${s.net || '残心ネット'}</span>
+        <span>CC uplink</span><span class="cnum">${s.freq || '000.00'}</span>
+        <span class="cr" id="cstage">channel open</span>
+      </div>
+      <div class="crow">
+        <div class="cport l" id="cportl">
+          <div class="cpic">${codecFace(CODEC_TONE.them, 'them')}</div>
+          <div class="cwho"><b>${s.from.n}</b>${s.from.r}</div>
+          <div class="ceq"><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+        <div class="cwell" id="cwell" data-who="them">
+          <div class="csaid" id="csaid"></div>
+          <div class="cacts" id="cacts"></div>
+        </div>
+        <div class="cport r" id="cportr">
+          <div class="cpic">${codecFace(CODEC_TONE.you, 'you')}</div>
+          <div class="cwho"><b>${active ? active.callsign : 'You'}</b>Task Force Cmd</div>
+          <div class="ceq"><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+      </div>
+      <div class="cfoot">
+        <div class="cpips" id="cpips">${pips}</div>
+        <span class="ccap">${codecOp.n}</span>
+        <button class="cskip" id="cskip">Skip transmission</button>
+      </div>
+    </div>`;
+  $('codec').classList.add('on');
+  $('cskip').onclick = codecFinish;
+}
+
+function codecSpeaker(who) {
+  $('cwell').dataset.who = who;
+  $('cportl').classList.toggle('on', who === 'them');
+  $('cportr').classList.toggle('on', who === 'you');
+}
+
+function codecPips(n) {
+  [...$('cpips').children].forEach((el, i) => el.classList.toggle('on', i <= n));
+}
+
+/** Types `lines` into the well, then runs `after`. Reduced motion lands it whole. */
+function codecTypeOut(lines, cls, after) {
+  clearInterval(codecType);
+  const said = $('csaid');
+  said.className = 'csaid' + (cls ? ' ' + cls : '');
+  const full = lines.join('\n\n');
+  if (codecReduced()) { said.textContent = full; after(); return; }
+  said.textContent = '';
+  const cur = document.createElement('span');
+  cur.className = 'ccur';
+  said.appendChild(cur);
+  let i = 0;
+  codecType = setInterval(() => {
+    i = Math.min(full.length, i + 2);
+    cur.remove();
+    said.textContent = full.slice(0, i);
+    said.appendChild(cur);
+    if (i >= full.length) { clearInterval(codecType); codecType = null; cur.remove(); after(); }
+  }, 16);
+}
+
+/**
+ * Read-at-your-own-pace: a cycling "..." and nothing else. The label lives in
+ * aria-label only, so a screen reader announces it without a word sitting next
+ * to the dots.
+ */
+function codecWait(onGo) {
+  const b = document.createElement('button');
+  b.className = 'cmore';
+  b.setAttribute('aria-label', 'Continue');
+  b.innerHTML = '<span class="cell"><i>.</i><i>.</i><i>.</i></span>';
+  b.dataset.codec = 'more';
+  b.onclick = onGo;
+  $('cacts').appendChild(b);
+  try { b.focus(); } catch { /* headless */ }
+}
+
+function codecBeat(n) {
+  if (n >= codecScene.beats.length) return codecFinish();
+  codecPips(n);
+  $('cstage').textContent = 'receiving';
+  codecSpeaker('them');
+  $('cacts').innerHTML = '';
+  codecTypeOut(codecScene.beats[n].say, '', () => {
+    $('cstage').textContent = 'awaiting reply';
+    const b = document.createElement('button');
+    b.className = 'creply';
+    b.dataset.codec = 'reply';
+    b.textContent = codecScene.beats[n].reply;
+    b.onclick = () => codecReply(n);
+    $('cacts').appendChild(b);
+    try { b.focus(); } catch { /* headless */ }
+  });
+}
+
+function codecReply(n) {
+  $('cacts').innerHTML = '';
+  $('cstage').textContent = 'transmitting';
+  codecSpeaker('you');
+  codecTypeOut([codecScene.beats[n].reply], 'you', () => {
+    $('cstage').textContent = 'standing by';
+    codecWait(() => codecBeat(n + 1));
+  });
+}
+
+/** Sign-off: the channel closes and the map opens behind it. */
+function codecFinish() {
+  clearInterval(codecType);
+  codecType = null;
+  codecPips(codecScene.beats.length);
+  $('cstage').textContent = 'channel closed';
+  codecSpeaker('none');
+  $('csaid').className = 'csaid';
+  $('csaid').textContent = codecScene.close || 'Channel closed.';
+  $('cacts').innerHTML = '';
+  const go = document.createElement('button');
+  go.className = 'creply cgo';
+  go.dataset.codec = 'go';
+  go.textContent = 'OPEN THE SECTOR MAP ▸';
+  go.onclick = closeCodec;
+  $('cacts').appendChild(go);
+  try { go.focus(); } catch { /* headless */ }
+}
+
+/** Tear the overlay down and hand control back to whoever opened it. */
+function closeCodec() {
+  clearInterval(codecType);
+  codecType = null;
+  codecScene = null;
+  codecOp = null;
+  $('codec').classList.remove('on');
+  $('codec').innerHTML = '';
+  const done = codecDone;
+  codecDone = null;
+  if (done) done();
+}
+
+/** True once this commander has already taken the call for this operation. */
+function introSeen(k) {
+  return !!(active && active.settings && active.settings.intros && active.settings.intros[k]);
+}
+
+/**
+ * Play `k`'s intro call, running `done` when the channel closes.
+ * Returns false — having done nothing — when there is no call to play, so the
+ * caller can fall straight through to the map.
+ */
+function playIntro(k, done) {
+  const op = OPS[k];
+  if (!op || !op.intro || !op.intro.beats || !op.intro.beats.length) return false;
+  if (introSeen(k)) return false;
+
+  active.settings = active.settings || {};
+  active.settings.intros = active.settings.intros || {};
+  active.settings.intros[k] = true;
+  commit();
+
+  codecScene = op.intro;
+  codecOp = op;
+  codecDone = done;
+  codecShell();
+  codecBeat(0);
+  return true;
+}
+
+/** Settings hook: clear the seen flags so every call plays again. */
+function replayIntros() {
+  if (!active) return;
+  active.settings = active.settings || {};
+  active.settings.intros = {};
+  commit();
+}
+
 /* ==== src/render/ops.js ============================================= */
 // Operation select: three maps, each with its own progress.
 
@@ -6754,8 +7243,10 @@ function renderOps() {
       setMapdef(active.op);
       if (!active.ops[active.op]) genRun();
       commit();
-      show('map');
-      renderMap();
+      // The first time a commander opens an operation, Central Command calls
+      // ahead of the drop. The map waits behind the transmission.
+      const go = () => { show('map'); renderMap(); };
+      if (!playIntro(active.op, go)) go();
     };
   });
 }
@@ -7030,26 +7521,47 @@ function consume(cid) {
   hooks.invalidate();
 }
 
-/** Supply Cache and friends: points now, at the cost of a card from hand. */
+/** The home columns a Backstop volley covers. */
+const HOME_COLS = 2;
+
+/** Backstop Battery: one volley across both home columns, every lane at once. */
+function homeStrike(k) {
+  const caught = G.enemies.filter(e => e.col < HOME_COLS);
+  if (!caught.length) return 'nothing was standing on the home line';
+  caught.forEach(e => dmgEnemy(e, k.homestrike, k.n));
+  return `${caught.length} hostile${caught.length > 1 ? 's' : ''} on the home line hit for ${k.homestrike}`;
+}
+
+/**
+ * An instant resolves and is gone — no body, no tile taken. Each one declares
+ * the effects it carries rather than sharing one hardcoded behaviour, so a new
+ * instant is a data entry instead of another branch in here. The card is still
+ * in hand while these run; consume() clears it afterwards.
+ */
 function playInstant(cid) {
   const k = POOL[cid];
-  G.dp += k.gain || 0;
-  G.hand.splice(G.hand.indexOf(cid), 1);
+  const done = [];
 
-  const pool = G.hand.filter(x => x !== cid);
-  if (pool.length) {
-    const drop = pool[randInt(pool.length)];
-    G.hand.splice(G.hand.indexOf(drop), 1);
-    clog(`<span class="g">${k.n}</span> — +${k.gain} DP, but <span class="d">${POOL[drop].n}</span> was lost in the scramble.`);
-  } else {
-    clog(`<span class="g">${k.n}</span> — +${k.gain} DP. Nothing left to lose.`);
+  if (k.gain) { G.dp += k.gain; done.push(`+${k.gain} DP`); }
+  if (k.homestrike) done.push(homeStrike(k));
+  if (k.draw) {
+    for (let i = 0; i < k.draw; i++) drawCard();
+    done.push(`${k.draw} cards called in`);
+  }
+  // Supply Cache's own price, declared on the card — being an instant does
+  // not imply the penalty, which is why the flag is data and not a default.
+  if (k.discard) {
+    const pool = G.hand.filter(x => x !== cid);
+    if (pool.length) {
+      const drop = pool[randInt(pool.length)];
+      G.hand.splice(G.hand.indexOf(drop), 1);
+      done.push(`<span class="d">${POOL[drop].n}</span> lost in the scramble`);
+    } else {
+      done.push('nothing left to lose');
+    }
   }
 
-  G.dp -= costOf(cid);
-  active.usage = active.usage || {};
-  active.usage[cid] = (active.usage[cid] || 0) + 1;
-  clearSelection();
-  hooks.invalidate();
+  clog(`<span class="g">${k.n}</span> — ${done.join(', ')}.`, 'order');
 }
 
 /** Claim the cells directly ahead of a unit as your ground. */
@@ -7097,7 +7609,9 @@ function placeSquad(cid, l, c) {
 function deploy(cid, l, c) {
   const k = POOL[cid];
 
-  if (k.instant) return playInstant(cid);
+  // An instant shares consume() with everything else, so it bills its deploy
+  // points, logs a promotion and clears the selection by the same path.
+  if (k.instant) { playInstant(cid); return consume(cid); }
 
   if (k.attach) {
     const u = unitAt(l, c);
@@ -8013,8 +8527,14 @@ function supportLabel(u) {
 // not a lookalike palette that happens to be close. Everything else here
 // (armour tone, weapon metal, cloth shade) stays its own material colour;
 // forcing all of it onto UI tokens would flatten the sprites, not unify them.
+// Weapon metal (w) is deliberately the second-brightest thing on a sprite.
+// It started as #5b6284, which measured 1.97:1 against the player tile — the
+// body sat at 7.85:1, so every weapon sank into the board and a Rifleman, a
+// Marksman and a Lancer all read as the same green body. #aebbd2 puts it at
+// 6.05:1 on the worst of the three tile colours while staying in the cool
+// family, so it never competes with gold's "yours and alive" meaning.
 const PX_COLOR = {
-  o: '#0e0c1e', b: '#ccd3ea', s: '#8b93b6', w: '#5b6284',
+  o: '#0e0c1e', b: '#ccd3ea', s: '#8b93b6', w: '#aebbd2',
   g: '#ffc94d', W: '#f4f6ff', v: '#ffc94d', G: '#ffc94d', f: '#ff9a3d',
 };
 const PX_BLINK = {v: 1, G: 1, f: 1};
@@ -8035,7 +8555,7 @@ const TROOPER = [
   '............',
   '............',
   '....oooo....',
-  '...ovvbbo...',
+  '...obvvbo...',
   '...obbbbo...',
   '..oobssboo..',
   '..o.bbbb.o..',
@@ -8050,7 +8570,7 @@ const HEAVY = [
   '............',
   '...oooooo...',
   '..obbbbbbo..',
-  '..obvvbbbo..',
+  '..obbvvbbo..',
   '..obbbbbbo..',
   '.oobssssboo.',
   '.o.bbbbbb.o.',
@@ -8066,7 +8586,7 @@ const KNEEL = [
   '............',
   '............',
   '....oooo....',
-  '...ovvbbo...',
+  '...obvvbo...',
   '...obbbbo...',
   '..oobssboo..',
   '..o.bbbb.o..',
@@ -8076,7 +8596,7 @@ const KNEEL = [
   '............',
 ];
 
-// -- the 58 tokens -----------------------------------------------------------
+// -- the 62 tokens -----------------------------------------------------------
 
 const PIXMAP = {
   // scouts and skirmish troopers
@@ -8087,7 +8607,7 @@ const PIXMAP = {
     '..G......G..',
     '..oo....oo..',
     '...osbbso...',
-    '..obvvbbo...',
+    '...obvvbo...',
     '...osbbso...',
     '..oo....oo..',
     '..G......G..',
@@ -8095,13 +8615,13 @@ const PIXMAP = {
     '............',
     '............',
   ],
-  pathfinder: ov(TROOPER, sparse({1: '.........gg.', 2: '.........wg.', 3: '.........w..', 4: '.........w..', 5: '.........w..'})),
-  rifle: ov(TROOPER, sparse({5: '.........ww.', 6: '..........wv'})),
+  pathfinder: ov(TROOPER, sparse({0: '.........gg.', 1: '.........gg.', 2: '.........wg.', 3: '.........w..', 4: '.........w..', 5: '.........w..'})),
+  rifle: ov(TROOPER, sparse({5: '.........w..', 6: '........wwwv'})),
   zaku: [
     '............',
     '............',
     '.ooo....ooo.',
-    '.ovbo..ovbo.',
+    '.ovvo..ovvo.',
     '.obbo..obbo.',
     '.obbo..obbo.',
     '.bssb..bssb.',
@@ -8112,15 +8632,19 @@ const PIXMAP = {
     '............',
   ],
   vanguard: ov(TROOPER, sparse({4: '.ss.........', 5: '.ss.........', 6: '.ss.........', 7: '.ss.........'})),
-  marks: ov(KNEEL, sparse({5: '.........www', 6: '..........v.'})),
-  archer: ov(TROOPER, sparse({3: '.........w..', 4: '..........w.', 5: '..........w.', 6: '..........w.', 7: '.........w..'})),
-  assassin: ov(TROOPER, sparse({3: '...ovvsso...', 5: '..oosssso...', 8: '.........w..', 9: '.........w..'})),
-  kunoichi: ov(TROOPER, sparse({5: '.w.......w..', 6: '.w.......w..', 3: '...ossvvo...'})),
-  samurai: ov(TROOPER, sparse({1: '.....gg.....', 2: '....goog....', 8: '.........w..', 9: '..........w.', 10: '...........w'})),
-  ronin: ov(TROOPER, sparse({2: '....ssss....', 8: '.w..........', 9: '.w..........', 10: '.w..........'})),
-  naginata: ov(TROOPER, sparse({1: '.........v..', 2: '.........w..', 3: '.........w..', 4: '.........w..', 5: '.........w..', 6: '.........w..', 7: '.........w..', 8: '.........w..'})),
-  lancer: ov(TROOPER, sparse({5: '........wwwv'})),
-  herald: ov(TROOPER, sparse({1: '.........wgg', 2: '.........wgg', 3: '.........w..', 4: '.........w..', 5: '.........w..'})),
+  marks: ov(KNEEL, sparse({5: '......wwwwwv', 6: '......w.....'})),
+  longshot: ov(KNEEL, sparse({2: '..........wv', 3: '.........w..', 4: '........w...', 5: '.......w....', 6: '......w.....'})),
+  // Rearguard faces the other way — weapon out the LEFT edge, toward your
+  // own line, which is the whole point of the card.
+  rearguard: ov(TROOPER, sparse({3: '...obvvbo...', 5: '..w.........', 6: 'vwww........'})),
+  archer: ov(TROOPER, sparse({2: '.........w..', 3: '..........w.', 4: '.......wwwv.', 5: '..........w.', 6: '..........w.', 7: '.........w..'})),
+  assassin: ov(TROOPER, sparse({3: '...osvvso...', 5: '..oosssso...', 7: '.........w..', 8: '..........wv'})),
+  kunoichi: ov(TROOPER, sparse({3: '...osvvso...', 4: 'v.........v.', 5: '.w.......w..', 6: '..w.....w...'})),
+  samurai: ov(TROOPER, sparse({1: '.....gg.....', 2: '....goog....', 6: '.........w..', 7: '..........w.', 8: '..........w.', 9: '..........wv'})),
+  ronin: ov(TROOPER, sparse({2: '....ssss....', 7: '.w........w.', 8: 'w..........w', 9: 'v..........v'})),
+  naginata: ov(TROOPER, sparse({0: '........vv..', 1: '.........w..', 2: '.........w..', 3: '.........w..', 4: '.........w..', 5: '.........w..', 6: '.........w..', 7: '.........w..', 8: '.........w..'})),
+  lancer: ov(TROOPER, sparse({6: '.....wwwwwwv'})),
+  herald: ov(TROOPER, sparse({0: '........wggg', 1: '........wggg', 2: '........wgg.', 3: '........w...', 4: '........w...', 5: '........w...'})),
   medic: ov(TROOPER, sparse({5: '..oobWsboo..', 6: '..o.WWWW.o..', 7: '....bWbb....'})),
   knight: ov(HEAVY, sparse({4: '.wo.........', 5: '.wo.........', 6: '.wo.........', 7: '.wo.........', 8: '.wo.........'})),
   bulwark: ov(HEAVY, sparse({3: '.oo.........', 4: '.ob.........', 5: '.ob.........', 6: '.ob.........', 7: '.ob.........', 8: '.ob.........', 9: '.oo.........'})),
@@ -8129,7 +8653,7 @@ const PIXMAP = {
     '............',
     '............',
     '....oooo....',
-    '...ovvbbo...',
+    '...obvvbo...',
     '...obbbbo...',
     '..oobssboo..',
     '.wwwbbbbwww.',
@@ -8139,12 +8663,12 @@ const PIXMAP = {
     '............',
   ],
   cipher: ov(TROOPER, sparse({0: '....G..G....', 1: '....GG.GG...'})),
-  engineer: ov(TROOPER, sparse({5: '.g.......w..', 6: '.g.......ww.', 4: '.gg.........'})),
-  mortar: ov(KNEEL, sparse({2: '.........ww.', 3: '........ww..', 4: '.......ww...', 5: '......ow....'})),
-  ashigaru: ov(TROOPER, sparse({6: '.......ww...', 7: '......ww....', 8: '.....o......'})),
-  pikewall: ov(TROOPER, sparse({0: '.........w..', 1: '........w...', 2: '.......w....', 3: '......w.....', 8: '.oo.........'})),
-  sentry: ov(TROOPER, sparse({1: '..........v.', 8: '..........w.', 9: '.........ww.', 10: '........w...'})),
-  falconer: ov(TROOPER, sparse({1: '..G......G..', 6: '.........ww.', 7: '..........wv'})),
+  engineer: ov(TROOPER, sparse({4: '.gg......w..', 5: '.g......www.', 6: '.g.......w..'})),
+  mortar: ov(KNEEL, sparse({1: '..........vv', 2: '.........ww.', 3: '........ww..', 4: '.......ww...', 5: '......ow....'})),
+  ashigaru: ov(TROOPER, sparse({4: '..........vv', 5: '.........ww.', 6: '........ww..', 7: '.......ww...', 8: '.....o......'})),
+  pikewall: ov(TROOPER, sparse({0: '..........vv', 1: '.........ww.', 2: '........ww..', 3: '.......ww...', 4: '......w.....', 8: '.oo.........'})),
+  sentry: ov(TROOPER, sparse({1: '..........v.', 7: '.........www', 8: '..........wv'})),
+  falconer: ov(TROOPER, sparse({1: '..G......G..', 2: '...G....G...', 6: '.........ww.', 7: '..........wv'})),
 
   // tech emplacements and devices
   wall: [
@@ -8217,7 +8741,7 @@ const PIXMAP = {
     '..oooooooo..',
     '............',
   ],
-  cannon: ov(TROOPER, sparse({1: '......www.wv', 2: '......oss...', 3: '...ovvbss...'})),
+  cannon: ov(TROOPER, sparse({1: '......wwwwwv', 2: '......owww..', 3: '...obvvss...'})),
   turret: [
     '............',
     '............',
@@ -8330,6 +8854,34 @@ const PIXMAP = {
     '..oooooooo..',
     '............',
   ],
+  backstop: [
+    '............',
+    '..v......v..',
+    '..w......w..',
+    '..w......w..',
+    '.oooooooooo.',
+    '.obbbbbbbbo.',
+    '.obGbbbbGbo.',
+    '.obbbbbbbbo.',
+    '.obssssssbo.',
+    '.oooooooooo.',
+    '.oo......oo.',
+    '............',
+  ],
+  sapper: [
+    '............',
+    '............',
+    '............',
+    '............',
+    '......w.....',
+    '......wv....',
+    '.....oooo...',
+    '....obbbbo..',
+    '..oobssboo..',
+    '.obbbbbbbbo.',
+    '..oooooooo..',
+    '............',
+  ],
   dynamo: [
     '............',
     '.....G......',
@@ -8401,7 +8953,7 @@ const PIXMAP = {
     '............',
     '..oooooooo..',
     '.obbbbbbbbo.',
-    '.obvvbbssbo.',
+    '.obbbvvssbo.',
     '.obbbbbbsbo.',
     'oobssssssboo',
     'o.bbbbbbbb.o',
@@ -9358,16 +9910,29 @@ function burstPack() {
   setTimeout(() => {
     $('packstage').innerHTML = `<div class="packfan">${packPicks.map((p, i) => {
       const a = packArt(p);
-      return `<button class="packcard t-${a.tier}" data-pick="${i}" style="animation-delay:${i * 110}ms">
-        <span class="pcart">${a.art}</span>
-        <span class="pcname">${a.title}</span>
-        ${a.sub ? `<span class="pcsub">${a.sub}</span>` : ''}
-        <span class="pctxt">${a.body}</span>
-        <span class="pctake">Keep this</span>
-      </button>`;
+      // A pack pick's flavour text alone isn't the full story — the same
+      // stats a shop or squad tile shows a tap away live behind this one too,
+      // so choosing doesn't mean choosing blind.
+      const inspectable = p.kind === 'card' || p.kind === 'gear' || p.kind === 'vet';
+      return `<div class="packcard t-${a.tier}" data-pick="${i}" style="animation-delay:${i * 110}ms">
+        <button class="pclook"${inspectable ? ` data-inspect="${i}"` : ' disabled'} title="${inspectable ? 'Tap to inspect' : ''}">
+          <span class="pcart">${a.art}</span>
+          <span class="pcname">${a.title}</span>
+          ${a.sub ? `<span class="pcsub">${a.sub}</span>` : ''}
+          <span class="pctxt">${a.body}</span>
+        </button>
+        <button class="pctake" data-take="${i}">Keep this</button>
+      </div>`;
     }).join('')}</div>`;
-    document.querySelectorAll('#packstage [data-pick]').forEach(b => {
-      b.onclick = () => takePack(+b.dataset.pick);
+    document.querySelectorAll('#packstage [data-take]').forEach(b => {
+      b.onclick = () => takePack(+b.dataset.take);
+    });
+    document.querySelectorAll('#packstage [data-inspect]').forEach(b => {
+      b.onclick = () => {
+        const p = packPicks[+b.dataset.inspect];
+        if (p.kind === 'gear') focusGear(p.id, true);
+        else focusCard(p.id);
+      };
     });
   }, BURST_MS);
 }
@@ -9378,10 +9943,11 @@ function takePack(i) {
   claimPack(p);
   const a = packArt(p);
 
-  document.querySelectorAll('#packstage [data-pick]').forEach(b => {
-    b.classList.add(+b.dataset.pick === i ? 'taken' : 'returned');
-    b.onclick = null;
+  document.querySelectorAll('#packstage [data-pick]').forEach(el => {
+    el.classList.add(+el.dataset.pick === i ? 'taken' : 'returned');
   });
+  document.querySelectorAll('#packstage [data-take]').forEach(b => { b.onclick = null; });
+  document.querySelectorAll('#packstage [data-inspect]').forEach(b => { b.onclick = null; });
   $('packhint').textContent = '';
   $('packfoot').innerHTML = `<div class="packgot"><b>${a.title}</b> added to your collection</div>
     <button class="btn" id="packnext">${packQueue.length ? 'Next pack' : 'Continue'}</button>`;
@@ -9708,6 +10274,8 @@ const settingsPanel = () => `<div class="sect">Interface</div><div class="rows">
    <div class="row" id="tutreplay" style="cursor:pointer"><span>Combat briefing<div style="font-size:0.6562rem;color:var(--dim);margin-top:4px">Runs at the start of your next campaign mission.</div></span>
      <span class="r hot">${active.settings.tutorial === 'replay' ? 'Queued' : 'Replay'}</span></div>
    <div class="row" id="hintreplay" style="cursor:pointer"><span>Panel briefings<div style="font-size:0.6562rem;color:var(--dim);margin-top:4px">Squad, Quartermaster, Database and Service Record each show a one-time coach card.</div></span>
+     <span class="r hot">Replay</span></div>
+   <div class="row" id="introreplay" style="cursor:pointer"><span>Command transmissions<div style="font-size:0.6562rem;color:var(--dim);margin-top:4px">The codec call that opens an operation plays once. Reset it to take every call again.</div></span>
      <span class="r hot">Replay</span></div></div>
    <div class="sect">Controls</div><div class="rows">
    <div class="row"><span>End turn</span><span class="r">Space · Enter</span></div>
@@ -9868,6 +10436,14 @@ function openPanel(key) {
       active.settings.hints = {};
       commit();
       notify('Panel briefings reset', 'They\'ll show again the next time you open each panel.');
+    };
+  }
+
+  const introRow = $('introreplay');
+  if (introRow) {
+    introRow.onclick = () => {
+      replayIntros();
+      notify('Transmissions reset', 'Central Command will call ahead of every operation again.');
     };
   }
 
