@@ -2177,6 +2177,38 @@ clears — that didn't change, only when the player finds out. `csstest`
 needed `opreplay` added to its list of runtime-created ids, since the
 button doesn't exist in the static shell.
 
+## The gear-fitting list groups by role, with room to grow
+
+The gear slot on a unit's focus card used to fit gear from one flat
+`owned.map()` chip row — every piece the player owns, in whatever order they
+unlocked it, all in one wrapped block. Fine at a handful of items; already a
+wall at the 17 pieces the game ships with today, and every new gear drop
+just makes the wall longer with no way to search or narrow it.
+
+Each of the 17 gear entries in `reference/gridfall-data.json` now carries a
+`role`: `offense` (raw damage/penetration — Extended Barrel, Targeting
+Uplink, Stim Injector, Vanguard Rig, Overclocked Uplink), `defense` (hull,
+shield, phase, indirect immunity — Reactive Plating, Ablative Weave, Phase
+Cloak, Adaptive Plating, Ghost Plating, I-Field), or `utility` (mobility,
+deploy cost, cooldowns, crushing — Servo Legs, Field Kit, Coolant Core, Drop
+Pod, Twin-Link Servo, Rapid Kit). A hybrid piece sits under whichever stat
+leads its flavor text; the description still says the rest.
+
+`gearBlock()` in `focus.js` now renders three tabs (reusing the game's
+existing `.tabs`/`.tab` styling, the same one the Database and Records
+panels already use) instead of one chip row, switching which role's chips
+show without touching the fitting logic underneath — `data-fitgear`, the
+one-slot-per-card rule, and gear being a singleton across the profile all
+work exactly as before.
+
+That alone doesn't survive indefinite growth, so it comes with the next
+lever built in and dormant: once any single role's owned count passes 10
+pieces, a filter input appears above the tabs and narrows the active role's
+chips as the player types (`data-gsearch`, wired through `filterGear()`).
+At today's 17 gear pieces no role gets anywhere near that, so nothing extra
+shows up yet — the mechanism is there for whenever a future gear pass pushes
+one role past it, without another UI pass to add it then.
+
 ## Still open
 
 1. **Crystals at a hot operation is better, not soft.** Auto-rolled Crystals

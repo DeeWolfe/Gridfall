@@ -93,20 +93,45 @@ function actionsFor(id, mode) {
   return close;
 }
 
+// Owned gear groups by its dominant stat (see reference/gridfall-data.json)
+// rather than staying one flat list — a pool this small doesn't need it yet,
+// but it stops the fitting list from becoming a wall as the pool grows.
+const GEAR_ROLES = [['offense', 'Offense'], ['defense', 'Defense'], ['utility', 'Utility']];
+// A role this size or smaller reads fine without a filter on top of it.
+const GEAR_SEARCH_THRESHOLD = 10;
+
 function gearBlock(id, mode) {
   const k = POOL[id];
   if (mode !== 'gear' || k.attach) return '';
   const g = gearOf(id);
   const owned = active.unlocks.gear;
-  const chips = owned.map(gi => {
+  if (!owned.length) {
+    return `<div class="fab"><b>Gear slot</b>${g ? g.n + ' — ' + g.d : 'Empty.'}
+      <div style="margin-top:8px;color:var(--dim)">No gear owned. Visit the Quartermaster.</div></div>`;
+  }
+
+  const grouped = {offense: [], defense: [], utility: []};
+  owned.forEach(gi => grouped[GEAR[gi].role || 'utility'].push(gi));
+
+  const chip = gi => {
     const lit = active.loadout.gear[id] === gi ? 'color:var(--green);border-color:var(--green)' : '';
-    return `<button class="mini" data-fitgear="${id}:${gi}" style="${lit}">${GEAR[gi].n}</button>`;
-  }).join('') || '<span style="color:var(--dim)">No gear owned. Visit the Quartermaster.</span>';
+    return `<button class="mini" data-fitgear="${id}:${gi}" data-gname="${GEAR[gi].n.toLowerCase()}" style="${lit}">${GEAR[gi].n}</button>`;
+  };
+
+  const showSearch = GEAR_ROLES.some(([r]) => grouped[r].length > GEAR_SEARCH_THRESHOLD);
+
+  const tabs = GEAR_ROLES.map(([r, label], i) =>
+    `<button class="tab${i === 0 ? ' on' : ''}" data-groletab="${r}">${label}<span class="ct">${grouped[r].length}</span></button>`).join('');
+
+  const groups = GEAR_ROLES.map(([r], i) => `<div class="ggroup${i === 0 ? ' show' : ''}" data-grole="${r}">
+      <div style="display:flex;flex-wrap:wrap;gap:5px">${grouped[r]
+    .map(chip).join('') || '<span style="color:var(--dim);font-size:0.6875rem">None owned.</span>'}</div></div>`).join('');
 
   return `<div class="fab"><b>Gear slot</b>${g ? g.n + ' — ' + g.d : 'Empty.'}
-      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px">
-      ${chips}
-      ${g ? `<button class="mini" data-fitgear="${id}:none" style="color:var(--mag)">Strip</button>` : ''}</div></div>`;
+      <div class="tabs">${tabs}</div>
+      ${showSearch ? '<input class="gsearch" type="text" placeholder="Filter this role…" data-gsearch="1">' : ''}
+      <div style="margin-top:8px">${groups}</div>
+      ${g ? `<button class="mini" data-fitgear="${id}:none" style="color:var(--mag);margin-top:8px">Strip</button>` : ''}</div>`;
 }
 
 export function focusCard(id, mode) {
@@ -216,8 +241,28 @@ export function focusLead(k, ctx) {
 const each = (attrName, fn) =>
   document.querySelectorAll('#fwrap [' + attrName + ']').forEach(b => { b.onclick = () => fn(b); });
 
+/** Filters the visible gear role's chips by whatever the search box holds. */
+function filterGear() {
+  const q = ($('fwrap').querySelector('[data-gsearch]')?.value || '').trim().toLowerCase();
+  document.querySelectorAll('#fwrap [data-gname]').forEach(chip => {
+    chip.style.display = !q || chip.dataset.gname.includes(q) ? '' : 'none';
+  });
+}
+
 function wireFocus() {
   each('data-close', () => closeFocus());
+
+  each('data-groletab', b => {
+    document.querySelectorAll('#fwrap [data-groletab]').forEach(x => x.classList.toggle('on', x === b));
+    document.querySelectorAll('#fwrap [data-grole]').forEach(g =>
+      g.classList.toggle('show', g.dataset.grole === b.dataset.groletab));
+    const search = $('fwrap').querySelector('[data-gsearch]');
+    if (search) search.value = '';
+    filterGear();
+  });
+
+  const gearSearch = $('fwrap').querySelector('[data-gsearch]');
+  if (gearSearch) gearSearch.oninput = filterGear;
 
   each('data-fbuy', b => {
     const id = b.dataset.fbuy;

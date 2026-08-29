@@ -343,6 +343,12 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .fstat .v{color:var(--cyan);font-weight:700}
 .fab{border-top:1px solid var(--line);padding:11px 16px;font-size:0.75rem;line-height:1.55;color:var(--violet)}
 .fab b{color:var(--gold);display:block;font-size:0.7188rem;letter-spacing:.16em;text-transform:uppercase;margin-bottom:4px}
+.fab .tabs{margin-top:8px}
+.tab .ct{color:var(--line2);margin-left:5px;font-size:0.625rem}
+.tab.on .ct{color:var(--zan)}
+.ggroup{display:none}
+.ggroup.show{display:block}
+.gsearch{font-size:0.6875rem;letter-spacing:normal;text-transform:none;padding:6px 8px;margin-top:8px}
 .facts{display:flex;gap:8px;width:300px}
 .facts .btn{flex:1;text-align:center}
 
@@ -2315,34 +2321,56 @@ const POOL = {
 // The 17 gear pieces, one slot per card, bought with credits.
 
 const GEAR = {
-  barrel: {n: "Extended Barrel", cost: 135, d: "+1 damage to this unit.", dmg: 1},
-  plating: {n: "Reactive Plating", cost: 120, d: "+3 hull.", hp: 3},
-  servo: {n: "Servo Legs", cost: 240, d: "May move AND fire in the same turn.", servo: 1},
-  uplink: {n: "Targeting Uplink", cost: 180, d: "Ignores hostile armour floors.", pen: 1},
-  kit: {n: "Field Kit", cost: 225, d: "Costs 1 less deploy point, minimum 1.", dp: -1},
+  barrel: {n: "Extended Barrel", cost: 135, d: "+1 damage to this unit.", dmg: 1, role: "offense"},
+  plating: {n: "Reactive Plating", cost: 120, d: "+3 hull.", hp: 3, role: "defense"},
+  servo: {
+    n: "Servo Legs",
+    cost: 240,
+    d: "May move AND fire in the same turn.",
+    servo: 1,
+    role: "utility",
+  },
+  uplink: {
+    n: "Targeting Uplink",
+    cost: 180,
+    d: "Ignores hostile armour floors.",
+    pen: 1,
+    role: "offense",
+  },
+  kit: {
+    n: "Field Kit",
+    cost: 225,
+    d: "Costs 1 less deploy point, minimum 1.",
+    dp: -1,
+    role: "utility",
+  },
   coolant: {
     n: "Coolant Core",
     cost: 270,
     d: "Ability cooldowns are 1 turn shorter, minimum 1.",
     cool: 1,
+    role: "utility",
   },
   phase: {
     n: "Phase Cloak",
     cost: 315,
     d: "The first killing blow leaves it at 1 hull instead. Once per deployment.",
     phase: 1,
+    role: "defense",
   },
   weave: {
     n: "Ablative Weave",
     cost: 210,
     d: "+1 shield capacity. Stacks with regenerating shields.",
     shield: 1,
+    role: "defense",
   },
   dropod: {
     n: "Drop Pod",
     cost: 330,
     d: "May deploy straight onto a hostile below Specialist tier, crushing it on landing and holding the cell.",
     crush: 1,
+    role: "utility",
   },
   stim: {
     n: "Stim Injector",
@@ -2350,12 +2378,14 @@ const GEAR = {
     d: "+2 damage. The unit loses 1 hull every turn it lives.",
     dmg: 2,
     decay: 1,
+    role: "offense",
   },
   ifield: {
     n: "I-Field",
     cost: 270,
     d: "Immune to indirect fire — Mortar, Plasma Artillerist, anything that arcs.",
     immuneIndirect: 1,
+    role: "defense",
   },
   twinlink: {
     n: "Twin-Link Servo",
@@ -2363,6 +2393,7 @@ const GEAR = {
     d: "May move AND fire in the same turn. +1 damage.",
     servo: 1,
     dmg: 1,
+    role: "utility",
   },
   adaptive: {
     n: "Adaptive Plating",
@@ -2370,6 +2401,7 @@ const GEAR = {
     d: "+4 hull. +1 shield capacity, stacks with regenerating shields.",
     hp: 4,
     shield: 1,
+    role: "defense",
   },
   overclock: {
     n: "Overclocked Uplink",
@@ -2377,14 +2409,16 @@ const GEAR = {
     d: "Ignores hostile armour floors. Ability cooldowns are 1 turn shorter, minimum 1.",
     pen: 1,
     cool: 1,
+    role: "offense",
   },
-  vanguardrig: {n: "Vanguard Rig", cost: 330, d: "+2 damage. +3 hull.", dmg: 2, hp: 3},
+  vanguardrig: {n: "Vanguard Rig", cost: 330, d: "+2 damage. +3 hull.", dmg: 2, hp: 3, role: "offense"},
   ghostplate: {
     n: "Ghost Plating",
     cost: 420,
     d: "The first killing blow leaves it at 1 hull instead, once per deployment. +1 shield capacity.",
     phase: 1,
     shield: 1,
+    role: "defense",
   },
   rapidkit: {
     n: "Rapid Kit",
@@ -2392,6 +2426,7 @@ const GEAR = {
     d: "Costs 1 less deploy point, minimum 1. May move AND fire in the same turn.",
     dp: -1,
     servo: 1,
+    role: "utility",
   },
 };
 
@@ -5087,20 +5122,45 @@ function actionsFor(id, mode) {
   return close;
 }
 
+// Owned gear groups by its dominant stat (see reference/gridfall-data.json)
+// rather than staying one flat list — a pool this small doesn't need it yet,
+// but it stops the fitting list from becoming a wall as the pool grows.
+const GEAR_ROLES = [['offense', 'Offense'], ['defense', 'Defense'], ['utility', 'Utility']];
+// A role this size or smaller reads fine without a filter on top of it.
+const GEAR_SEARCH_THRESHOLD = 10;
+
 function gearBlock(id, mode) {
   const k = POOL[id];
   if (mode !== 'gear' || k.attach) return '';
   const g = gearOf(id);
   const owned = active.unlocks.gear;
-  const chips = owned.map(gi => {
+  if (!owned.length) {
+    return `<div class="fab"><b>Gear slot</b>${g ? g.n + ' — ' + g.d : 'Empty.'}
+      <div style="margin-top:8px;color:var(--dim)">No gear owned. Visit the Quartermaster.</div></div>`;
+  }
+
+  const grouped = {offense: [], defense: [], utility: []};
+  owned.forEach(gi => grouped[GEAR[gi].role || 'utility'].push(gi));
+
+  const chip = gi => {
     const lit = active.loadout.gear[id] === gi ? 'color:var(--green);border-color:var(--green)' : '';
-    return `<button class="mini" data-fitgear="${id}:${gi}" style="${lit}">${GEAR[gi].n}</button>`;
-  }).join('') || '<span style="color:var(--dim)">No gear owned. Visit the Quartermaster.</span>';
+    return `<button class="mini" data-fitgear="${id}:${gi}" data-gname="${GEAR[gi].n.toLowerCase()}" style="${lit}">${GEAR[gi].n}</button>`;
+  };
+
+  const showSearch = GEAR_ROLES.some(([r]) => grouped[r].length > GEAR_SEARCH_THRESHOLD);
+
+  const tabs = GEAR_ROLES.map(([r, label], i) =>
+    `<button class="tab${i === 0 ? ' on' : ''}" data-groletab="${r}">${label}<span class="ct">${grouped[r].length}</span></button>`).join('');
+
+  const groups = GEAR_ROLES.map(([r], i) => `<div class="ggroup${i === 0 ? ' show' : ''}" data-grole="${r}">
+      <div style="display:flex;flex-wrap:wrap;gap:5px">${grouped[r]
+    .map(chip).join('') || '<span style="color:var(--dim);font-size:0.6875rem">None owned.</span>'}</div></div>`).join('');
 
   return `<div class="fab"><b>Gear slot</b>${g ? g.n + ' — ' + g.d : 'Empty.'}
-      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px">
-      ${chips}
-      ${g ? `<button class="mini" data-fitgear="${id}:none" style="color:var(--mag)">Strip</button>` : ''}</div></div>`;
+      <div class="tabs">${tabs}</div>
+      ${showSearch ? '<input class="gsearch" type="text" placeholder="Filter this role…" data-gsearch="1">' : ''}
+      <div style="margin-top:8px">${groups}</div>
+      ${g ? `<button class="mini" data-fitgear="${id}:none" style="color:var(--mag);margin-top:8px">Strip</button>` : ''}</div>`;
 }
 
 function focusCard(id, mode) {
@@ -5210,8 +5270,28 @@ function focusLead(k, ctx) {
 const each = (attrName, fn) =>
   document.querySelectorAll('#fwrap [' + attrName + ']').forEach(b => { b.onclick = () => fn(b); });
 
+/** Filters the visible gear role's chips by whatever the search box holds. */
+function filterGear() {
+  const q = ($('fwrap').querySelector('[data-gsearch]')?.value || '').trim().toLowerCase();
+  document.querySelectorAll('#fwrap [data-gname]').forEach(chip => {
+    chip.style.display = !q || chip.dataset.gname.includes(q) ? '' : 'none';
+  });
+}
+
 function wireFocus() {
   each('data-close', () => closeFocus());
+
+  each('data-groletab', b => {
+    document.querySelectorAll('#fwrap [data-groletab]').forEach(x => x.classList.toggle('on', x === b));
+    document.querySelectorAll('#fwrap [data-grole]').forEach(g =>
+      g.classList.toggle('show', g.dataset.grole === b.dataset.groletab));
+    const search = $('fwrap').querySelector('[data-gsearch]');
+    if (search) search.value = '';
+    filterGear();
+  });
+
+  const gearSearch = $('fwrap').querySelector('[data-gsearch]');
+  if (gearSearch) gearSearch.oninput = filterGear;
 
   each('data-fbuy', b => {
     const id = b.dataset.fbuy;

@@ -3,34 +3,56 @@
 // The 17 gear pieces, one slot per card, bought with credits.
 
 export const GEAR = {
-  barrel: {n: "Extended Barrel", cost: 135, d: "+1 damage to this unit.", dmg: 1},
-  plating: {n: "Reactive Plating", cost: 120, d: "+3 hull.", hp: 3},
-  servo: {n: "Servo Legs", cost: 240, d: "May move AND fire in the same turn.", servo: 1},
-  uplink: {n: "Targeting Uplink", cost: 180, d: "Ignores hostile armour floors.", pen: 1},
-  kit: {n: "Field Kit", cost: 225, d: "Costs 1 less deploy point, minimum 1.", dp: -1},
+  barrel: {n: "Extended Barrel", cost: 135, d: "+1 damage to this unit.", dmg: 1, role: "offense"},
+  plating: {n: "Reactive Plating", cost: 120, d: "+3 hull.", hp: 3, role: "defense"},
+  servo: {
+    n: "Servo Legs",
+    cost: 240,
+    d: "May move AND fire in the same turn.",
+    servo: 1,
+    role: "utility",
+  },
+  uplink: {
+    n: "Targeting Uplink",
+    cost: 180,
+    d: "Ignores hostile armour floors.",
+    pen: 1,
+    role: "offense",
+  },
+  kit: {
+    n: "Field Kit",
+    cost: 225,
+    d: "Costs 1 less deploy point, minimum 1.",
+    dp: -1,
+    role: "utility",
+  },
   coolant: {
     n: "Coolant Core",
     cost: 270,
     d: "Ability cooldowns are 1 turn shorter, minimum 1.",
     cool: 1,
+    role: "utility",
   },
   phase: {
     n: "Phase Cloak",
     cost: 315,
     d: "The first killing blow leaves it at 1 hull instead. Once per deployment.",
     phase: 1,
+    role: "defense",
   },
   weave: {
     n: "Ablative Weave",
     cost: 210,
     d: "+1 shield capacity. Stacks with regenerating shields.",
     shield: 1,
+    role: "defense",
   },
   dropod: {
     n: "Drop Pod",
     cost: 330,
     d: "May deploy straight onto a hostile below Specialist tier, crushing it on landing and holding the cell.",
     crush: 1,
+    role: "utility",
   },
   stim: {
     n: "Stim Injector",
@@ -38,12 +60,14 @@ export const GEAR = {
     d: "+2 damage. The unit loses 1 hull every turn it lives.",
     dmg: 2,
     decay: 1,
+    role: "offense",
   },
   ifield: {
     n: "I-Field",
     cost: 270,
     d: "Immune to indirect fire — Mortar, Plasma Artillerist, anything that arcs.",
     immuneIndirect: 1,
+    role: "defense",
   },
   twinlink: {
     n: "Twin-Link Servo",
@@ -51,6 +75,7 @@ export const GEAR = {
     d: "May move AND fire in the same turn. +1 damage.",
     servo: 1,
     dmg: 1,
+    role: "utility",
   },
   adaptive: {
     n: "Adaptive Plating",
@@ -58,6 +83,7 @@ export const GEAR = {
     d: "+4 hull. +1 shield capacity, stacks with regenerating shields.",
     hp: 4,
     shield: 1,
+    role: "defense",
   },
   overclock: {
     n: "Overclocked Uplink",
@@ -65,14 +91,16 @@ export const GEAR = {
     d: "Ignores hostile armour floors. Ability cooldowns are 1 turn shorter, minimum 1.",
     pen: 1,
     cool: 1,
+    role: "offense",
   },
-  vanguardrig: {n: "Vanguard Rig", cost: 330, d: "+2 damage. +3 hull.", dmg: 2, hp: 3},
+  vanguardrig: {n: "Vanguard Rig", cost: 330, d: "+2 damage. +3 hull.", dmg: 2, hp: 3, role: "offense"},
   ghostplate: {
     n: "Ghost Plating",
     cost: 420,
     d: "The first killing blow leaves it at 1 hull instead, once per deployment. +1 shield capacity.",
     phase: 1,
     shield: 1,
+    role: "defense",
   },
   rapidkit: {
     n: "Rapid Kit",
@@ -80,5 +108,6 @@ export const GEAR = {
     d: "Costs 1 less deploy point, minimum 1. May move AND fire in the same turn.",
     dp: -1,
     servo: 1,
+    role: "utility",
   },
 };
