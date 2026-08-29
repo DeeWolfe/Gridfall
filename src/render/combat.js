@@ -340,7 +340,13 @@ export function drawBoard() {
       cell.innerHTML = marker + '<div class="ent p-unit anchor"><div class="nm">◂</div></div>';
     } else if (v) {
       const label = v.research ? 'RSCH' : v.building ? 'BLDG' : 'CIV';
-      cell.innerHTML = marker + `<div class="ent p-civ"><div class="nm">${label}</div><div class="hp">${v.hp}</div></div>`;
+      const ttl = v.research ? `<span class="ttl">${v.timer}</span>` : '';
+      cell.innerHTML = marker + `<div class="ent p-civ">${ttl}<div class="nm">${label}</div><div class="hp">${v.hp}</div></div>`;
+      if (v.research) {
+        cell.classList.add('clickable');
+        cell.onclick = () => notify(`${EVENTS.research.icon} ${EVENTS.research.n}`,
+          `${EVENTS.research.d}<br><br>Needs <b>${v.timer}</b> more turn${v.timer === 1 ? '' : 's'} standing to extract clean. Losing it forfeits the credit bonus — not the mission.`);
+      }
     } else if (e) {
       const locked = G.units.some(x => x.tgt === e.uid);
       cell.innerHTML = marker + foeMarkup(e, locked);
@@ -348,7 +354,13 @@ export function drawBoard() {
       if (aimable.has(i) && mover && !mover.acted) cell.onclick = () => { sfx('zap'); doAttack(mover, e); };
       else cell.onclick = () => focusEnemy(e.k);
     } else {
-      cell.innerHTML = marker;
+      const rubble = owner === 'x' ? G.rubble[l + ',' + c] : null;
+      cell.innerHTML = marker + (rubble ? `<span class="ttl">${rubble}</span>` : '');
+      if (rubble) {
+        cell.classList.add('clickable');
+        cell.onclick = () => notify(`${EVENTS.bombard.icon} Bombardment crater`,
+          `Hive artillery scarred this ground — impassable to both sides while it holds.<br><br>Clears itself in <b>${rubble}</b> more turn${rubble === 1 ? '' : 's'}.`);
+      }
     }
 
     // A selected stratagem turns the whole board into its target picker.

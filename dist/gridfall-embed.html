@@ -407,6 +407,12 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .ent .nm{font-size:0.6562rem;font-weight:700;text-align:center;line-height:1.05}
 .ent .hp{position:absolute;bottom:0;right:2px;font-size:0.5938rem;font-weight:700;line-height:1.1;
   text-shadow:0 0 3px rgba(7,6,15,.9)}
+/* A lingering field event's own clock — the Research Team pod's extraction
+   countdown, a Bombardment crater's turns-to-clear — tappable for the
+   full explanation via the same notify() the event's own chip uses. */
+.ttl{position:absolute;top:0;left:1px;font-size:0.5625rem;font-weight:700;color:var(--violet);
+  text-shadow:0 0 3px rgba(7,6,15,.9);z-index:1}
+.ttl::before{content:'◔';font-size:0.625rem;margin-right:1px}
 /* Pixel Ops tokens: two-frame idle bob, blinking visor/glint pixels. */
 .ent .pxu{width:90%;height:90%}
 .pxu{animation:pixbob 1.2s linear infinite}
@@ -8974,7 +8980,13 @@ function drawBoard() {
       cell.innerHTML = marker + '<div class="ent p-unit anchor"><div class="nm">◂</div></div>';
     } else if (v) {
       const label = v.research ? 'RSCH' : v.building ? 'BLDG' : 'CIV';
-      cell.innerHTML = marker + `<div class="ent p-civ"><div class="nm">${label}</div><div class="hp">${v.hp}</div></div>`;
+      const ttl = v.research ? `<span class="ttl">${v.timer}</span>` : '';
+      cell.innerHTML = marker + `<div class="ent p-civ">${ttl}<div class="nm">${label}</div><div class="hp">${v.hp}</div></div>`;
+      if (v.research) {
+        cell.classList.add('clickable');
+        cell.onclick = () => notify(`${EVENTS.research.icon} ${EVENTS.research.n}`,
+          `${EVENTS.research.d}<br><br>Needs <b>${v.timer}</b> more turn${v.timer === 1 ? '' : 's'} standing to extract clean. Losing it forfeits the credit bonus — not the mission.`);
+      }
     } else if (e) {
       const locked = G.units.some(x => x.tgt === e.uid);
       cell.innerHTML = marker + foeMarkup(e, locked);
@@ -8982,7 +8994,13 @@ function drawBoard() {
       if (aimable.has(i) && mover && !mover.acted) cell.onclick = () => { sfx('zap'); doAttack(mover, e); };
       else cell.onclick = () => focusEnemy(e.k);
     } else {
-      cell.innerHTML = marker;
+      const rubble = owner === 'x' ? G.rubble[l + ',' + c] : null;
+      cell.innerHTML = marker + (rubble ? `<span class="ttl">${rubble}</span>` : '');
+      if (rubble) {
+        cell.classList.add('clickable');
+        cell.onclick = () => notify(`${EVENTS.bombard.icon} Bombardment crater`,
+          `Hive artillery scarred this ground — impassable to both sides while it holds.<br><br>Clears itself in <b>${rubble}</b> more turn${rubble === 1 ? '' : 's'}.`);
+      }
     }
 
     // A selected stratagem turns the whole board into its target picker.

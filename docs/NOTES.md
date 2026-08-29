@@ -2209,6 +2209,36 @@ At today's 17 gear pieces no role gets anywhere near that, so nothing extra
 shows up yet — the mechanism is there for whenever a future gear pass pushes
 one role past it, without another UI pass to add it then.
 
+## A lingering field event now explains itself on tap
+
+Player feedback: nobody knew what the green RSCH tile on their board was or
+why it was there. Turned out the game already explains every event fully —
+a full-description log line and a one-turn incoming-strip chip — but the
+two events that leave something behind (Research Team's pod, Bombardment's
+crater) had nothing after that first turn. The chip disappears, the log
+line scrolls away, and the object just sits there. Worse for Bombardment:
+its craters had no label or tap target at all, just a dimmed tile — a
+player who missed the one log line had no way to learn what it even was.
+
+Both now carry the same fix, since it's one gap with two instances rather
+than two separate problems:
+
+- **A turn-countdown badge** in the tile's free top-left corner (`.ttl` in
+  `combat.js`/`gridfall.css`) — the Research Team pod's `v.timer` and a
+  crater's `G.rubble[l+','+c]`, both of which already tracked the number
+  internally, just never showed it.
+- **A tap handler**, where neither tile had one before — opens the same
+  `notify()` popup the event's own chip already uses, so "what is this and
+  what does it need" is answerable any turn, not just the one it landed.
+
+Checked in passing whether the pre-announcement side of this had the same
+gap (every event, not just these two, is telegraphed a full turn ahead via
+a dim `next · Name` chip) — it doesn't. That chip already shares the live
+one's `[data-evt]` tap handler, so the full description was already one tap
+away; it just reads as low-priority next to the brighter hostile-manifest
+chips beside it. Left alone for now — scope stayed on the two tiles that
+were actually missing information, not the one that was only styled quietly.
+
 ## Still open
 
 1. **Crystals at a hot operation is better, not soft.** Auto-rolled Crystals

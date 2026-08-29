@@ -405,6 +405,12 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .ent .nm{font-size:0.6562rem;font-weight:700;text-align:center;line-height:1.05}
 .ent .hp{position:absolute;bottom:0;right:2px;font-size:0.5938rem;font-weight:700;line-height:1.1;
   text-shadow:0 0 3px rgba(7,6,15,.9)}
+/* A lingering field event's own clock — the Research Team pod's extraction
+   countdown, a Bombardment crater's turns-to-clear — tappable for the
+   full explanation via the same notify() the event's own chip uses. */
+.ttl{position:absolute;top:0;left:1px;font-size:0.5625rem;font-weight:700;color:var(--violet);
+  text-shadow:0 0 3px rgba(7,6,15,.9);z-index:1}
+.ttl::before{content:'◔';font-size:0.625rem;margin-right:1px}
 /* Pixel Ops tokens: two-frame idle bob, blinking visor/glint pixels. */
 .ent .pxu{width:90%;height:90%}
 .pxu{animation:pixbob 1.2s linear infinite}
