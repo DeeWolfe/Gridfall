@@ -633,6 +633,20 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
   box-shadow:inset 0 0 0 3px var(--mag),0 0 20px rgba(255,77,143,.7);z-index:4}
 .cell.foeinfl{box-shadow:inset 0 0 0 1px rgba(157,107,255,.5);background-image:
   repeating-linear-gradient(45deg,transparent 0 5px,rgba(157,107,255,.14) 5px 10px)}
+/* Step-here AND shoot-here, which is 93% of mobile armed cards — the cell
+   directly ahead is a move target for anything with legs and inside the
+   pattern of anything that faces forward. Left to the cascade the two just
+   blend into a muddy gold-over-green, so they split the tile instead: green
+   keeps the EDGE, because movement is the choice being offered, and gold
+   keeps the MIDDLE, because reach is the fact being reported. Neither
+   colour has to be given up. */
+.cell.movetgt.inrange{background-color:#1b4a38;
+  background-image:linear-gradient(rgba(255,201,77,.72),rgba(255,201,77,.72));
+  box-shadow:inset 0 0 0 3px var(--green);z-index:3}
+.cell.movetgt.inrange:hover{background-color:#256349}
+/* The swap variant of the same collision: a friendly you can trade places
+   with, standing in your own line of fire. Cyan edge, gold middle. */
+.cell.swaptgt.inrange{box-shadow:inset 0 0 0 3px var(--cyan),0 0 12px rgba(77,232,255,.4);z-index:3}
 .cell.willhit{box-shadow:inset 0 0 0 2px var(--gold),0 0 17px rgba(255,201,77,.65);z-index:4}
 .cell.buffed{box-shadow:inset 0 0 0 2px var(--cyan),0 0 13px rgba(77,232,255,.42);z-index:3}
 .cell.influence{box-shadow:inset 0 0 0 1px rgba(157,107,255,.55);background-image:

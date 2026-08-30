@@ -2718,6 +2718,36 @@ with `tone` in `sound.js`. The flat-concat bundler refuses duplicate top-level
 names across the whole graph, so it failed loudly instead of letting two
 modules quietly share a binding at runtime. Renamed to `skyTone`.
 
+## Move and range on the same tile: green edge, gold middle
+
+*2026-08-30*
+
+Once reach turned gold, it started arguing with the green movement highlight,
+and measuring how often said this was not an edge case: `moveTargets()` always
+includes the cell directly ahead, which is inside the pattern of anything that
+faces forward, so **28 of 30 mobile armed cards (93%) overlap**. The Assassin
+and the Samurai overlap on all four of their move targets — every tile they
+could step to is also a tile they cover.
+
+Left to the cascade the two blended into a muddy gold-over-green, because
+`.movetgt` sets the `background` shorthand (which wipes `background-image`) and
+`.inrange` sets `background-image` — so both applied and neither read.
+
+They split the tile instead: **green keeps the edge, gold keeps the middle.**
+Green is the edge because movement is the *choice being offered*; gold is the
+middle because reach is the *fact being reported*. Neither colour has to be
+given up, and a tile that is only one of the two is untouched.
+
+The same collision has a swap variant — a friendly you can trade places with,
+standing in your own line of fire — and it gets the same treatment with cyan on
+the edge.
+
+One thing worth writing down because it cost time in the browser: a unit that
+has just deployed carries `acted`, and `drawBoard` only attaches the selection
+handler when `!u.acted`. So nothing is selectable on the turn it lands, and any
+harness that deploys and immediately clicks sees an empty selection rather than
+a bug.
+
 ## Still open
 
 1. **Crystals at a hot operation is better, not soft.** Auto-rolled Crystals
