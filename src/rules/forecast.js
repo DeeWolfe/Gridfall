@@ -94,6 +94,69 @@ export function enemyIntent(e) {
   return {k: 'advance', steps: Math.max(1, Math.floor((e.mv || 0) + D.spd))};
 }
 
+/**
+ * What a selected hostile threatens, for the board highlight.
+ *
+ * Reads the same decision enemyIntent() makes — strike versus advance — and
+ * turns it into ground rather than a word, so the two can never disagree about
+ * what a hostile is about to do.
+ *
+ *   strike  the cell it hits this turn
+ *   threat  ground it can reach: the lane it fires down, or the cells it
+ *           crosses closing in. Putting a unit anywhere in here changes who
+ *           gets hit, which is exactly what the player needs to see.
+ *   infl    its standing effect on the lane (armour, jamming, healing, seizing)
+ *
+ * @returns {{strike:number[], threat:number[], infl:number[]}} cell indices
+ */
+export function foeThreatCells(e) {
+  const D = BEST[e.k];
+  const strike = [];
+  const threat = [];
+  const infl = [];
+  const idx = (l, c) => l * COLS + c;
+
+  // Emplacements project a lane, not a step. The Chorus is the exception —
+  // its aura is the whole board, which no highlight can usefully draw.
+  if (D.lanefloor || D.jam || D.mend || D.mindctrl) {
+    for (let c = 0; c < COLS; c++) infl.push(idx(e.lane, c));
+  }
+  if (e.stun || !D.dmg) return {strike, threat, infl};
+
+  // strike() walks back down the lane for the first body standing in it.
+  let hit = null;
+  for (let c = e.col - 1; c >= 0; c--) {
+    if (unitAt(e.lane, c) || civAt(e.lane, c)) { hit = c; break; }
+  }
+
+  // Ranged hostiles hold at a column and fire the length of the lane, so the
+  // whole lane behind them is live — not just the body currently in front.
+  if (D.hold !== undefined && e.col <= D.hold) {
+    for (let c = e.col - 1; c >= 0; c--) threat.push(idx(e.lane, c));
+    if (hit !== null) strike.push(idx(e.lane, hit));
+    return {strike, threat, infl};
+  }
+
+  const ahead = e.col - 1;
+  const au = ahead >= 0 ? unitAt(e.lane, ahead) : null;
+  const blocked = ahead >= 0 && ((au && !D.tunnel && !au.mine) || civAt(e.lane, ahead));
+  const queued = ahead >= 0 && foeAt(e.lane, ahead);
+  if (blocked || queued) {
+    if (hit !== null) strike.push(idx(e.lane, hit));
+    return {strike, threat, infl};
+  }
+
+  // Otherwise it closes. Show the ground it crosses, stopping where it would.
+  const steps = Math.max(1, Math.floor((e.mv || 0) + D.spd));
+  for (let d = 1; d <= steps; d++) {
+    const c = e.col - d;
+    if (c < 0 || c === hit) break;
+    if (foeAt(e.lane, c)) break;
+    threat.push(idx(e.lane, c));
+  }
+  return {strike, threat, infl};
+}
+
 /** Cells this unit is helping — buffs, heals, regeneration. Rendered blue. */
 export function supportTargets(u) {
   const out = [];

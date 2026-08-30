@@ -31,6 +31,11 @@ export const setSel = id => { sel = id; };
 export let mover = null;
 export const setMover = u => { mover = u; };
 
+/** Hostile selected for inspection, or null. Mutually exclusive with `mover`:
+ * the board shows one side's reach at a time, never both arguing at once. */
+export let foeSel = null;
+export const setFoeSel = e => { foeSel = e; };
+
 /** True while the mission's stratagem is selected and awaiting a target. */
 export let stratSel = false;
 export const setStratSel = v => { stratSel = !!v; };
@@ -56,5 +61,6 @@ export const nextUid = () => ++uid;
 export function clearSelection() {
   sel = null;
   mover = null;
+  foeSel = null;
   stratSel = false;
 }

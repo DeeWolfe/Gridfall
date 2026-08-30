@@ -2618,6 +2618,63 @@ question. `sub` changed from "gone dark, no distress call" (now folded into
 the lore) to "breached from within," which reads correctly on the ops list
 now that the breach has an author.
 
+## Cards that show their range instead of describing it
+
+*2026-08-30*
+
+One piece of feedback — card text should explain the ability and nothing else —
+turned into five changes, and one of them exposed a genuine asymmetry in how the
+board treats the two sides.
+
+**`geomCells()` is the load-bearing addition.** `geomFor()` answers "what do I
+hit"; the new one answers "where do I reach", returning cells regardless of what
+stands in them. The card diagram and the board highlight both read it, so a
+diagram cannot disagree with the board, and `geomtest.js` holds both to
+`geomFor()`: every hostile struck must stand on a cell `geomCells()` lit. That
+check is randomised across 400 boards with friendly blockers in the way, and it
+caught a real off-by-one in `range3` on its first run — the blocker walk was
+inclusive of the target cell where `geomFor()` checks strictly between.
+
+**The board lights the whole footprint now.** Previously only tiles that already
+had a hostile on them lit up, so a weapon covering empty ground showed nothing
+until something walked into it — one turn too late to plan around. Cyan is
+"I reach here", gold stays "and this one eats it".
+
+**Hostiles became selectable**, which is the asymmetry: tapping one used to open
+a popup and highlight nothing, while tapping yours showed its reach. Now the grid
+obeys one rule. A new `foeSel` sits beside `mover`, mutually exclusive with it,
+and `foeThreatCells()` in the rules layer turns `enemyIntent()`'s strike-versus-
+advance decision into ground rather than a word. Three rules keep it coherent:
+attacking still wins (a hostile already in a selected unit's sights is a target,
+not an inspection), one selection at a time, and empty ground clears.
+
+The threat band matters as much as the strike. A Spitter's whole lane is live,
+not just its current target — put a body in the gap and it eats the shot instead.
+`foeseltest.js` asserts exactly that, because a highlight that does not change
+when the situation does is decoration.
+
+**The copy cuts.** Descriptions mixed three things: the rule, a restatement of
+numbers printed elsewhere on the same card, and the designer's opinion of the
+card. Only the first is load-bearing. All 62 rewritten, average length 113 → 67
+characters. Hostile copy survived better, with one change: the counter-guidance
+moved to its own **Counter** line, because "how do I beat this" is a different
+question from "what does it do".
+
+**Three stat rows were pure duplication** — Deploy cost, Hull and Class are all
+already printed on the card above the block (the cost badge, the HULL readout,
+the subtitle). Footprint read "1 cell" on 59 of 62 cards and now appears only for
+the three that differ; Mobility folded into the subtitle; Targeting is gone in
+favour of the diagram. Yes/no facts became chips. With the cuts, plenty of cards
+have no rows left at all, so the block is omitted rather than rendered empty.
+
+**Two bugs the browser caught that the tests could not:** `foethreat` used a flat
+fill darker than enemy territory, so on the hive's own ground the highlight read
+as a hole — all three board states composite additively now. And the hostile
+diagram was pinned to the left of its window wearing the card's gold palette;
+hostiles advance toward column 0, so theirs reads right to left in magenta, with
+lane effects in violet. The Chorus had no diagram at all until its board-wide
+aura got its own case.
+
 ## Still open
 
 1. **Crystals at a hot operation is better, not soft.** Auto-rolled Crystals

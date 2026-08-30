@@ -14,6 +14,7 @@ import {costOf, gearOf, vetOf, leadUnlocked, leadPrice, leadGateText} from '../s
 import {$} from './dom.js';
 import {sigil, artFor, portrait, bokehLayer} from './art.js';
 import {notify} from './dialog.js';
+import {hitboxFor, hitboxForFoe} from './hitbox.js';
 
 // Set by wiring.js — breaks what would otherwise be a focus <-> panels cycle.
 let onAfterFocusAction = () => {};
@@ -30,21 +31,25 @@ export function closeFocus() {
   $('fbg').innerHTML = '';
 }
 
-/** Every stat row worth showing for this card, skipping the ones it lacks. */
+/**
+ * Every stat row worth showing for this card, skipping the ones it lacks.
+ *
+ * Deploy cost, hull and class are deliberately absent: all three are already
+ * printed on the card above this block — the cost badge, the HULL readout on
+ * the art, and the subtitle — and repeating them was the bulk of the noise.
+ * Footprint only appears when it is not the 1 cell 59 of 62 cards occupy, and
+ * targeting is gone entirely in favour of the diagram, which says it better.
+ */
 function statRows(id) {
   const k = POOL[id];
   const g = gearOf(id);
   return [
-    ['Deploy cost', costOf(id) + ' DP' + (g && g.dp ? ' (geared)' : '')],
-    k.hp ? ['Hull', k.hp + (g && g.hp ? ' +' + g.hp : '')] : null,
-    ['Class', TIERNAME[k.t]],
-    // An instant never lands, so it has neither of these to report.
-    k.instant ? null : ['Footprint', k.size > 1 ? '2 cells' : k.attach ? 'Attachment' : '1 cell'],
-    k.instant ? null : ['Mobility', k.attach ? '—' : k.mob ? (g && g.servo ? 'Mobile · fires while moving' : 'Mobile') : 'Anchored'],
+    // Only worth a row when the geared cost differs from the printed one.
+    (g && g.dp) ? ['Deploy cost', costOf(id) + ' DP (geared)'] : null,
+    (k.hp && g && g.hp) ? ['Hull', k.hp + ' +' + g.hp] : null,
+    // An instant never lands, so it has no footprint to report.
+    (!k.instant && (k.size > 1 || k.attach)) ? ['Footprint', k.size > 1 ? '2 cells' : 'Attachment'] : null,
     k.dmg ? ['Damage', (k.dmg + (g && g.dmg ? g.dmg : 0)) + (k.burst ? ` (${k.burst} on play)` : '')] : null,
-    k.tg && k.tg !== 'none' ? ['Targeting', TGNAME[k.tg] || k.tg] : null,
-    (k.indirect || (g && g.indirect)) ? ['Line of fire', 'Indirect — fires over blockers'] : null,
-    g && g.rearsight ? ['Rear guard', 'Also strikes the cell directly behind'] : null,
     k.recharge ? ['Rate of fire', 'Every other turn — needs a turn to cycle'] : null,
     k.charge ? ['Charge', `Moves up to ${k.charge} cells forward`] : null,
     k.push ? ['On hit', 'Drives the survivor back one cell'] : null,
@@ -67,6 +72,21 @@ function statRows(id) {
     g && g.crush ? ['Deployment', 'Onto a hostile — crushes it outright'] : null,
     (k.heal || k.hot) ? ['Support', 'Heals ' + (k.healType === 'tech' ? 'Tech' : 'Common') + ' units'] : null,
   ].filter(Boolean);
+}
+
+/** Yes/no facts read better as chips than as a row each. */
+function cardChips(id) {
+  const k = POOL[id];
+  const g = gearOf(id);
+  const out = [];
+  if (k.indirect || (g && g.indirect)) out.push(['hot', 'Indirect']);
+  if (g && g.rearsight) out.push(['hot', 'Rear guard']);
+  if (k.instant) out.push(['gold', 'Instant']);
+  if (k.drop) out.push(['', 'Any tile']);
+  if (k.blocker) out.push(['', 'Blocker']);
+  if (!out.length) return '';
+  return `<div class="tagrow">${out
+    .map(([c, t]) => `<span class="tag${c ? ' ' + c : ''}">${t}</span>`).join('')}</div>`;
 }
 
 function actionsFor(id, mode) {
@@ -151,13 +171,21 @@ export function focusCard(id, mode) {
         ${v.t ? `<div class="pips big">${'◆'.repeat(v.t)}</div>` : ''}
         ${k.hp ? `<div class="fhp">${k.hp + (g && g.hp ? g.hp : 0)} HULL</div>` : ''}</div>
       <div class="fname">${k.n}</div>
-      <div class="ftype">${TIERNAME[k.t]}${k.attach ? ' · Attachment' : ''}${g ? ' · ' + g.n : ''}</div>
+      <div class="ftype">${TIERNAME[k.t]}${k.instant ? '' : ' · ' + (k.attach ? 'Attachment'
+    : k.mob ? (g && g.servo ? 'Mobile · fires moving' : 'Mobile') : 'Anchored')}${g ? ' · ' + g.n : ''}</div>
+      ${cardChips(id)}
       <div class="vetbar"><div class="vlab"><span style="color:${v.col}">${v.n}</span>
         <span>${v.u} deployments${v.next ? ` · ${v.next - v.u} to ${VET[v.t + 1].n}` : ' · max rank'}</span></div>
         <div class="vtrack"><i style="width:${progress}%;background:${v.col}"></i></div></div>
       <div class="ftxt">${k.d}</div>
-      <div class="fstats">${statRows(id).map(([a, b]) =>
-        `<div class="fstat"><span class="k">${a}</span><span class="v">${b}</span></div>`).join('')}</div>
+      ${hitboxFor(id)}
+      ${(() => {
+    // With the duplicated rows gone, plenty of cards have nothing left to
+    // list. Emit no block at all rather than an empty bordered box.
+    const rows = statRows(id);
+    return rows.length ? `<div class="fstats">${rows.map(([a, b]) =>
+      `<div class="fstat"><span class="k">${a}</span><span class="v">${b}</span></div>`).join('')}</div>` : '';
+  })()}
       ${k.ab ? `<div class="fab"><b>Ability · ${k.ab.n}${k.ab.cd ? ` · ${k.ab.cd} turn cooldown` : ''}</b>${k.ab.d}</div>` : ''}
       ${gearBlock(id, mode)}
     </div><div class="facts">${actionsFor(id, mode)}</div>`;
@@ -171,8 +199,12 @@ export function focusCard(id, mode) {
 
 export function focusEnemy(id) {
   const b = BEST[id];
-  const stats = [['Hull', b.hp], ['Damage', b.dmg || '—'], ['Threat value', b.threat],
-    ['Speed', b.spd === 0 ? 'Immobile' : b.spd + ' cells / turn'], ['Class', TIERNAME[b.t]]];
+  // Hull, threat and class are already on the art and the subtitle above —
+  // same duplication the cards carried, cut the same way.
+  const stats = [
+    ['Damage', b.dmg || '—'],
+    b.floor ? ['Armour', `−${b.floor} from every hit`] : null,
+  ].filter(Boolean);
 
   $('fwrap').innerHTML = `<div class="fcard t-${b.t}" style="border-color:var(--mag);box-shadow:0 0 60px rgba(255,77,143,.3)">
       <div class="fart" style="background:radial-gradient(ellipse at 50% 118%,#5a1233 0%,#0b0918 74%)">
@@ -180,9 +212,13 @@ export function focusEnemy(id) {
         <div class="fcost" style="background:var(--mag);color:#1a0510">${b.threat}</div>
         <div class="fhp" style="color:var(--mag)">${b.hp} HULL</div></div>
       <div class="fname" style="color:#ff8fb5">${b.n}</div>
-      <div class="ftype">Hostile · ${TIERNAME[b.t]}</div><div class="ftxt">${b.d}</div>
-      <div class="fstats">${stats.map(([a, c]) =>
-        `<div class="fstat"><span class="k">${a}</span><span class="v" style="color:#ff8fb5">${c}</span></div>`).join('')}</div>
+      <div class="ftype">Hostile · ${TIERNAME[b.t]} · ${b.spd === 0 ? 'Immobile'
+    : b.spd === 0.5 ? 'Every other turn' : b.spd + ' / turn'}</div>
+      <div class="ftxt">${b.d}</div>
+      ${hitboxForFoe(id)}
+      ${stats.length ? `<div class="fstats">${stats.map(([a, c]) =>
+    `<div class="fstat"><span class="k">${a}</span><span class="v" style="color:#ff8fb5">${c}</span></div>`).join('')}</div>` : ''}
+      ${b.counter ? `<div class="fab"><b>Counter</b>${b.counter}</div>` : ''}
     </div><div class="facts"><button class="btn ghost" data-close="1">Close</button></div>`;
   $('fbg').innerHTML = bokehLayer(['#ff4d8f', '#9d6bff', '#c23a5e']);
   $('focus').classList.add('on');

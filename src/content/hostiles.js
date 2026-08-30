@@ -10,7 +10,8 @@ export const BEST = {
     dmg: 2,
     threat: 1,
     spd: 2,
-    d: "Cheap, fast, endless. Moves two cells a turn and floods whatever lane you leave open.",
+    d: "Cheap, fast, endless. Floods whatever lane you leave open.",
+    counter: "Nothing clever kills it — just never leave a lane empty.",
   },
   breacher: {
     n: "Breacher",
@@ -20,7 +21,8 @@ export const BEST = {
     threat: 3,
     spd: 1,
     hunts: 1,
-    d: "Prioritises Tech over personnel. Punishes Barricade and Turret spam.",
+    d: "Prioritises Tech over personnel.",
+    counter: "Punishes Barricade and Turret spam. Mix personnel into a Tech-heavy line.",
   },
   spitter: {
     n: "Spitter",
@@ -30,7 +32,8 @@ export const BEST = {
     threat: 3,
     spd: 1,
     hold: 4,
-    d: "Stops at range four and fires down the lane. Outranges most of your roster. Punishes turtling.",
+    d: "Halts at column four and fires the length of the lane.",
+    counter: "Outranges most of your roster, so it punishes turtling. Reach it with indirect fire, or close the gap before it settles.",
   },
   burrower: {
     n: "Burrower",
@@ -40,7 +43,8 @@ export const BEST = {
     threat: 3,
     spd: 1,
     emerge: 3,
-    d: "Emerges mid-board, behind your front line. Punishes over-committing forward.",
+    d: "Emerges mid-board, behind your front line.",
+    counter: "Punishes over-committing forward. Keep something that can turn around.",
   },
   hulk: {
     n: "Hulk",
@@ -50,7 +54,8 @@ export const BEST = {
     threat: 4,
     spd: 0.5,
     floor: 1,
-    d: "Slow, heavy, reduces all incoming damage by 1. Punishes chip damage.",
+    d: "Slow and heavy. Reduces all incoming damage by 1.",
+    counter: "Punishes chip damage. Bring one big hit rather than many small ones.",
   },
   spore: {
     n: "Spore Node",
@@ -61,6 +66,7 @@ export const BEST = {
     spd: 0,
     spawn: 2,
     d: "Immobile emplacement. Releases a Crawler every two turns and holds its tile until destroyed.",
+    counter: "Every turn it lives is another body. Kill it early or drown in them.",
   },
   pylon: {
     n: "Bulwark Pylon",
@@ -71,6 +77,7 @@ export const BEST = {
     spd: 0,
     lanefloor: 1,
     d: "Immobile emplacement. +1 damage floor to every hostile in its lane.",
+    counter: "It makes chip damage worthless lane-wide. Armour-piercing ignores it entirely.",
   },
   jammer: {
     n: "Jammer",
@@ -80,7 +87,8 @@ export const BEST = {
     threat: 4,
     spd: 0,
     jam: 1,
-    d: "Immobile emplacement. Blocks all indirect fire in its lane. Shuts off Mortar and Artillerist entirely.",
+    d: "Immobile emplacement. Blocks all indirect fire in its lane.",
+    counter: "Shuts off Mortar and Artillerist completely. Only direct fire answers it.",
   },
   harrower: {
     n: "Harrower",
@@ -90,7 +98,8 @@ export const BEST = {
     threat: 7,
     spd: 1.5,
     tunnel: 1,
-    d: "Tunnels straight past blockers. Barricades and Bulwarks do not stop it.",
+    d: "Tunnels straight past blockers.",
+    counter: "Barricades and Bulwarks do not stop it. Kill it — do not try to wall it.",
   },
   chorus: {
     n: "Chorus",
@@ -100,7 +109,8 @@ export const BEST = {
     threat: 8,
     spd: 0,
     aura: 1,
-    d: "Immobile at the far edge. +1 damage to every hostile on the board. Kill it first — if you can reach it.",
+    d: "Immobile at the far edge. +1 damage to every hostile on the board.",
+    counter: "Kill it first, if you can reach it. Hecate and Longshot can.",
   },
   sovereign: {
     n: "Sovereign",
@@ -111,6 +121,7 @@ export const BEST = {
     spd: 0.5,
     convert: 1,
     d: "Moves every other turn. Every tile it crosses becomes hostile ground permanently.",
+    counter: "Ground it takes never comes back. Stop it early, far from your line.",
   },
   husk: {
     n: "Husk",
@@ -120,7 +131,8 @@ export const BEST = {
     threat: 2,
     spd: 1,
     split: 2,
-    d: "Shambles forward and falls apart when destroyed — two Crawlers crawl out of the wreck. Kill it somewhere you can afford the mess.",
+    d: "Shambles forward and falls apart when destroyed — two Crawlers crawl out of the wreck.",
+    counter: "Kill it somewhere you can afford the mess.",
   },
   mender: {
     n: "Mender",
@@ -130,7 +142,8 @@ export const BEST = {
     threat: 4,
     spd: 1,
     mend: 2,
-    d: "Carries no weapon. Advances with the horde and knits 2 hull back into the most wounded hostile in its lane every turn. Kill it first.",
+    d: "Carries no weapon. Knits 2 hull back into the most wounded hostile in its lane every turn.",
+    counter: "Kill it first, or nothing in that lane stays dead.",
   },
   screamer: {
     n: "Screamer",
@@ -140,7 +153,8 @@ export const BEST = {
     threat: 7,
     spd: 1,
     deathrush: 1,
-    d: "Dies loudly. The scream sends every hostile on the board one step forward — time the kill, or the kill times you.",
+    d: "Dies loudly. The scream sends every hostile on the board one step forward.",
+    counter: "Time the kill, or the kill times you.",
   },
   puppeteer: {
     n: "Puppeteer",
@@ -151,5 +165,6 @@ export const BEST = {
     spd: 0,
     mindctrl: 3,
     d: "Never moves. Every 3 turns it seizes the nearest unit in its lane, turning it against you until it breaks free or the Puppeteer dies.",
+    counter: "Keep your best unit out of its lane, or kill it before the third turn lands.",
   },
 };

@@ -12,7 +12,7 @@ export const POOL = {
     mob: 1,
     tg: "none",
     aura: 1,
-    d: "+1 damage to friendlies in the four adjacent cells. Carries no weapon of its own.",
+    d: "+1 damage to friendlies in the four adjacent cells. Carries no weapon.",
   },
   recon: {
     n: "Recon Lark",
@@ -22,7 +22,7 @@ export const POOL = {
     price: 80,
     instant: 1,
     draw: 2,
-    d: "Spotter sweep. Calls in two more cards and is gone — no airframe to shoot down, no tile tied up. Best on turn one, when the hand is what you are short of.",
+    d: "Calls in two more cards, then is gone. Leaves no unit on the board.",
   },
   pathfinder: {
     n: "Pathfinder",
@@ -35,7 +35,7 @@ export const POOL = {
     tg: "first",
     dmg: 1,
     claim: 2,
-    d: "Forward scout. On deployment it claims the two tiles directly ahead as your ground. Strong opening land grab, ordinary once the lines are set.",
+    d: "On deployment, claims the two tiles ahead as your ground.",
   },
   vanguard: {
     n: "Vanguard",
@@ -48,7 +48,7 @@ export const POOL = {
     tg: "adj",
     dmg: 3,
     pristine: 3,
-    d: "Fights hardest before it is bloodied — 3 extra damage while at full hull. Deploy it early and it hits like a Specialist; let it take a scratch and it is a Rifleman.",
+    d: "+3 damage while at full hull. Loses it the moment it takes a scratch.",
   },
   rifle: {
     n: "Rifleman",
@@ -60,7 +60,7 @@ export const POOL = {
     mob: 1,
     tg: "first",
     dmg: 2,
-    d: "2 damage to the first hostile in the lane. The baseline body.",
+    d: "Fires down its lane every turn. No special behaviour.",
   },
   medic: {
     n: "Medic",
@@ -79,7 +79,7 @@ export const POOL = {
       d: "Heal every adjacent personnel unit for 4 instead of the unit ahead.",
       cd: 1,
     },
-    d: "Patches every friendly in the four adjacent cells for 2 each turn. No weapon, no burst, no heroics.",
+    d: "Heals every friendly in the four adjacent cells each turn. Carries no weapon.",
   },
   archer: {
     n: "Archer",
@@ -91,7 +91,7 @@ export const POOL = {
     mob: 1,
     tg: "archer",
     dmg: 2,
-    d: "Looses into a hook: two cells straight ahead, plus the two diagonals behind it. Covers its own flanks while it shoots forward.",
+    d: "Covers its own flanks while firing forward.",
   },
   assassin: {
     n: "Assassin",
@@ -105,7 +105,7 @@ export const POOL = {
     dmg: 4,
     drop: 1,
     choose: 1,
-    d: "Deploys on ANY tile, including hostile ground. 4 damage to one adjacent hostile — up, down, left or right. Fragile behind the line.",
+    d: "Deploys on any tile, including hostile ground. Fragile once it lands.",
   },
   samurai: {
     n: "Samurai",
@@ -116,7 +116,7 @@ export const POOL = {
     mob: 1,
     tg: "around",
     dmg: 2,
-    d: "Cuts all eight cells surrounding it for 2. The only Common that can answer something emerging behind you.",
+    d: "Cuts every cell around it, including behind.",
   },
   marks: {
     n: "Marksman",
@@ -129,7 +129,7 @@ export const POOL = {
     tg: "furthest",
     dmg: 3,
     burst: 5,
-    d: "Hits the FURTHEST hostile in the lane, ignoring everything in front. 5 on play, then 3.",
+    d: "Ignores everything in front and hits the furthest hostile in the lane.",
   },
   lancer: {
     n: "Lancer",
@@ -141,7 +141,7 @@ export const POOL = {
     tg: "ahead3",
     dmg: 2,
     burst: 3,
-    d: "Strikes all three cells directly ahead at once. 3 on play, then 2.",
+    d: "Strikes all three cells ahead at once.",
   },
   mortar: {
     n: "Mortar",
@@ -153,7 +153,7 @@ export const POOL = {
     tg: "blast4",
     dmg: 2,
     indirect: 1,
-    d: "Indirect fire. 3x3 centred exactly four cells ahead. Cannot hit anything closer.",
+    d: "Indirect fire. Cannot hit anything closer than its blast.",
   },
   bulwark: {
     n: "Bulwark",
@@ -168,7 +168,7 @@ export const POOL = {
     blocker: 1,
     regen: 1,
     ab: {n: "Brace", d: "Shield holds against two attacks this turn instead of one.", cd: 1},
-    d: "A one-cell energy shield that IS the wall. Deploys on any held tile, occupies nothing in front. Absorbs one attack per turn and regenerates. Mobile.",
+    d: "A one-cell shield that is itself the wall. Absorbs one attack per turn, then regenerates.",
   },
   ronin: {
     n: "Ronin",
@@ -179,7 +179,7 @@ export const POOL = {
     mob: 1,
     tg: "bothsides",
     dmg: 3,
-    d: "Twin blades. Cuts the cell directly ahead AND the cell directly behind in the same motion. Nothing flanks a Ronin.",
+    d: "Cuts ahead and behind in the same motion.",
   },
   naginata: {
     n: "Naginata",
@@ -190,7 +190,7 @@ export const POOL = {
     mob: 1,
     tg: "ahead2",
     dmg: 2,
-    d: "Polearm reach. Strikes both cells one and two ahead. Cheap pressure that outranges a blade.",
+    d: "Polearm reach — it strikes the second cell as readily as the first.",
   },
   kunoichi: {
     n: "Kunoichi",
@@ -202,7 +202,7 @@ export const POOL = {
     tg: "diag",
     dmg: 3,
     drop: 1,
-    d: "Deploys on ANY tile. Strikes only the four diagonals — blind to what is directly beside her, lethal to what is not.",
+    d: "Deploys on any tile. Blind to whatever stands directly beside her.",
   },
   herald: {
     n: "Herald",
@@ -213,7 +213,7 @@ export const POOL = {
     mob: 1,
     tg: "none",
     laneB: 1,
-    d: "Battle standard. +1 damage to every friendly in the same lane. Pairs with Scout adjacency and Relay columns.",
+    d: "+1 damage to every friendly in the same lane.",
   },
   wall: {
     n: "Barricade",
@@ -225,7 +225,7 @@ export const POOL = {
     tg: "none",
     blocker: 1,
     tech: 1,
-    d: "No weapon, no shield, no legs. Twelve hull that blocks the lane in both directions.",
+    d: "No weapon, no shield, no legs. Blocks the lane in both directions.",
   },
   supply: {
     n: "Supply Drone",
@@ -237,7 +237,7 @@ export const POOL = {
     tg: "none",
     dpGain: 2,
     tech: 1,
-    d: "Drops a munitions pallet on landing: +2 deploy points immediately, so it pays for itself and then some. Worth most on an opening turn with points to spare.",
+    d: "Drops a munitions pallet on landing: +2 deploy points immediately.",
   },
   beacon: {
     n: "Drop Beacon",
@@ -249,7 +249,7 @@ export const POOL = {
     tg: "none",
     claim: 3,
     tech: 1,
-    d: "Plants a landing marker that claims the three cells ahead of it the moment it touches down. Strongest while the middle of the field is still neutral.",
+    d: "Claims the three cells ahead of it the moment it lands.",
   },
   cache: {
     n: "Supply Cache",
@@ -260,7 +260,7 @@ export const POOL = {
     instant: 1,
     gain: 3,
     tech: 1,
-    d: "Crack it open for 3 extra deploy points this turn — but the scramble costs you a card at random from your hand. Best on turn one when the hand is deep and the board is empty.",
+    d: "+3 deploy points this turn. The scramble costs you a card at random from your hand.",
     discard: 1,
   },
   shield: {
@@ -281,7 +281,7 @@ export const POOL = {
     price: 145,
     attach: "cannon",
     tech: 1,
-    d: "Attach to a unit. It fires a second time each turn. Scales with whatever it is bolted to.",
+    d: "Attach to a unit. It fires a second time each turn.",
   },
   turret: {
     n: "Turret",
@@ -294,7 +294,7 @@ export const POOL = {
     tg: "first",
     dmg: 2,
     tech: 1,
-    d: "Anchored. 2 damage to the first hostile in the lane. Eight hull, no legs.",
+    d: "Anchored. Eight hull, no legs.",
   },
   relay: {
     n: "Relay",
@@ -318,7 +318,7 @@ export const POOL = {
     tg: "vert3",
     dmg: 3,
     tech: 1,
-    d: "Sweeps a vertical arc — three cells top to bottom in the column directly ahead. Hits across lanes without leaving its own.",
+    d: "Hits across lanes without leaving its own.",
   },
   pulse: {
     n: "Pulse Emitter",
@@ -330,7 +330,7 @@ export const POOL = {
     tg: "around",
     dmg: 1,
     tech: 1,
-    d: "Anchored resonator. Pulses all eight surrounding cells for 1 every turn. Weak alone, brutal behind a wall.",
+    d: "Anchored resonator. Pulses every surrounding cell each turn.",
   },
   scrambler: {
     n: "Scrambler",
@@ -342,7 +342,7 @@ export const POOL = {
     tg: "none",
     dampen: 1,
     tech: 1,
-    d: "Field disruptor. Every hostile in its lane deals 1 less damage. Does not stack with itself.",
+    d: "Every hostile in its lane deals 1 less damage. Does not stack with itself.",
   },
   battery: {
     n: "Lance Battery",
@@ -355,7 +355,7 @@ export const POOL = {
     tg: "range3",
     dmg: 4,
     tech: 1,
-    d: "Anchored particle lance. 4 damage at exactly three cells — direct fire, so a blocker of yours cuts the beam.",
+    d: "Anchored particle lance. Direct fire — a blocker of yours cuts the beam.",
   },
   knight: {
     n: "Knight",
@@ -370,7 +370,7 @@ export const POOL = {
     blocker: 1,
     regen: 1,
     riposte: 1,
-    d: "Shield and blade. Blocks the lane, regenerates its shield, and ripostes for 1 against anything that strikes it. Personnel — a Medic can patch it, a Tech Medic cannot.",
+    d: "Blocks the lane, regenerates its shield, and ripostes against anything that strikes it. Personnel — a Medic can patch it, a Tech Medic cannot.",
   },
   aegis: {
     n: "Aegis Knights",
@@ -387,7 +387,7 @@ export const POOL = {
     regen: 1,
     riposte: 2,
     ab: {n: "Aegis Field", d: "Every friendly in this lane gains a shield this turn.", cd: 2},
-    d: "Armoured tech frames — two cells deep, eighteen hull, regenerating energy shields and swords. Seals a lane against chip damage indefinitely.",
+    d: "Two cells deep, with regenerating shields. Seals a lane against chip damage.",
   },
   biomed: {
     n: "Bio Medic",
@@ -400,7 +400,7 @@ export const POOL = {
     hot: 2,
     healType: "common",
     healMode: "col",
-    d: "Healing over time. Applies regeneration to every Common unit in its column — 2 hull per turn, refreshed while it lives.",
+    d: "Applies regeneration to every Common unit in its column, refreshed while it lives.",
   },
   techmed: {
     n: "Tech Medic",
@@ -419,7 +419,7 @@ export const POOL = {
       d: "Burst-repair every Tech unit in the column for 8 and restore broken shields.",
       cd: 2,
     },
-    d: "Burst repair. Trickles 2 per turn to Tech in its column, or dumps 8 at once on the ability.",
+    d: "Trickles repair into Tech in its column, or dumps it all at once on the ability.",
   },
   dragoon: {
     n: "Orbital Dragoon",
@@ -437,7 +437,7 @@ export const POOL = {
       d: "Vault and strike any hostile exactly two cells away in any direction for 6.",
       cd: 2,
     },
-    d: "Strikes at a fixed range of two cells ahead for 4. Thrusters let it leap and hit anything two cells out in any direction.",
+    d: "Thrusters let it leap and strike anything two cells out, in any direction.",
   },
   railgun: {
     n: "Rail Sniper",
@@ -450,7 +450,7 @@ export const POOL = {
     dmg: 3,
     burst: 4,
     pen: 1,
-    d: "Piercing shot down the entire lane, hitting every hostile in it and ignoring armour floors. 4 on play, then 3.",
+    d: "Pierces the whole lane, ignoring armour floors.",
   },
   hell: {
     n: "Hell Jumpers",
@@ -464,7 +464,7 @@ export const POOL = {
     drop: 1,
     squad: 2,
     burstBlast: 3,
-    d: "Two pods dropped behind hostile lines, on ANY tile. Each strikes all eight surrounding cells for 2. Orbital impact damages on landing.",
+    d: "Two pods dropped on any tile, including hostile ground. Each damages on landing.",
   },
   plasma: {
     n: "Plasma Artillerist",
@@ -477,7 +477,7 @@ export const POOL = {
     dmg: 3,
     indirect: 1,
     scorch: 1,
-    d: "Plasma barrage, 3x3 at exactly four cells. The plasma lingers two turns, burning anything standing in it and denying capture.",
+    d: "The plasma lingers two turns, burning anything standing in it and denying capture.",
   },
   exo: {
     n: "Exo Juggernaut",
@@ -495,7 +495,7 @@ export const POOL = {
       d: "Barrel two cells forward. Anything struck takes 8 and is stunned for a turn.",
       cd: 2,
     },
-    d: "Explosive hammer in an exo frame. Twenty hull, 5 damage adjacent, and a charge that shatters whatever it collides with.",
+    d: "Twenty hull and a charge that shatters whatever it collides with.",
   },
   zaku: {
     n: "Fireteam Zaku",
@@ -508,7 +508,7 @@ export const POOL = {
     dmg: 1,
     single: 1,
     squad: 2,
-    d: "Two bodies for one requisition. Neither will be missed and that is rather the point.",
+    d: "Two bodies from one requisition.",
   },
   cipher: {
     n: "Cipher",
@@ -521,7 +521,7 @@ export const POOL = {
     dmg: 2,
     single: 1,
     swap: 1,
-    d: "Trades places with any friendly unit on the board, anywhere. Uses its action for the turn.",
+    d: "Trades places with any friendly unit on the board. Uses its action for the turn.",
   },
   engineer: {
     n: "Engineer",
@@ -532,7 +532,7 @@ export const POOL = {
     mob: 1,
     tg: "none",
     techBuff: {dmg: 2, repair: 2},
-    d: "No weapon. The Tech unit directly ahead hits for +2 and repairs 2 hull every turn.",
+    d: "No weapon. The Tech unit directly ahead hits harder and repairs every turn.",
   },
   outrider: {
     n: "Outrider",
@@ -546,7 +546,7 @@ export const POOL = {
     single: 1,
     charge: 2,
     push: 1,
-    d: "Charges two cells. Whatever it strikes takes the hit and is driven back a cell.",
+    d: "Charges two cells. Whatever it strikes is driven back a cell.",
   },
   fob: {
     n: "Forward Base",
@@ -559,7 +559,7 @@ export const POOL = {
     tech: 1,
     zoneMin: 3,
     sustain: {repair: 2, cooldown: 1},
-    d: "Deploys only on ground you already hold, in columns three and beyond. Adjacent friendlies repair 2 per turn and cool down a turn faster. Immobile.",
+    d: "Deploys on held ground, in columns three and beyond. Adjacent friendlies repair and cool down faster. Immobile.",
   },
   mine: {
     n: "Minefield",
@@ -573,7 +573,7 @@ export const POOL = {
     mine: 6,
     zoneMin: 3,
     anyGround: 1,
-    d: "Six damage to the first hostile that enters, then spent. Visible — hostiles route around mined lanes when they can.",
+    d: "Damages the first hostile that enters, then spent. Visible — hostiles route around it when they can.",
   },
   hecate: {
     n: "Hecate Platform",
@@ -586,7 +586,7 @@ export const POOL = {
     dmg: 8,
     single: 1,
     recharge: 1,
-    d: "Reaches the furthest hostile on the board, any lane, for eight. Needs a turn to cycle — it cannot fire twice running.",
+    d: "Reaches any lane on the board. Needs a turn to cycle — it cannot fire twice running.",
   },
   dynamo: {
     n: "Dynamo",
@@ -600,7 +600,7 @@ export const POOL = {
     dmg: 0,
     tech: 1,
     dynamo: 1,
-    d: "Generates +1 deploy point at the start of each turn while it stands, stacking up to +2. No weapon, thin hull — greed responsibly.",
+    d: "+1 deploy point at the start of each turn while it stands, stacking to +2. No weapon.",
   },
   ashigaru: {
     n: "Ashigaru Line",
@@ -613,7 +613,7 @@ export const POOL = {
     tg: "first",
     dmg: 1,
     squad: 3,
-    d: "Three spear-levies drop from one requisition — thin alone, a wall in numbers.",
+    d: "Three spear-levies from one requisition.",
   },
   pikewall: {
     n: "Pike Wall",
@@ -625,7 +625,7 @@ export const POOL = {
     tg: "ahead2",
     dmg: 2,
     blocker: 1,
-    d: "Braced spears that hold the ground they strike — reach and a body to back it, where a Naginata only has the reach.",
+    d: "Braced spears that hold the ground they strike.",
   },
   sentry: {
     n: "Sentry Ronin",
@@ -638,7 +638,7 @@ export const POOL = {
     tg: "adj",
     dmg: 2,
     riposte: 2,
-    d: "No shield, no regeneration — just a blade that answers twice as hard as it is struck.",
+    d: "Answers twice as hard as it is struck.",
   },
   falconer: {
     n: "Falconer",
@@ -650,7 +650,7 @@ export const POOL = {
     tg: "first",
     dmg: 1,
     draw: 1,
-    d: "Armed, unlike the Recon Lark — calls in one more card and can still hold a rifle.",
+    d: "Calls in one more card on deployment, and still carries a rifle.",
   },
   rampart: {
     n: "Rampart",
@@ -664,7 +664,7 @@ export const POOL = {
     dmg: 1,
     blocker: 1,
     tech: 1,
-    d: "The paid middle ground between a free Barricade that cannot bite and a Bulwark that shields — nine hull, one gun, no drama.",
+    d: "Nine hull and one gun. Holds a lane without shielding it.",
   },
   piercer: {
     n: "Piercer Turret",
@@ -678,7 +678,7 @@ export const POOL = {
     dmg: 5,
     pen: 1,
     tech: 1,
-    d: "Anchored railspike, fixed at exactly three cells. Armour floors mean nothing to it — a blocker of yours still cuts the beam.",
+    d: "Anchored railspike. Armour floors mean nothing to it; a blocker of yours still cuts the beam.",
   },
   suppressor: {
     n: "Suppressor",
@@ -690,7 +690,7 @@ export const POOL = {
     tg: "none",
     dampen: 2,
     tech: 1,
-    d: "Field disruptor, twice over. Every hostile in its lane deals 2 less damage — a standalone answer where a Scrambler needed a second copy to match it.",
+    d: "Every hostile in its lane deals 2 less damage.",
   },
   reactor: {
     n: "Reactor Core",
@@ -702,7 +702,7 @@ export const POOL = {
     tg: "none",
     dpGain: 5,
     tech: 1,
-    d: "The high-roll cousin of the Supply Drone — a bigger pallet, a thinner hull. Pays for itself and then some on an opening turn.",
+    d: "A bigger pallet than the Supply Drone, on a thinner hull.",
   },
   bore: {
     n: "Bore Lance",
@@ -715,7 +715,7 @@ export const POOL = {
     dmg: 3,
     pen: 1,
     tech: 1,
-    d: "Tech Blade's vertical arc, anchored and armour-piercing. Trades the legs for a beam that ignores what a floor was supposed to stop.",
+    d: "Anchored and armour-piercing. Ignores what a floor was supposed to stop.",
   },
   kessen: {
     n: "Kessen Vanguard",
@@ -728,7 +728,7 @@ export const POOL = {
     tg: "adj4",
     dmg: 6,
     drop: 1,
-    d: "Deploys on ANY tile. Six damage to one adjacent hostile in any direction — an Assassin's kit built for a Specialist's price.",
+    d: "Deploys on any tile, including hostile ground.",
   },
   ram: {
     n: "Thruster Ram",
@@ -743,7 +743,7 @@ export const POOL = {
     blocker: 1,
     charge: 3,
     push: 1,
-    d: "Twice an Outrider's reach, and built to hold the ground it takes instead of riding through it.",
+    d: "Charges, then holds the ground it takes instead of riding through it.",
   },
   marshal: {
     n: "Field Marshal",
@@ -755,7 +755,7 @@ export const POOL = {
     tg: "none",
     laneB: 2,
     col: 1,
-    d: "Command presence. The only card that buffs its lane and its column at once — a Herald and a Relay in one requisition.",
+    d: "Buffs its lane and its column at once.",
   },
   longshot: {
     n: "Longshot",
@@ -767,7 +767,7 @@ export const POOL = {
     tg: "furthest",
     indirect: 1,
     dmg: 2,
-    d: "Hits the furthest hostile in the lane — through anything in the way. No burst, no mercy, just distance.",
+    d: "Reaches the furthest hostile in the lane, through anything in the way.",
   },
   sapper: {
     n: "Sapper Turret",
@@ -778,7 +778,7 @@ export const POOL = {
     tg: "ahead2",
     drop: 1,
     dmg: 2,
-    d: "Deploys on ANY tile, including hostile ground. Strikes both cells ahead of wherever it lands — planted deep, it opens up on the hive's own rear.",
+    d: "Deploys on any tile, including hostile ground. Opens up on whatever is ahead of where it lands.",
   },
   rearguard: {
     n: "Rearguard",
@@ -790,7 +790,7 @@ export const POOL = {
     mob: 1,
     tg: "rear",
     dmg: 3,
-    d: "Faces the wrong way on purpose. Strikes the nearest hostile BEHIND it in the lane, at any range — the only ranged answer to something already past your line.",
+    d: "Faces the wrong way on purpose. Strikes behind it at any range — the only ranged answer to something already past your line.",
   },
   backstop: {
     n: "Backstop Battery",
@@ -801,6 +801,6 @@ export const POOL = {
     tech: 1,
     instant: 1,
     homestrike: 5,
-    d: "Calls one volley down across both home columns, every lane at once, for 5. Anything standing there breaches on the next step — this is the last word before it does. Fired once, then spent.",
+    d: "One volley across both home columns, every lane at once. Fired once, then spent.",
   },
 };

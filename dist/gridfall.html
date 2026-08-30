@@ -361,6 +361,30 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .facts{display:flex;gap:8px;width:300px}
 .facts .btn{flex:1;text-align:center}
 
+/* ============ HITBOX DIAGRAM ============
+   The card's firing pattern drawn as cells. Generated from geomCells(), so
+   the shape here and the highlight on the combat board are the same answer. */
+.frange{border-top:1px solid var(--line);padding:.75rem 1rem;display:flex;align-items:center;gap:14px}
+.frange .rl{font-size:0.625rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);
+  display:flex;flex-direction:column;gap:3px}
+.frange .rl b{color:var(--gold);font-size:0.6875rem;letter-spacing:.1em}
+.hb{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;width:100%;max-width:132px;flex:0 0 auto}
+.hb i{aspect-ratio:1;background:#12102a;border:1px solid #241f4a;position:relative}
+.hb i.me{background:#123a4d;border-color:var(--cyan);box-shadow:inset 0 0 0 1px rgba(77,232,255,.5)}
+.hb i.me::after{content:'';position:absolute;inset:27%;background:var(--cyan);border-radius:50%}
+.hb i.hbfoe{background:#4a1226;border-color:var(--mag);box-shadow:inset 0 0 0 1px rgba(255,77,143,.5)}
+.hb i.hbfoe::after{content:'';position:absolute;inset:27%;background:var(--mag);border-radius:50%}
+.hb i.hbhit{background:rgba(255,201,77,.24);border-color:var(--gold);box-shadow:0 0 7px rgba(255,201,77,.4)}
+.hb i.hbreach{background:rgba(77,232,255,.09);border-color:rgba(77,232,255,.3)}
+.hb i.hbstrike{background:rgba(255,77,143,.3);border-color:var(--mag);box-shadow:0 0 7px rgba(255,77,143,.45)}
+.hb i.hbthreat{background:rgba(255,77,143,.1);border-color:rgba(255,77,143,.34)}
+.hb i.hbinfl{background:rgba(157,107,255,.16);border-color:rgba(157,107,255,.42)}
+.tagrow{padding:0 15px 11px;display:flex;flex-wrap:wrap;gap:5px}
+.tag{font-size:0.625rem;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--line2);
+  color:var(--dim);padding:2px 7px}
+.tag.hot{border-color:var(--cyan-d);color:var(--cyan)}
+.tag.gold{border-color:var(--gold);color:var(--gold)}
+
 /* ============ MAP ============ */
 #map{background:radial-gradient(ellipse 55% 40% at 12% 0%,rgba(157,107,255,.12),transparent 65%),radial-gradient(ellipse 50% 45% at 92% 100%,rgba(255,77,143,.09),transparent 65%),radial-gradient(ellipse at 50% 0%,#141034 0%,var(--void) 70%)}
 #boot{background:radial-gradient(ellipse 60% 42% at 14% 0%,rgba(157,107,255,.14),transparent 65%),radial-gradient(ellipse 55% 40% at 90% 100%,rgba(255,77,143,.11),transparent 65%),var(--void)}
@@ -591,6 +615,22 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .lbtag.ready{color:var(--gold);border-color:var(--gold)}
 .leadbadge.ready{box-shadow:0 0 14px -3px var(--gold)}
 /* ===== combat feedback ===== */
+/* The weapon's whole footprint, occupied or not. Sits UNDER willhit so a
+   covered tile with a hostile on it still reads gold — cyan is "I reach
+   here", gold is "and this one eats it". */
+.cell.inrange{background-image:linear-gradient(rgba(77,232,255,.26),rgba(77,232,255,.26));
+  box-shadow:inset 0 0 0 2px var(--cyan),0 0 13px rgba(77,232,255,.45);z-index:2}
+/* The mirror, for a selected hostile. */
+.cell.foesel{box-shadow:inset 0 0 0 2px var(--mag),0 0 18px rgba(255,77,143,.55);z-index:5}
+/* Composited, not flat: threatened ground appears on your cyan tiles AND on
+   the hive's own dark-red ones, and a flat fill that reads as a highlight on
+   one reads as a hole on the other. */
+.cell.foethreat{background-image:linear-gradient(rgba(255,77,143,.22),rgba(255,77,143,.22));
+  box-shadow:inset 0 0 0 1px rgba(255,77,143,.5);z-index:2}
+.cell.foestrike{background-image:linear-gradient(rgba(255,77,143,.5),rgba(255,77,143,.5));
+  box-shadow:inset 0 0 0 3px var(--mag),0 0 20px rgba(255,77,143,.7);z-index:4}
+.cell.foeinfl{box-shadow:inset 0 0 0 1px rgba(157,107,255,.5);background-image:
+  repeating-linear-gradient(45deg,transparent 0 5px,rgba(157,107,255,.14) 5px 10px)}
 .cell.willhit{box-shadow:inset 0 0 0 2px var(--gold),0 0 14px rgba(255,201,77,.5);z-index:4}
 .cell.buffed{box-shadow:inset 0 0 0 2px var(--cyan),0 0 13px rgba(77,232,255,.42);z-index:3}
 .cell.influence{box-shadow:inset 0 0 0 1px rgba(157,107,255,.55);background-image:
@@ -1791,6 +1831,11 @@ const setSel = id => { sel = id; };
 let mover = null;
 const setMover = u => { mover = u; };
 
+/** Hostile selected for inspection, or null. Mutually exclusive with `mover`:
+ * the board shows one side's reach at a time, never both arguing at once. */
+let foeSel = null;
+const setFoeSel = e => { foeSel = e; };
+
 /** True while the mission's stratagem is selected and awaiting a target. */
 let stratSel = false;
 const setStratSel = v => { stratSel = !!v; };
@@ -1816,6 +1861,7 @@ const nextUid = () => ++uid;
 function clearSelection() {
   sel = null;
   mover = null;
+  foeSel = null;
   stratSel = false;
 }
 
@@ -1834,7 +1880,7 @@ const POOL = {
     mob: 1,
     tg: "none",
     aura: 1,
-    d: "+1 damage to friendlies in the four adjacent cells. Carries no weapon of its own.",
+    d: "+1 damage to friendlies in the four adjacent cells. Carries no weapon.",
   },
   recon: {
     n: "Recon Lark",
@@ -1844,7 +1890,7 @@ const POOL = {
     price: 80,
     instant: 1,
     draw: 2,
-    d: "Spotter sweep. Calls in two more cards and is gone — no airframe to shoot down, no tile tied up. Best on turn one, when the hand is what you are short of.",
+    d: "Calls in two more cards, then is gone. Leaves no unit on the board.",
   },
   pathfinder: {
     n: "Pathfinder",
@@ -1857,7 +1903,7 @@ const POOL = {
     tg: "first",
     dmg: 1,
     claim: 2,
-    d: "Forward scout. On deployment it claims the two tiles directly ahead as your ground. Strong opening land grab, ordinary once the lines are set.",
+    d: "On deployment, claims the two tiles ahead as your ground.",
   },
   vanguard: {
     n: "Vanguard",
@@ -1870,7 +1916,7 @@ const POOL = {
     tg: "adj",
     dmg: 3,
     pristine: 3,
-    d: "Fights hardest before it is bloodied — 3 extra damage while at full hull. Deploy it early and it hits like a Specialist; let it take a scratch and it is a Rifleman.",
+    d: "+3 damage while at full hull. Loses it the moment it takes a scratch.",
   },
   rifle: {
     n: "Rifleman",
@@ -1882,7 +1928,7 @@ const POOL = {
     mob: 1,
     tg: "first",
     dmg: 2,
-    d: "2 damage to the first hostile in the lane. The baseline body.",
+    d: "Fires down its lane every turn. No special behaviour.",
   },
   medic: {
     n: "Medic",
@@ -1901,7 +1947,7 @@ const POOL = {
       d: "Heal every adjacent personnel unit for 4 instead of the unit ahead.",
       cd: 1,
     },
-    d: "Patches every friendly in the four adjacent cells for 2 each turn. No weapon, no burst, no heroics.",
+    d: "Heals every friendly in the four adjacent cells each turn. Carries no weapon.",
   },
   archer: {
     n: "Archer",
@@ -1913,7 +1959,7 @@ const POOL = {
     mob: 1,
     tg: "archer",
     dmg: 2,
-    d: "Looses into a hook: two cells straight ahead, plus the two diagonals behind it. Covers its own flanks while it shoots forward.",
+    d: "Covers its own flanks while firing forward.",
   },
   assassin: {
     n: "Assassin",
@@ -1927,7 +1973,7 @@ const POOL = {
     dmg: 4,
     drop: 1,
     choose: 1,
-    d: "Deploys on ANY tile, including hostile ground. 4 damage to one adjacent hostile — up, down, left or right. Fragile behind the line.",
+    d: "Deploys on any tile, including hostile ground. Fragile once it lands.",
   },
   samurai: {
     n: "Samurai",
@@ -1938,7 +1984,7 @@ const POOL = {
     mob: 1,
     tg: "around",
     dmg: 2,
-    d: "Cuts all eight cells surrounding it for 2. The only Common that can answer something emerging behind you.",
+    d: "Cuts every cell around it, including behind.",
   },
   marks: {
     n: "Marksman",
@@ -1951,7 +1997,7 @@ const POOL = {
     tg: "furthest",
     dmg: 3,
     burst: 5,
-    d: "Hits the FURTHEST hostile in the lane, ignoring everything in front. 5 on play, then 3.",
+    d: "Ignores everything in front and hits the furthest hostile in the lane.",
   },
   lancer: {
     n: "Lancer",
@@ -1963,7 +2009,7 @@ const POOL = {
     tg: "ahead3",
     dmg: 2,
     burst: 3,
-    d: "Strikes all three cells directly ahead at once. 3 on play, then 2.",
+    d: "Strikes all three cells ahead at once.",
   },
   mortar: {
     n: "Mortar",
@@ -1975,7 +2021,7 @@ const POOL = {
     tg: "blast4",
     dmg: 2,
     indirect: 1,
-    d: "Indirect fire. 3x3 centred exactly four cells ahead. Cannot hit anything closer.",
+    d: "Indirect fire. Cannot hit anything closer than its blast.",
   },
   bulwark: {
     n: "Bulwark",
@@ -1990,7 +2036,7 @@ const POOL = {
     blocker: 1,
     regen: 1,
     ab: {n: "Brace", d: "Shield holds against two attacks this turn instead of one.", cd: 1},
-    d: "A one-cell energy shield that IS the wall. Deploys on any held tile, occupies nothing in front. Absorbs one attack per turn and regenerates. Mobile.",
+    d: "A one-cell shield that is itself the wall. Absorbs one attack per turn, then regenerates.",
   },
   ronin: {
     n: "Ronin",
@@ -2001,7 +2047,7 @@ const POOL = {
     mob: 1,
     tg: "bothsides",
     dmg: 3,
-    d: "Twin blades. Cuts the cell directly ahead AND the cell directly behind in the same motion. Nothing flanks a Ronin.",
+    d: "Cuts ahead and behind in the same motion.",
   },
   naginata: {
     n: "Naginata",
@@ -2012,7 +2058,7 @@ const POOL = {
     mob: 1,
     tg: "ahead2",
     dmg: 2,
-    d: "Polearm reach. Strikes both cells one and two ahead. Cheap pressure that outranges a blade.",
+    d: "Polearm reach — it strikes the second cell as readily as the first.",
   },
   kunoichi: {
     n: "Kunoichi",
@@ -2024,7 +2070,7 @@ const POOL = {
     tg: "diag",
     dmg: 3,
     drop: 1,
-    d: "Deploys on ANY tile. Strikes only the four diagonals — blind to what is directly beside her, lethal to what is not.",
+    d: "Deploys on any tile. Blind to whatever stands directly beside her.",
   },
   herald: {
     n: "Herald",
@@ -2035,7 +2081,7 @@ const POOL = {
     mob: 1,
     tg: "none",
     laneB: 1,
-    d: "Battle standard. +1 damage to every friendly in the same lane. Pairs with Scout adjacency and Relay columns.",
+    d: "+1 damage to every friendly in the same lane.",
   },
   wall: {
     n: "Barricade",
@@ -2047,7 +2093,7 @@ const POOL = {
     tg: "none",
     blocker: 1,
     tech: 1,
-    d: "No weapon, no shield, no legs. Twelve hull that blocks the lane in both directions.",
+    d: "No weapon, no shield, no legs. Blocks the lane in both directions.",
   },
   supply: {
     n: "Supply Drone",
@@ -2059,7 +2105,7 @@ const POOL = {
     tg: "none",
     dpGain: 2,
     tech: 1,
-    d: "Drops a munitions pallet on landing: +2 deploy points immediately, so it pays for itself and then some. Worth most on an opening turn with points to spare.",
+    d: "Drops a munitions pallet on landing: +2 deploy points immediately.",
   },
   beacon: {
     n: "Drop Beacon",
@@ -2071,7 +2117,7 @@ const POOL = {
     tg: "none",
     claim: 3,
     tech: 1,
-    d: "Plants a landing marker that claims the three cells ahead of it the moment it touches down. Strongest while the middle of the field is still neutral.",
+    d: "Claims the three cells ahead of it the moment it lands.",
   },
   cache: {
     n: "Supply Cache",
@@ -2082,7 +2128,7 @@ const POOL = {
     instant: 1,
     gain: 3,
     tech: 1,
-    d: "Crack it open for 3 extra deploy points this turn — but the scramble costs you a card at random from your hand. Best on turn one when the hand is deep and the board is empty.",
+    d: "+3 deploy points this turn. The scramble costs you a card at random from your hand.",
     discard: 1,
   },
   shield: {
@@ -2103,7 +2149,7 @@ const POOL = {
     price: 145,
     attach: "cannon",
     tech: 1,
-    d: "Attach to a unit. It fires a second time each turn. Scales with whatever it is bolted to.",
+    d: "Attach to a unit. It fires a second time each turn.",
   },
   turret: {
     n: "Turret",
@@ -2116,7 +2162,7 @@ const POOL = {
     tg: "first",
     dmg: 2,
     tech: 1,
-    d: "Anchored. 2 damage to the first hostile in the lane. Eight hull, no legs.",
+    d: "Anchored. Eight hull, no legs.",
   },
   relay: {
     n: "Relay",
@@ -2140,7 +2186,7 @@ const POOL = {
     tg: "vert3",
     dmg: 3,
     tech: 1,
-    d: "Sweeps a vertical arc — three cells top to bottom in the column directly ahead. Hits across lanes without leaving its own.",
+    d: "Hits across lanes without leaving its own.",
   },
   pulse: {
     n: "Pulse Emitter",
@@ -2152,7 +2198,7 @@ const POOL = {
     tg: "around",
     dmg: 1,
     tech: 1,
-    d: "Anchored resonator. Pulses all eight surrounding cells for 1 every turn. Weak alone, brutal behind a wall.",
+    d: "Anchored resonator. Pulses every surrounding cell each turn.",
   },
   scrambler: {
     n: "Scrambler",
@@ -2164,7 +2210,7 @@ const POOL = {
     tg: "none",
     dampen: 1,
     tech: 1,
-    d: "Field disruptor. Every hostile in its lane deals 1 less damage. Does not stack with itself.",
+    d: "Every hostile in its lane deals 1 less damage. Does not stack with itself.",
   },
   battery: {
     n: "Lance Battery",
@@ -2177,7 +2223,7 @@ const POOL = {
     tg: "range3",
     dmg: 4,
     tech: 1,
-    d: "Anchored particle lance. 4 damage at exactly three cells — direct fire, so a blocker of yours cuts the beam.",
+    d: "Anchored particle lance. Direct fire — a blocker of yours cuts the beam.",
   },
   knight: {
     n: "Knight",
@@ -2192,7 +2238,7 @@ const POOL = {
     blocker: 1,
     regen: 1,
     riposte: 1,
-    d: "Shield and blade. Blocks the lane, regenerates its shield, and ripostes for 1 against anything that strikes it. Personnel — a Medic can patch it, a Tech Medic cannot.",
+    d: "Blocks the lane, regenerates its shield, and ripostes against anything that strikes it. Personnel — a Medic can patch it, a Tech Medic cannot.",
   },
   aegis: {
     n: "Aegis Knights",
@@ -2209,7 +2255,7 @@ const POOL = {
     regen: 1,
     riposte: 2,
     ab: {n: "Aegis Field", d: "Every friendly in this lane gains a shield this turn.", cd: 2},
-    d: "Armoured tech frames — two cells deep, eighteen hull, regenerating energy shields and swords. Seals a lane against chip damage indefinitely.",
+    d: "Two cells deep, with regenerating shields. Seals a lane against chip damage.",
   },
   biomed: {
     n: "Bio Medic",
@@ -2222,7 +2268,7 @@ const POOL = {
     hot: 2,
     healType: "common",
     healMode: "col",
-    d: "Healing over time. Applies regeneration to every Common unit in its column — 2 hull per turn, refreshed while it lives.",
+    d: "Applies regeneration to every Common unit in its column, refreshed while it lives.",
   },
   techmed: {
     n: "Tech Medic",
@@ -2241,7 +2287,7 @@ const POOL = {
       d: "Burst-repair every Tech unit in the column for 8 and restore broken shields.",
       cd: 2,
     },
-    d: "Burst repair. Trickles 2 per turn to Tech in its column, or dumps 8 at once on the ability.",
+    d: "Trickles repair into Tech in its column, or dumps it all at once on the ability.",
   },
   dragoon: {
     n: "Orbital Dragoon",
@@ -2259,7 +2305,7 @@ const POOL = {
       d: "Vault and strike any hostile exactly two cells away in any direction for 6.",
       cd: 2,
     },
-    d: "Strikes at a fixed range of two cells ahead for 4. Thrusters let it leap and hit anything two cells out in any direction.",
+    d: "Thrusters let it leap and strike anything two cells out, in any direction.",
   },
   railgun: {
     n: "Rail Sniper",
@@ -2272,7 +2318,7 @@ const POOL = {
     dmg: 3,
     burst: 4,
     pen: 1,
-    d: "Piercing shot down the entire lane, hitting every hostile in it and ignoring armour floors. 4 on play, then 3.",
+    d: "Pierces the whole lane, ignoring armour floors.",
   },
   hell: {
     n: "Hell Jumpers",
@@ -2286,7 +2332,7 @@ const POOL = {
     drop: 1,
     squad: 2,
     burstBlast: 3,
-    d: "Two pods dropped behind hostile lines, on ANY tile. Each strikes all eight surrounding cells for 2. Orbital impact damages on landing.",
+    d: "Two pods dropped on any tile, including hostile ground. Each damages on landing.",
   },
   plasma: {
     n: "Plasma Artillerist",
@@ -2299,7 +2345,7 @@ const POOL = {
     dmg: 3,
     indirect: 1,
     scorch: 1,
-    d: "Plasma barrage, 3x3 at exactly four cells. The plasma lingers two turns, burning anything standing in it and denying capture.",
+    d: "The plasma lingers two turns, burning anything standing in it and denying capture.",
   },
   exo: {
     n: "Exo Juggernaut",
@@ -2317,7 +2363,7 @@ const POOL = {
       d: "Barrel two cells forward. Anything struck takes 8 and is stunned for a turn.",
       cd: 2,
     },
-    d: "Explosive hammer in an exo frame. Twenty hull, 5 damage adjacent, and a charge that shatters whatever it collides with.",
+    d: "Twenty hull and a charge that shatters whatever it collides with.",
   },
   zaku: {
     n: "Fireteam Zaku",
@@ -2330,7 +2376,7 @@ const POOL = {
     dmg: 1,
     single: 1,
     squad: 2,
-    d: "Two bodies for one requisition. Neither will be missed and that is rather the point.",
+    d: "Two bodies from one requisition.",
   },
   cipher: {
     n: "Cipher",
@@ -2343,7 +2389,7 @@ const POOL = {
     dmg: 2,
     single: 1,
     swap: 1,
-    d: "Trades places with any friendly unit on the board, anywhere. Uses its action for the turn.",
+    d: "Trades places with any friendly unit on the board. Uses its action for the turn.",
   },
   engineer: {
     n: "Engineer",
@@ -2354,7 +2400,7 @@ const POOL = {
     mob: 1,
     tg: "none",
     techBuff: {dmg: 2, repair: 2},
-    d: "No weapon. The Tech unit directly ahead hits for +2 and repairs 2 hull every turn.",
+    d: "No weapon. The Tech unit directly ahead hits harder and repairs every turn.",
   },
   outrider: {
     n: "Outrider",
@@ -2368,7 +2414,7 @@ const POOL = {
     single: 1,
     charge: 2,
     push: 1,
-    d: "Charges two cells. Whatever it strikes takes the hit and is driven back a cell.",
+    d: "Charges two cells. Whatever it strikes is driven back a cell.",
   },
   fob: {
     n: "Forward Base",
@@ -2381,7 +2427,7 @@ const POOL = {
     tech: 1,
     zoneMin: 3,
     sustain: {repair: 2, cooldown: 1},
-    d: "Deploys only on ground you already hold, in columns three and beyond. Adjacent friendlies repair 2 per turn and cool down a turn faster. Immobile.",
+    d: "Deploys on held ground, in columns three and beyond. Adjacent friendlies repair and cool down faster. Immobile.",
   },
   mine: {
     n: "Minefield",
@@ -2395,7 +2441,7 @@ const POOL = {
     mine: 6,
     zoneMin: 3,
     anyGround: 1,
-    d: "Six damage to the first hostile that enters, then spent. Visible — hostiles route around mined lanes when they can.",
+    d: "Damages the first hostile that enters, then spent. Visible — hostiles route around it when they can.",
   },
   hecate: {
     n: "Hecate Platform",
@@ -2408,7 +2454,7 @@ const POOL = {
     dmg: 8,
     single: 1,
     recharge: 1,
-    d: "Reaches the furthest hostile on the board, any lane, for eight. Needs a turn to cycle — it cannot fire twice running.",
+    d: "Reaches any lane on the board. Needs a turn to cycle — it cannot fire twice running.",
   },
   dynamo: {
     n: "Dynamo",
@@ -2422,7 +2468,7 @@ const POOL = {
     dmg: 0,
     tech: 1,
     dynamo: 1,
-    d: "Generates +1 deploy point at the start of each turn while it stands, stacking up to +2. No weapon, thin hull — greed responsibly.",
+    d: "+1 deploy point at the start of each turn while it stands, stacking to +2. No weapon.",
   },
   ashigaru: {
     n: "Ashigaru Line",
@@ -2435,7 +2481,7 @@ const POOL = {
     tg: "first",
     dmg: 1,
     squad: 3,
-    d: "Three spear-levies drop from one requisition — thin alone, a wall in numbers.",
+    d: "Three spear-levies from one requisition.",
   },
   pikewall: {
     n: "Pike Wall",
@@ -2447,7 +2493,7 @@ const POOL = {
     tg: "ahead2",
     dmg: 2,
     blocker: 1,
-    d: "Braced spears that hold the ground they strike — reach and a body to back it, where a Naginata only has the reach.",
+    d: "Braced spears that hold the ground they strike.",
   },
   sentry: {
     n: "Sentry Ronin",
@@ -2460,7 +2506,7 @@ const POOL = {
     tg: "adj",
     dmg: 2,
     riposte: 2,
-    d: "No shield, no regeneration — just a blade that answers twice as hard as it is struck.",
+    d: "Answers twice as hard as it is struck.",
   },
   falconer: {
     n: "Falconer",
@@ -2472,7 +2518,7 @@ const POOL = {
     tg: "first",
     dmg: 1,
     draw: 1,
-    d: "Armed, unlike the Recon Lark — calls in one more card and can still hold a rifle.",
+    d: "Calls in one more card on deployment, and still carries a rifle.",
   },
   rampart: {
     n: "Rampart",
@@ -2486,7 +2532,7 @@ const POOL = {
     dmg: 1,
     blocker: 1,
     tech: 1,
-    d: "The paid middle ground between a free Barricade that cannot bite and a Bulwark that shields — nine hull, one gun, no drama.",
+    d: "Nine hull and one gun. Holds a lane without shielding it.",
   },
   piercer: {
     n: "Piercer Turret",
@@ -2500,7 +2546,7 @@ const POOL = {
     dmg: 5,
     pen: 1,
     tech: 1,
-    d: "Anchored railspike, fixed at exactly three cells. Armour floors mean nothing to it — a blocker of yours still cuts the beam.",
+    d: "Anchored railspike. Armour floors mean nothing to it; a blocker of yours still cuts the beam.",
   },
   suppressor: {
     n: "Suppressor",
@@ -2512,7 +2558,7 @@ const POOL = {
     tg: "none",
     dampen: 2,
     tech: 1,
-    d: "Field disruptor, twice over. Every hostile in its lane deals 2 less damage — a standalone answer where a Scrambler needed a second copy to match it.",
+    d: "Every hostile in its lane deals 2 less damage.",
   },
   reactor: {
     n: "Reactor Core",
@@ -2524,7 +2570,7 @@ const POOL = {
     tg: "none",
     dpGain: 5,
     tech: 1,
-    d: "The high-roll cousin of the Supply Drone — a bigger pallet, a thinner hull. Pays for itself and then some on an opening turn.",
+    d: "A bigger pallet than the Supply Drone, on a thinner hull.",
   },
   bore: {
     n: "Bore Lance",
@@ -2537,7 +2583,7 @@ const POOL = {
     dmg: 3,
     pen: 1,
     tech: 1,
-    d: "Tech Blade's vertical arc, anchored and armour-piercing. Trades the legs for a beam that ignores what a floor was supposed to stop.",
+    d: "Anchored and armour-piercing. Ignores what a floor was supposed to stop.",
   },
   kessen: {
     n: "Kessen Vanguard",
@@ -2550,7 +2596,7 @@ const POOL = {
     tg: "adj4",
     dmg: 6,
     drop: 1,
-    d: "Deploys on ANY tile. Six damage to one adjacent hostile in any direction — an Assassin's kit built for a Specialist's price.",
+    d: "Deploys on any tile, including hostile ground.",
   },
   ram: {
     n: "Thruster Ram",
@@ -2565,7 +2611,7 @@ const POOL = {
     blocker: 1,
     charge: 3,
     push: 1,
-    d: "Twice an Outrider's reach, and built to hold the ground it takes instead of riding through it.",
+    d: "Charges, then holds the ground it takes instead of riding through it.",
   },
   marshal: {
     n: "Field Marshal",
@@ -2577,7 +2623,7 @@ const POOL = {
     tg: "none",
     laneB: 2,
     col: 1,
-    d: "Command presence. The only card that buffs its lane and its column at once — a Herald and a Relay in one requisition.",
+    d: "Buffs its lane and its column at once.",
   },
   longshot: {
     n: "Longshot",
@@ -2589,7 +2635,7 @@ const POOL = {
     tg: "furthest",
     indirect: 1,
     dmg: 2,
-    d: "Hits the furthest hostile in the lane — through anything in the way. No burst, no mercy, just distance.",
+    d: "Reaches the furthest hostile in the lane, through anything in the way.",
   },
   sapper: {
     n: "Sapper Turret",
@@ -2600,7 +2646,7 @@ const POOL = {
     tg: "ahead2",
     drop: 1,
     dmg: 2,
-    d: "Deploys on ANY tile, including hostile ground. Strikes both cells ahead of wherever it lands — planted deep, it opens up on the hive's own rear.",
+    d: "Deploys on any tile, including hostile ground. Opens up on whatever is ahead of where it lands.",
   },
   rearguard: {
     n: "Rearguard",
@@ -2612,7 +2658,7 @@ const POOL = {
     mob: 1,
     tg: "rear",
     dmg: 3,
-    d: "Faces the wrong way on purpose. Strikes the nearest hostile BEHIND it in the lane, at any range — the only ranged answer to something already past your line.",
+    d: "Faces the wrong way on purpose. Strikes behind it at any range — the only ranged answer to something already past your line.",
   },
   backstop: {
     n: "Backstop Battery",
@@ -2623,7 +2669,7 @@ const POOL = {
     tech: 1,
     instant: 1,
     homestrike: 5,
-    d: "Calls one volley down across both home columns, every lane at once, for 5. Anything standing there breaches on the next step — this is the last word before it does. Fired once, then spent.",
+    d: "One volley across both home columns, every lane at once. Fired once, then spent.",
   },
 };
 
@@ -3173,7 +3219,8 @@ const BEST = {
     dmg: 2,
     threat: 1,
     spd: 2,
-    d: "Cheap, fast, endless. Moves two cells a turn and floods whatever lane you leave open.",
+    d: "Cheap, fast, endless. Floods whatever lane you leave open.",
+    counter: "Nothing clever kills it — just never leave a lane empty.",
   },
   breacher: {
     n: "Breacher",
@@ -3183,7 +3230,8 @@ const BEST = {
     threat: 3,
     spd: 1,
     hunts: 1,
-    d: "Prioritises Tech over personnel. Punishes Barricade and Turret spam.",
+    d: "Prioritises Tech over personnel.",
+    counter: "Punishes Barricade and Turret spam. Mix personnel into a Tech-heavy line.",
   },
   spitter: {
     n: "Spitter",
@@ -3193,7 +3241,8 @@ const BEST = {
     threat: 3,
     spd: 1,
     hold: 4,
-    d: "Stops at range four and fires down the lane. Outranges most of your roster. Punishes turtling.",
+    d: "Halts at column four and fires the length of the lane.",
+    counter: "Outranges most of your roster, so it punishes turtling. Reach it with indirect fire, or close the gap before it settles.",
   },
   burrower: {
     n: "Burrower",
@@ -3203,7 +3252,8 @@ const BEST = {
     threat: 3,
     spd: 1,
     emerge: 3,
-    d: "Emerges mid-board, behind your front line. Punishes over-committing forward.",
+    d: "Emerges mid-board, behind your front line.",
+    counter: "Punishes over-committing forward. Keep something that can turn around.",
   },
   hulk: {
     n: "Hulk",
@@ -3213,7 +3263,8 @@ const BEST = {
     threat: 4,
     spd: 0.5,
     floor: 1,
-    d: "Slow, heavy, reduces all incoming damage by 1. Punishes chip damage.",
+    d: "Slow and heavy. Reduces all incoming damage by 1.",
+    counter: "Punishes chip damage. Bring one big hit rather than many small ones.",
   },
   spore: {
     n: "Spore Node",
@@ -3224,6 +3275,7 @@ const BEST = {
     spd: 0,
     spawn: 2,
     d: "Immobile emplacement. Releases a Crawler every two turns and holds its tile until destroyed.",
+    counter: "Every turn it lives is another body. Kill it early or drown in them.",
   },
   pylon: {
     n: "Bulwark Pylon",
@@ -3234,6 +3286,7 @@ const BEST = {
     spd: 0,
     lanefloor: 1,
     d: "Immobile emplacement. +1 damage floor to every hostile in its lane.",
+    counter: "It makes chip damage worthless lane-wide. Armour-piercing ignores it entirely.",
   },
   jammer: {
     n: "Jammer",
@@ -3243,7 +3296,8 @@ const BEST = {
     threat: 4,
     spd: 0,
     jam: 1,
-    d: "Immobile emplacement. Blocks all indirect fire in its lane. Shuts off Mortar and Artillerist entirely.",
+    d: "Immobile emplacement. Blocks all indirect fire in its lane.",
+    counter: "Shuts off Mortar and Artillerist completely. Only direct fire answers it.",
   },
   harrower: {
     n: "Harrower",
@@ -3253,7 +3307,8 @@ const BEST = {
     threat: 7,
     spd: 1.5,
     tunnel: 1,
-    d: "Tunnels straight past blockers. Barricades and Bulwarks do not stop it.",
+    d: "Tunnels straight past blockers.",
+    counter: "Barricades and Bulwarks do not stop it. Kill it — do not try to wall it.",
   },
   chorus: {
     n: "Chorus",
@@ -3263,7 +3318,8 @@ const BEST = {
     threat: 8,
     spd: 0,
     aura: 1,
-    d: "Immobile at the far edge. +1 damage to every hostile on the board. Kill it first — if you can reach it.",
+    d: "Immobile at the far edge. +1 damage to every hostile on the board.",
+    counter: "Kill it first, if you can reach it. Hecate and Longshot can.",
   },
   sovereign: {
     n: "Sovereign",
@@ -3274,6 +3330,7 @@ const BEST = {
     spd: 0.5,
     convert: 1,
     d: "Moves every other turn. Every tile it crosses becomes hostile ground permanently.",
+    counter: "Ground it takes never comes back. Stop it early, far from your line.",
   },
   husk: {
     n: "Husk",
@@ -3283,7 +3340,8 @@ const BEST = {
     threat: 2,
     spd: 1,
     split: 2,
-    d: "Shambles forward and falls apart when destroyed — two Crawlers crawl out of the wreck. Kill it somewhere you can afford the mess.",
+    d: "Shambles forward and falls apart when destroyed — two Crawlers crawl out of the wreck.",
+    counter: "Kill it somewhere you can afford the mess.",
   },
   mender: {
     n: "Mender",
@@ -3293,7 +3351,8 @@ const BEST = {
     threat: 4,
     spd: 1,
     mend: 2,
-    d: "Carries no weapon. Advances with the horde and knits 2 hull back into the most wounded hostile in its lane every turn. Kill it first.",
+    d: "Carries no weapon. Knits 2 hull back into the most wounded hostile in its lane every turn.",
+    counter: "Kill it first, or nothing in that lane stays dead.",
   },
   screamer: {
     n: "Screamer",
@@ -3303,7 +3362,8 @@ const BEST = {
     threat: 7,
     spd: 1,
     deathrush: 1,
-    d: "Dies loudly. The scream sends every hostile on the board one step forward — time the kill, or the kill times you.",
+    d: "Dies loudly. The scream sends every hostile on the board one step forward.",
+    counter: "Time the kill, or the kill times you.",
   },
   puppeteer: {
     n: "Puppeteer",
@@ -3314,6 +3374,7 @@ const BEST = {
     spd: 0,
     mindctrl: 3,
     d: "Never moves. Every 3 turns it seizes the nearest unit in its lane, turning it against you until it breaks free or the Puppeteer dies.",
+    counter: "Keep your best unit out of its lane, or kill it before the third turn lands.",
   },
 };
 
@@ -4329,6 +4390,113 @@ function geomBase(u) {
     }
     default: return [];
   }
+}
+
+/**
+ * Every CELL this unit's weapon covers, occupied or not — the geometry itself
+ * rather than what happens to be standing in it.
+ *
+ * geomFor() answers "what do I hit"; this answers "where do I reach", which is
+ * what a player needs before anything walks into range. The board highlight and
+ * the card's hitbox diagram both read this, so a diagram cannot disagree with
+ * the board, and neither can disagree with geomFor() — the blocker and jam
+ * rules below are the same ones, in the same order.
+ *
+ * `at` overrides the unit's own square, so the diagram can render a pattern
+ * from a fixed origin without inventing a fake unit.
+ *
+ * @param {object} u
+ * @param {{lane:number, col:number}} [at]
+ * @returns {number[]} cell indices (lane * COLS + col)
+ */
+function geomCells(u, at) {
+  if (u.tg === 'none' || !u.dmg) return [];
+  const L = at ? at.lane : u.lane;
+  const col = at ? at.col : u.col;
+  const front = col + (u.size || 1) - 1;
+  // `at` means a hypothetical origin with no board behind it — the card's
+  // printed pattern, drawn on a card screen where no mission is running. There
+  // is nothing to be blocked by and nothing to be jammed by, and G may be null.
+  const live = !at && G;
+  if (live && u.indirect && laneJammed(L)) return [];
+
+  const out = [];
+  const add = (l, c) => {
+    if (l >= 0 && l < LANES && c >= 0 && c < COLS) out.push(l * COLS + c);
+  };
+  /** True once a friendly blocker of ours stands between `front` and `c`. */
+  const cutTo = c => {
+    if (!live || u.indirect) return false;
+    for (let x = front + 1; x <= c; x++) {
+      const f = unitAt(L, x);
+      if (f && f.blocker && f.uid !== u.uid) return true;
+    }
+    return false;
+  };
+  /** Same walk, backwards — laneBehind() stops at our own wall too. */
+  const cutBack = c => {
+    if (!live || u.indirect) return false;
+    for (let x = col - 1; x >= c; x--) {
+      const f = unitAt(L, x);
+      if (f && f.blocker && f.uid !== u.uid) return true;
+    }
+    return false;
+  };
+
+  switch (u.tg) {
+    // Board-wide: the whole grid is the search space.
+    case 'boardFurthest':
+      for (let l = 0; l < LANES; l++) for (let c = 0; c < COLS; c++) add(l, c);
+      break;
+    // Lane rays. `first` and `furthest` pick one body out of the same reach.
+    case 'first': case 'furthest': case 'lane':
+      for (let c = front + 1; c < COLS; c++) { if (cutTo(c)) break; add(L, c); }
+      break;
+    case 'rear':
+      for (let c = col - 1; c >= 0; c--) { if (cutBack(c)) break; add(L, c); }
+      break;
+    case 'adj': add(L, front + 1); break;
+    case 'ahead2':
+      for (let d = 1; d <= 2; d++) { if (cutTo(front + d)) break; add(L, front + d); }
+      break;
+    case 'ahead3':
+      for (let d = 1; d <= 3; d++) { if (cutTo(front + d)) break; add(L, front + d); }
+      break;
+    case 'range2': add(L, front + 2); break;
+    // Only a blocker strictly BETWEEN us and the target cuts this — one
+    // standing on the target square itself is not in the way. geomFor()
+    // draws the line the same place; the invariant guard holds us to it.
+    case 'range3': if (!cutTo(front + 2)) add(L, front + 3); break;
+    case 'blast4':
+      for (let l = L - 1; l <= L + 1; l++) for (let c = front + 3; c <= front + 5; c++) add(l, c);
+      break;
+    case 'around':
+      for (let l = L - 1; l <= L + 1; l++) for (let c = col - 1; c <= col + 1; c++) {
+        if (l !== L || c !== col) add(l, c);
+      }
+      break;
+    case 'bothsides': add(L, front + 1); add(L, col - 1); break;
+    case 'diag':
+      [[-1, -1], [-1, 1], [1, -1], [1, 1]].forEach(([dl, dc]) => add(L + dl, col + dc));
+      break;
+    case 'vert3':
+      for (let l = L - 1; l <= L + 1; l++) add(l, front + 1);
+      break;
+    case 'adj4':
+      [[0, 1], [0, -1], [-1, 0], [1, 0]].forEach(([dl, dc]) => add(L + dl, col + dc));
+      break;
+    case 'archer':
+      [[0, 1], [0, 2], [-1, -1], [1, -1]].forEach(([dl, dc]) => add(L + dl, col + dc));
+      break;
+    default: break;
+  }
+
+  // Rear Sights bolts the cell behind onto whatever the card already covers.
+  if (u.rearsight) {
+    const back = L * COLS + col - 1;
+    if (col - 1 >= 0 && !out.includes(back)) out.push(back);
+  }
+  return out;
 }
 
 /** Targets the player may choose between. Empty for multi-target cards. */
@@ -5406,6 +5574,166 @@ function bokehLayer(tint) {
   return h;
 }
 
+/* ==== src/render/hitbox.js ========================================== */
+// The hitbox diagram: a card's firing pattern drawn as cells, not described.
+//
+// "3x3 at exactly range 4" takes a re-read and still leaves you counting; the
+// diagram shows the gap in front of the blast at a glance. Every shape here is
+// generated by geomCells() — the same function the combat board highlights
+// from — so a diagram can never disagree with what the weapon actually does.
+//
+// Two patterns need a distinction the cells alone cannot carry. `first` and
+// `furthest` search the whole lane but strike one body out of it, so the reach
+// is drawn faint and the cell they settle on is drawn solid. Everything else
+// covers exactly what it lights.
+
+// A window wide enough for the deepest pattern (blast4 reaches +5) plus one
+// cell behind, and tall enough for the three lanes anything spans.
+const HB_COLS = 7;
+const HB_LANES = 3;
+const HB_ORIGIN = {lane: 1, col: 1};
+// Hostiles advance toward column 0, so their diagram reads right to left.
+const HB_FOE_ORIGIN = {lane: 1, col: 5};
+
+/** Patterns that hunt a target rather than covering fixed ground. */
+const HB_SEEKS = {first: 'nearest', furthest: 'deepest', lane: null, boardFurthest: 'deepest'};
+
+/**
+ * A card's pattern as cell offsets, built from the rules layer rather than
+ * restated here. Uses a board-sized origin so nothing clips at an edge, then
+ * re-bases onto the diagram window.
+ */
+function hbOffsets(id) {
+  const k = POOL[id];
+  const g = gearOf(id);
+  if (!k.tg || k.tg === 'none' || !k.dmg) return null;
+
+  // A stand-in with just the fields geomCells reads. Deliberately not mkUnit:
+  // the diagram is the card's printed pattern, not one unit's live situation.
+  const stub = {
+    tg: k.tg,
+    dmg: k.dmg,
+    size: k.size || 1,
+    indirect: !!k.indirect || !!(g && g.indirect),
+    rearsight: !!(g && g.rearsight),
+    uid: -1,
+  };
+  const mid = {lane: Math.floor(LANES / 2), col: 2};
+  return geomCells(stub, mid).map(i => [Math.floor(i / COLS) - mid.lane, (i % COLS) - mid.col]);
+}
+
+/**
+ * One diagram.
+ *
+ * `origin` moves the actor within the window — yours sits near the left with
+ * the board ahead of it, a hostile sits near the right, because that is the
+ * direction each of them faces. `hit`/`reach` name the fill classes so the
+ * hostile diagram reads magenta where a card's reads gold.
+ */
+function hbGrid(cells, opts = {}) {
+  const {
+    solid = null, self = 'me', cls = '',
+    origin = HB_ORIGIN, hit = 'hbhit', reach = 'hbreach',
+  } = opts;
+  const {infl = null} = opts;
+  const key = (l, c) => l + ',' + c;
+  const mark = list => new Set(list.map(([l, c]) => key(l + origin.lane, c + origin.col)));
+  const lit = mark(cells);
+  const hot = solid ? mark(solid) : null;
+  const aura = infl ? mark(infl) : null;
+
+  let h = '';
+  for (let l = 0; l < HB_LANES; l++) {
+    for (let c = 0; c < HB_COLS; c++) {
+      const at = key(l, c);
+      let cn = '';
+      if (l === origin.lane && c === origin.col) cn = self;
+      else if (hot && hot.has(at)) cn = hit;
+      else if (lit.has(at)) cn = hot ? reach : hit;
+      else if (aura && aura.has(at)) cn = 'hbinfl';
+      h += `<i class="${cn}"></i>`;
+    }
+  }
+  return `<div class="hb${cls ? ' ' + cls : ''}" aria-hidden="true">${h}</div>`;
+}
+
+/**
+ * The range block for a card's focus view, or '' when it has no weapon.
+ * @param {string} id card id
+ */
+function hitboxFor(id) {
+  const offs = hbOffsets(id);
+  if (!offs || !offs.length) return '';
+  const k = POOL[id];
+  const seek = HB_SEEKS[k.tg];
+
+  // A seeking pattern settles on one cell out of its reach: draw that one
+  // solid so "searches here, strikes there" reads without a caption.
+  let solid = null;
+  if (seek) {
+    const inLane = offs.filter(([l]) => l === 0);
+    const pick = seek === 'nearest'
+      ? inLane.reduce((a, b) => (a && a[1] <= b[1] ? a : b), null)
+      : inLane.reduce((a, b) => (a && a[1] >= b[1] ? a : b), null);
+    if (pick) solid = [pick];
+  }
+
+  const label = k.tg === 'boardFurthest' ? 'Any lane'
+    : seek ? (seek === 'nearest' ? 'Nearest in lane' : 'Deepest in lane')
+      : `${offs.length} tile${offs.length > 1 ? 's' : ''}`;
+
+  return `<div class="frange">${hbGrid(offs, {solid})}
+    <div class="rl"><b>Reach</b><span>${label}</span></div></div>`;
+}
+
+/**
+ * The same block for a hostile. They carry no `tg` at all — their threat is
+ * where they strike, how fast they close, and what their presence does to the
+ * lane — so this reads right to left, the way they come.
+ */
+function hitboxForFoe(kid) {
+  const D = BEST[kid];
+  const ranged = D.hold !== undefined;
+  const cells = [];   // threatened ground
+  const solid = [];   // struck this turn
+  const infl = [];    // a standing effect, not an attack
+
+  if (D.dmg) {
+    if (ranged) {
+      // Halts at a column and fires the length of the lane behind it.
+      for (let c = 1; c <= HB_FOE_ORIGIN.col; c++) cells.push([0, -c]);
+      solid.push([0, -1]);
+    } else {
+      solid.push([0, -1]);
+      const steps = Math.max(1, Math.floor(D.spd || 0));
+      for (let d = 1; d <= steps; d++) cells.push([0, -d]);
+    }
+  }
+
+  const left = -HB_FOE_ORIGIN.col;
+  const right = HB_COLS - 1 - HB_FOE_ORIGIN.col;
+  // The Chorus buffs every hostile alive, so its reach is the board, not a
+  // lane — the one hostile whose effect the lane treatment would understate.
+  if (D.aura) {
+    for (let l = -1; l <= 1; l++) for (let c = left; c <= right; c++) if (l || c) infl.push([l, c]);
+  } else if (D.lanefloor || D.jam || D.mend || D.mindctrl || D.spawn) {
+    for (let c = left; c <= right; c++) if (c !== 0) infl.push([0, c]);
+  }
+
+  if (!cells.length && !solid.length && !infl.length) return '';
+  const label = D.aura ? 'Every hostile alive'
+    : ranged ? 'Whole lane, from cover'
+      : D.dmg ? (D.spd >= 2 ? 'Ahead, two cells a turn' : 'The cell ahead')
+        : 'Its whole lane';
+
+  return `<div class="frange">${hbGrid(cells, {
+    solid: solid.length ? solid : null,
+    infl: infl.length ? infl : null,
+    self: 'hbfoe', origin: HB_FOE_ORIGIN, hit: 'hbstrike', reach: 'hbthreat',
+  })}
+    <div class="rl"><b style="color:#ff8fb5">Reach</b><span>${label}</span></div></div>`;
+}
+
 /* ==== src/render/focus.js =========================================== */
 // The enlarged card view: full stats, gear fitting, and buy/add actions.
 
@@ -5424,21 +5752,25 @@ function closeFocus() {
   $('fbg').innerHTML = '';
 }
 
-/** Every stat row worth showing for this card, skipping the ones it lacks. */
+/**
+ * Every stat row worth showing for this card, skipping the ones it lacks.
+ *
+ * Deploy cost, hull and class are deliberately absent: all three are already
+ * printed on the card above this block — the cost badge, the HULL readout on
+ * the art, and the subtitle — and repeating them was the bulk of the noise.
+ * Footprint only appears when it is not the 1 cell 59 of 62 cards occupy, and
+ * targeting is gone entirely in favour of the diagram, which says it better.
+ */
 function statRows(id) {
   const k = POOL[id];
   const g = gearOf(id);
   return [
-    ['Deploy cost', costOf(id) + ' DP' + (g && g.dp ? ' (geared)' : '')],
-    k.hp ? ['Hull', k.hp + (g && g.hp ? ' +' + g.hp : '')] : null,
-    ['Class', TIERNAME[k.t]],
-    // An instant never lands, so it has neither of these to report.
-    k.instant ? null : ['Footprint', k.size > 1 ? '2 cells' : k.attach ? 'Attachment' : '1 cell'],
-    k.instant ? null : ['Mobility', k.attach ? '—' : k.mob ? (g && g.servo ? 'Mobile · fires while moving' : 'Mobile') : 'Anchored'],
+    // Only worth a row when the geared cost differs from the printed one.
+    (g && g.dp) ? ['Deploy cost', costOf(id) + ' DP (geared)'] : null,
+    (k.hp && g && g.hp) ? ['Hull', k.hp + ' +' + g.hp] : null,
+    // An instant never lands, so it has no footprint to report.
+    (!k.instant && (k.size > 1 || k.attach)) ? ['Footprint', k.size > 1 ? '2 cells' : 'Attachment'] : null,
     k.dmg ? ['Damage', (k.dmg + (g && g.dmg ? g.dmg : 0)) + (k.burst ? ` (${k.burst} on play)` : '')] : null,
-    k.tg && k.tg !== 'none' ? ['Targeting', TGNAME[k.tg] || k.tg] : null,
-    (k.indirect || (g && g.indirect)) ? ['Line of fire', 'Indirect — fires over blockers'] : null,
-    g && g.rearsight ? ['Rear guard', 'Also strikes the cell directly behind'] : null,
     k.recharge ? ['Rate of fire', 'Every other turn — needs a turn to cycle'] : null,
     k.charge ? ['Charge', `Moves up to ${k.charge} cells forward`] : null,
     k.push ? ['On hit', 'Drives the survivor back one cell'] : null,
@@ -5461,6 +5793,21 @@ function statRows(id) {
     g && g.crush ? ['Deployment', 'Onto a hostile — crushes it outright'] : null,
     (k.heal || k.hot) ? ['Support', 'Heals ' + (k.healType === 'tech' ? 'Tech' : 'Common') + ' units'] : null,
   ].filter(Boolean);
+}
+
+/** Yes/no facts read better as chips than as a row each. */
+function cardChips(id) {
+  const k = POOL[id];
+  const g = gearOf(id);
+  const out = [];
+  if (k.indirect || (g && g.indirect)) out.push(['hot', 'Indirect']);
+  if (g && g.rearsight) out.push(['hot', 'Rear guard']);
+  if (k.instant) out.push(['gold', 'Instant']);
+  if (k.drop) out.push(['', 'Any tile']);
+  if (k.blocker) out.push(['', 'Blocker']);
+  if (!out.length) return '';
+  return `<div class="tagrow">${out
+    .map(([c, t]) => `<span class="tag${c ? ' ' + c : ''}">${t}</span>`).join('')}</div>`;
 }
 
 function actionsFor(id, mode) {
@@ -5545,13 +5892,21 @@ function focusCard(id, mode) {
         ${v.t ? `<div class="pips big">${'◆'.repeat(v.t)}</div>` : ''}
         ${k.hp ? `<div class="fhp">${k.hp + (g && g.hp ? g.hp : 0)} HULL</div>` : ''}</div>
       <div class="fname">${k.n}</div>
-      <div class="ftype">${TIERNAME[k.t]}${k.attach ? ' · Attachment' : ''}${g ? ' · ' + g.n : ''}</div>
+      <div class="ftype">${TIERNAME[k.t]}${k.instant ? '' : ' · ' + (k.attach ? 'Attachment'
+    : k.mob ? (g && g.servo ? 'Mobile · fires moving' : 'Mobile') : 'Anchored')}${g ? ' · ' + g.n : ''}</div>
+      ${cardChips(id)}
       <div class="vetbar"><div class="vlab"><span style="color:${v.col}">${v.n}</span>
         <span>${v.u} deployments${v.next ? ` · ${v.next - v.u} to ${VET[v.t + 1].n}` : ' · max rank'}</span></div>
         <div class="vtrack"><i style="width:${progress}%;background:${v.col}"></i></div></div>
       <div class="ftxt">${k.d}</div>
-      <div class="fstats">${statRows(id).map(([a, b]) =>
-        `<div class="fstat"><span class="k">${a}</span><span class="v">${b}</span></div>`).join('')}</div>
+      ${hitboxFor(id)}
+      ${(() => {
+    // With the duplicated rows gone, plenty of cards have nothing left to
+    // list. Emit no block at all rather than an empty bordered box.
+    const rows = statRows(id);
+    return rows.length ? `<div class="fstats">${rows.map(([a, b]) =>
+      `<div class="fstat"><span class="k">${a}</span><span class="v">${b}</span></div>`).join('')}</div>` : '';
+  })()}
       ${k.ab ? `<div class="fab"><b>Ability · ${k.ab.n}${k.ab.cd ? ` · ${k.ab.cd} turn cooldown` : ''}</b>${k.ab.d}</div>` : ''}
       ${gearBlock(id, mode)}
     </div><div class="facts">${actionsFor(id, mode)}</div>`;
@@ -5565,8 +5920,12 @@ function focusCard(id, mode) {
 
 function focusEnemy(id) {
   const b = BEST[id];
-  const stats = [['Hull', b.hp], ['Damage', b.dmg || '—'], ['Threat value', b.threat],
-    ['Speed', b.spd === 0 ? 'Immobile' : b.spd + ' cells / turn'], ['Class', TIERNAME[b.t]]];
+  // Hull, threat and class are already on the art and the subtitle above —
+  // same duplication the cards carried, cut the same way.
+  const stats = [
+    ['Damage', b.dmg || '—'],
+    b.floor ? ['Armour', `−${b.floor} from every hit`] : null,
+  ].filter(Boolean);
 
   $('fwrap').innerHTML = `<div class="fcard t-${b.t}" style="border-color:var(--mag);box-shadow:0 0 60px rgba(255,77,143,.3)">
       <div class="fart" style="background:radial-gradient(ellipse at 50% 118%,#5a1233 0%,#0b0918 74%)">
@@ -5574,9 +5933,13 @@ function focusEnemy(id) {
         <div class="fcost" style="background:var(--mag);color:#1a0510">${b.threat}</div>
         <div class="fhp" style="color:var(--mag)">${b.hp} HULL</div></div>
       <div class="fname" style="color:#ff8fb5">${b.n}</div>
-      <div class="ftype">Hostile · ${TIERNAME[b.t]}</div><div class="ftxt">${b.d}</div>
-      <div class="fstats">${stats.map(([a, c]) =>
-        `<div class="fstat"><span class="k">${a}</span><span class="v" style="color:#ff8fb5">${c}</span></div>`).join('')}</div>
+      <div class="ftype">Hostile · ${TIERNAME[b.t]} · ${b.spd === 0 ? 'Immobile'
+    : b.spd === 0.5 ? 'Every other turn' : b.spd + ' / turn'}</div>
+      <div class="ftxt">${b.d}</div>
+      ${hitboxForFoe(id)}
+      ${stats.length ? `<div class="fstats">${stats.map(([a, c]) =>
+    `<div class="fstat"><span class="k">${a}</span><span class="v" style="color:#ff8fb5">${c}</span></div>`).join('')}</div>` : ''}
+      ${b.counter ? `<div class="fab"><b>Counter</b>${b.counter}</div>` : ''}
     </div><div class="facts"><button class="btn ghost" data-close="1">Close</button></div>`;
   $('fbg').innerHTML = bokehLayer(['#ff4d8f', '#9d6bff', '#c23a5e']);
   $('focus').classList.add('on');
@@ -8531,6 +8894,69 @@ function enemyIntent(e) {
   return {k: 'advance', steps: Math.max(1, Math.floor((e.mv || 0) + D.spd))};
 }
 
+/**
+ * What a selected hostile threatens, for the board highlight.
+ *
+ * Reads the same decision enemyIntent() makes — strike versus advance — and
+ * turns it into ground rather than a word, so the two can never disagree about
+ * what a hostile is about to do.
+ *
+ *   strike  the cell it hits this turn
+ *   threat  ground it can reach: the lane it fires down, or the cells it
+ *           crosses closing in. Putting a unit anywhere in here changes who
+ *           gets hit, which is exactly what the player needs to see.
+ *   infl    its standing effect on the lane (armour, jamming, healing, seizing)
+ *
+ * @returns {{strike:number[], threat:number[], infl:number[]}} cell indices
+ */
+function foeThreatCells(e) {
+  const D = BEST[e.k];
+  const strike = [];
+  const threat = [];
+  const infl = [];
+  const idx = (l, c) => l * COLS + c;
+
+  // Emplacements project a lane, not a step. The Chorus is the exception —
+  // its aura is the whole board, which no highlight can usefully draw.
+  if (D.lanefloor || D.jam || D.mend || D.mindctrl) {
+    for (let c = 0; c < COLS; c++) infl.push(idx(e.lane, c));
+  }
+  if (e.stun || !D.dmg) return {strike, threat, infl};
+
+  // strike() walks back down the lane for the first body standing in it.
+  let hit = null;
+  for (let c = e.col - 1; c >= 0; c--) {
+    if (unitAt(e.lane, c) || civAt(e.lane, c)) { hit = c; break; }
+  }
+
+  // Ranged hostiles hold at a column and fire the length of the lane, so the
+  // whole lane behind them is live — not just the body currently in front.
+  if (D.hold !== undefined && e.col <= D.hold) {
+    for (let c = e.col - 1; c >= 0; c--) threat.push(idx(e.lane, c));
+    if (hit !== null) strike.push(idx(e.lane, hit));
+    return {strike, threat, infl};
+  }
+
+  const ahead = e.col - 1;
+  const au = ahead >= 0 ? unitAt(e.lane, ahead) : null;
+  const blocked = ahead >= 0 && ((au && !D.tunnel && !au.mine) || civAt(e.lane, ahead));
+  const queued = ahead >= 0 && foeAt(e.lane, ahead);
+  if (blocked || queued) {
+    if (hit !== null) strike.push(idx(e.lane, hit));
+    return {strike, threat, infl};
+  }
+
+  // Otherwise it closes. Show the ground it crosses, stopping where it would.
+  const steps = Math.max(1, Math.floor((e.mv || 0) + D.spd));
+  for (let d = 1; d <= steps; d++) {
+    const c = e.col - d;
+    if (c < 0 || c === hit) break;
+    if (foeAt(e.lane, c)) break;
+    threat.push(idx(e.lane, c));
+  }
+  return {strike, threat, infl};
+}
+
 /** Cells this unit is helping — buffs, heals, regeneration. Rendered blue. */
 function supportTargets(u) {
   const out = [];
@@ -9468,6 +9894,17 @@ function drawActions() {
     secondary.onclick = () => focusCard(mover.id, 'info');
     return;
   }
+  // A selected hostile gets the same two controls a unit does — the grid
+  // obeys one rule for both sides.
+  if (foeSel) {
+    primary.className = 'btn danger';
+    primary.textContent = 'Deselect hostile';
+    primary.onclick = () => { setFoeSel(null); drawAll(); };
+    secondary.className = 'btn ghost';
+    secondary.textContent = 'View card';
+    secondary.onclick = () => focusEnemy(foeSel.k);
+    return;
+  }
   primary.className = 'btn';
   primary.textContent = replaying ? 'Resolving…' : 'End turn';
   primary.onclick = () => { sfx('confirm'); endTurn(); };
@@ -9536,6 +9973,35 @@ function drawSel() {
 
     const b = el.querySelector('[data-useab]');
     if (b && !u.cd) b.onclick = () => doAbility(u);
+    return;
+  }
+
+  if (foeSel) {
+    const e = foeSel;
+    const D = BEST[e.k];
+    const t = foeThreatCells(e);
+    const hitCell = t.strike.length ? t.strike[0] : null;
+    const victim = hitCell === null ? null : unitAt(Math.floor(hitCell / COLS), hitCell % COLS);
+    const dmg = Math.max(1, (D.dmg || 0) +
+      (G.enemies.some(o => BEST[o.k].aura) ? 1 : 0) - eventStrikeMalus());
+    const speed = D.spd === 0 ? 'Immobile' : D.spd === 0.5 ? 'Every other turn' : D.spd + ' / turn';
+
+    const verdict = e.stun ? 'Stunned — it does nothing this turn.'
+      : hitCell !== null ? `Will strike ${victim ? victim.n : 'the line'} for <b>${dmg}</b>`
+        : t.threat.length ? `Closes <b>${t.threat.length}</b> cell${t.threat.length > 1 ? 's' : ''} — nothing in reach yet`
+          : D.dmg ? 'Holds — nothing to strike' : 'Carries no weapon';
+
+    el.innerHTML = `<div class="selhead"><b style="color:var(--mag)">${D.n}</b>
+        <span class="hpbadge">${e.hp}/${D.hp}</span></div>
+      <div class="hpbar"><i style="width:${Math.max(0, e.hp / D.hp * 100)}%;background:var(--mag)"></i></div>
+      <div class="selgrid">
+        <div><span>Damage</span><b>${D.dmg || '—'}</b></div>
+        <div><span>Speed</span><b>${speed}</b></div>
+        <div><span>Threatens</span><b>${t.threat.length + t.strike.length} tiles</b></div>
+        ${D.floor ? `<div><span>Armour</span><b>−${D.floor} taken</b></div>` : ''}
+      </div>
+      <div class="selfire ${hitCell !== null ? 'live' : 'dead'}">${verdict}</div>
+      <div class="hintline">${D.d}</div>`;
     return;
   }
 
@@ -9622,6 +10088,20 @@ function drawBoard() {
     targetsFor(mover).forEach(e => willHit.add(e.lane * COLS + e.col));
     (mover.single ? candidatesFor(mover) : geomFor(mover)).forEach(e => aimable.add(e.lane * COLS + e.col));
   }
+  // Cyan = every cell the weapon covers, occupied or not. Without this a
+  // weapon aimed at empty ground shows nothing until something walks into
+  // it — one turn too late to plan around.
+  const inRange = new Set(mover ? geomCells(mover) : []);
+  // The mirror for a selected hostile: what it threatens, and what it hits.
+  const foeStrike = new Set();
+  const foeThreat = new Set();
+  const foeInfl = new Set();
+  if (foeSel) {
+    const t = foeThreatCells(foeSel);
+    t.strike.forEach(i => foeStrike.add(i));
+    t.threat.forEach(i => foeThreat.add(i));
+    t.infl.forEach(i => foeInfl.add(i));
+  }
   const buffed = new Set();
   const influenced = new Set();
   if (mover) {
@@ -9657,6 +10137,11 @@ function drawBoard() {
     if (stratDef && (stratDef.target === 'lane' || stratDef.target === 'column' ||
       (stratDef.target === 'friendly' && unitAt(l, c)))) cls += ' strattgt';
     if (mover && mover.lane === l && mover.col === c) cls += ' movesel';
+    if (inRange.has(i)) cls += ' inrange';
+    if (foeInfl.has(i)) cls += ' foeinfl';
+    if (foeThreat.has(i)) cls += ' foethreat';
+    if (foeStrike.has(i)) cls += ' foestrike';
+    if (foeSel && foeSel.lane === l && foeSel.col === c) cls += ' foesel';
     if (willHit.has(i)) cls += ' willhit';
     if (buffed.has(i)) cls += ' buffed';
     if (influenced.has(i)) cls += ' influence';
@@ -9684,7 +10169,11 @@ function drawBoard() {
       cell.innerHTML = marker + unitMarkup(u, incoming);
       if (!sel && !G.over && !u.acted && !u.controlled) {
         cell.classList.add('clickable');
-        cell.onclick = () => { setMover(mover && mover.uid === u.uid ? null : u); drawAll(); };
+        cell.onclick = () => {
+          setFoeSel(null);
+          setMover(mover && mover.uid === u.uid ? null : u);
+          drawAll();
+        };
       }
     } else if (u) {
       // The trailing half of a two-cell unit.
@@ -9702,8 +10191,18 @@ function drawBoard() {
       const locked = G.units.some(x => x.tgt === e.uid);
       cell.innerHTML = marker + foeMarkup(e, locked);
       cell.classList.add('clickable');
+      // Attacking still wins: with a unit selected, a hostile already in its
+      // sights is a target, not a thing to inspect. Selection is what a tap
+      // means only when there is no shot to take.
       if (aimable.has(i) && mover && !mover.acted) cell.onclick = () => { sfx('zap'); doAttack(mover, e); };
-      else cell.onclick = () => focusEnemy(e.k);
+      else {
+        cell.onclick = () => {
+          setMover(null);
+          setSel(null);
+          setFoeSel(foeSel && foeSel.uid === e.uid ? null : e);
+          drawAll();
+        };
+      }
     } else {
       const rubble = owner === 'x' ? G.rubble[l + ',' + c] : null;
       cell.innerHTML = marker + (rubble ? `<span class="ttl">${rubble}</span>` : '');
@@ -9739,7 +10238,7 @@ function drawBoard() {
     else if (moves.includes(i)) cell.onclick = () => { sfx('move'); doMove(mover, l, c); };
     else if (swaps.includes(i)) cell.onclick = () => { sfx('move'); doSwap(mover, l, c); };
     else if (!cell.onclick && (sel || mover)) {
-      cell.onclick = () => { setSel(null); setMover(null); drawAll(); };
+      cell.onclick = () => { setSel(null); setMover(null); setFoeSel(null); drawAll(); };
     }
 
     board.appendChild(cell);

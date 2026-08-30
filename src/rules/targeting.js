@@ -9,7 +9,7 @@
 // single-target cards resolve to one, honouring a manual lock if it is still
 // standing and falling back to the first candidate if it is not.
 
-import {COLS} from '../state/constants.js';
+import {COLS, LANES} from '../state/constants.js';
 import {BEST} from '../content/hostiles.js';
 import {G} from '../state/session.js';
 import {unitAt} from './board.js';
@@ -129,6 +129,113 @@ function geomBase(u) {
     }
     default: return [];
   }
+}
+
+/**
+ * Every CELL this unit's weapon covers, occupied or not — the geometry itself
+ * rather than what happens to be standing in it.
+ *
+ * geomFor() answers "what do I hit"; this answers "where do I reach", which is
+ * what a player needs before anything walks into range. The board highlight and
+ * the card's hitbox diagram both read this, so a diagram cannot disagree with
+ * the board, and neither can disagree with geomFor() — the blocker and jam
+ * rules below are the same ones, in the same order.
+ *
+ * `at` overrides the unit's own square, so the diagram can render a pattern
+ * from a fixed origin without inventing a fake unit.
+ *
+ * @param {object} u
+ * @param {{lane:number, col:number}} [at]
+ * @returns {number[]} cell indices (lane * COLS + col)
+ */
+export function geomCells(u, at) {
+  if (u.tg === 'none' || !u.dmg) return [];
+  const L = at ? at.lane : u.lane;
+  const col = at ? at.col : u.col;
+  const front = col + (u.size || 1) - 1;
+  // `at` means a hypothetical origin with no board behind it — the card's
+  // printed pattern, drawn on a card screen where no mission is running. There
+  // is nothing to be blocked by and nothing to be jammed by, and G may be null.
+  const live = !at && G;
+  if (live && u.indirect && laneJammed(L)) return [];
+
+  const out = [];
+  const add = (l, c) => {
+    if (l >= 0 && l < LANES && c >= 0 && c < COLS) out.push(l * COLS + c);
+  };
+  /** True once a friendly blocker of ours stands between `front` and `c`. */
+  const cutTo = c => {
+    if (!live || u.indirect) return false;
+    for (let x = front + 1; x <= c; x++) {
+      const f = unitAt(L, x);
+      if (f && f.blocker && f.uid !== u.uid) return true;
+    }
+    return false;
+  };
+  /** Same walk, backwards — laneBehind() stops at our own wall too. */
+  const cutBack = c => {
+    if (!live || u.indirect) return false;
+    for (let x = col - 1; x >= c; x--) {
+      const f = unitAt(L, x);
+      if (f && f.blocker && f.uid !== u.uid) return true;
+    }
+    return false;
+  };
+
+  switch (u.tg) {
+    // Board-wide: the whole grid is the search space.
+    case 'boardFurthest':
+      for (let l = 0; l < LANES; l++) for (let c = 0; c < COLS; c++) add(l, c);
+      break;
+    // Lane rays. `first` and `furthest` pick one body out of the same reach.
+    case 'first': case 'furthest': case 'lane':
+      for (let c = front + 1; c < COLS; c++) { if (cutTo(c)) break; add(L, c); }
+      break;
+    case 'rear':
+      for (let c = col - 1; c >= 0; c--) { if (cutBack(c)) break; add(L, c); }
+      break;
+    case 'adj': add(L, front + 1); break;
+    case 'ahead2':
+      for (let d = 1; d <= 2; d++) { if (cutTo(front + d)) break; add(L, front + d); }
+      break;
+    case 'ahead3':
+      for (let d = 1; d <= 3; d++) { if (cutTo(front + d)) break; add(L, front + d); }
+      break;
+    case 'range2': add(L, front + 2); break;
+    // Only a blocker strictly BETWEEN us and the target cuts this — one
+    // standing on the target square itself is not in the way. geomFor()
+    // draws the line the same place; the invariant guard holds us to it.
+    case 'range3': if (!cutTo(front + 2)) add(L, front + 3); break;
+    case 'blast4':
+      for (let l = L - 1; l <= L + 1; l++) for (let c = front + 3; c <= front + 5; c++) add(l, c);
+      break;
+    case 'around':
+      for (let l = L - 1; l <= L + 1; l++) for (let c = col - 1; c <= col + 1; c++) {
+        if (l !== L || c !== col) add(l, c);
+      }
+      break;
+    case 'bothsides': add(L, front + 1); add(L, col - 1); break;
+    case 'diag':
+      [[-1, -1], [-1, 1], [1, -1], [1, 1]].forEach(([dl, dc]) => add(L + dl, col + dc));
+      break;
+    case 'vert3':
+      for (let l = L - 1; l <= L + 1; l++) add(l, front + 1);
+      break;
+    case 'adj4':
+      [[0, 1], [0, -1], [-1, 0], [1, 0]].forEach(([dl, dc]) => add(L + dl, col + dc));
+      break;
+    case 'archer':
+      [[0, 1], [0, 2], [-1, -1], [1, -1]].forEach(([dl, dc]) => add(L + dl, col + dc));
+      break;
+    default: break;
+  }
+
+  // Rear Sights bolts the cell behind onto whatever the card already covers.
+  if (u.rearsight) {
+    const back = L * COLS + col - 1;
+    if (col - 1 >= 0 && !out.includes(back)) out.push(back);
+  }
+  return out;
 }
 
 /** Targets the player may choose between. Empty for multi-target cards. */

@@ -11,19 +11,19 @@ import {MISSIONS} from '../content/missions.js';
 import {MODS} from '../content/modifiers.js';
 import {DOCTRINE} from '../content/doctrines.js';
 import {TGNAME} from '../content/targeting-names.js';
-import {G, active, sel, mover, replaying, stratSel, handOpen, setSel, setMover, setStratSel, setHandOpen} from '../state/session.js';
+import {G, active, sel, mover, foeSel, replaying, stratSel, handOpen, setSel, setMover, setFoeSel, setStratSel, setHandOpen} from '../state/session.js';
 import {STRATAGEMS} from '../content/stratagems.js';
 import {stratReady, canPlayStratagem, playStratagem, stratMarkers} from '../rules/stratagems.js';
 import {costOf, gearOf, vetOf, leadOf} from '../save/progression.js';
 import {unitAt, foeAt, civAt, held, scorched, validTiles, breachAllowance} from '../rules/board.js';
-import {geomFor, candidatesFor, targetsFor} from '../rules/targeting.js';
+import {geomFor, geomCells, candidatesFor, targetsFor} from '../rules/targeting.js';
 import {buffOf, dmgPreview} from '../rules/units.js';
 import {moveTargets, doMove, doAttack, doAbility, swapTargets, doSwap} from '../rules/actions.js';
 import {deploy} from '../rules/deploy.js';
 import {endTurn} from '../rules/phases.js';
 import {objText, abortMission} from '../rules/mission.js';
-import {forecastThreat, enemyIntent, supportTargets, influenceCells, supportLabel} from '../rules/forecast.js';
-import {EVENTS} from '../rules/events.js';
+import {forecastThreat, foeThreatCells, enemyIntent, supportTargets, influenceCells, supportLabel} from '../rules/forecast.js';
+import {EVENTS, eventStrikeMalus} from '../rules/events.js';
 import {$, show} from './dom.js';
 import {portrait, artFor} from './art.js';
 import {ask, notify} from './dialog.js';
@@ -119,6 +119,17 @@ export function drawActions() {
     secondary.onclick = () => focusCard(mover.id, 'info');
     return;
   }
+  // A selected hostile gets the same two controls a unit does — the grid
+  // obeys one rule for both sides.
+  if (foeSel) {
+    primary.className = 'btn danger';
+    primary.textContent = 'Deselect hostile';
+    primary.onclick = () => { setFoeSel(null); drawAll(); };
+    secondary.className = 'btn ghost';
+    secondary.textContent = 'View card';
+    secondary.onclick = () => focusEnemy(foeSel.k);
+    return;
+  }
   primary.className = 'btn';
   primary.textContent = replaying ? 'Resolving…' : 'End turn';
   primary.onclick = () => { sfx('confirm'); endTurn(); };
@@ -187,6 +198,35 @@ function drawSel() {
 
     const b = el.querySelector('[data-useab]');
     if (b && !u.cd) b.onclick = () => doAbility(u);
+    return;
+  }
+
+  if (foeSel) {
+    const e = foeSel;
+    const D = BEST[e.k];
+    const t = foeThreatCells(e);
+    const hitCell = t.strike.length ? t.strike[0] : null;
+    const victim = hitCell === null ? null : unitAt(Math.floor(hitCell / COLS), hitCell % COLS);
+    const dmg = Math.max(1, (D.dmg || 0) +
+      (G.enemies.some(o => BEST[o.k].aura) ? 1 : 0) - eventStrikeMalus());
+    const speed = D.spd === 0 ? 'Immobile' : D.spd === 0.5 ? 'Every other turn' : D.spd + ' / turn';
+
+    const verdict = e.stun ? 'Stunned — it does nothing this turn.'
+      : hitCell !== null ? `Will strike ${victim ? victim.n : 'the line'} for <b>${dmg}</b>`
+        : t.threat.length ? `Closes <b>${t.threat.length}</b> cell${t.threat.length > 1 ? 's' : ''} — nothing in reach yet`
+          : D.dmg ? 'Holds — nothing to strike' : 'Carries no weapon';
+
+    el.innerHTML = `<div class="selhead"><b style="color:var(--mag)">${D.n}</b>
+        <span class="hpbadge">${e.hp}/${D.hp}</span></div>
+      <div class="hpbar"><i style="width:${Math.max(0, e.hp / D.hp * 100)}%;background:var(--mag)"></i></div>
+      <div class="selgrid">
+        <div><span>Damage</span><b>${D.dmg || '—'}</b></div>
+        <div><span>Speed</span><b>${speed}</b></div>
+        <div><span>Threatens</span><b>${t.threat.length + t.strike.length} tiles</b></div>
+        ${D.floor ? `<div><span>Armour</span><b>−${D.floor} taken</b></div>` : ''}
+      </div>
+      <div class="selfire ${hitCell !== null ? 'live' : 'dead'}">${verdict}</div>
+      <div class="hintline">${D.d}</div>`;
     return;
   }
 
@@ -273,6 +313,20 @@ export function drawBoard() {
     targetsFor(mover).forEach(e => willHit.add(e.lane * COLS + e.col));
     (mover.single ? candidatesFor(mover) : geomFor(mover)).forEach(e => aimable.add(e.lane * COLS + e.col));
   }
+  // Cyan = every cell the weapon covers, occupied or not. Without this a
+  // weapon aimed at empty ground shows nothing until something walks into
+  // it — one turn too late to plan around.
+  const inRange = new Set(mover ? geomCells(mover) : []);
+  // The mirror for a selected hostile: what it threatens, and what it hits.
+  const foeStrike = new Set();
+  const foeThreat = new Set();
+  const foeInfl = new Set();
+  if (foeSel) {
+    const t = foeThreatCells(foeSel);
+    t.strike.forEach(i => foeStrike.add(i));
+    t.threat.forEach(i => foeThreat.add(i));
+    t.infl.forEach(i => foeInfl.add(i));
+  }
   const buffed = new Set();
   const influenced = new Set();
   if (mover) {
@@ -308,6 +362,11 @@ export function drawBoard() {
     if (stratDef && (stratDef.target === 'lane' || stratDef.target === 'column' ||
       (stratDef.target === 'friendly' && unitAt(l, c)))) cls += ' strattgt';
     if (mover && mover.lane === l && mover.col === c) cls += ' movesel';
+    if (inRange.has(i)) cls += ' inrange';
+    if (foeInfl.has(i)) cls += ' foeinfl';
+    if (foeThreat.has(i)) cls += ' foethreat';
+    if (foeStrike.has(i)) cls += ' foestrike';
+    if (foeSel && foeSel.lane === l && foeSel.col === c) cls += ' foesel';
     if (willHit.has(i)) cls += ' willhit';
     if (buffed.has(i)) cls += ' buffed';
     if (influenced.has(i)) cls += ' influence';
@@ -335,7 +394,11 @@ export function drawBoard() {
       cell.innerHTML = marker + unitMarkup(u, incoming);
       if (!sel && !G.over && !u.acted && !u.controlled) {
         cell.classList.add('clickable');
-        cell.onclick = () => { setMover(mover && mover.uid === u.uid ? null : u); drawAll(); };
+        cell.onclick = () => {
+          setFoeSel(null);
+          setMover(mover && mover.uid === u.uid ? null : u);
+          drawAll();
+        };
       }
     } else if (u) {
       // The trailing half of a two-cell unit.
@@ -353,8 +416,18 @@ export function drawBoard() {
       const locked = G.units.some(x => x.tgt === e.uid);
       cell.innerHTML = marker + foeMarkup(e, locked);
       cell.classList.add('clickable');
+      // Attacking still wins: with a unit selected, a hostile already in its
+      // sights is a target, not a thing to inspect. Selection is what a tap
+      // means only when there is no shot to take.
       if (aimable.has(i) && mover && !mover.acted) cell.onclick = () => { sfx('zap'); doAttack(mover, e); };
-      else cell.onclick = () => focusEnemy(e.k);
+      else {
+        cell.onclick = () => {
+          setMover(null);
+          setSel(null);
+          setFoeSel(foeSel && foeSel.uid === e.uid ? null : e);
+          drawAll();
+        };
+      }
     } else {
       const rubble = owner === 'x' ? G.rubble[l + ',' + c] : null;
       cell.innerHTML = marker + (rubble ? `<span class="ttl">${rubble}</span>` : '');
@@ -390,7 +463,7 @@ export function drawBoard() {
     else if (moves.includes(i)) cell.onclick = () => { sfx('move'); doMove(mover, l, c); };
     else if (swaps.includes(i)) cell.onclick = () => { sfx('move'); doSwap(mover, l, c); };
     else if (!cell.onclick && (sel || mover)) {
-      cell.onclick = () => { setSel(null); setMover(null); drawAll(); };
+      cell.onclick = () => { setSel(null); setMover(null); setFoeSel(null); drawAll(); };
     }
 
     board.appendChild(cell);

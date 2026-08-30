@@ -17,7 +17,7 @@ const GUARDS = [
   'acttest', 'movetest', 'aimtest', 'hltest', 'clashtest', 'spawntest',
   'swaptest', 'pushtest', 'zonetest', 'hecatetest',
   'stratagemtest', 'passivetest', 'grappletest', 'breachtest', 'foetest', 'eventtest',
-  'opentest', 'leadtest', 'packtest', 'maptest', 'cardtest', 'codectest', 'repro',
+  'opentest', 'leadtest', 'packtest', 'maptest', 'cardtest', 'codectest', 'geomtest', 'foeseltest', 'repro',
   'playtest', 'actbar', 'csstest', 'cssdup', 'headtest', 'navtest', 'scaletest',
   'handtest', 'uitest', 'tapetest', 'tuttest', 'sndtest', 'arttest', 'pixtest', 'buildtest',
 ];
