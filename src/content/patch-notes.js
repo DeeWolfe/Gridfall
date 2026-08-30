@@ -4,11 +4,11 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '1.9';
+export const VERSION = '2.0';
 
 export const PATCH_NOTES = [
   {
-    v: '1.9',
+    v: '2.0',
     notes: [
       'Every card with a weapon now draws its firing pattern instead of describing it — the shape it covers, at a glance, no counting cells out of a sentence.',
       'Selecting a unit lights every tile its weapon reaches, not just the ones that already have something standing in them. Gold still marks what actually gets struck.',
