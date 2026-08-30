@@ -2675,6 +2675,49 @@ hostiles advance toward column 0, so theirs reads right to left in magenta, with
 lane effects in violet. The Chorus had no diagram at all until its board-wide
 aura got its own case.
 
+## The dropship window: a turning sky, and mortars in the loop
+
+*2026-08-30*
+
+The scene outside the window was unreadable, and measuring it said why rather
+than guessing: the ridges sat within **3 to 8 points of luminance** of the sky
+directly behind them. Three terrain bands, all of them invisible. That is not a
+brightness problem you fix by turning brightness up — the sky and the ground
+were simply the same colour.
+
+So the sky turns, and every band turns with it. Four keyframes (night, dawn,
+day, dusk) blended pairwise with a smoothstep ease, one full turn every 180
+seconds, starting at a random point so two commanders do not open the hold
+screen onto the same sky. Ridge colours come from the keyframe now instead of
+being baked into the terrain, which is what actually fixes the legibility: the
+terrain is a **pale ridge against a dark sky at night** and a **dark silhouette
+against a bright one by day**. Measured separation, far to near:
+
+| | far | mid | near |
+|---|---|---|---|
+| night | +22 | +29 | +38 |
+| dawn | −39 | −44 | −53 |
+| day | −69 | −84 | −99 |
+| dusk | −39 | −49 | −63 |
+
+Day is deliberately hazy and dust-blown rather than a clear blue — a bright
+blue sky would read as a different game sitting inside this one's palette. The
+starfield fades out as the sky comes up and is gone entirely by day, and the
+horizon glow from the fighting below fades with it, since it cannot light a sky
+that is already lit.
+
+**Mortars joined the event loop.** The scene already had things falling (bombs,
+released from aircraft) and things climbing (tracers, straight up); a mortar is
+the shape neither of those draws — a full parabola that starts and ends on the
+ground, gravity at 0.42, about two and a half seconds from tube to impact,
+leaving a warm smoke arc behind it. That silhouette is what makes it read as
+artillery rather than as another bomb.
+
+**The build caught the one real hazard here:** a module-level `tone` collided
+with `tone` in `sound.js`. The flat-concat bundler refuses duplicate top-level
+names across the whole graph, so it failed loudly instead of letting two
+modules quietly share a binding at runtime. Renamed to `skyTone`.
+
 ## Still open
 
 1. **Crystals at a hot operation is better, not soft.** Auto-rolled Crystals
