@@ -12361,7 +12361,9 @@ function squadPanel() {
   return `<div class="sect">Team lead — answers to you</div>${leadCardHTML()}
    ${leadTilesHTML('squad')}
    <div class="sect">Deck</div>
-   <div class="bar"><div><b>${deck.length}</b> / ${DECKSIZE} in deck · <b style="color:var(--cyan)">${Object.keys(active.loadout.gear).length}</b> geared</div>
+   <div class="bar"><div><b>${deck.length}</b> / ${DECKSIZE} in deck ·
+       <b style="color:var(--cyan)">${Object.keys(active.loadout.gear).length}</b> geared ·
+       <b style="color:var(--violet)">${fielded ? 1 : 0}</b> / 1 Proto Frame</div>
      <div style="color:var(--dim);font-size:0.6875rem">Tap any card to enlarge it — inspect, fit gear, add or remove</div></div>
    ${orphan}
    <div class="sect">Active deck</div>
