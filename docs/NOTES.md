@@ -2826,6 +2826,26 @@ a card. `handtest` pins the tray to `--cap` rather than a fixed width, since
 a literal width there is exactly the bug this removed. `uitest` pins the
 overlay contract.
 
+## How we ship
+
+**Batch the shipping — one publish per session, at the end.**
+
+The live game is one Artifact, and the tool will not republish over a version
+the current conversation has never seen. Confirming it by byte-comparing the
+saved copy against the last shipped `dist/gridfall-embed.html` is not enough;
+the guard wants the file Read, and at 482KB that is on the order of 400k
+tokens. It is a per-conversation toll, not a per-publish one: once a session
+has published to that artifact, every further update from that session is free.
+
+So the cost is entirely in how often we start. Do a session's work, ship once
+at the end, and it is paid once. Shipping three times in three sessions pays it
+three times.
+
+The real fix is to stop hosting the game as an Artifact at all. `dist/gridfall.html`
+is a complete standalone page with no external dependencies — GitHub Pages on
+this repo would give it a permanent URL that costs nothing to update. Deferred
+until there is someone at a machine to set the Pages source up.
+
 ## Still open
 
 1. **Crystals at a hot operation is better, not soft.** Auto-rolled Crystals
