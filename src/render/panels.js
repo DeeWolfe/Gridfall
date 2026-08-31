@@ -15,7 +15,7 @@ import {commit, migrate, saveAll} from '../save/profile.js';
 import {rankName, costOf, vetOf, leadUnlocked} from '../save/progression.js';
 import {genRun} from '../rules/run.js';
 import {purchasePack, PACK_PRICE} from '../rules/packs.js';
-import {$, attr, show} from './dom.js';
+import {$, attr, show, markSwipe} from './dom.js';
 import {sigil} from './art.js';
 import {ask, notify} from './dialog.js';
 import {cardEl} from './card-html.js';
@@ -40,6 +40,103 @@ const cardGrid = (ids, mode) => `<div class="cgrid">${ids.map(c => cardEl(c, mod
 // An empty state has to span the grid, or it wraps inside one card column.
 const cardGridEmpty = text => `<div class="cgrid"><div class="cempty">${text}</div></div>`;
 
+/**
+ * How the Squad grids are arranged. Both are the player's choice and both are
+ * remembered on the profile: a commander who thinks in classes should not have
+ * to re-say so every time they open the panel.
+ *
+ * "Level" is veteran rank first, then deployments inside a rank, so the two
+ * Elites sort by which one has actually done the work.
+ */
+const SQUAD_SORTS = [
+  ['name', 'A–Z'],
+  ['level', 'Level'],
+  ['cost', 'Cost'],
+  ['gear', 'Geared'],
+];
+
+const squadPref = key => (active.settings && active.settings[key]) || null;
+
+const squadSort = () => squadPref('squadSort') || 'name';
+// Split by class the way the Quartermaster shelf does, which is where players
+// learned the pool in the first place.
+const squadGroup = () => squadPref('squadGroup') !== 'flat';
+
+function sortCards(ids) {
+  const by = squadSort();
+  return [...ids].sort((a, b) => {
+    if (by === 'cost') return costOf(a) - costOf(b) || POOL[a].n.localeCompare(POOL[b].n);
+    if (by === 'level') {
+      const va = vetOf(a); const vb = vetOf(b);
+      return vb.t - va.t || vb.u - va.u || POOL[a].n.localeCompare(POOL[b].n);
+    }
+    if (by === 'gear') {
+      // Geared first, then alphabetical inside each half — the point of this
+      // one is to see at a glance which cards are still carrying nothing.
+      const ga = active.loadout.gear[a] ? 0 : 1;
+      const gb = active.loadout.gear[b] ? 0 : 1;
+      return ga - gb || POOL[a].n.localeCompare(POOL[b].n);
+    }
+    return POOL[a].n.localeCompare(POOL[b].n);
+  });
+}
+
+/** A section's cards: one grid, or one grid per class with its own subheading. */
+function squadCards(ids, empty) {
+  if (!ids.length) return cardGridEmpty(empty);
+  if (!squadGroup()) return cardGrid(sortCards(ids), 'gear');
+  return TIERS.map(t => {
+    const inTier = sortCards(ids.filter(c => POOL[c].t === t));
+    if (!inTier.length) return '';
+    return `<div class="subsect">${TIERNAME[t]} <span class="ct">${inTier.length}</span></div>` +
+      cardGrid(inTier, 'gear');
+  }).join('');
+}
+
+const squadControls = () => `<div class="orgbar">
+   <span class="orglab">Sort</span>
+   <span class="orgset">${SQUAD_SORTS.map(([k, label]) =>
+    `<button class="mini${squadSort() === k ? ' on' : ''}" data-sqsort="${k}">${label}</button>`).join('')}</span>
+   <span class="orglab">Split</span>
+   <span class="orgset">
+     <button class="mini${squadGroup() ? ' on' : ''}" data-sqgroup="class">By class</button>
+     <button class="mini${squadGroup() ? '' : ' on'}" data-sqgroup="flat">One list</button></span></div>`;
+
+/**
+ * The gear locker.
+ *
+ * Fitting used to be reachable only from inside a card's focus view, which
+ * asks the question backwards: you had to already know which piece you wanted
+ * before you could read what any of them did. The locker lists every piece you
+ * own with its rules text and where it currently is, and opens onto the list
+ * of cards it can go to — so "what have I got, and what is it doing" is one
+ * screen instead of nineteen.
+ */
+function gearLocker() {
+  const owned = active.unlocks.gear;
+  if (!owned.length) {
+    return `<div class="sect" style="color:var(--cyan)">Gear locker</div>
+     <div class="stub"><b>Nothing issued</b>Gear is bought from the Quartermaster.
+       One piece per card, one copy of each piece.</div>`;
+  }
+  const fitted = Object.keys(active.loadout.gear).length;
+  const rows = owned.map(gi => {
+    const g = GEAR[gi];
+    const on = Object.keys(active.loadout.gear).find(k => active.loadout.gear[k] === gi);
+    return dbRow({
+      label: g.n,
+      body: g.d,
+      right: on ? POOL[on].n : 'Unfitted',
+      hot: !!on,
+      attrs: ` data-gearfit="${gi}"`,
+    });
+  }).join('');
+  return `<div class="sect" style="color:var(--cyan)">Gear locker — ${fitted} of ${owned.length} fitted</div>
+   <div class="bar"><div>Tap a piece to read it and choose which card carries it</div>
+     <div style="color:var(--dim);font-size:0.6875rem">One slot per card · one copy of each piece</div></div>
+   <div class="rows">${rows}</div>`;
+}
+
 function squadPanel() {
   const deck = active.loadout.deck;
   const reserve = active.unlocks.cards.filter(c => !deck.includes(c));
@@ -48,10 +145,12 @@ function squadPanel() {
    <div class="sect">Deck</div>
    <div class="bar"><div><b>${deck.length}</b> / ${DECKSIZE} in deck · <b style="color:var(--cyan)">${Object.keys(active.loadout.gear).length}</b> geared</div>
      <div style="color:var(--dim);font-size:0.6875rem">Tap any card to enlarge it — inspect, fit gear, add or remove</div></div>
+   ${squadControls()}
    <div class="sect">Active deck</div>
-   ${deck.length ? cardGrid(deck, 'gear') : cardGridEmpty('Empty.')}
+   ${squadCards(deck, 'Empty.')}
    <div class="sect">Reserve — ${reserve.length}</div>
-   ${reserve.length ? cardGrid(reserve, 'gear') : cardGridEmpty('Nothing in reserve.')}`;
+   ${squadCards(reserve, 'Nothing in reserve.')}
+   ${gearLocker()}`;
 }
 
 function quartermasterPanel() {
@@ -345,12 +444,13 @@ export function importRecordFlow(after) {
     }, {paste: true, ok: 'Import'});
 }
 
-export function openPanel(key) {
+export function openPanel(key, quiet) {
   if (!active || !PANELS[key]) return;
   $('ptitle').textContent = TITLES[key] || key;
   $('pbody').innerHTML = PANELS[key]();
   $('panel').classList.add('on');
-  maybeShowPanelHint(key);
+  if (!quiet) maybeShowPanelHint(key);
+  markSwipe('.tabs', $('pbody'));
 
   const each = (sel, fn) => document.querySelectorAll('#pbody ' + sel).forEach(el => { el.onclick = () => fn(el); });
   each('[data-rosterbtn]', () => { toggleRoster(); openPanel('squad'); });
@@ -382,6 +482,19 @@ export function openPanel(key) {
         commit();
         openPanel('quartermaster');
       }, {ok: 'Refit'});
+  });
+  each('[data-gearfit]', el => focusGear(el.dataset.gearfit, false, true));
+  // Both arrangement choices live on the profile, so they survive the panel
+  // closing, the session ending and the record moving to another device.
+  each('[data-sqsort]', el => {
+    active.settings.squadSort = el.dataset.sqsort;
+    commit();
+    openPanel('squad', true);
+  });
+  each('[data-sqgroup]', el => {
+    active.settings.squadGroup = el.dataset.sqgroup;
+    commit();
+    openPanel('squad', true);
   });
   each('[data-tab]', el => { dbTab = el.dataset.tab; openPanel('database'); });
   each('[data-rectab]', el => { recTab = el.dataset.rectab; openPanel('record'); });

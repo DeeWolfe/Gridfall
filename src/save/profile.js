@@ -81,6 +81,19 @@ export function migrate(p) {
     p.progress.credits = (p.progress.credits || 0) + (p.progress.salvage || 0);
     delete p.progress.salvage;
   }
+  // v6 turned the Shoulder Cannon from a card you played onto a unit into a
+  // piece of gear you fit at the armoury. Anyone who had bought the card is
+  // issued the gear rather than losing the 145 credits when the strip below
+  // drops the card id — the piece it becomes costs more, so the conversion is
+  // in the commander's favour either way.
+  if (!p.version || p.version < 6) {
+    p.version = 6;
+    p.unlocks.gear = p.unlocks.gear || [];
+    if ((p.unlocks.cards || []).includes('cannon') && !p.unlocks.gear.includes('cannon')) {
+      p.unlocks.gear.push('cannon');
+    }
+  }
+
   p.unlocks = p.unlocks || {};
   p.unlocks.cards = p.unlocks.cards || [...STARTER];
   p.unlocks.enemies = p.unlocks.enemies || [];

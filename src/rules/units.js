@@ -73,6 +73,10 @@ export function mkUnit(cid, l, c) {
     regen: !!k.regen,
     riposte: k.riposte || 0,
     servo: !!(g && g.servo),
+    // Shoulder Cannon. It was a card that landed on a unit mid-mission; as
+    // gear it is chosen at the armoury instead, so the second shot is a
+    // property of the unit from the moment it deploys.
+    twin: !!(g && g.twin),
     ab: k.ab || null,
     att: {},
     acted: false,

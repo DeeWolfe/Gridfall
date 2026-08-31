@@ -11,7 +11,7 @@ import {TIERNAME, VET} from '../content/ranks.js';
 import {active, setSel, setMover} from '../state/session.js';
 import {commit} from '../save/profile.js';
 import {costOf, gearOf, vetOf, leadUnlocked, leadPrice, leadGateText} from '../save/progression.js';
-import {$} from './dom.js';
+import {$, attr} from './dom.js';
 import {sigil, artFor, portrait, bokehLayer} from './art.js';
 import {notify} from './dialog.js';
 import {hitboxFor, hitboxForFoe} from './hitbox.js';
@@ -126,23 +126,55 @@ const GEAR_ROLES = [['offense', 'Offense'], ['defense', 'Defense'], ['utility', 
 // A role this size or smaller reads fine without a filter on top of it.
 const GEAR_SEARCH_THRESHOLD = 10;
 
+/** Which card is wearing `gi` right now, if any. One piece exists per profile. */
+export function gearWearer(gi) {
+  return Object.keys(active.loadout.gear).find(k => active.loadout.gear[k] === gi) || null;
+}
+
+/**
+ * One fitting row: the piece, what it does, and where it is.
+ *
+ * The chips this replaces printed nineteen names and nothing else, so choosing
+ * gear meant remembering nineteen rules texts — which players plainly were not
+ * doing. The rules text is the row now, and the right-hand state answers the
+ * other half of the confusion: exactly one of each piece exists, so fitting one
+ * that is already somewhere quietly strips it off that card. Saying so before
+ * the tap is cheaper than discovering it afterwards.
+ */
+function gearRow(id, gi) {
+  const g = GEAR[gi];
+  const here = active.loadout.gear[id] === gi;
+  const on = here ? null : gearWearer(gi);
+  const where = here ? '<span class="gwhere on">Fitted</span>'
+    : on ? `<span class="gwhere moved">On ${POOL[on].n}</span>`
+      : '<span class="gwhere">Free</span>';
+  return `<button class="grow${here ? ' on' : ''}" data-fitgear="${id}:${gi}"
+      data-gname="${attr((g.n + ' ' + g.d).toLowerCase())}">
+    <span class="gtop"><span class="gn">${g.n}</span>${where}</span>
+    <span class="gd">${g.d}</span></button>`;
+}
+
 function gearBlock(id, mode) {
   const k = POOL[id];
-  if (mode !== 'gear' || k.attach) return '';
+  // An attachment card is gear in card form; it has no slot of its own.
+  if (k.attach) return '';
   const g = gearOf(id);
+
+  // Everywhere but the fitting surface this is a readout, not a control — and
+  // it is the readout the hand tray stopped printing, so it has to carry the
+  // rules text rather than just the piece's name.
+  if (mode !== 'gear') {
+    return g ? `<div class="fab"><b>Gear fitted · ${g.n}</b>${g.d}</div>` : '';
+  }
+
   const owned = active.unlocks.gear;
   if (!owned.length) {
-    return `<div class="fab"><b>Gear slot</b>${g ? g.n + ' — ' + g.d : 'Empty.'}
+    return `<div class="fab"><b>Gear slot</b>Empty.
       <div style="margin-top:8px;color:var(--dim)">No gear owned. Visit the Quartermaster.</div></div>`;
   }
 
   const grouped = {offense: [], defense: [], utility: []};
   owned.forEach(gi => grouped[GEAR[gi].role || 'utility'].push(gi));
-
-  const chip = gi => {
-    const lit = active.loadout.gear[id] === gi ? 'color:var(--green);border-color:var(--green)' : '';
-    return `<button class="mini" data-fitgear="${id}:${gi}" data-gname="${GEAR[gi].n.toLowerCase()}" style="${lit}">${GEAR[gi].n}</button>`;
-  };
 
   const showSearch = GEAR_ROLES.some(([r]) => grouped[r].length > GEAR_SEARCH_THRESHOLD);
 
@@ -150,14 +182,14 @@ function gearBlock(id, mode) {
     `<button class="tab${i === 0 ? ' on' : ''}" data-groletab="${r}">${label}<span class="ct">${grouped[r].length}</span></button>`).join('');
 
   const groups = GEAR_ROLES.map(([r], i) => `<div class="ggroup${i === 0 ? ' show' : ''}" data-grole="${r}">
-      <div style="display:flex;flex-wrap:wrap;gap:5px">${grouped[r]
-    .map(chip).join('') || '<span style="color:var(--dim);font-size:0.6875rem">None owned.</span>'}</div></div>`).join('');
+      <div class="glist">${grouped[r].map(gi => gearRow(id, gi)).join('')
+    || '<span style="color:var(--dim);font-size:0.6875rem">None owned in this role.</span>'}</div></div>`).join('');
 
-  return `<div class="fab"><b>Gear slot</b>${g ? g.n + ' — ' + g.d : 'Empty.'}
+  return `<div class="fab"><b>Gear slot · ${g ? g.n : 'empty'}</b>${g ? g.d : 'Fit one piece to this card.'}
       <div class="tabs">${tabs}</div>
-      ${showSearch ? '<input class="gsearch" type="text" placeholder="Filter this role…" data-gsearch="1">' : ''}
+      ${showSearch ? '<input class="gsearch" type="text" placeholder="Filter by name or effect…" data-gsearch="1">' : ''}
       <div style="margin-top:8px">${groups}</div>
-      ${g ? `<button class="mini" data-fitgear="${id}:none" style="color:var(--mag);margin-top:8px">Strip</button>` : ''}</div>`;
+      ${g ? `<button class="mini" data-fitgear="${id}:none" style="color:var(--mag);margin-top:8px">Strip ${g.n}</button>` : ''}</div>`;
 }
 
 export function focusCard(id, mode) {
@@ -225,20 +257,58 @@ export function focusEnemy(id) {
   wireFocus();
 }
 
-/** `viewOnly` shows the piece without buy actions — used over a pack offer. */
-export function focusGear(gi, viewOnly) {
+/**
+ * Which way round you are fitting.
+ *
+ * Fitting from the card answers "what should this unit carry"; fitting from
+ * the piece answers "where should this go", which is the question the Gear
+ * locker opens with and the one the game had no answer for at all. Both end in
+ * the same one-slot-per-card, one-copy-per-profile assignment.
+ */
+function gearFitList(gi) {
+  const deck = active.loadout.deck.filter(c => POOL[c] && !POOL[c].attach);
+  if (!deck.length) {
+    return `<div class="fab"><b>Fit to</b><span style="color:var(--dim)">
+      No card in the deck can carry gear yet.</span></div>`;
+  }
+  const rows = deck.map(c => {
+    const worn = active.loadout.gear[c];
+    const here = worn === gi;
+    // Fitting displaces whatever that card already wears — say which piece,
+    // because the swap is silent once it happens.
+    const state = here ? '<span class="gwhere on">Fitted</span>'
+      : worn ? `<span class="gwhere moved">Replaces ${GEAR[worn].n}</span>`
+        : '<span class="gwhere">Slot free</span>';
+    return `<button class="grow${here ? ' on' : ''}" data-wear="${gi}:${c}">
+      <span class="gtop"><span class="gn">${POOL[c].n}</span>${state}</span>
+      <span class="gd">${TIERNAME[POOL[c].t]} · ${costOf(c)} DP${POOL[c].hp ? ' · ' + POOL[c].hp + ' hull' : ''}</span></button>`;
+  }).join('');
+  const on = gearWearer(gi);
+  return `<div class="fab"><b>Fit to</b>Pick the card that carries it. One slot per card, so
+      fitting it somewhere new takes it off wherever it is.
+    <div class="glist" style="margin-top:8px">${rows}</div>
+    ${on ? `<button class="mini" data-wear="${gi}:none" style="color:var(--mag);margin-top:8px">Strip from ${POOL[on].n}</button>` : ''}</div>`;
+}
+
+/**
+ * `viewOnly` shows the piece without buy actions — used over a pack offer.
+ * `fit` adds the fit-to list, for the Gear locker in Squad.
+ */
+export function focusGear(gi, viewOnly, fit) {
   const g = GEAR[gi];
   const owned = active.unlocks.gear.includes(gi);
   const affordable = active.progress.credits >= g.cost;
+  const on = owned ? gearWearer(gi) : null;
 
   $('fwrap').innerHTML = `<div class="fcard t-tech">
       <div class="fart">${sigil(gi, 'tech', 118)}<div class="fcost" style="background:var(--cyan);color:#06121a">◈</div></div>
       <div class="fname">${g.n}</div><div class="ftype">Gear · one slot per card</div>
       <div class="ftxt">${g.d}</div>
       <div class="fstats"><div class="fstat"><span class="k">Cost</span><span class="v">${g.cost} cr</span></div>
-      <div class="fstat"><span class="k">Owned</span><span class="v">${owned ? 'Yes' : 'No'}</span></div></div>
+      <div class="fstat"><span class="k">Fitted to</span><span class="v">${owned ? (on ? POOL[on].n : 'Nothing') : 'Not owned'}</span></div></div>
+      ${owned && fit ? gearFitList(gi) : ''}
     </div><div class="facts">${viewOnly ? '<button class="btn ghost" data-close="1">Close</button>'
-    : owned ? '<button class="btn ghost" data-close="1">Owned — fit it in Squad</button>'
+    : owned ? `<button class="btn ghost" data-close="1">${fit ? 'Done' : 'Owned — fit it in Squad'}</button>`
       : affordable ? `<button class="btn" data-fgear="${gi}">Buy · ${g.cost} cr</button><button class="btn ghost" data-close="1">Close</button>`
         : `<button class="btn ghost" data-close="1">Need ${g.cost} cr</button>`}</div>`;
   $('fbg').innerHTML = bokehLayer(['#4de8ff', '#5dffa0', '#9d6bff']);
@@ -347,6 +417,22 @@ function wireFocus() {
     closeFocus();
     notify('Aboard', `<b style="color:var(--zan)">${LEADS[k].call}</b> has joined the task force. Assign them from their card.`);
     onLeadDone(b.dataset.fctx, 'recruit');
+  });
+
+  // Fitting from the piece's side. Same assignment as data-fitgear, arguments
+  // the other way round, and it stays on the piece so you can see where it
+  // landed instead of being thrown back to the roster.
+  each('data-wear', b => {
+    const [gi, cid] = b.dataset.wear.split(':');
+    const was = gearWearer(gi);
+    // Tapping the card it is already on is a no-op, not a silent strip — the
+    // Strip button below the list is the one control that takes gear off.
+    if (was === cid) return;
+    if (was) delete active.loadout.gear[was];
+    if (cid !== 'none') active.loadout.gear[cid] = gi;
+    commit();
+    onAfterFocusAction('squad', true);
+    focusGear(gi, false, true);
   });
 
   each('data-fitgear', b => {

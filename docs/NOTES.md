@@ -2846,6 +2846,139 @@ is a complete standalone page with no external dependencies — GitHub Pages on
 this repo would give it a permanent URL that costs nothing to update. Deferred
 until there is someone at a machine to set the Pages source up.
 
+## v2.2 — the screen that holds still, and gear you can read
+
+Eight things, all of them reported from play rather than found in the code.
+
+### The board was moving, and it was not the objective text
+
+The report was "grid screen moves when it could easily stay static and have
+text do the work — objective text gets longer, it causes the rest to scroll
+left and right and move."
+
+The first hypothesis was horizontal: a long objective line growing its grid
+track and re-centring the board inside it. That was wrong, and the measurement
+said so. With `.cbcol{min-width:0}` removed and a 150-character objective
+forced into the panel, the board's x and width did not change by a pixel at
+390, 360 or 1440. Prose wraps; its min-content is its longest word.
+
+The real one showed up on a 1024px display, running fourteen turns of a
+campaign mission and recording the board's box every turn:
+
+```
+  t9  boardY 106.0   alert false
+  t10 boardY  88.8   alert true
+  t11 boardY  89.3   alert true
+  t12 boardY 106.5   alert false
+```
+
+`17.7px`, up and back, every time a breach was reported. `.cbcol.mid` centred
+its contents, the alert strip lives inside `.field` under the board, and
+centring means anything that grows below the board pushes the board itself up
+by half of it. The same jump was available from a wrapped stats row.
+
+The fix is one word: `justify-content: flex-start`. The board is pinned to the
+top of its column and the strip grows into the slack below it. Re-measured over
+the same fourteen turns at both sizes: two values, `100.2` and `101.4`, one per
+viewport, unchanged from t0 to t13. The sub-pixel wobble went with it.
+
+Three more changes hold the same line, and `statictest.js` guards all of them:
+`.cbcol{min-width:0}` so no column is ever sized by its own text, compact
+`.cbmain{overflow-x:hidden}` so there is no sideways axis to wander on at all,
+and `overflow-wrap:anywhere` on the objective's two prose lines.
+
+### The objective panel keeps one shape
+
+v2.1 showed the losing conditions on a phone only when they mattered — turn
+one, and again when a threshold got close — because they were 20px of wallpaper
+the rest of the time. Every one of those swaps resized the panel.
+
+That conditional is gone, along with `objBrief`'s `press` field and the three
+CSS rules that read it. What paid for it was the compact row template:
+`max-content max-content` left the details row at its content height and parked
+~180px of dead space above the hand tray. `minmax(max-content, 1fr)` still
+cannot squeeze the panel below its content — which is what the original comment
+was protecting against, and a plain `auto` row would do — but it stretches into
+whatever the board leaves. `scaletest.js` now checks each track's *minimum*
+rather than matching the literal string.
+
+### The Shoulder Cannon is gear
+
+It was a 2 DP tech card with `attach: "cannon"` that landed on a unit
+mid-mission and gave it a second shot. As gear it is chosen at the armoury, so
+`u.twin` is a property of the unit from the moment it deploys and
+`src/rules/combat.js` reads that instead of `u.att.cannon`. Priced at 450 cr —
+the most expensive piece in the pool, because doubling a heavy gun's output is
+the strongest thing gear does.
+
+Removing a card id from `POOL` is the one operation `migrate()` exists for, and
+it does the right thing already: the id is stripped from decks and unlocks. But
+stripping it silently would take 145 credits with it, so v6 issues the gear to
+anyone who owned the card first. `geartest.js` covers both directions — the
+record that owned it gets the piece, the record that never did is not handed a
+free 450-credit item.
+
+Shield is now the only `attach` card left. It was not part of the ask, so it
+stays; the code path is unchanged and works.
+
+### Gear you can actually choose
+
+"Players are forgetting what the gear attachments do when putting their squads
+out and need a better system to pick and see the gear and attach to units."
+
+The old fitting UI was a row of chips carrying nineteen bare names. Choosing
+gear therefore meant remembering nineteen rules texts, which players plainly
+were not doing. Worse, exactly one copy of each piece exists per profile, so
+fitting one that was already somewhere quietly stripped it off that card — with
+no warning before the tap.
+
+Both halves are now on the row: the piece's full rules text, and where it
+currently is (`Fitted` / `On Rifleman` / `Free`). The role tabs and the search
+filter survive; the filter now matches effect text as well as names.
+
+The other direction did not exist at all. Fitting was reachable only from inside
+a card's focus view, which asks the question backwards. The **gear locker** in
+Squad lists every piece you own with its rules text and its current card; tap
+one and it opens onto the list of deck cards it can go to, each saying whether
+its slot is free or which piece would be displaced. Fitting from there stays on
+the piece so you can see where it landed.
+
+The hand card's gear caption went with this. At six cards across,
+"Overclocked Uplink" wrapped to two lines under a name that had already
+wrapped, and it still only said *which* piece. A cyan ◈ in the corner says the
+card is geared; the piece and its rules text are one tap away in View card,
+which now carries a read-only gear block in every mode that is not fitting.
+
+### Squad organisation
+
+Sort by A–Z, level (veteran rank, then deployments inside a rank), deploy cost,
+or geared-first — and split the grids by class the way the Quartermaster shelf
+does, which is where players learned the pool. Split-by-class is the default.
+Both choices live on the profile, so a commander who thinks in classes does not
+have to re-say so every time they open the panel.
+
+### Three small ones
+
+The **combat log** opens with the objective pinned above the scroller. The log
+is where you go to reconstruct a turn, and scrolling back through forty lines
+with the goal off screen is how you lose track of what you were trying to do.
+`drawObjective(host)` takes a target id now; `#objblk` and `#objlog` are the
+same renderer.
+
+Every **codec advance control** is the cycling dots, the sign-off included —
+`codecWait(onGo, label, kind)` builds all of them, and the sign-off wears the
+channel's green. The commander's reply keeps its words, because that is
+dialogue rather than navigation. The destination lives in `aria-label`, so a
+screen reader still announces "Open the sector map".
+
+**Tab rows** hide their scrollbar. A 4px bar under a row of tabs is a second
+horizontal rule competing with the tabs, and on a phone it reports the row's
+extent by drawing something nobody grabs. `markSwipe()` measures the row and
+fades whichever edge still has content behind it — nothing when the row fits,
+nothing at an edge you have already reached. The inbound-wave strip in the
+combat header keeps its scrollbar: `headtest.js` asserts that deliberately, and
+it was not what was asked about.
+
 ## Still open
 
 1. **Crystals at a hot operation is better, not soft.** Auto-rolled Crystals

@@ -221,7 +221,10 @@ export function boot() {
   });
 
   // Focus-overlay actions reopen the panel they came from, or redraw combat.
-  setFocusFollowUp(panel => (panel ? openPanel(panel) : drawAll()));
+  // `quiet` repaints the surface behind an overlay that is staying open — the
+  // Gear locker fits a piece and stays on it — so the one-time coach card for
+  // that panel does not pop up underneath the focus view.
+  setFocusFollowUp((panel, quiet) => (panel ? openPanel(panel, quiet) : drawAll()));
   // A lead assigned from the focus view folds whichever roster it came from;
   // a recruit just repaints the surface so the tile unlocks in place.
   setLeadFollowUp((ctx, action) => {

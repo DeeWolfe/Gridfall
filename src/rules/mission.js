@@ -234,7 +234,7 @@ export function abortMission() {
  * turn one and never had anywhere to read. `total` of 0 means the goal has no countable progress —
  * surviving is not a tally — so the readout falls back to the wave clock.
  *
- * @returns {{goal:string, done:number, total:number, lose:string, clock:string, press:boolean}}
+ * @returns {{goal:string, done:number, total:number, lose:string, clock:string}}
  */
 export function objBrief() {
   const m = MISSIONS[G.type];
@@ -247,16 +247,11 @@ export function objBrief() {
     : G.extra > 0 ? `Last wave committed — ${Math.max(0, left)} turn${left === 1 ? '' : 's'} to secure`
       : `Wave ${Math.min(G.turn, G.waves)} / ${G.waves}`;
 
-  // Whether the loss conditions are worth the room they take. They never change
-  // during a mission, so on a small screen they are wallpaper in the middle of
-  // one — but they are exactly what a player is reading on turn one, and what
-  // they need again once a threshold is close. Those two moments, not the rest.
-  // `breaches >= allow - 1` reads like "one from the end" but the standard
-  // allowance is 1, so it was `0 >= 0` — true on turn one of every mission,
-  // which made the whole condition a no-op. What actually means pressure is
-  // ground running out, or a breach already spent.
-  const press = held() <= GROUND_FLOOR + 2 || G.breaches > 0;
-  const b = (goal, done, total) => ({goal, done, total, lose, clock, press: press || G.turn <= 2});
+  // Every field here is stated the same way for the whole mission — the loss
+  // terms never change, and the presentation no longer shows and hides them by
+  // how close a threshold is. That conditional cost the panel a resize every
+  // few turns, which shunted everything under it; the terms simply stay up.
+  const b = (goal, done, total) => ({goal, done, total, lose, clock});
   switch (G.type) {
     case 'retake':
       return b('Hold 3 tiles in hostile ground at the clock.', heldEnemyHalf(), 3);

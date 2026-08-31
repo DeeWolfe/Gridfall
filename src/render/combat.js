@@ -273,7 +273,7 @@ function unitMarkup(u, incoming) {
         ${u.tgt ? '<span class="lockpip">⌖</span>' : ''}
         <span class="minihp"><i style="width:${Math.max(0, u.hp / u.max * 100)}%"></i></span>
         ${u.shield > 0 ? `<span class="shield">${'◈'.repeat(Math.min(u.shield, 2))}</span>` : ''}
-        ${u.att.cannon ? '<span class="att">▮</span>' : ''}${u.cycling > 0 ? '<span class="att cyc">⟳</span>' : ''}${u.acted ? '<span class="ord done">✓</span>' : ''}
+        ${u.twin ? '<span class="att">▮</span>' : ''}${u.cycling > 0 ? '<span class="att cyc">⟳</span>' : ''}${u.acted ? '<span class="ord done">✓</span>' : ''}
         ${unitSprite(u.id, u.uid, active.loadout.scheme) || `<div class="nm">${u.n.split(' ')[0]}</div>`}
         <div class="hp">${u.hp}</div></div>`;
 }
@@ -547,6 +547,11 @@ function paintAlert() {
  */
 export function openLog() {
   setLogOpen(true);
+  // The objective rides at the top of the overlay, outside the scroller. The
+  // log is the one place a player goes to work out what just happened, and
+  // scrolling back through forty lines with the goal off-screen is how you
+  // lose track of what you were trying to do in the first place.
+  drawObjective('objlog');
   drawLog();
   $('logview').classList.add('on');
   sfx('tap');
@@ -576,8 +581,8 @@ function paintLogToggle() {
  * on every compact layout. Progress gets pips up to five and a bar beyond —
  * nine pips is a counting exercise, not a glance.
  */
-function drawObjective() {
-  const el = $('objblk');
+function drawObjective(host) {
+  const el = $(host || 'objblk');
   if (!el) return;
   const b = objBrief();
   const met = b.total > 0 && b.done >= b.total;
@@ -589,7 +594,7 @@ function drawObjective() {
     prog = `<span class="obar"><span style="width:${Math.min(100, b.done / b.total * 100)}%"></span></span>`;
   }
   const count = b.total > 0 ? `<b class="onum">${b.done} / ${b.total}</b>` : '';
-  el.className = 'objblk' + (met ? ' met' : '') + (b.press ? ' press' : '');
+  el.className = 'objblk' + (host ? ' lvobj' : '') + (met ? ' met' : '');
   el.innerHTML = `<span class="orow"><span class="olab">Objective</span>
       <span class="oclock">${b.clock}</span></span>
     <span class="ogoal">${b.goal}</span>
@@ -661,12 +666,20 @@ export function drawHand() {
     // A trading card: the seal face and the name, nothing else. Cost, hull
     // and tier live in the details panel when the card is selected, and in
     // full behind its View card button.
+    //
+    // The fitted gear used to print its name here as a third line. At six
+    // cards across, "Overclocked Uplink" wrapped to two lines under a name
+    // that had already wrapped, and it still only said which piece — never
+    // what it does. A cyan corner mark says "this one is geared"; the piece
+    // and its rules text are in View card, where there is room to read them.
     el.innerHTML = `${index < 9 ? `<div class="hkey">${index + 1}</div>` : ''}
       ${v.t ? `<div class="hpips">${'◆'.repeat(v.t)}</div>` : ''}
+      ${g ? '<div class="hgear" aria-hidden="true">◈</div>' : ''}
       <div class="hart">${artFor(cid, k.t, null, v.t >= 2 ? v.col : null)}</div>
-      <div class="n">${k.n}</div>
-      ${g ? `<div class="gtag">${g.n}</div>` : ''}`;
-    el.title = k.n + ' — ' + k.d;   // hover tooltip carries the rules text
+      <div class="n">${k.n}</div>`;
+    // Hover carries the rules text, and the gear's too now that the tile does
+    // not print it.
+    el.title = k.n + ' — ' + k.d + (g ? `\nGear: ${g.n} — ${g.d}` : '');
     el.onclick = () => {
       if (unaffordable) return;
       sfx(sel === cid ? 'tap' : 'select');

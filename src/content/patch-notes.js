@@ -4,9 +4,24 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.1';
+export const VERSION = '2.2';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.2',
+    notes: [
+      'The combat board holds its place. It used to jump upward the moment an alert appeared beneath it and drop back when the alert cleared — a measured 17.7px on a 1024px display, several times a mission. Nothing under the board can move it now.',
+      'The objective panel keeps one shape for the whole mission. The losing conditions used to appear and vanish depending on how close you were to them, resizing the panel and shunting everything under it; they simply stay up, and the panel fills the room the board leaves rather than parking dead space above your hand.',
+      'The combat log opens with the objective pinned to the top of it. Forty lines of history scroll underneath while the goal stays put — the log is where you go to work out what just happened, and losing the goal on the way there was backwards.',
+      'The Shoulder Cannon is gear now, not a card. Fit it at the armoury and that unit fires twice from the moment it lands. If you had already bought the card, the piece is in your locker.',
+      'A gear locker in Squad: every piece you own, what it does in full, and which card is carrying it. Tap one to choose where it goes. Gear used to be reachable only from inside a card, which asked the question backwards — you had to know which piece you wanted before you could read what any of them did.',
+      'Fitting gear from a card now lists each piece with its rules text and where it currently is. It was a row of nineteen bare names, and one copy of each piece exists, so fitting one silently took it off something else. Both halves are now on screen before you tap.',
+      'Squad can be sorted — A–Z, level, deploy cost, or geared first — and split by class the way the Quartermaster shelf is. The choice is remembered on your record.',
+      'The gear on a card in hand is no longer a caption crushed under its name. The hand card carries a small ◈, and the piece and what it does are in View card, where there is room to read them.',
+      'Every "next part" control in a Central Command transmission is the same cycling dots now, the sign-off included. A worded button in the middle of a call read as a decision; these are a beat of silence on an open channel.',
+      'Tab rows that scroll sideways — Service Record, Database, the gear roles — fade at the edge instead of drawing a scrollbar under themselves.',
+    ],
+  },
   {
     v: '2.1',
     notes: [

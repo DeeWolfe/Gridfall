@@ -60,6 +60,16 @@ console.log('beats walked:', target.intro.beats.length);
 
 const go = act('go');
 if (!go) F.push('the call never reached its sign-off');
+// Every control that only means "next part" wears the same cycling dots — the
+// sign-off included. A worded button reads as a decision; these are a beat of
+// silence on an open channel.
+else {
+  if (!go._cls.has('cmore')) F.push('the sign-off is not the dots animation');
+  if (go._text) F.push(`the sign-off carries the words "${go._text}"`);
+  if (!go.getAttribute('aria-label')) F.push('the wordless sign-off names no destination');
+  const more = [...get('cacts').children].filter(x => x.dataset.codec === 'more');
+  if (more.some(x => !x._cls.has('cmore'))) F.push('a continue control is not the dots');
+}
 if (landed) F.push('the map opened before the sign-off was acknowledged');
 if (go) go.onclick();
 console.log('map opened exactly once:', landed === 1);

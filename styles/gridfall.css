@@ -257,14 +257,55 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .patchnotes{display:flex;flex-direction:column;gap:6px;margin-bottom:6px}
 .patchnote{font-size:0.75rem;line-height:1.6;color:var(--txt);padding-left:14px;position:relative}
 .patchnote::before{content:'–';position:absolute;left:0;color:var(--dim)}
+/* A row of tabs that may outrun its width scrolls sideways, but the scrollbar
+   under it was a second horizontal line drawing more attention than the tabs.
+   The edge fade says "there is more this way" without occupying a row, and is
+   applied only when the row actually overflows (see .swipe in dom.js). */
 .tabs{display:flex;gap:6px;margin-top:12px;overflow-x:auto;overscroll-behavior-x:contain;
-  scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
-.tabs::-webkit-scrollbar{height:4px}
-.tabs::-webkit-scrollbar-track{background:transparent}
-.tabs::-webkit-scrollbar-thumb{background:var(--line2)}
+  scrollbar-width:none;-ms-overflow-style:none}
+.tabs::-webkit-scrollbar{display:none}
+/* Fade only the edge that still has something behind it, so a row that fits
+   carries no decoration at all and a row scrolled to its end stops hinting. */
+.swipe-r{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 30px),transparent);
+  mask-image:linear-gradient(90deg,#000 calc(100% - 30px),transparent)}
+.swipe-l{-webkit-mask-image:linear-gradient(90deg,transparent,#000 30px);
+  mask-image:linear-gradient(90deg,transparent,#000 30px)}
+.swipe-l.swipe-r{-webkit-mask-image:linear-gradient(90deg,transparent,#000 30px,#000 calc(100% - 30px),transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 30px,#000 calc(100% - 30px),transparent)}
 .tab{flex:0 0 auto;font-size:0.75rem;letter-spacing:.14em;text-transform:uppercase;padding:8px 14px;
   white-space:nowrap;border:1px solid var(--line);color:var(--dim)}
 .tab.on{border-color:var(--zan);color:var(--zan);background:rgba(255,77,143,.08)}
+/* ============ SQUAD ORGANISATION ============
+   Sort and split controls over the card grids, and the class subheading each
+   split section carries. Deliberately quieter than .sect: these label a slice
+   of a section, they do not open one. */
+.orgbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+.orglab{font-size:0.5625rem;letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
+.orgset{display:flex;gap:5px;flex-wrap:wrap}
+.orgset .mini.on{color:var(--zan);border-color:var(--zan)}
+.subsect{display:flex;align-items:center;gap:7px;margin:12px 0 5px;
+  font-size:0.625rem;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.subsect .ct{color:var(--cyan);letter-spacing:.06em}
+
+/* ============ GEAR FITTING ROWS ============
+   A name alone told a player nothing about what the piece did, which is the
+   reason gear went unused. The row carries the rules text and, on the right,
+   where the piece currently sits — the one copy per profile means fitting it
+   always takes it off something. */
+.glist{display:flex;flex-direction:column;gap:1px;background:var(--line);margin-top:2px}
+.grow{display:flex;flex-direction:column;gap:3px;width:100%;text-align:left;
+  background:var(--deep);border:0;border-left:2px solid transparent;padding:.55rem .7rem;
+  font-family:inherit;cursor:pointer}
+.grow:hover{background:rgba(77,232,255,.06)}
+.grow.on{border-left-color:var(--green);background:rgba(93,255,160,.07)}
+.gtop{display:flex;align-items:baseline;gap:9px}
+.gn{font-size:0.75rem;font-weight:700;color:var(--txt);flex:1;min-width:0}
+.grow.on .gn{color:var(--green)}
+.gd{font-size:0.6562rem;color:var(--dim);line-height:1.5}
+.gwhere{flex:0 0 auto;font-size:0.5625rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.gwhere.on{color:var(--green)}
+.gwhere.moved{color:var(--gold)}
+
 .stub{border:1px dashed var(--line2);padding:22px;text-align:center;color:var(--dim);font-size:0.6875rem;line-height:1.9}
 .stub b{color:var(--zan);display:block;font-size:0.75rem;letter-spacing:.16em;margin-bottom:5px}
 .rows{display:flex;flex-direction:column;gap:1px;background:var(--line)}
@@ -527,7 +568,10 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .stunned{filter:grayscale(.7) brightness(.7)}
 .gtag{font-size:0.5312rem;letter-spacing:0;color:var(--cyan);padding:2px 4px 0;text-transform:uppercase;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hc .gtag{padding:4px 0 0}
+/* A corner mark, not a caption: it says the card is geared and sends you to
+   View card for which piece and what it does. */
+.hgear{position:absolute;bottom:2px;left:4px;font-size:0.5625rem;color:var(--cyan);
+  line-height:1;pointer-events:none;text-shadow:0 0 6px rgba(77,232,255,.55)}
 .mini:disabled{opacity:.4;cursor:not-allowed}
 
 @media(max-width:420px){}
@@ -867,7 +911,11 @@ body{font-size:1rem}
 
 .cbmain{flex:1;min-height:0;display:grid;gap:clamp(8px,.9vw,14px);
   padding:clamp(8px,.9vw,14px);grid-template-columns:1fr}
-.cbcol{display:flex;flex-direction:column;gap:9px;min-height:0}
+/* min-width:0 is load-bearing, not tidiness: without it a long objective line
+   grows the grid track, the board re-centres inside the wider track, and the
+   whole screen slides sideways as the mission text changes length. The column
+   takes the width the grid gives it and the text wraps inside. */
+.cbcol{display:flex;flex-direction:column;gap:9px;min-height:0;min-width:0}
 .cbcol.mid{align-items:center;justify-content:flex-start}
 .field{background:linear-gradient(180deg,#0b0919 0%,#100d24 100%);border:1px solid var(--line2);
   padding:clamp(9px,.9vw,15px);width:100%;max-width:min(100%,96vw)}
@@ -894,11 +942,11 @@ body{font-size:1rem}
   border-bottom:1px solid var(--line);padding-bottom:6px}
 .objblk:empty{display:none;border:none;padding:0}
 .olab{font-size:0.5625rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
-.ogoal{font-size:0.6875rem;color:var(--txt);line-height:1.4}
+.ogoal{font-size:0.6875rem;color:var(--txt);line-height:1.4;overflow-wrap:anywhere}
 .orow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .oclock{font-size:0.625rem;letter-spacing:.1em;text-transform:uppercase;color:var(--violet);
   margin-left:auto}
-.olose{font-size:0.625rem;color:#7d76a8;line-height:1.35}
+.olose{font-size:0.625rem;color:#7d76a8;line-height:1.35;overflow-wrap:anywhere}
 /* Both counts on one row: the two stacked panels these replace cost 72px to
    carry nine words. */
 .idlerow{display:flex;gap:12px;flex-wrap:wrap;font-size:0.6875rem;letter-spacing:.02em}
@@ -1001,7 +1049,12 @@ body{font-size:1rem}
 @media(min-width:1000px){
   .cbmain{grid-template-columns:minmax(0,1fr) clamp(212px,17vw,340px);overflow:hidden}
   .cbcol{overflow-y:auto}
-  .cbcol.mid{overflow:hidden;justify-content:center}
+  /* Pinned to the top, never centred. Centring meant anything that appeared
+     under the board — the alert strip, a wrapped stats row — pushed the board
+     up by half its height and let it drop back when it cleared: a measured
+     17.7px jump on a 1024px display, every time a breach was reported. The
+     board holds its place and the strip grows into the slack below it. */
+  .cbcol.mid{overflow:hidden;justify-content:flex-start}
   /* Sized against the one-row tray. It used to be 24rem for a 5:7 portrait
      tray that could also be collapsed; capped at six square tiles the tray is
      some 4rem shorter and never folds, so the board simply keeps the room. */
@@ -1010,7 +1063,9 @@ body{font-size:1rem}
 }
 @media(min-width:1800px){.cbmain{grid-template-columns:minmax(0,1fr) clamp(300px,17vw,420px)}}
 @media(max-width:999px){
-  .cbmain{overflow:auto;gap:7px}
+  /* overflow-y only. A screen that can scroll sideways at all will, and the
+     board wandering left and right between turns was the whole complaint. */
+  .cbmain{overflow-y:auto;overflow-x:hidden;gap:7px}
   .cbcol{gap:7px}
   .cbfoot{grid-template-columns:minmax(0,1fr)}
   .cbhead{gap:7px;padding:8px 10px}
@@ -1068,6 +1123,9 @@ body{font-size:1rem}
 .lvx{width:26px;height:26px;flex:0 0 auto;border:1px solid var(--line2);background:transparent;
   color:var(--dim);font-size:0.6875rem;line-height:1}
 .lvx:hover{color:var(--zan);border-color:var(--zan)}
+/* The objective sits between the header and the scroller, so it stays put
+   while forty lines of history move underneath it. */
+.lvobj{flex:0 0 auto;padding:9px 14px 11px;margin:0;background:rgba(157,107,255,.05)}
 .lvlist{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:5px;
   padding:.75rem .9rem;scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
 .lvlist::-webkit-scrollbar{width:4px}
@@ -1097,7 +1155,7 @@ body{font-size:1rem}
 :root[data-ui="pc"] .cbmain{grid-template-columns:minmax(0,1fr) clamp(240px,18vw,360px);
   overflow:hidden;gap:clamp(7px,.7vw,12px);padding:clamp(7px,.7vw,12px);align-content:stretch}
 :root[data-ui="pc"] .cbcol{overflow:hidden}
-:root[data-ui="pc"] .cbcol.mid{overflow:hidden;justify-content:center}
+:root[data-ui="pc"] .cbcol.mid{overflow:hidden;justify-content:flex-start}
 :root[data-ui="pc"] .cbcol.side{overflow-y:auto}
 :root[data-ui="pc"] .field{max-width:min(100%,calc((100vh - 19.5rem) * 1.62));padding:clamp(7px,.7vw,12px)}
 
@@ -1168,13 +1226,16 @@ body{font-size:1rem}
      below their content — auto rows here would shrink (the columns carry
      min-height:0) and let the grid paint over the panel beneath it. When the
      three rows outgrow the viewport, .cbmain scrolls instead. */
-  .cbmain{grid-template-rows:max-content max-content}
-  /* The loss conditions hold their place on a desktop, where there is room for
-     reference text. On a phone they appear while you are reading the brief and
-     again once a threshold is close, and stay out of the way between. */
-  .objblk .olose{display:none}
-  .objblk.press .olose{display:block}
-  #combat.hasalert .objblk .olose{display:none}
+  /* The details row takes the slack. minmax(max-content,1fr) can never squeeze
+     the panel below its content — which a plain auto row would, letting the
+     board paint over it — but it does stretch into whatever the board leaves,
+     instead of parking 180px of dead space above the hand. */
+  .cbmain{grid-template-rows:max-content minmax(max-content,1fr)}
+  /* The loss conditions used to appear and disappear on a phone — while you
+     were reading the brief, again once a threshold got close, gone while the
+     alert strip was up. Each swap resized the panel and shunted what sat under
+     it. Now that the details row stretches into the board's slack there is
+     room to simply leave them up: one shape, all mission, nothing moves. */
   }
 
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -1247,9 +1308,9 @@ body{font-size:1rem}
 .creply:hover{background:rgba(255,201,77,.16);border-color:var(--gold)}
 .creply:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .creply::before{content:'\25b8 ';opacity:.8}
-.cgo{color:var(--green);background:rgba(93,255,160,.08);border-color:rgba(93,255,160,.5)}
-.cgo:hover{background:rgba(93,255,160,.18);border-color:var(--green)}
-.cgo::before{content:''}
+.cmore.cgo{color:var(--green)}
+.cmore.cgo:hover{color:#c9ffe0}
+.cmore.cgo:focus-visible{outline-color:rgba(93,255,160,.6)}
 
 /* Read at your own pace: three dots cycling . / .. / ... and nothing else.
    A monospace period carries a ~0.6em advance, which would space three of them

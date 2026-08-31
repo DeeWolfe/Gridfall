@@ -41,14 +41,23 @@ for (const [sel, re] of Object.entries(MUST_SCALE)) {
   else if (!rules.some(m => re.test(m[1]))) F.push(sel + ' is not viewport-relative');
 }
 
-// The stacked combat layout must size its board and details rows to content.
-// Plain `auto` rows compress (the columns carry min-height:0) and the board
-// then paints straight over the card-details panel on short screens.
+// The stacked combat layout must never size a row below its content. Plain
+// `auto` or `1fr` rows compress (the columns carry min-height:0) and the board
+// then paints straight over the card-details panel on short screens. Each
+// track's MINIMUM has to be max-content; its maximum may grow (the details row
+// takes the board's slack rather than leaving dead space above the hand).
 {
   const stacked = css.match(/@media\(max-width:999px\)\{[^@]*?\.cbmain\{grid-template-rows:([^;}]*)/);
   if (!stacked) F.push('stacked combat layout lost its row template');
-  else if (!/^max-content max-content/.test(stacked[1])) {
-    F.push('stacked combat rows can compress below content: ' + stacked[1]);
+  else {
+    const tracks = stacked[1].trim().split(/\s+(?![^(]*\))/);
+    if (tracks.length !== 2) F.push(`stacked combat wants two rows, found ${tracks.length}: ${stacked[1]}`);
+    tracks.forEach(t => {
+      const floor = t.startsWith('minmax(') ? t.slice(7).split(',')[0].trim() : t;
+      if (floor !== 'max-content') {
+        F.push(`stacked combat row can compress below content: ${t}`);
+      }
+    });
   }
 }
 

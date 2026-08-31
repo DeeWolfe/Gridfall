@@ -7,7 +7,7 @@
   "GROUND_FLOOR": 6,
   "HAND_CAP": 6,
   "DECKSIZE": 12,
-  "SAVE_VERSION": 5,
+  "SAVE_VERSION": 6,
   "STARTER": [
    "scout",
    "rifle",
@@ -294,16 +294,6 @@
    "attach": "shield",
    "tech": 1,
    "d": "Attach to a unit. Absorbs the next incoming attack entirely, then breaks."
-  },
-  "cannon": {
-   "n": "Shoulder Cannon",
-   "t": "tech",
-   "dp": 2,
-   "hp": 0,
-   "price": 145,
-   "attach": "cannon",
-   "tech": 1,
-   "d": "Attach to a unit. It fires a second time each turn."
   },
   "turret": {
    "n": "Turret",
@@ -976,6 +966,13 @@
    "d": "Also strikes the cell directly behind this unit. Nothing flanks it.",
    "rearsight": 1,
    "role": "defense"
+  },
+  "cannon": {
+   "n": "Shoulder Cannon",
+   "cost": 450,
+   "d": "Fires a second time every turn, at the same targets.",
+   "twin": 1,
+   "role": "offense"
   }
  },
  "hostiles": {

@@ -264,14 +264,55 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .patchnotes{display:flex;flex-direction:column;gap:6px;margin-bottom:6px}
 .patchnote{font-size:0.75rem;line-height:1.6;color:var(--txt);padding-left:14px;position:relative}
 .patchnote::before{content:'–';position:absolute;left:0;color:var(--dim)}
+/* A row of tabs that may outrun its width scrolls sideways, but the scrollbar
+   under it was a second horizontal line drawing more attention than the tabs.
+   The edge fade says "there is more this way" without occupying a row, and is
+   applied only when the row actually overflows (see .swipe in dom.js). */
 .tabs{display:flex;gap:6px;margin-top:12px;overflow-x:auto;overscroll-behavior-x:contain;
-  scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
-.tabs::-webkit-scrollbar{height:4px}
-.tabs::-webkit-scrollbar-track{background:transparent}
-.tabs::-webkit-scrollbar-thumb{background:var(--line2)}
+  scrollbar-width:none;-ms-overflow-style:none}
+.tabs::-webkit-scrollbar{display:none}
+/* Fade only the edge that still has something behind it, so a row that fits
+   carries no decoration at all and a row scrolled to its end stops hinting. */
+.swipe-r{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 30px),transparent);
+  mask-image:linear-gradient(90deg,#000 calc(100% - 30px),transparent)}
+.swipe-l{-webkit-mask-image:linear-gradient(90deg,transparent,#000 30px);
+  mask-image:linear-gradient(90deg,transparent,#000 30px)}
+.swipe-l.swipe-r{-webkit-mask-image:linear-gradient(90deg,transparent,#000 30px,#000 calc(100% - 30px),transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 30px,#000 calc(100% - 30px),transparent)}
 .tab{flex:0 0 auto;font-size:0.75rem;letter-spacing:.14em;text-transform:uppercase;padding:8px 14px;
   white-space:nowrap;border:1px solid var(--line);color:var(--dim)}
 .tab.on{border-color:var(--zan);color:var(--zan);background:rgba(255,77,143,.08)}
+/* ============ SQUAD ORGANISATION ============
+   Sort and split controls over the card grids, and the class subheading each
+   split section carries. Deliberately quieter than .sect: these label a slice
+   of a section, they do not open one. */
+.orgbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+.orglab{font-size:0.5625rem;letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
+.orgset{display:flex;gap:5px;flex-wrap:wrap}
+.orgset .mini.on{color:var(--zan);border-color:var(--zan)}
+.subsect{display:flex;align-items:center;gap:7px;margin:12px 0 5px;
+  font-size:0.625rem;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.subsect .ct{color:var(--cyan);letter-spacing:.06em}
+
+/* ============ GEAR FITTING ROWS ============
+   A name alone told a player nothing about what the piece did, which is the
+   reason gear went unused. The row carries the rules text and, on the right,
+   where the piece currently sits — the one copy per profile means fitting it
+   always takes it off something. */
+.glist{display:flex;flex-direction:column;gap:1px;background:var(--line);margin-top:2px}
+.grow{display:flex;flex-direction:column;gap:3px;width:100%;text-align:left;
+  background:var(--deep);border:0;border-left:2px solid transparent;padding:.55rem .7rem;
+  font-family:inherit;cursor:pointer}
+.grow:hover{background:rgba(77,232,255,.06)}
+.grow.on{border-left-color:var(--green);background:rgba(93,255,160,.07)}
+.gtop{display:flex;align-items:baseline;gap:9px}
+.gn{font-size:0.75rem;font-weight:700;color:var(--txt);flex:1;min-width:0}
+.grow.on .gn{color:var(--green)}
+.gd{font-size:0.6562rem;color:var(--dim);line-height:1.5}
+.gwhere{flex:0 0 auto;font-size:0.5625rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.gwhere.on{color:var(--green)}
+.gwhere.moved{color:var(--gold)}
+
 .stub{border:1px dashed var(--line2);padding:22px;text-align:center;color:var(--dim);font-size:0.6875rem;line-height:1.9}
 .stub b{color:var(--zan);display:block;font-size:0.75rem;letter-spacing:.16em;margin-bottom:5px}
 .rows{display:flex;flex-direction:column;gap:1px;background:var(--line)}
@@ -534,7 +575,10 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .stunned{filter:grayscale(.7) brightness(.7)}
 .gtag{font-size:0.5312rem;letter-spacing:0;color:var(--cyan);padding:2px 4px 0;text-transform:uppercase;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hc .gtag{padding:4px 0 0}
+/* A corner mark, not a caption: it says the card is geared and sends you to
+   View card for which piece and what it does. */
+.hgear{position:absolute;bottom:2px;left:4px;font-size:0.5625rem;color:var(--cyan);
+  line-height:1;pointer-events:none;text-shadow:0 0 6px rgba(77,232,255,.55)}
 .mini:disabled{opacity:.4;cursor:not-allowed}
 
 @media(max-width:420px){}
@@ -874,7 +918,11 @@ body{font-size:1rem}
 
 .cbmain{flex:1;min-height:0;display:grid;gap:clamp(8px,.9vw,14px);
   padding:clamp(8px,.9vw,14px);grid-template-columns:1fr}
-.cbcol{display:flex;flex-direction:column;gap:9px;min-height:0}
+/* min-width:0 is load-bearing, not tidiness: without it a long objective line
+   grows the grid track, the board re-centres inside the wider track, and the
+   whole screen slides sideways as the mission text changes length. The column
+   takes the width the grid gives it and the text wraps inside. */
+.cbcol{display:flex;flex-direction:column;gap:9px;min-height:0;min-width:0}
 .cbcol.mid{align-items:center;justify-content:flex-start}
 .field{background:linear-gradient(180deg,#0b0919 0%,#100d24 100%);border:1px solid var(--line2);
   padding:clamp(9px,.9vw,15px);width:100%;max-width:min(100%,96vw)}
@@ -901,11 +949,11 @@ body{font-size:1rem}
   border-bottom:1px solid var(--line);padding-bottom:6px}
 .objblk:empty{display:none;border:none;padding:0}
 .olab{font-size:0.5625rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
-.ogoal{font-size:0.6875rem;color:var(--txt);line-height:1.4}
+.ogoal{font-size:0.6875rem;color:var(--txt);line-height:1.4;overflow-wrap:anywhere}
 .orow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .oclock{font-size:0.625rem;letter-spacing:.1em;text-transform:uppercase;color:var(--violet);
   margin-left:auto}
-.olose{font-size:0.625rem;color:#7d76a8;line-height:1.35}
+.olose{font-size:0.625rem;color:#7d76a8;line-height:1.35;overflow-wrap:anywhere}
 /* Both counts on one row: the two stacked panels these replace cost 72px to
    carry nine words. */
 .idlerow{display:flex;gap:12px;flex-wrap:wrap;font-size:0.6875rem;letter-spacing:.02em}
@@ -1008,7 +1056,12 @@ body{font-size:1rem}
 @media(min-width:1000px){
   .cbmain{grid-template-columns:minmax(0,1fr) clamp(212px,17vw,340px);overflow:hidden}
   .cbcol{overflow-y:auto}
-  .cbcol.mid{overflow:hidden;justify-content:center}
+  /* Pinned to the top, never centred. Centring meant anything that appeared
+     under the board — the alert strip, a wrapped stats row — pushed the board
+     up by half its height and let it drop back when it cleared: a measured
+     17.7px jump on a 1024px display, every time a breach was reported. The
+     board holds its place and the strip grows into the slack below it. */
+  .cbcol.mid{overflow:hidden;justify-content:flex-start}
   /* Sized against the one-row tray. It used to be 24rem for a 5:7 portrait
      tray that could also be collapsed; capped at six square tiles the tray is
      some 4rem shorter and never folds, so the board simply keeps the room. */
@@ -1017,7 +1070,9 @@ body{font-size:1rem}
 }
 @media(min-width:1800px){.cbmain{grid-template-columns:minmax(0,1fr) clamp(300px,17vw,420px)}}
 @media(max-width:999px){
-  .cbmain{overflow:auto;gap:7px}
+  /* overflow-y only. A screen that can scroll sideways at all will, and the
+     board wandering left and right between turns was the whole complaint. */
+  .cbmain{overflow-y:auto;overflow-x:hidden;gap:7px}
   .cbcol{gap:7px}
   .cbfoot{grid-template-columns:minmax(0,1fr)}
   .cbhead{gap:7px;padding:8px 10px}
@@ -1075,6 +1130,9 @@ body{font-size:1rem}
 .lvx{width:26px;height:26px;flex:0 0 auto;border:1px solid var(--line2);background:transparent;
   color:var(--dim);font-size:0.6875rem;line-height:1}
 .lvx:hover{color:var(--zan);border-color:var(--zan)}
+/* The objective sits between the header and the scroller, so it stays put
+   while forty lines of history move underneath it. */
+.lvobj{flex:0 0 auto;padding:9px 14px 11px;margin:0;background:rgba(157,107,255,.05)}
 .lvlist{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:5px;
   padding:.75rem .9rem;scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
 .lvlist::-webkit-scrollbar{width:4px}
@@ -1104,7 +1162,7 @@ body{font-size:1rem}
 :root[data-ui="pc"] .cbmain{grid-template-columns:minmax(0,1fr) clamp(240px,18vw,360px);
   overflow:hidden;gap:clamp(7px,.7vw,12px);padding:clamp(7px,.7vw,12px);align-content:stretch}
 :root[data-ui="pc"] .cbcol{overflow:hidden}
-:root[data-ui="pc"] .cbcol.mid{overflow:hidden;justify-content:center}
+:root[data-ui="pc"] .cbcol.mid{overflow:hidden;justify-content:flex-start}
 :root[data-ui="pc"] .cbcol.side{overflow-y:auto}
 :root[data-ui="pc"] .field{max-width:min(100%,calc((100vh - 19.5rem) * 1.62));padding:clamp(7px,.7vw,12px)}
 
@@ -1175,13 +1233,16 @@ body{font-size:1rem}
      below their content — auto rows here would shrink (the columns carry
      min-height:0) and let the grid paint over the panel beneath it. When the
      three rows outgrow the viewport, .cbmain scrolls instead. */
-  .cbmain{grid-template-rows:max-content max-content}
-  /* The loss conditions hold their place on a desktop, where there is room for
-     reference text. On a phone they appear while you are reading the brief and
-     again once a threshold is close, and stay out of the way between. */
-  .objblk .olose{display:none}
-  .objblk.press .olose{display:block}
-  #combat.hasalert .objblk .olose{display:none}
+  /* The details row takes the slack. minmax(max-content,1fr) can never squeeze
+     the panel below its content — which a plain auto row would, letting the
+     board paint over it — but it does stretch into whatever the board leaves,
+     instead of parking 180px of dead space above the hand. */
+  .cbmain{grid-template-rows:max-content minmax(max-content,1fr)}
+  /* The loss conditions used to appear and disappear on a phone — while you
+     were reading the brief, again once a threshold got close, gone while the
+     alert strip was up. Each swap resized the panel and shunted what sat under
+     it. Now that the details row stretches into the board's slack there is
+     room to simply leave them up: one shape, all mission, nothing moves. */
   }
 
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -1254,9 +1315,9 @@ body{font-size:1rem}
 .creply:hover{background:rgba(255,201,77,.16);border-color:var(--gold)}
 .creply:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .creply::before{content:'\25b8 ';opacity:.8}
-.cgo{color:var(--green);background:rgba(93,255,160,.08);border-color:rgba(93,255,160,.5)}
-.cgo:hover{background:rgba(93,255,160,.18);border-color:var(--green)}
-.cgo::before{content:''}
+.cmore.cgo{color:var(--green)}
+.cmore.cgo:hover{color:#c9ffe0}
+.cmore.cgo:focus-visible{outline-color:rgba(93,255,160,.6)}
 
 /* Read at your own pace: three dots cycling . / .. / ... and nothing else.
    A monospace period carries a ~0.6em advance, which would space three of them
@@ -1502,6 +1563,7 @@ body{font-size:1rem}
   <div class="lvbox">
     <div class="lvhead">Combat log
       <button class="lvx" id="lvx" aria-label="Close">✕</button></div>
+    <div class="objblk lvobj" id="objlog"></div>
     <div class="lvlist" id="cblog"></div>
   </div>
 </div>
@@ -1998,7 +2060,7 @@ function clearSelection() {
 /* ==== src/content/cards.js ========================================== */
 // GENERATED by tools/gen-content.js from reference/gridfall-data.json.
 // Edit the JSON and re-run `npm run gen:content` — do not edit this file by hand.
-// The 62 deployable cards, keyed by card id.
+// The 61 deployable cards, keyed by card id.
 
 const POOL = {
   scout: {
@@ -2270,16 +2332,6 @@ const POOL = {
     attach: "shield",
     tech: 1,
     d: "Attach to a unit. Absorbs the next incoming attack entirely, then breaks.",
-  },
-  cannon: {
-    n: "Shoulder Cannon",
-    t: "tech",
-    dp: 2,
-    hp: 0,
-    price: 145,
-    attach: "cannon",
-    tech: 1,
-    d: "Attach to a unit. It fires a second time each turn.",
   },
   turret: {
     n: "Turret",
@@ -2806,7 +2858,7 @@ const POOL = {
 /* ==== src/content/gear.js =========================================== */
 // GENERATED by tools/gen-content.js from reference/gridfall-data.json.
 // Edit the JSON and re-run `npm run gen:content` — do not edit this file by hand.
-// The 19 gear pieces, one slot per card, bought with credits.
+// The 20 gear pieces, one slot per card, bought with credits.
 
 const GEAR = {
   barrel: {n: "Extended Barrel", cost: 135, d: "+1 damage to this unit.", dmg: 1, role: "offense"},
@@ -2929,6 +2981,13 @@ const GEAR = {
     d: "Also strikes the cell directly behind this unit. Nothing flanks it.",
     rearsight: 1,
     role: "defense",
+  },
+  cannon: {
+    n: "Shoulder Cannon",
+    cost: 450,
+    d: "Fires a second time every turn, at the same targets.",
+    twin: 1,
+    role: "offense",
   },
 };
 
@@ -3204,7 +3263,7 @@ const GROUND_FLOOR = 6;
  */
 const HAND_CAP = 6;
 const DECKSIZE = 12;
-const SAVE_VERSION = 5;
+const SAVE_VERSION = 6;
 const STARTER = ["scout", "rifle", "marks", "wall", "medic", "turret", "lancer", "bulwark", "assassin"];
 
 /* ==== src/save/profile.js =========================================== */
@@ -3282,6 +3341,19 @@ function migrate(p) {
     p.progress.credits = (p.progress.credits || 0) + (p.progress.salvage || 0);
     delete p.progress.salvage;
   }
+  // v6 turned the Shoulder Cannon from a card you played onto a unit into a
+  // piece of gear you fit at the armoury. Anyone who had bought the card is
+  // issued the gear rather than losing the 145 credits when the strip below
+  // drops the card id — the piece it becomes costs more, so the conversion is
+  // in the commander's favour either way.
+  if (!p.version || p.version < 6) {
+    p.version = 6;
+    p.unlocks.gear = p.unlocks.gear || [];
+    if ((p.unlocks.cards || []).includes('cannon') && !p.unlocks.gear.includes('cannon')) {
+      p.unlocks.gear.push('cannon');
+    }
+  }
+
   p.unlocks = p.unlocks || {};
   p.unlocks.cards = p.unlocks.cards || [...STARTER];
   p.unlocks.enemies = p.unlocks.enemies || [];
@@ -4361,6 +4433,10 @@ function mkUnit(cid, l, c) {
     regen: !!k.regen,
     riposte: k.riposte || 0,
     servo: !!(g && g.servo),
+    // Shoulder Cannon. It was a card that landed on a unit mid-mission; as
+    // gear it is chosen at the armoury instead, so the second shot is a
+    // property of the unit from the moment it deploys.
+    twin: !!(g && g.twin),
     ab: k.ab || null,
     att: {},
     acted: false,
@@ -4845,7 +4921,7 @@ function fire(u, onPlay) {
   const base = (onPlay && k.burst ? k.burst + gearBonus : u.dmg)
     + buffOf(u) + leadBonus(u) + pristine + eventTechBonus(u);
 
-  for (let shot = 0; shot < (u.att.cannon ? 2 : 1); shot++) {
+  for (let shot = 0; shot < (u.twin ? 2 : 1); shot++) {
     const ts = targetsFor(u);
     if (!ts.length) break;
     ts.forEach(e => dmgEnemy(e, base, u.n, u.pen));
@@ -5249,7 +5325,7 @@ function abortMission() {
  * turn one and never had anywhere to read. `total` of 0 means the goal has no countable progress —
  * surviving is not a tally — so the readout falls back to the wave clock.
  *
- * @returns {{goal:string, done:number, total:number, lose:string, clock:string, press:boolean}}
+ * @returns {{goal:string, done:number, total:number, lose:string, clock:string}}
  */
 function objBrief() {
   const m = MISSIONS[G.type];
@@ -5262,16 +5338,11 @@ function objBrief() {
     : G.extra > 0 ? `Last wave committed — ${Math.max(0, left)} turn${left === 1 ? '' : 's'} to secure`
       : `Wave ${Math.min(G.turn, G.waves)} / ${G.waves}`;
 
-  // Whether the loss conditions are worth the room they take. They never change
-  // during a mission, so on a small screen they are wallpaper in the middle of
-  // one — but they are exactly what a player is reading on turn one, and what
-  // they need again once a threshold is close. Those two moments, not the rest.
-  // `breaches >= allow - 1` reads like "one from the end" but the standard
-  // allowance is 1, so it was `0 >= 0` — true on turn one of every mission,
-  // which made the whole condition a no-op. What actually means pressure is
-  // ground running out, or a breach already spent.
-  const press = held() <= GROUND_FLOOR + 2 || G.breaches > 0;
-  const b = (goal, done, total) => ({goal, done, total, lose, clock, press: press || G.turn <= 2});
+  // Every field here is stated the same way for the whole mission — the loss
+  // terms never change, and the presentation no longer shows and hides them by
+  // how close a threshold is. That conditional cost the panel a resize every
+  // few turns, which shunted everything under it; the terms simply stay up.
+  const b = (goal, done, total) => ({goal, done, total, lose, clock});
   switch (G.type) {
     case 'retake':
       return b('Hold 3 tiles in hostile ground at the clock.', heldEnemyHalf(), 3);
@@ -5513,6 +5584,34 @@ function show(id) {
 /** Escape a string for use inside a double-quoted HTML attribute. */
 const attr = s => String(s).replace(/"/g, '&quot;');
 
+/**
+ * Edge-fade affordance for a row that scrolls sideways.
+ *
+ * The scrollbar under a tab row was a second horizontal rule competing with
+ * the tabs themselves, and on a phone it reported the row's extent by drawing
+ * a bar the player never grabbed. Hiding it loses the "there is more this way"
+ * signal, so the row fades at whichever edge still has content behind it —
+ * nothing when it fits, and nothing at an edge you have already reached.
+ *
+ * `root` scopes the scan; it is re-run on scroll so the fade tracks position.
+ */
+function markSwipe(sel, root) {
+  const host = root || document;
+  host.querySelectorAll(sel).forEach(el => {
+    const paint = () => {
+      const slack = el.scrollWidth - el.clientWidth;
+      const at = el.scrollLeft;
+      el.classList.toggle('swipe-l', slack > 1 && at > 2);
+      el.classList.toggle('swipe-r', slack > 1 && at < slack - 2);
+    };
+    if (!el.dataset.swipewired) {
+      el.dataset.swipewired = '1';
+      el.addEventListener('scroll', paint, {passive: true});
+    }
+    paint();
+  });
+}
+
 /* ==== src/render/dialog.js ========================================== */
 // The single modal dialog, used for confirmations, messages and text entry.
 
@@ -5618,7 +5717,8 @@ const CARD_ART = {
 // One kanji per card, picked for the role: 目 eye for the Scout's overwatch
 // aura, 臼 for the mortar (臼砲), 貫 "pierce through" for the Rail Sniper,
 // 双 "pair" for the two-body fireteam. All 58 are distinct, which is also
-// what guarantees no two faces ever render identically.
+// what guarantees no two faces ever render identically. (Shoulder Cannon's
+// 撃 left with it when the card became gear — gear wears the procedural sigil.)
 const KANJI = {
   // scouts and skirmish troopers
   scout: '目', recon: '鳥', pathfinder: '道', rifle: '銃', zaku: '双',
@@ -5629,7 +5729,7 @@ const KANJI = {
   falconer: '隼', longshot: '遠', rearguard: '殿',
   // tech emplacements and devices
   wall: '壁', supply: '糧', beacon: '灯', cache: '蔵', shield: '護',
-  cannon: '撃', turret: '塔', relay: '波', techblade: '刃', pulse: '響',
+  turret: '塔', relay: '波', techblade: '刃', pulse: '響',
   scrambler: '乱', battery: '陣', fob: '営', mine: '罠', dynamo: '電',
   rampart: '塞', piercer: '突', suppressor: '抑', reactor: '核', bore: '穿',
   sapper: '伏', backstop: '堤',
@@ -6069,23 +6169,55 @@ const GEAR_ROLES = [['offense', 'Offense'], ['defense', 'Defense'], ['utility', 
 // A role this size or smaller reads fine without a filter on top of it.
 const GEAR_SEARCH_THRESHOLD = 10;
 
+/** Which card is wearing `gi` right now, if any. One piece exists per profile. */
+function gearWearer(gi) {
+  return Object.keys(active.loadout.gear).find(k => active.loadout.gear[k] === gi) || null;
+}
+
+/**
+ * One fitting row: the piece, what it does, and where it is.
+ *
+ * The chips this replaces printed nineteen names and nothing else, so choosing
+ * gear meant remembering nineteen rules texts — which players plainly were not
+ * doing. The rules text is the row now, and the right-hand state answers the
+ * other half of the confusion: exactly one of each piece exists, so fitting one
+ * that is already somewhere quietly strips it off that card. Saying so before
+ * the tap is cheaper than discovering it afterwards.
+ */
+function gearRow(id, gi) {
+  const g = GEAR[gi];
+  const here = active.loadout.gear[id] === gi;
+  const on = here ? null : gearWearer(gi);
+  const where = here ? '<span class="gwhere on">Fitted</span>'
+    : on ? `<span class="gwhere moved">On ${POOL[on].n}</span>`
+      : '<span class="gwhere">Free</span>';
+  return `<button class="grow${here ? ' on' : ''}" data-fitgear="${id}:${gi}"
+      data-gname="${attr((g.n + ' ' + g.d).toLowerCase())}">
+    <span class="gtop"><span class="gn">${g.n}</span>${where}</span>
+    <span class="gd">${g.d}</span></button>`;
+}
+
 function gearBlock(id, mode) {
   const k = POOL[id];
-  if (mode !== 'gear' || k.attach) return '';
+  // An attachment card is gear in card form; it has no slot of its own.
+  if (k.attach) return '';
   const g = gearOf(id);
+
+  // Everywhere but the fitting surface this is a readout, not a control — and
+  // it is the readout the hand tray stopped printing, so it has to carry the
+  // rules text rather than just the piece's name.
+  if (mode !== 'gear') {
+    return g ? `<div class="fab"><b>Gear fitted · ${g.n}</b>${g.d}</div>` : '';
+  }
+
   const owned = active.unlocks.gear;
   if (!owned.length) {
-    return `<div class="fab"><b>Gear slot</b>${g ? g.n + ' — ' + g.d : 'Empty.'}
+    return `<div class="fab"><b>Gear slot</b>Empty.
       <div style="margin-top:8px;color:var(--dim)">No gear owned. Visit the Quartermaster.</div></div>`;
   }
 
   const grouped = {offense: [], defense: [], utility: []};
   owned.forEach(gi => grouped[GEAR[gi].role || 'utility'].push(gi));
-
-  const chip = gi => {
-    const lit = active.loadout.gear[id] === gi ? 'color:var(--green);border-color:var(--green)' : '';
-    return `<button class="mini" data-fitgear="${id}:${gi}" data-gname="${GEAR[gi].n.toLowerCase()}" style="${lit}">${GEAR[gi].n}</button>`;
-  };
 
   const showSearch = GEAR_ROLES.some(([r]) => grouped[r].length > GEAR_SEARCH_THRESHOLD);
 
@@ -6093,14 +6225,14 @@ function gearBlock(id, mode) {
     `<button class="tab${i === 0 ? ' on' : ''}" data-groletab="${r}">${label}<span class="ct">${grouped[r].length}</span></button>`).join('');
 
   const groups = GEAR_ROLES.map(([r], i) => `<div class="ggroup${i === 0 ? ' show' : ''}" data-grole="${r}">
-      <div style="display:flex;flex-wrap:wrap;gap:5px">${grouped[r]
-    .map(chip).join('') || '<span style="color:var(--dim);font-size:0.6875rem">None owned.</span>'}</div></div>`).join('');
+      <div class="glist">${grouped[r].map(gi => gearRow(id, gi)).join('')
+    || '<span style="color:var(--dim);font-size:0.6875rem">None owned in this role.</span>'}</div></div>`).join('');
 
-  return `<div class="fab"><b>Gear slot</b>${g ? g.n + ' — ' + g.d : 'Empty.'}
+  return `<div class="fab"><b>Gear slot · ${g ? g.n : 'empty'}</b>${g ? g.d : 'Fit one piece to this card.'}
       <div class="tabs">${tabs}</div>
-      ${showSearch ? '<input class="gsearch" type="text" placeholder="Filter this role…" data-gsearch="1">' : ''}
+      ${showSearch ? '<input class="gsearch" type="text" placeholder="Filter by name or effect…" data-gsearch="1">' : ''}
       <div style="margin-top:8px">${groups}</div>
-      ${g ? `<button class="mini" data-fitgear="${id}:none" style="color:var(--mag);margin-top:8px">Strip</button>` : ''}</div>`;
+      ${g ? `<button class="mini" data-fitgear="${id}:none" style="color:var(--mag);margin-top:8px">Strip ${g.n}</button>` : ''}</div>`;
 }
 
 function focusCard(id, mode) {
@@ -6168,20 +6300,58 @@ function focusEnemy(id) {
   wireFocus();
 }
 
-/** `viewOnly` shows the piece without buy actions — used over a pack offer. */
-function focusGear(gi, viewOnly) {
+/**
+ * Which way round you are fitting.
+ *
+ * Fitting from the card answers "what should this unit carry"; fitting from
+ * the piece answers "where should this go", which is the question the Gear
+ * locker opens with and the one the game had no answer for at all. Both end in
+ * the same one-slot-per-card, one-copy-per-profile assignment.
+ */
+function gearFitList(gi) {
+  const deck = active.loadout.deck.filter(c => POOL[c] && !POOL[c].attach);
+  if (!deck.length) {
+    return `<div class="fab"><b>Fit to</b><span style="color:var(--dim)">
+      No card in the deck can carry gear yet.</span></div>`;
+  }
+  const rows = deck.map(c => {
+    const worn = active.loadout.gear[c];
+    const here = worn === gi;
+    // Fitting displaces whatever that card already wears — say which piece,
+    // because the swap is silent once it happens.
+    const state = here ? '<span class="gwhere on">Fitted</span>'
+      : worn ? `<span class="gwhere moved">Replaces ${GEAR[worn].n}</span>`
+        : '<span class="gwhere">Slot free</span>';
+    return `<button class="grow${here ? ' on' : ''}" data-wear="${gi}:${c}">
+      <span class="gtop"><span class="gn">${POOL[c].n}</span>${state}</span>
+      <span class="gd">${TIERNAME[POOL[c].t]} · ${costOf(c)} DP${POOL[c].hp ? ' · ' + POOL[c].hp + ' hull' : ''}</span></button>`;
+  }).join('');
+  const on = gearWearer(gi);
+  return `<div class="fab"><b>Fit to</b>Pick the card that carries it. One slot per card, so
+      fitting it somewhere new takes it off wherever it is.
+    <div class="glist" style="margin-top:8px">${rows}</div>
+    ${on ? `<button class="mini" data-wear="${gi}:none" style="color:var(--mag);margin-top:8px">Strip from ${POOL[on].n}</button>` : ''}</div>`;
+}
+
+/**
+ * `viewOnly` shows the piece without buy actions — used over a pack offer.
+ * `fit` adds the fit-to list, for the Gear locker in Squad.
+ */
+function focusGear(gi, viewOnly, fit) {
   const g = GEAR[gi];
   const owned = active.unlocks.gear.includes(gi);
   const affordable = active.progress.credits >= g.cost;
+  const on = owned ? gearWearer(gi) : null;
 
   $('fwrap').innerHTML = `<div class="fcard t-tech">
       <div class="fart">${sigil(gi, 'tech', 118)}<div class="fcost" style="background:var(--cyan);color:#06121a">◈</div></div>
       <div class="fname">${g.n}</div><div class="ftype">Gear · one slot per card</div>
       <div class="ftxt">${g.d}</div>
       <div class="fstats"><div class="fstat"><span class="k">Cost</span><span class="v">${g.cost} cr</span></div>
-      <div class="fstat"><span class="k">Owned</span><span class="v">${owned ? 'Yes' : 'No'}</span></div></div>
+      <div class="fstat"><span class="k">Fitted to</span><span class="v">${owned ? (on ? POOL[on].n : 'Nothing') : 'Not owned'}</span></div></div>
+      ${owned && fit ? gearFitList(gi) : ''}
     </div><div class="facts">${viewOnly ? '<button class="btn ghost" data-close="1">Close</button>'
-    : owned ? '<button class="btn ghost" data-close="1">Owned — fit it in Squad</button>'
+    : owned ? `<button class="btn ghost" data-close="1">${fit ? 'Done' : 'Owned — fit it in Squad'}</button>`
       : affordable ? `<button class="btn" data-fgear="${gi}">Buy · ${g.cost} cr</button><button class="btn ghost" data-close="1">Close</button>`
         : `<button class="btn ghost" data-close="1">Need ${g.cost} cr</button>`}</div>`;
   $('fbg').innerHTML = bokehLayer(['#4de8ff', '#5dffa0', '#9d6bff']);
@@ -6290,6 +6460,22 @@ function wireFocus() {
     closeFocus();
     notify('Aboard', `<b style="color:var(--zan)">${LEADS[k].call}</b> has joined the task force. Assign them from their card.`);
     onLeadDone(b.dataset.fctx, 'recruit');
+  });
+
+  // Fitting from the piece's side. Same assignment as data-fitgear, arguments
+  // the other way round, and it stays on the piece so you can see where it
+  // landed instead of being thrown back to the roster.
+  each('data-wear', b => {
+    const [gi, cid] = b.dataset.wear.split(':');
+    const was = gearWearer(gi);
+    // Tapping the card it is already on is a no-op, not a silent strip — the
+    // Strip button below the list is the one control that takes gear off.
+    if (was === cid) return;
+    if (was) delete active.loadout.gear[was];
+    if (cid !== 'none') active.loadout.gear[cid] = gi;
+    commit();
+    onAfterFocusAction('squad', true);
+    focusGear(gi, false, true);
   });
 
   each('data-fitgear', b => {
@@ -7923,16 +8109,23 @@ function codecTypeOut(lines, cls, after) {
 }
 
 /**
- * Read-at-your-own-pace: a cycling "..." and nothing else. The label lives in
- * aria-label only, so a screen reader announces it without a word sitting next
- * to the dots.
+ * Read-at-your-own-pace: a cycling "..." and nothing else.
+ *
+ * Every control that only means "I am ready for the next part" wears this,
+ * the sign-off included. A worded button in the middle of a transmission reads
+ * as a choice with consequences; the dots read as a beat of silence on an open
+ * channel, which is what they are. The label lives in aria-label only, so a
+ * screen reader still announces the destination without a word sitting next to
+ * the dots. `kind` is what the harness and the tests address it by.
  */
-function codecWait(onGo) {
+function codecWait(onGo, label, kind) {
   const b = document.createElement('button');
-  b.className = 'cmore';
-  b.setAttribute('aria-label', 'Continue');
+  // The sign-off is the same dots in the channel's "clear to go" green, so the
+  // one that leaves the call is still distinguishable from the ones inside it.
+  b.className = 'cmore' + (kind === 'go' ? ' cgo' : '');
+  b.setAttribute('aria-label', label || 'Continue');
   b.innerHTML = '<span class="cell"><i>.</i><i>.</i><i>.</i></span>';
-  b.dataset.codec = 'more';
+  b.dataset.codec = kind || 'more';
   b.onclick = onGo;
   $('cacts').appendChild(b);
   try { b.focus(); } catch { /* headless */ }
@@ -7976,13 +8169,7 @@ function codecFinish() {
   $('csaid').className = 'csaid';
   $('csaid').textContent = codecScene.close || 'Channel closed.';
   $('cacts').innerHTML = '';
-  const go = document.createElement('button');
-  go.className = 'creply cgo';
-  go.dataset.codec = 'go';
-  go.textContent = 'OPEN THE SECTOR MAP ▸';
-  go.onclick = closeCodec;
-  $('cacts').appendChild(go);
-  try { go.focus(); } catch { /* headless */ }
+  codecWait(closeCodec, 'Open the sector map', 'go');
 }
 
 /** Tear the overlay down and hand control back to whoever opened it. */
@@ -9650,7 +9837,6 @@ const PIXMAP = {
     '..oooooooo..',
     '............',
   ],
-  cannon: ov(TROOPER, sparse({1: '......wwwwwv', 2: '......owww..', 3: '...obvvss...'})),
   turret: [
     '............',
     '............',
@@ -10431,7 +10617,7 @@ function unitMarkup(u, incoming) {
         ${u.tgt ? '<span class="lockpip">⌖</span>' : ''}
         <span class="minihp"><i style="width:${Math.max(0, u.hp / u.max * 100)}%"></i></span>
         ${u.shield > 0 ? `<span class="shield">${'◈'.repeat(Math.min(u.shield, 2))}</span>` : ''}
-        ${u.att.cannon ? '<span class="att">▮</span>' : ''}${u.cycling > 0 ? '<span class="att cyc">⟳</span>' : ''}${u.acted ? '<span class="ord done">✓</span>' : ''}
+        ${u.twin ? '<span class="att">▮</span>' : ''}${u.cycling > 0 ? '<span class="att cyc">⟳</span>' : ''}${u.acted ? '<span class="ord done">✓</span>' : ''}
         ${unitSprite(u.id, u.uid, active.loadout.scheme) || `<div class="nm">${u.n.split(' ')[0]}</div>`}
         <div class="hp">${u.hp}</div></div>`;
 }
@@ -10705,6 +10891,11 @@ function paintAlert() {
  */
 function openLog() {
   setLogOpen(true);
+  // The objective rides at the top of the overlay, outside the scroller. The
+  // log is the one place a player goes to work out what just happened, and
+  // scrolling back through forty lines with the goal off-screen is how you
+  // lose track of what you were trying to do in the first place.
+  drawObjective('objlog');
   drawLog();
   $('logview').classList.add('on');
   sfx('tap');
@@ -10734,8 +10925,8 @@ function paintLogToggle() {
  * on every compact layout. Progress gets pips up to five and a bar beyond —
  * nine pips is a counting exercise, not a glance.
  */
-function drawObjective() {
-  const el = $('objblk');
+function drawObjective(host) {
+  const el = $(host || 'objblk');
   if (!el) return;
   const b = objBrief();
   const met = b.total > 0 && b.done >= b.total;
@@ -10747,7 +10938,7 @@ function drawObjective() {
     prog = `<span class="obar"><span style="width:${Math.min(100, b.done / b.total * 100)}%"></span></span>`;
   }
   const count = b.total > 0 ? `<b class="onum">${b.done} / ${b.total}</b>` : '';
-  el.className = 'objblk' + (met ? ' met' : '') + (b.press ? ' press' : '');
+  el.className = 'objblk' + (host ? ' lvobj' : '') + (met ? ' met' : '');
   el.innerHTML = `<span class="orow"><span class="olab">Objective</span>
       <span class="oclock">${b.clock}</span></span>
     <span class="ogoal">${b.goal}</span>
@@ -10819,12 +11010,20 @@ function drawHand() {
     // A trading card: the seal face and the name, nothing else. Cost, hull
     // and tier live in the details panel when the card is selected, and in
     // full behind its View card button.
+    //
+    // The fitted gear used to print its name here as a third line. At six
+    // cards across, "Overclocked Uplink" wrapped to two lines under a name
+    // that had already wrapped, and it still only said which piece — never
+    // what it does. A cyan corner mark says "this one is geared"; the piece
+    // and its rules text are in View card, where there is room to read them.
     el.innerHTML = `${index < 9 ? `<div class="hkey">${index + 1}</div>` : ''}
       ${v.t ? `<div class="hpips">${'◆'.repeat(v.t)}</div>` : ''}
+      ${g ? '<div class="hgear" aria-hidden="true">◈</div>' : ''}
       <div class="hart">${artFor(cid, k.t, null, v.t >= 2 ? v.col : null)}</div>
-      <div class="n">${k.n}</div>
-      ${g ? `<div class="gtag">${g.n}</div>` : ''}`;
-    el.title = k.n + ' — ' + k.d;   // hover tooltip carries the rules text
+      <div class="n">${k.n}</div>`;
+    // Hover carries the rules text, and the gear's too now that the tile does
+    // not print it.
+    el.title = k.n + ' — ' + k.d + (g ? `\nGear: ${g.n} — ${g.d}` : '');
     el.onclick = () => {
       if (unaffordable) return;
       sfx(sel === cid ? 'tap' : 'select');
@@ -11147,6 +11346,103 @@ const cardGrid = (ids, mode) => `<div class="cgrid">${ids.map(c => cardEl(c, mod
 // An empty state has to span the grid, or it wraps inside one card column.
 const cardGridEmpty = text => `<div class="cgrid"><div class="cempty">${text}</div></div>`;
 
+/**
+ * How the Squad grids are arranged. Both are the player's choice and both are
+ * remembered on the profile: a commander who thinks in classes should not have
+ * to re-say so every time they open the panel.
+ *
+ * "Level" is veteran rank first, then deployments inside a rank, so the two
+ * Elites sort by which one has actually done the work.
+ */
+const SQUAD_SORTS = [
+  ['name', 'A–Z'],
+  ['level', 'Level'],
+  ['cost', 'Cost'],
+  ['gear', 'Geared'],
+];
+
+const squadPref = key => (active.settings && active.settings[key]) || null;
+
+const squadSort = () => squadPref('squadSort') || 'name';
+// Split by class the way the Quartermaster shelf does, which is where players
+// learned the pool in the first place.
+const squadGroup = () => squadPref('squadGroup') !== 'flat';
+
+function sortCards(ids) {
+  const by = squadSort();
+  return [...ids].sort((a, b) => {
+    if (by === 'cost') return costOf(a) - costOf(b) || POOL[a].n.localeCompare(POOL[b].n);
+    if (by === 'level') {
+      const va = vetOf(a); const vb = vetOf(b);
+      return vb.t - va.t || vb.u - va.u || POOL[a].n.localeCompare(POOL[b].n);
+    }
+    if (by === 'gear') {
+      // Geared first, then alphabetical inside each half — the point of this
+      // one is to see at a glance which cards are still carrying nothing.
+      const ga = active.loadout.gear[a] ? 0 : 1;
+      const gb = active.loadout.gear[b] ? 0 : 1;
+      return ga - gb || POOL[a].n.localeCompare(POOL[b].n);
+    }
+    return POOL[a].n.localeCompare(POOL[b].n);
+  });
+}
+
+/** A section's cards: one grid, or one grid per class with its own subheading. */
+function squadCards(ids, empty) {
+  if (!ids.length) return cardGridEmpty(empty);
+  if (!squadGroup()) return cardGrid(sortCards(ids), 'gear');
+  return TIERS.map(t => {
+    const inTier = sortCards(ids.filter(c => POOL[c].t === t));
+    if (!inTier.length) return '';
+    return `<div class="subsect">${TIERNAME[t]} <span class="ct">${inTier.length}</span></div>` +
+      cardGrid(inTier, 'gear');
+  }).join('');
+}
+
+const squadControls = () => `<div class="orgbar">
+   <span class="orglab">Sort</span>
+   <span class="orgset">${SQUAD_SORTS.map(([k, label]) =>
+    `<button class="mini${squadSort() === k ? ' on' : ''}" data-sqsort="${k}">${label}</button>`).join('')}</span>
+   <span class="orglab">Split</span>
+   <span class="orgset">
+     <button class="mini${squadGroup() ? ' on' : ''}" data-sqgroup="class">By class</button>
+     <button class="mini${squadGroup() ? '' : ' on'}" data-sqgroup="flat">One list</button></span></div>`;
+
+/**
+ * The gear locker.
+ *
+ * Fitting used to be reachable only from inside a card's focus view, which
+ * asks the question backwards: you had to already know which piece you wanted
+ * before you could read what any of them did. The locker lists every piece you
+ * own with its rules text and where it currently is, and opens onto the list
+ * of cards it can go to — so "what have I got, and what is it doing" is one
+ * screen instead of nineteen.
+ */
+function gearLocker() {
+  const owned = active.unlocks.gear;
+  if (!owned.length) {
+    return `<div class="sect" style="color:var(--cyan)">Gear locker</div>
+     <div class="stub"><b>Nothing issued</b>Gear is bought from the Quartermaster.
+       One piece per card, one copy of each piece.</div>`;
+  }
+  const fitted = Object.keys(active.loadout.gear).length;
+  const rows = owned.map(gi => {
+    const g = GEAR[gi];
+    const on = Object.keys(active.loadout.gear).find(k => active.loadout.gear[k] === gi);
+    return dbRow({
+      label: g.n,
+      body: g.d,
+      right: on ? POOL[on].n : 'Unfitted',
+      hot: !!on,
+      attrs: ` data-gearfit="${gi}"`,
+    });
+  }).join('');
+  return `<div class="sect" style="color:var(--cyan)">Gear locker — ${fitted} of ${owned.length} fitted</div>
+   <div class="bar"><div>Tap a piece to read it and choose which card carries it</div>
+     <div style="color:var(--dim);font-size:0.6875rem">One slot per card · one copy of each piece</div></div>
+   <div class="rows">${rows}</div>`;
+}
+
 function squadPanel() {
   const deck = active.loadout.deck;
   const reserve = active.unlocks.cards.filter(c => !deck.includes(c));
@@ -11155,10 +11451,12 @@ function squadPanel() {
    <div class="sect">Deck</div>
    <div class="bar"><div><b>${deck.length}</b> / ${DECKSIZE} in deck · <b style="color:var(--cyan)">${Object.keys(active.loadout.gear).length}</b> geared</div>
      <div style="color:var(--dim);font-size:0.6875rem">Tap any card to enlarge it — inspect, fit gear, add or remove</div></div>
+   ${squadControls()}
    <div class="sect">Active deck</div>
-   ${deck.length ? cardGrid(deck, 'gear') : cardGridEmpty('Empty.')}
+   ${squadCards(deck, 'Empty.')}
    <div class="sect">Reserve — ${reserve.length}</div>
-   ${reserve.length ? cardGrid(reserve, 'gear') : cardGridEmpty('Nothing in reserve.')}`;
+   ${squadCards(reserve, 'Nothing in reserve.')}
+   ${gearLocker()}`;
 }
 
 function quartermasterPanel() {
@@ -11452,12 +11750,13 @@ function importRecordFlow(after) {
     }, {paste: true, ok: 'Import'});
 }
 
-function openPanel(key) {
+function openPanel(key, quiet) {
   if (!active || !PANELS[key]) return;
   $('ptitle').textContent = TITLES[key] || key;
   $('pbody').innerHTML = PANELS[key]();
   $('panel').classList.add('on');
-  maybeShowPanelHint(key);
+  if (!quiet) maybeShowPanelHint(key);
+  markSwipe('.tabs', $('pbody'));
 
   const each = (sel, fn) => document.querySelectorAll('#pbody ' + sel).forEach(el => { el.onclick = () => fn(el); });
   each('[data-rosterbtn]', () => { toggleRoster(); openPanel('squad'); });
@@ -11489,6 +11788,19 @@ function openPanel(key) {
         commit();
         openPanel('quartermaster');
       }, {ok: 'Refit'});
+  });
+  each('[data-gearfit]', el => focusGear(el.dataset.gearfit, false, true));
+  // Both arrangement choices live on the profile, so they survive the panel
+  // closing, the session ending and the record moving to another device.
+  each('[data-sqsort]', el => {
+    active.settings.squadSort = el.dataset.sqsort;
+    commit();
+    openPanel('squad', true);
+  });
+  each('[data-sqgroup]', el => {
+    active.settings.squadGroup = el.dataset.sqgroup;
+    commit();
+    openPanel('squad', true);
   });
   each('[data-tab]', el => { dbTab = el.dataset.tab; openPanel('database'); });
   each('[data-rectab]', el => { recTab = el.dataset.rectab; openPanel('record'); });
@@ -11864,9 +12176,24 @@ function render() {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.1';
+const VERSION = '2.2';
 
 const PATCH_NOTES = [
+  {
+    v: '2.2',
+    notes: [
+      'The combat board holds its place. It used to jump upward the moment an alert appeared beneath it and drop back when the alert cleared — a measured 17.7px on a 1024px display, several times a mission. Nothing under the board can move it now.',
+      'The objective panel keeps one shape for the whole mission. The losing conditions used to appear and vanish depending on how close you were to them, resizing the panel and shunting everything under it; they simply stay up, and the panel fills the room the board leaves rather than parking dead space above your hand.',
+      'The combat log opens with the objective pinned to the top of it. Forty lines of history scroll underneath while the goal stays put — the log is where you go to work out what just happened, and losing the goal on the way there was backwards.',
+      'The Shoulder Cannon is gear now, not a card. Fit it at the armoury and that unit fires twice from the moment it lands. If you had already bought the card, the piece is in your locker.',
+      'A gear locker in Squad: every piece you own, what it does in full, and which card is carrying it. Tap one to choose where it goes. Gear used to be reachable only from inside a card, which asked the question backwards — you had to know which piece you wanted before you could read what any of them did.',
+      'Fitting gear from a card now lists each piece with its rules text and where it currently is. It was a row of nineteen bare names, and one copy of each piece exists, so fitting one silently took it off something else. Both halves are now on screen before you tap.',
+      'Squad can be sorted — A–Z, level, deploy cost, or geared first — and split by class the way the Quartermaster shelf is. The choice is remembered on your record.',
+      'The gear on a card in hand is no longer a caption crushed under its name. The hand card carries a small ◈, and the piece and what it does are in View card, where there is room to read them.',
+      'Every "next part" control in a Central Command transmission is the same cycling dots now, the sign-off included. A worded button in the middle of a call read as a decision; these are a beat of silence on an open channel.',
+      'Tab rows that scroll sideways — Service Record, Database, the gear roles — fade at the edge instead of drawing a scrollbar under themselves.',
+    ],
+  },
   {
     v: '2.1',
     notes: [
@@ -12185,7 +12512,10 @@ function boot() {
   });
 
   // Focus-overlay actions reopen the panel they came from, or redraw combat.
-  setFocusFollowUp(panel => (panel ? openPanel(panel) : drawAll()));
+  // `quiet` repaints the surface behind an overlay that is staying open — the
+  // Gear locker fits a piece and stays on it — so the one-time coach card for
+  // that panel does not pop up underneath the focus view.
+  setFocusFollowUp((panel, quiet) => (panel ? openPanel(panel, quiet) : drawAll()));
   // A lead assigned from the focus view folds whichever roster it came from;
   // a recruit just repaints the surface so the tile unlocks in place.
   setLeadFollowUp((ctx, action) => {

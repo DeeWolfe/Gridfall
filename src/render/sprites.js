@@ -247,7 +247,6 @@ const PIXMAP = {
     '..oooooooo..',
     '............',
   ],
-  cannon: ov(TROOPER, sparse({1: '......wwwwwv', 2: '......owww..', 3: '...obvvss...'})),
   turret: [
     '............',
     '............',

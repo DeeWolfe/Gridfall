@@ -124,4 +124,42 @@ const stamp = () => document.documentElement.dataset.ui;
   if (!/1 – 9/.test(get('pbody')._html)) F.push('the number-key shortcut is not documented');
 }
 
+// --- the log overlay carries the objective, pinned above the scroller ---
+{
+  if (!page.includes('id="objlog"')) F.push('no objective block in the log overlay');
+  if (!page.includes("drawObjective('objlog')")) F.push('the log overlay never paints its objective');
+  const src = page.slice(page.indexOf('id="logview"'), page.indexOf('id="logview"') + 600);
+  if (src.indexOf('objlog') > src.indexOf('id="cblog"')) {
+    F.push('the objective sits under the scrolling log rather than above it');
+  }
+  const obj = /\.lvobj\{([^}]*)\}/.exec(css);
+  if (!obj) F.push('.lvobj rule missing');
+  else if (!/flex:\s*0\s+0\s+auto/.test(obj[1])) F.push('the pinned objective can be squeezed by the log');
+  const list = /\.lvlist\{([^}]*)\}/.exec(css);
+  if (!list || !/overflow-y:\s*auto/.test(list[1])) F.push('the log itself does not scroll');
+}
+
+// --- a tab row that scrolls sideways fades its edge instead of drawing a bar ---
+{
+  const tabs = /\.tabs\{([^}]*)\}/.exec(css);
+  if (!tabs) F.push('.tabs rule missing');
+  else {
+    if (!/overflow-x:\s*auto/.test(tabs[1])) F.push('tab rows no longer scroll sideways');
+    if (!/scrollbar-width:\s*none/.test(tabs[1])) F.push('the tab row still draws a scrollbar under itself');
+  }
+  if (!/\.tabs::-webkit-scrollbar\{display:none\}/.test(css)) {
+    F.push('the tab row still draws a webkit scrollbar');
+  }
+  // Hiding the bar without replacing the signal would just lose the affordance.
+  if (!/\.swipe-r\{/.test(css) || !/\.swipe-l\{/.test(css)) F.push('no edge fade to replace the scrollbar');
+  if (!page.includes("markSwipe('.tabs'")) F.push('nothing measures a tab row for overflow');
+}
+
+// --- the hand tray marks geared cards; the piece itself is in View card ---
+{
+  if (/class="gtag">\$\{g\.n\}/.test(page)) F.push('the hand card still prints its gear name');
+  if (!page.includes('class="hgear"')) F.push('no gear mark on a geared hand card');
+  if (!/\.hgear\{/.test(css)) F.push('.hgear rule missing');
+}
+
 F.report('interface modes: all checks pass');

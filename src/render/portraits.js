@@ -15,7 +15,8 @@ import {POOL} from '../content/cards.js';
 // One kanji per card, picked for the role: 目 eye for the Scout's overwatch
 // aura, 臼 for the mortar (臼砲), 貫 "pierce through" for the Rail Sniper,
 // 双 "pair" for the two-body fireteam. All 58 are distinct, which is also
-// what guarantees no two faces ever render identically.
+// what guarantees no two faces ever render identically. (Shoulder Cannon's
+// 撃 left with it when the card became gear — gear wears the procedural sigil.)
 const KANJI = {
   // scouts and skirmish troopers
   scout: '目', recon: '鳥', pathfinder: '道', rifle: '銃', zaku: '双',
@@ -26,7 +27,7 @@ const KANJI = {
   falconer: '隼', longshot: '遠', rearguard: '殿',
   // tech emplacements and devices
   wall: '壁', supply: '糧', beacon: '灯', cache: '蔵', shield: '護',
-  cannon: '撃', turret: '塔', relay: '波', techblade: '刃', pulse: '響',
+  turret: '塔', relay: '波', techblade: '刃', pulse: '響',
   scrambler: '乱', battery: '陣', fob: '営', mine: '罠', dynamo: '電',
   rampart: '塞', piercer: '突', suppressor: '抑', reactor: '核', bore: '穿',
   sapper: '伏', backstop: '堤',

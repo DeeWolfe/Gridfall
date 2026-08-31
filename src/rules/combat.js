@@ -190,7 +190,7 @@ export function fire(u, onPlay) {
   const base = (onPlay && k.burst ? k.burst + gearBonus : u.dmg)
     + buffOf(u) + leadBonus(u) + pristine + eventTechBonus(u);
 
-  for (let shot = 0; shot < (u.att.cannon ? 2 : 1); shot++) {
+  for (let shot = 0; shot < (u.twin ? 2 : 1); shot++) {
     const ts = targetsFor(u);
     if (!ts.length) break;
     ts.forEach(e => dmgEnemy(e, base, u.n, u.pen));

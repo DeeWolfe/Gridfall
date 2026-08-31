@@ -133,16 +133,23 @@ function codecTypeOut(lines, cls, after) {
 }
 
 /**
- * Read-at-your-own-pace: a cycling "..." and nothing else. The label lives in
- * aria-label only, so a screen reader announces it without a word sitting next
- * to the dots.
+ * Read-at-your-own-pace: a cycling "..." and nothing else.
+ *
+ * Every control that only means "I am ready for the next part" wears this,
+ * the sign-off included. A worded button in the middle of a transmission reads
+ * as a choice with consequences; the dots read as a beat of silence on an open
+ * channel, which is what they are. The label lives in aria-label only, so a
+ * screen reader still announces the destination without a word sitting next to
+ * the dots. `kind` is what the harness and the tests address it by.
  */
-function codecWait(onGo) {
+function codecWait(onGo, label, kind) {
   const b = document.createElement('button');
-  b.className = 'cmore';
-  b.setAttribute('aria-label', 'Continue');
+  // The sign-off is the same dots in the channel's "clear to go" green, so the
+  // one that leaves the call is still distinguishable from the ones inside it.
+  b.className = 'cmore' + (kind === 'go' ? ' cgo' : '');
+  b.setAttribute('aria-label', label || 'Continue');
   b.innerHTML = '<span class="cell"><i>.</i><i>.</i><i>.</i></span>';
-  b.dataset.codec = 'more';
+  b.dataset.codec = kind || 'more';
   b.onclick = onGo;
   $('cacts').appendChild(b);
   try { b.focus(); } catch { /* headless */ }
@@ -186,13 +193,7 @@ function codecFinish() {
   $('csaid').className = 'csaid';
   $('csaid').textContent = codecScene.close || 'Channel closed.';
   $('cacts').innerHTML = '';
-  const go = document.createElement('button');
-  go.className = 'creply cgo';
-  go.dataset.codec = 'go';
-  go.textContent = 'OPEN THE SECTOR MAP ▸';
-  go.onclick = closeCodec;
-  $('cacts').appendChild(go);
-  try { go.focus(); } catch { /* headless */ }
+  codecWait(closeCodec, 'Open the sector map', 'go');
 }
 
 /** Tear the overlay down and hand control back to whoever opened it. */
