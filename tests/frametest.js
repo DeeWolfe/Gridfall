@@ -334,17 +334,36 @@ const fieldFrame = cid => { p.loadout.frame = cid; seedFrame(); };
   if (clean.loadout.frame !== null) F.push('an unknown Frame id survived migration');
 }
 
-// --- White Devil is the all-rounder: three answers, three shapes ---
+// --- White Devil is the all-rounder, and its kit has to prove it ---
+//
+// Five weapons in one slot, and you only ever carry one. That makes a strictly
+// dominant pair worse than it would be in the general gear pool, where two
+// pieces can sit on two different cards at once: here the loser is simply dead
+// for the rest of the profile. So every weapon must cover a shape no other one
+// covers — the check is on the SHAPES, not the count.
 {
   start();
   const kit = Object.keys(GEAR).filter(g => GEAR[g].frame === 'whitedevil');
-  if (kit.length !== 3) F.push(`White Devil carries ${kit.length} weapons, expected 3`);
-  const shapes = new Set(kit.map(g => GEAR[g].tg));
-  if (shapes.size !== 3) F.push('two White Devil weapons cover the same shape');
+  if (kit.length < 5) F.push(`White Devil carries ${kit.length} weapons, expected at least 5`);
+  const shapes = kit.map(g => GEAR[g].tg);
+  if (new Set(shapes).size !== shapes.length) {
+    F.push('two White Devil weapons cover the same shape: ' + shapes.join(', '));
+  }
+  // No two Frames share a weapon, either.
+  FRAMES.forEach(c => {
+    const own = Object.keys(GEAR).filter(g => GEAR[g].frame === c);
+    const dupe = own.map(g => GEAR[g].tg);
+    if (new Set(dupe).size !== dupe.length) F.push(`${c} carries two weapons of the same shape`);
+  });
   const rail = GEAR.railcannon;
   if (!rail || !rail.pen) F.push('the Hyper Rail Cannon is not anti-armour');
   if (!rail.single) F.push('the Hyper Rail Cannon is not single-target');
+  if (rail.tg === (GEAR.beamrifle || {}).tg) {
+    F.push('the Rail Cannon is the Beam Rifle with a bigger number — one of them is dead');
+  }
   if (!GEAR.napalm || !GEAR.napalm.scorch) F.push('Hyper Napalm leaves no burning ground');
+  if (!GEAR.beamsaber || !GEAR.beamsaber.riposte) F.push('the Beam Saber does not strike back');
+  console.log('white devil kit:', kit.length, 'weapons,', shapes.join('/'));
 
   // pen and scorch have to survive the trip onto the unit.
   p.loadout.gear.whitedevil = 'railcannon';

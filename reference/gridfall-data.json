@@ -1090,16 +1090,26 @@
    "tg": "cross3",
    "dmg": 4
   },
-  "railcannon": {
-   "n": "Hyper Rail Cannon",
-   "cost": 560,
-   "d": "Anti-armour. One hostile down the lane, and armour floors do not apply — what it hits, it hits for all of it.",
+  "beamrifle": {
+   "n": "Beam Rifle",
+   "cost": 440,
+   "d": "The standard barrel. One hostile down the lane, hit very hard.",
    "frame": "whitedevil",
    "role": "offense",
    "tg": "first",
-   "dmg": 9,
+   "dmg": 8,
+   "single": 1
+  },
+  "beamsaber": {
+   "n": "Beam Saber",
+   "cost": 480,
+   "d": "Brutal at contact, and it answers anything that strikes the frame.",
+   "frame": "whitedevil",
+   "role": "offense",
+   "tg": "adj",
+   "dmg": 10,
    "single": 1,
-   "pen": 1
+   "riposte": 3
   },
   "javelin": {
    "n": "Beam Javelin",
@@ -1119,6 +1129,17 @@
    "tg": "cone",
    "dmg": 5,
    "scorch": 1
+  },
+  "railcannon": {
+   "n": "Hyper Rail Cannon",
+   "cost": 560,
+   "d": "Anti-armour. Punches through the front rank to the hostile deepest in the lane, and armour floors do not apply to what it finds there.",
+   "frame": "whitedevil",
+   "role": "offense",
+   "tg": "furthest",
+   "dmg": 9,
+   "single": 1,
+   "pen": 1
   }
  },
  "hostiles": {

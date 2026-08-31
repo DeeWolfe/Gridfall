@@ -3262,15 +3262,28 @@ Nothing about them changed except the word on the card.
 
 ### White Devil, the all-rounder
 
-Beam Rifle and Beam Saber are gone; three weapons replace them, and between them
-they answer the three things a lane defence runs into:
+Five weapons, against two on each of the other Frames. That asymmetry IS the
+all-rounder — it is not better at any one thing, it is the only one that can be
+re-specced to the mission:
 
-- **Hyper Rail Cannon** (560) — `first`, single target, `pen`. Armour floors do
-  not apply, so it is the answer to a Hulk or a lane under a Bulwark Pylon.
+- **Beam Rifle** (440) — `first`, single. The reliable lane shot.
+- **Beam Saber** (480) — `adj`, single, riposte 3. Contact, and it answers back.
 - **Beam Javelin** (480) — `ahead2`. Reach without giving up contact.
 - **Hyper Napalm** (520) — a new `cone` geometry: one cell at the mouth, three
   across behind it, plus `scorch`. The only widening pattern in the game and
   the only weapon that leaves the ground burning.
+- **Hyper Rail Cannon** (560) — `furthest`, single, `pen`. Punches past the
+  front rank to whatever is deepest in the lane, and armour floors do not apply
+  when it arrives.
+
+The rail cannon was drafted as `first` + `pen`, which made it the Beam Rifle
+with a bigger number for 120 more credits. In the general gear pool a strict
+upgrade is fine — the two pieces sit on two different cards at once. In a Frame
+slot you carry exactly one, forever, so the loser of a dominant pair is simply
+dead. `furthest` gives it a job nothing else in the kit does: reaching the
+Spitter or the Chorus dug in behind the rank. `frametest` guards the property
+rather than the shape list — no two weapons on any Frame may cover the same
+ground.
 
 `pen` and `scorch` had to learn to ride on a Proto weapon in `mkUnit` — they
 were card-only fields until now.
