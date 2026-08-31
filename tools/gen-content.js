@@ -63,6 +63,15 @@ export const LANES = ${c.LANES};
 export const COLS = ${c.COLS};
 export const MAXDP = ${c.MAXDP};
 export const MAXBREACH = ${c.MAXBREACH};
+/** Tiles you must keep. Drop below this and there is no deployment line left. */
+export const GROUND_FLOOR = ${c.GROUND_FLOOR};
+/**
+ * Cards the hand holds before the turn draw stops delivering. Set by the
+ * narrowest phone the tray has to fit on one row, not by balance: six tiles
+ * are the most a 360px screen can print with the card names still legible.
+ * Card effects (Recon, Falconer) deliberately ignore it — see drawCard().
+ */
+export const HAND_CAP = ${c.HAND_CAP};
 export const DECKSIZE = ${c.DECKSIZE};
 export const SAVE_VERSION = ${c.SAVE_VERSION};
 export const STARTER = ${lit(c.STARTER)};

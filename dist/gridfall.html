@@ -496,6 +496,9 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .rcard h2{font-size:1.25rem;letter-spacing:.2em;margin-bottom:6px}
 .rcard.win h2{color:var(--green)} .rcard.lose h2{color:var(--mag)}
 .rcard .rs{font-size:0.6875rem;color:var(--dim);line-height:1.95;margin:15px 0 22px}
+/* What happened, above the tally of how it happened. */
+.rcard .rwhy{color:var(--txt);font-size:0.75rem}
+.rcard.win .rwhy{color:#a8f0c6}
 
 .modegrid{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:6px}
 @media(min-width:700px){.modegrid{grid-template-columns:repeat(2,1fr)}}
@@ -605,7 +608,6 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 @media(max-width:560px){
   .cbhead{column-gap:8px;padding:7px 9px}
   .mtitle b{font-size:0.75rem}
-  .mtitle span#c-obj{display:none}
   .incoming{gap:4px}
   .incp{font-size:0.6562rem;padding:2px 5px}
 }
@@ -855,8 +857,6 @@ body{font-size:1rem}
 .mtitle .modtag{color:var(--violet);font-size:0.7188rem;letter-spacing:.1em}
 .mtitle .doctrine{font-size:0.7188rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
   color:var(--violet);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mtitle span#c-obj{font-size:0.6875rem;color:var(--dim);line-height:1.4;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .incoming{grid-area:inc;display:flex;align-items:center;gap:5px;flex-wrap:nowrap;min-width:0;
   overflow-x:auto;overscroll-behavior-x:contain;padding-bottom:3px;
   scrollbar-width:thin;scrollbar-color:var(--mag-d) transparent}
@@ -882,42 +882,99 @@ body{font-size:1rem}
   text-transform:uppercase;color:var(--dim)}
 .bstats b{color:var(--cyan);font-size:0.75rem;margin-left:5px}
 .bstats .of{color:var(--dim);font-size:0.7188rem}
+/* The two numbers that end the mission say so by colour. The rule itself is
+   written out once in the objective panel, where there is room for a sentence
+   — printing "6 min" and "1 ends it" here wrapped the line on a 390px phone. */
+.bstats b.warn{color:var(--gold)}
+.bstats b.bad{color:var(--mag)}
 
 .box.grow{flex:1;min-height:0;display:flex;flex-direction:column}
-.selbox{display:flex;flex-direction:column;padding:.65rem .8rem}
+.selbox{display:flex;flex-direction:column;gap:8px;padding:.65rem .8rem}
 .selbox #selinfo{font-size:0.7188rem;color:var(--dim);line-height:1.6;flex:1;min-height:0;overflow-y:auto}
+.selbox #selinfo[hidden]{display:none}
+
+/* ============ OBJECTIVE PANEL ============
+   The details box read "Nothing selected" for most of a turn while the
+   mission's goal lived in a header span hidden on every compact layout. The
+   objective is this panel's resting state; a selection stacks under it. */
+.objblk{flex:0 0 auto;display:flex;flex-direction:column;gap:4px;
+  border-bottom:1px solid var(--line);padding-bottom:8px}
+.objblk:empty{display:none;border:none;padding:0}
+.olab{font-size:0.5625rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.ogoal{font-size:0.6875rem;color:var(--txt);line-height:1.4}
+.orow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.oclock{font-size:0.625rem;letter-spacing:.1em;text-transform:uppercase;color:var(--violet);
+  margin-left:auto}
+.olose{font-size:0.625rem;color:#7d76a8;line-height:1.4}
+.olose b{color:var(--gold)}
+/* Up to five steps read as pips; past that they are a counting exercise. */
+.pips{display:flex;gap:3px;flex:0 0 auto}
+.pips i{width:8px;height:8px;background:#241e4d;border:1px solid var(--line2);display:block}
+.pips i.on{background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 7px rgba(77,232,255,.5)}
+.obar{width:70px;height:7px;background:#241e4d;border:1px solid var(--line2);position:relative;
+  flex:0 0 auto}
+.obar>span{position:absolute;inset:0;right:auto;background:var(--cyan);
+  box-shadow:0 0 7px rgba(77,232,255,.45)}
+.onum{font-size:0.6875rem;color:var(--cyan);letter-spacing:.1em;font-variant-numeric:tabular-nums}
+/* Met, not merely progressing: you are holding a win rather than chasing one. */
+.objblk.met .pips i.on,.objblk.met .obar>span{background:var(--green);border-color:var(--green);
+  box-shadow:0 0 7px rgba(93,255,160,.5)}
+.objblk.met .onum{color:var(--green)}
 .handbox{flex:0 0 auto;display:flex;flex-direction:column;min-height:0}
-.handbox h3{display:flex;justify-content:space-between;align-items:center}
+.handbox h3{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.handbox h3 .handhead-r{margin-left:auto}
 .handhead-r{display:flex;align-items:center;gap:9px}
 .dpchip{font-size:0.6875rem;letter-spacing:.1em;color:var(--dim)}
 .dpchip b{color:var(--gold);font-size:0.8125rem;margin-right:3px}
 .handbox .hcards{flex:0 0 auto}
-/* Collapse the tray to see more board — the header (and its DP total) stays
-   put so a collapsed hand still reads at a glance. */
-.handtog{width:26px;height:20px;flex:0 0 auto;border:1px solid var(--line2);background:transparent;
-  color:var(--dim);font-size:0.6875rem;line-height:1;cursor:pointer;transition:.15s}
-.handtog:hover{color:var(--zan);border-color:var(--zan)}
-.handbox.collapsed .hcards{display:none}
+.handcount{flex:0 0 auto}
+/* Two states, two colours, neither of them an error. Gold: the turn draw is
+   being held and you should spend. Violet: a card you played drew past the cap
+   on purpose, and nothing is being withheld. */
+.handchip{font-size:0.5625rem;letter-spacing:.14em;text-transform:uppercase;
+  padding:2px 7px;border:1px solid currentColor;flex:0 0 auto;white-space:nowrap}
+.handchip.full{color:var(--gold);background:rgba(255,201,77,.09)}
+.handchip.over{color:var(--violet);background:rgba(157,107,255,.11)}
+.logtog{flex:0 0 auto}
+.logtog.on{color:var(--cyan);border-color:var(--cyan-d)}
 .cbfoot{flex:0 0 auto;display:grid;grid-template-columns:minmax(0,1fr);
   gap:clamp(7px,.8vw,12px);padding:0 clamp(8px,.9vw,14px) clamp(8px,.9vw,14px)}
-.cbacts{flex:0 0 auto;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.cbacts{flex:0 0 auto;display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center}
 .cbacts .btn{padding:.85rem 1.2rem;text-align:center;font-size:0.6875rem;white-space:nowrap}
 .cbacts .btn.ghost{padding:13px 16px;color:var(--dim);border:1px solid var(--line2)}
 .cbacts .btn.ghost:hover{color:var(--mag);border-color:var(--mag-d)}
 .btn.danger{background:linear-gradient(135deg,var(--red),#c23a3a);color:#1a0510}
 .btn.danger:hover{filter:brightness(1.12)}
 
-.hcards{display:flex;gap:clamp(5px,.5vw,9px);overflow-x:auto;overflow-y:hidden;
-  padding-bottom:5px;scroll-snap-type:x proximity;overscroll-behavior-x:contain;
+/* One row, always. --cap cards divide whatever tray they are given, so the
+   card size is a consequence of the screen instead of a ladder of breakpoints
+   to keep in step. The floor keeps the seal readable on a 320px phone; the
+   ceiling stops a 1920px tray printing playing cards and stealing the board's
+   room, and centring spends that surplus on the board rather than the hand.
+   Card-effect draws (Recon, Falconer) push past --cap by design — the tray's
+   height is fixed at --cap across, and the surplus scrolls sideways. */
+.hcards{--cap:6;--hgap:clamp(4px,.5vw,8px);
+  display:flex;gap:var(--hgap);justify-content:center;
+  overflow-x:auto;overflow-y:hidden;padding-bottom:4px;
+  scroll-snap-type:x proximity;overscroll-behavior-x:contain;
   scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+/* A card beyond the edge is invisible otherwise: at the cap the last tile ends
+   exactly on the boundary, so an over-cap draw would look like it did nothing. */
+.hcards.spill{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 34px),transparent);
+  mask-image:linear-gradient(90deg,#000 calc(100% - 34px),transparent);
+  justify-content:flex-start}
 .hcards::-webkit-scrollbar{height:4px}
 .hcards::-webkit-scrollbar-track{background:transparent}
 .hcards::-webkit-scrollbar-thumb{background:var(--line2)}
-.hc{flex:0 0 auto;width:clamp(104px,9.2vw,140px);aspect-ratio:5/7;scroll-snap-align:start;
-  display:flex;flex-direction:column;gap:4px;align-items:center;
+.hc{flex:0 0 auto;scroll-snap-align:start;
+  width:clamp(40px,calc((100% - (var(--cap) - 1) * var(--hgap)) / var(--cap)),128px);
+  display:flex;flex-direction:column;gap:3px;align-items:center;
   background:linear-gradient(170deg,var(--panel2),var(--deep));
-  border:1px solid var(--line2);padding:1.5rem .4rem .45rem;
+  border:1px solid var(--line2);padding:.28rem .22rem .3rem;
   cursor:pointer;transition:.1s;position:relative}
+/* Square art rather than a 5:7 portrait: the tall crop was the collection
+   card's shape, and the tray is a control, not a display case. */
+.hc .hart{aspect-ratio:1;flex:0 0 auto}
 .hart{width:100%;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;
   border:1px solid var(--line);background:radial-gradient(ellipse at 50% 80%,rgba(77,232,255,.05),transparent 70%)}
 .hart svg{width:min(72%,64px);height:auto}
@@ -940,17 +997,18 @@ body{font-size:1rem}
 .hc.t-tech{border-color:var(--cyan-d)} .hc.t-special{border-color:#9a7420}
 .hc.sel{border-color:var(--green);box-shadow:0 0 16px rgba(93,255,160,.28)}
 .hc.poor{opacity:.3;cursor:not-allowed;filter:none}
-.hc .n{font-size:0.75rem;font-weight:700;line-height:1.25;color:var(--txt);
-  text-align:center;overflow-wrap:anywhere}
+.hc .n{font-size:clamp(0.5rem,calc(0.28rem + 0.55vw),0.75rem);font-weight:700;line-height:1.18;
+  color:var(--txt);text-align:center;overflow-wrap:anywhere}
 
 @media(min-width:1000px){
   .cbmain{grid-template-columns:minmax(0,1fr) clamp(212px,17vw,340px);overflow:hidden}
   .cbcol{overflow-y:auto}
   .cbcol.mid{overflow:hidden;justify-content:center}
-  .field{max-width:min(100%,calc((100vh - 24rem) * 1.62))}
-  /* A collapsed hand gives the board back the room its tray used to own. */
-  #combat.handclosed .field{max-width:min(100%,calc((100vh - 15rem) * 1.62))}
-  .cbfoot{grid-template-columns:minmax(0,1fr) clamp(240px,19vw,360px)}
+  /* Sized against the one-row tray. It used to be 24rem for a 5:7 portrait
+     tray that could also be collapsed; capped at six square tiles the tray is
+     some 4rem shorter and never folds, so the board simply keeps the room. */
+  .field{max-width:min(100%,calc((100vh - 20rem) * 1.62))}
+  .cbfoot{grid-template-columns:minmax(0,1fr) clamp(310px,24vw,440px)}
 }
 @media(min-width:1800px){.cbmain{grid-template-columns:minmax(0,1fr) clamp(300px,17vw,420px)}}
 @media(max-width:999px){
@@ -962,7 +1020,6 @@ body{font-size:1rem}
   .incoming{order:3;width:100%;flex:0 0 auto}
   .cbhead .btn{padding:9px 15px}
 }
-@media(max-width:560px){.hc{width:clamp(104px,30vw,132px)}}
 /* ============ DESKTOP LAYOUT ============
    Applied when :root carries data-ui="pc". uimode.js resolves the player's
    "automatic" preference to a concrete value and stamps it, so this is the only
@@ -970,9 +1027,11 @@ body{font-size:1rem}
    keep in step. Everything above is the compact, touch-first layout. */
 
 /* The intel rail: a full column on desktop, a stacked row between the details
-   panel and the hand in the compact layout, hidden only on a wide compact
-   window where the two-column board leaves it nowhere to go. */
+   panel and the hand in the compact layout — and folded away by default, from
+   the Log button in the action bar. It is a history, not a control, so it is
+   the thing that earns a toggle now that the hand fits on one row. */
 .cbcol.intel{display:none}
+#combat.logclosed .cbcol.intel{display:none!important}
 .logbox{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
 .cblog{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:4px;
   scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
@@ -997,6 +1056,8 @@ body{font-size:1rem}
 .uipick .mini.on{color:var(--zan);border-color:var(--zan)}
 
 :root[data-ui="pc"] .cbcol.intel{display:flex}
+:root[data-ui="pc"] #combat.logclosed .cbmain{
+  grid-template-columns:minmax(0,1fr) clamp(240px,18vw,360px)}
 :root[data-ui="pc"] .hkey{display:block}
 
 /* Three columns: what has happened, where it is happening, what you can do. */
@@ -1005,15 +1066,14 @@ body{font-size:1rem}
 :root[data-ui="pc"] .cbcol{overflow:hidden}
 :root[data-ui="pc"] .cbcol.mid{overflow:hidden;justify-content:center}
 :root[data-ui="pc"] .cbcol.side{overflow-y:auto}
-:root[data-ui="pc"] .field{max-width:min(100%,calc((100vh - 23.5rem) * 1.62));padding:clamp(7px,.7vw,12px)}
-:root[data-ui="pc"] #combat.handclosed .field{max-width:min(100%,calc((100vh - 14.5rem) * 1.62))}
+:root[data-ui="pc"] .field{max-width:min(100%,calc((100vh - 19.5rem) * 1.62));padding:clamp(7px,.7vw,12px)}
 
 /* Denser chrome throughout — a mouse does not need 44px targets. */
 :root[data-ui="pc"] .cbhead{padding:6px clamp(9px,.9vw,15px);row-gap:4px}
 :root[data-ui="pc"] .box{padding:.5rem .62rem}
-:root[data-ui="pc"] .cbfoot{grid-template-columns:minmax(0,1fr) clamp(230px,18vw,330px);
+:root[data-ui="pc"] .cbfoot{grid-template-columns:minmax(0,1fr) clamp(300px,23vw,420px);
   gap:clamp(6px,.6vw,10px);padding:0 clamp(7px,.7vw,12px) clamp(7px,.7vw,12px)}
-:root[data-ui="pc"] .hc{width:clamp(94px,7.8vw,124px);padding:1.35rem .4rem .45rem}
+:root[data-ui="pc"] .hc{padding:.3rem .3rem .35rem}
 :root[data-ui="pc"] .cbacts .btn{padding:.62rem 1rem}
 :root[data-ui="pc"] .bstats{margin-top:6px;gap:13px}
 
@@ -1077,6 +1137,9 @@ body{font-size:1rem}
      three rows outgrow the viewport, .cbmain scrolls instead. */
   .cbmain{grid-template-rows:max-content max-content minmax(8rem,1fr)}
   .cbcol.intel{display:flex;order:3;min-height:0}
+  /* Hiding the element is not enough: the third track keeps reserving its
+     8rem, so folding the log would buy back nothing. Drop the track too. */
+  #combat.logclosed .cbmain{grid-template-rows:max-content max-content}
 }
 
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -1327,7 +1390,6 @@ body{font-size:1rem}
     <div class="mtitle">
       <b id="c-title">—</b>
       <span class="doctrine" id="c-doc">—</span>
-      <span id="c-obj">—</span>
     </div>
     <div class="incoming" id="man"></div>
     <button class="leadbadge" id="leadbadge"></button>
@@ -1351,17 +1413,22 @@ body{font-size:1rem}
       </div>
     </div>
     <div class="cbcol side">
-      <div class="box grow selbox"><div id="selinfo">Nothing selected.</div></div>
+      <div class="box grow selbox">
+        <div class="objblk" id="objblk"></div>
+        <div id="selinfo">Nothing selected.</div>
+      </div>
     </div>
   </div>
   <div class="cbfoot">
     <div class="box handbox" id="handbox">
-      <h3>Hand<span class="handhead-r"><span class="dpchip"><b id="c-dp">6</b> DP</span>
-        <button class="handtog" id="handtog" aria-label="Toggle hand">▾</button></span></h3>
+      <h3><span class="handcount" id="handcount">Hand</span>
+        <span class="handchip" id="handchip" hidden></span>
+        <span class="handhead-r"><span class="dpchip"><b id="c-dp">6</b> DP</span></span></h3>
       <div class="hcards" id="hcards"></div>
     </div>
     <div class="cbacts">
       <button class="btn" id="actPrimary">End turn</button>
+      <button class="btn ghost logtog" id="logtog" aria-pressed="false">Log</button>
       <button class="btn ghost" id="actSecondary">Abort</button>
     </div>
   </div>
@@ -1866,8 +1933,9 @@ const setReplaying = v => { replaying = v; };
 
 /** True while the combat hand tray is expanded. Collapse it to see more
  * board — a per-session preference, not saved to the profile. */
-let handOpen = true;
-const setHandOpen = v => { handOpen = !!v; };
+/** The combat log starts folded away — it is a history, not a control. */
+let logOpen = false;
+const setLogOpen = v => { logOpen = !!v; };
 
 let uid = 0;
 /** Monotonic id for units and hostiles. Unique within a session. */
@@ -3080,6 +3148,15 @@ const LANES = 5;
 const COLS = 8;
 const MAXDP = 6;
 const MAXBREACH = 1;
+/** Tiles you must keep. Drop below this and there is no deployment line left. */
+const GROUND_FLOOR = 6;
+/**
+ * Cards the hand holds before the turn draw stops delivering. Set by the
+ * narrowest phone the tray has to fit on one row, not by balance: six tiles
+ * are the most a 360px screen can print with the card names still legible.
+ * Card effects (Recon, Falconer) deliberately ignore it — see drawCard().
+ */
+const HAND_CAP = 6;
 const DECKSIZE = 12;
 const SAVE_VERSION = 5;
 const STARTER = ["scout", "rifle", "marks", "wall", "medic", "turret", "lancer", "bulwark", "assassin"];
@@ -3434,7 +3511,7 @@ const MISSIONS = {
   blitz: {
     n: "Eradication Blitz",
     waves: 6,
-    d: "Purge the zone. Destroy ten hostiles before the wave count runs out.",
+    d: "Purge the zone. Destroy nine hostiles before the wave count runs out.",
   },
 };
 
@@ -3511,6 +3588,17 @@ const crystalsHeld = () => G.crystals.filter(x => G.ter[x.l][x.c] === 'p').lengt
  * across four points by design — one lane inevitably runs thinner than the
  * rest, so it gets one more before the line calling it is calling it fair. */
 const breachAllowance = type => type === 'crystals' ? MAXBREACH + 1 : MAXBREACH;
+
+/**
+ * Turns after the last wave commits before the objective is called.
+ *
+ * Stronghold and Extraction win at this count rather than failing at it —
+ * surviving IS the objective — but either way it is the number of turns left,
+ * which is what the readout has to print. Crystals gets one more because the
+ * mission spreads a defence across four points by design.
+ */
+const ENDGAME_TURNS = type =>
+  type === 'crystals' ? 4 : (type === 'stronghold' || type === 'extract') ? 2 : 3;
 
 /** Lingering plasma. Burns hostiles moving through and denies capture. */
 const scorched = (l, c) => (G.scorch[l + ',' + c] || 0) > 0;
@@ -4961,6 +5049,7 @@ function launchSpec(nd) {
     ter: freshTerritory(), scorch: {}, rubble: {}, burrowAt: null,
     deck: shuffle([...deck]), hand: [], units: [], enemies: [],
     logs: [], kills: 0, lost: 0, extra: 0, doctrine: 'probe', leadUsed: false,
+    capNoted: false,
     civ: [], crystals: [], quota: 0, quotaK: null, quotaHit: 0,
     civGoal: 0, extracts: 0,
     uplinkAt: null, uplinkHeld: 0,
@@ -5101,19 +5190,77 @@ function abortMission() {
   return {wasEndless, wasGauntlet, wasDaily};
 }
 
-/** The objective line shown in the combat header. */
-function objText() {
+/**
+ * The objective as an order rather than a scoreboard, plus live progress and
+ * the two conditions that lose the mission.
+ *
+ * The header span this replaces printed a bare score — and was display:none
+ * on every compact layout, so on a phone the objective was never on screen at
+ * all. This answers "what am I doing", which is the question a player has on
+ * turn one and never had anywhere to read. `total` of 0 means the goal has no countable progress —
+ * surviving is not a tally — so the readout falls back to the wave clock.
+ *
+ * @returns {{goal:string, done:number, total:number, lose:string, clock:string}}
+ */
+function objBrief() {
   const m = MISSIONS[G.type];
-  if (G.type === 'retake') return `Hostile tiles held: ${heldEnemyHalf()} / 3`;
-  if (G.type === 'crystals') return `Crystal nodes held: ${crystalsHeld()} / 4 — need 3`;
-  if (G.type === 'specimens') return `${BEST[G.quotaK].n} destroyed: ${G.quotaHit} / ${G.quota}`;
-  if (G.type === 'uplink') return `Uplink held: ${G.uplinkHeld} / 3 turns running`;
-  if (G.type === 'blitz') return `Hostiles destroyed: ${G.kills} / ${G.quota}`;
-  if (G.type === 'civilians') {
-    const bld = G.civ.find(v => v.building);
-    return `Extracted: ${G.extracts} / ${G.civGoal} — shelter ${bld ? bld.hp : 0} hull`;
+  const allow = breachAllowance(G.type);
+  const lose = `Lose if you hold under <b>${GROUND_FLOOR}</b> tiles, or take <b>${allow}</b> breach${allow > 1 ? 'es' : ''}.`;
+  // Past the last wave the wave counter is meaningless — what matters is how
+  // many turns are left to finish the job.
+  const left = ENDGAME_TURNS(G.type) - G.extra;
+  const clock = G.endless ? `Wave ${G.turn}`
+    : G.extra > 0 ? `Last wave committed — ${Math.max(0, left)} turn${left === 1 ? '' : 's'} to secure`
+      : `Wave ${Math.min(G.turn, G.waves)} / ${G.waves}`;
+
+  const b = (goal, done, total) => ({goal, done, total, lose, clock});
+  switch (G.type) {
+    case 'retake':
+      return b('Hold 3 tiles inside hostile ground when the clock runs out.', heldEnemyHalf(), 3);
+    case 'crystals':
+      return b('Hold 3 of the 4 crystal nodes when the clock runs out.', crystalsHeld(), 3);
+    case 'specimens':
+      return b(`Destroy ${G.quota} ${BEST[G.quotaK].n}. Other kills do not count.`, G.quotaHit, G.quota);
+    case 'uplink':
+      return b(`Hold the relay tile in lane ${G.uplinkAt.l + 1} for three turns running.`,
+        G.uplinkHeld, 3);
+    case 'blitz':
+      return b(`Destroy ${G.quota} hostiles before the waves run out.`, G.kills, G.quota);
+    case 'civilians': {
+      const bld = G.civ.find(v => v.building);
+      return {
+        goal: `Walk ${G.civGoal} survivors off the field, shelter still standing.`,
+        done: G.extracts, total: G.civGoal,
+        lose: `Shelter at <b>${bld ? bld.hp : 0}</b> hull. ` + lose, clock,
+      };
+    }
+    case 'extract':
+      return b('Short and heavy. Hold out to extraction.', 0, 0);
+    default:
+      return b(`Hold the line through all ${G.waves} waves. Nothing gets past you.`, 0, 0);
   }
-  return m.d;
+}
+
+/** Why the mission was won — the line a loss has always had and a win never did. */
+function winWhy() {
+  switch (G.type) {
+    case 'retake': return `${heldEnemyHalf()} tiles held inside hostile ground.`;
+    case 'crystals': return `${crystalsHeld()} of 4 crystal nodes held when the clock ran out.`;
+    case 'specimens':
+      return `Quota filled — ${G.quotaHit} ${BEST[G.quotaK].n}${G.quotaHit === 1 ? '' : 's'} destroyed.`;
+    case 'uplink': return 'Uplink online — the relay held three turns running.';
+    case 'blitz': return `Zone purged — ${G.kills} hostiles destroyed.`;
+    case 'civilians': return `${G.extracts} survivors extracted, shelter intact.`;
+    // Two genuinely different wins live here: you either outlasted the waves
+    // or you cleared the field. Which one you got is the story of the mission,
+    // and the card never said either.
+    case 'extract': return G.enemies.length
+      ? 'Extraction reached — the squad is out.'
+      : 'Field cleared, then out. Nothing followed you.';
+    default: return G.enemies.length
+      ? `The line held. ${G.waves} waves, no breakthrough.`
+      : 'Field cleared — nothing left standing.';
+  }
 }
 
 function settleOnslaught() {
@@ -5173,8 +5320,8 @@ function settleGauntlet(win, why) {
   return {
     kind: win ? 'win' : 'lose',
     cleared: win,
-    title,
-    lines: [why, `Hostiles destroyed · ${G.kills}`, `Units lost · ${G.lost}`].filter(Boolean),
+    title, why,
+    lines: [`Hostiles destroyed · ${G.kills}`, `Units lost · ${G.lost}`],
     payout: win ? {cr} : null,
   };
 }
@@ -5216,8 +5363,9 @@ function settleCampaign(win, why) {
     kind: win ? 'win' : 'lose',
     cleared: win,
     title: win ? 'OBJECTIVE SECURED' : 'OPERATION FAILED',
-    lines: [why, `Hostiles destroyed · ${G.kills}`, `Units lost · ${G.lost}`,
-      `Ground held · ${held()} tiles`].filter(Boolean),
+    why,
+    lines: [`Hostiles destroyed · ${G.kills}`, `Units lost · ${G.lost}`,
+      `Ground held · ${held()} tiles`],
     payout: win ? {cr} : null,
   };
 }
@@ -5252,8 +5400,8 @@ function settleDaily(win, why) {
     kind: win ? 'win' : 'lose',
     cleared: win,
     title: win ? (alreadyToday ? 'DAILY ALREADY CLEARED' : 'DAILY CHALLENGE CLEARED') : 'DAILY CHALLENGE FAILED',
+    why,
     lines: [
-      why,
       `Hostiles destroyed · ${G.kills}`, `Units lost · ${G.lost}`,
       win ? `Streak · ${active.daily.streak}${alreadyToday ? ' — already banked today' : ''}`
         : 'Loss doesn\'t cost the streak — try again today.',
@@ -8107,15 +8255,25 @@ function doAbility(u) {
 /**
  * Draw one card. An empty deck reshuffles from the loadout, minus whatever is
  * already in hand — so cycling never hands you a duplicate of a card you hold.
+ *
+ * `force` is the card-effect exemption. The turn draw stops at HAND_CAP so the
+ * tray stays one row; a card you spent DP on to draw is not going to no-op
+ * because of a layout rule, so Recon and Falconer pass it. Nothing is lost
+ * when the cap holds a draw — the card stays on top of the deck for next turn.
+ *
+ * @param {boolean} [force] bypass the hand cap (card effects only)
+ * @returns {boolean} whether a card actually moved
  */
-function drawCard() {
+function drawCard(force) {
+  if (!force && G.hand.length >= HAND_CAP) return false;
   if (!G.deck.length) {
     const back = active.loadout.deck.filter(c => POOL[c] && !G.hand.includes(c));
-    if (!back.length) return;
+    if (!back.length) return false;
     G.deck = shuffle([...back]);
     clog('<span class="t">Reserve cycled</span> — fresh requisition available.', 'info');
   }
   G.hand.push(G.deck.pop());
+  return true;
 }
 
 /* ==== src/rules/deploy.js =========================================== */
@@ -8166,7 +8324,7 @@ function playInstant(cid) {
   if (k.gain) { G.dp += k.gain; done.push(`+${k.gain} DP`); }
   if (k.homestrike) done.push(homeStrike(k));
   if (k.draw) {
-    for (let i = 0; i < k.draw; i++) drawCard();
+    for (let i = 0; i < k.draw; i++) drawCard(true);
     done.push(`${k.draw} cards called in`);
   }
   // Supply Cache's own price, declared on the card — being an instant does
@@ -8275,7 +8433,7 @@ function deploy(cid, l, c) {
       clog(`<span class="g">${k.n}</span> — +${k.dpGain} deploy points.`, 'info');
     }
     if (k.draw) {
-      for (let i = 0; i < k.draw; i++) drawCard();
+      for (let i = 0; i < k.draw; i++) drawCard(true);
       clog(`<span class="g">${k.n}</span> — ${k.draw} cards called in.`, 'info');
     }
     clog(`Deployed <span class="g">${k.n}</span> — lane ${l + 1}, col ${c}.`, 'order');
@@ -8833,7 +8991,7 @@ function lossCheck() {
   if (G.breaches >= allow) {
     return allow === 1 ? 'The line was breached.' : allow + ' breaches.';
   }
-  if (held() < 6) return 'Ground lost — no viable deployment line.';
+  if (held() < GROUND_FLOOR) return 'Ground lost — no viable deployment line.';
   return null;
 }
 
@@ -8843,39 +9001,39 @@ function lossCheck() {
  */
 function endgameCheck() {
   if (G.type === 'retake') {
-    if (heldEnemyHalf() >= 3) return {win: true};
-    if (G.extra >= 3) return {win: false, why: 'Not enough hostile ground taken.'};
+    if (heldEnemyHalf() >= 3) return {win: true, why: winWhy()};
+    if (G.extra >= ENDGAME_TURNS(G.type)) return {win: false, why: 'Not enough hostile ground taken.'};
     return null;
   }
   if (G.type === 'crystals') {
-    if (crystalsHeld() >= 3) return {win: true};
+    if (crystalsHeld() >= 3) return {win: true, why: winWhy()};
     // One extra endgame turn over every other objective type — the mission
     // spreads a defence across four points by design, so it earns a beat
     // longer to consolidate a hold before the clock calls it.
-    if (G.extra >= 4) return {win: false, why: `Only ${crystalsHeld()} of 4 crystal nodes held.`};
+    if (G.extra >= ENDGAME_TURNS(G.type)) return {win: false, why: `Only ${crystalsHeld()} of 4 crystal nodes held.`};
     return null;
   }
   if (G.type === 'specimens') {
-    if (G.quotaHit >= G.quota) return {win: true};
-    if (G.extra >= 3) return {win: false, why: `Quota short — ${G.quotaHit} of ${G.quota}.`};
+    if (G.quotaHit >= G.quota) return {win: true, why: winWhy()};
+    if (G.extra >= ENDGAME_TURNS(G.type)) return {win: false, why: `Quota short — ${G.quotaHit} of ${G.quota}.`};
     return null;
   }
   if (G.type === 'uplink') {
-    if (G.uplinkHeld >= 3) return {win: true};
-    if (G.extra >= 3) return {win: false, why: 'The uplink never came online.'};
+    if (G.uplinkHeld >= 3) return {win: true, why: winWhy()};
+    if (G.extra >= ENDGAME_TURNS(G.type)) return {win: false, why: 'The uplink never came online.'};
     return null;
   }
   if (G.type === 'blitz') {
-    if (G.kills >= G.quota) return {win: true};
-    if (G.extra >= 3) return {win: false, why: `Purge incomplete — ${G.kills} of ${G.quota} destroyed.`};
+    if (G.kills >= G.quota) return {win: true, why: winWhy()};
+    if (G.extra >= ENDGAME_TURNS(G.type)) return {win: false, why: `Purge incomplete — ${G.kills} of ${G.quota} destroyed.`};
     return null;
   }
   if (G.type === 'civilians') {
-    if (G.extracts >= G.civGoal) return {win: true};
-    if (G.extra >= 3) return {win: false, why: `Extraction incomplete — ${G.extracts} of ${G.civGoal} got out.`};
+    if (G.extracts >= G.civGoal) return {win: true, why: winWhy()};
+    if (G.extra >= ENDGAME_TURNS(G.type)) return {win: false, why: `Extraction incomplete — ${G.extracts} of ${G.civGoal} got out.`};
     return null;
   }
-  if (!G.enemies.length || G.extra >= 2) return {win: true};
+  if (!G.enemies.length || G.extra >= ENDGAME_TURNS(G.type)) return {win: true, why: winWhy()};
   return null;
 }
 
@@ -8893,10 +9051,10 @@ function endTurn() {
 
   const lost = lossCheck();
   if (lost) return finish(false, lost);
-  if (G.type === 'specimens' && G.quotaHit >= G.quota) return finish(true);
-  if (G.type === 'blitz' && G.kills >= G.quota) return finish(true);
+  if (G.type === 'specimens' && G.quotaHit >= G.quota) return finish(true, winWhy());
+  if (G.type === 'blitz' && G.kills >= G.quota) return finish(true, winWhy());
   if (G.type === 'civilians') {
-    if (G.extracts >= G.civGoal) return finish(true);
+    if (G.extracts >= G.civGoal) return finish(true, winWhy());
     if (G.turn % CIV_SPAWN_EVERY(G.heat) === 0) civilianSpawnTick();
   }
 
@@ -8906,7 +9064,7 @@ function endTurn() {
       G.uplinkHeld++;
       clog(G.uplinkHeld >= 3 ? '<span class="g">UPLINK ONLINE.</span>'
         : `<span class="g">Uplink charging</span> — ${G.uplinkHeld} of 3 turns held.`, 'order');
-      if (G.uplinkHeld >= 3) return finish(true);
+      if (G.uplinkHeld >= 3) return finish(true, winWhy());
     } else if (G.uplinkHeld) {
       G.uplinkHeld = 0;
       clog('<span class="d">Relay tile lost — uplink charge reset.</span>', 'loss');
@@ -8953,7 +9111,16 @@ function endTurn() {
     G.dp += 2;
     clog('<span class="g">Firebrand</span> — losses answered with +2 deploy points.', 'order');
   }
-  for (let i = 0; i < 2; i++) drawCard();
+  // The turn draw respects the hand cap: a held card is not discarded, it
+  // stays on the deck. Said once when it starts happening rather than every
+  // turn it keeps happening — the hand's own FULL chip is the standing
+  // reminder, so repeating it here would just be filling the log.
+  let drawn = 0;
+  for (let i = 0; i < 2; i++) if (drawCard()) drawn++;
+  if (drawn < 2 && !G.capNoted) {
+    clog(`<span class="d">Hand full</span> — requisition is held back until you deploy. Nothing is lost.`, 'info');
+  }
+  G.capNoted = drawn < 2;
   // The new turn has begun: last turn's call resolves, short effects expire.
   resolveStratagem();
   clearSelection();
@@ -10076,6 +10243,7 @@ function drawActions() {
 /** What the selected unit will do, or what the selected card will cost. */
 function drawSel() {
   const el = $('selinfo');
+  el.hidden = false;
 
   if (stratSel) {
     const def = stratReady();
@@ -10181,11 +10349,17 @@ function drawSel() {
     return;
   }
 
+  // Idle. "Nothing selected. Tap a card to deploy" cost 44px of a 664px phone
+  // to say nothing — and the objective now sits above this, so the panel is
+  // no longer empty without it. What survives is the part that was actually
+  // information: who can still act, and who is about to be hit. With neither
+  // to report the block folds away and gives the room back.
   const threatened = Object.keys(forecastThreat().hits).length;
   const ready = G.units.filter(u => !u.acted).length;
-  el.innerHTML = `Nothing selected.<div style="margin-top:7px">Tap a card to deploy, or a unit to act with it.</div>
-    ${ready ? `<div class="selfire live" style="margin-top:9px"><b>${ready}</b> unit${ready > 1 ? 's' : ''} still to act</div>` : ''}
-    ${threatened ? `<div class="selfire dead" style="margin-top:7px"><b style="color:var(--mag)">${threatened}</b> of your positions will be struck this turn</div>` : ''}`;
+  if (!ready && !threatened) { el.hidden = true; el.innerHTML = ''; return; }
+  el.innerHTML =
+    `${ready ? `<div class="selfire live"><b>${ready}</b> unit${ready > 1 ? 's' : ''} still to act</div>` : ''}
+     ${threatened ? `<div class="selfire dead" style="margin-top:7px"><b style="color:var(--mag)">${threatened}</b> of your positions will be struck this turn</div>` : ''}`;
 }
 
 /** Markup for one of your units standing in a cell. */
@@ -10423,23 +10597,84 @@ function drawLog() {
     : '<div class="logline l-info">Awaiting contact.</div>';
 }
 
-/** The tray can be collapsed to give the board back its room — see
- * #combat.handclosed in the stylesheet, which shrinks the board's height
- * budget to match. The DP total stays visible on the header either way. */
-function paintHandToggle() {
-  const box = $('handbox');
-  const tog = $('handtog');
+/**
+ * The combat log is the thing that folds away now, not the hand.
+ *
+ * The hand used to collapse because the tray was too big to live alongside the
+ * board; capped at HAND_CAP it fits on one row and has nothing to hide from.
+ * The log is genuinely optional — a history, not a control — so it is the one
+ * that earns a toggle. #combat.logclosed drops the intel column's whole grid
+ * track in the stylesheet: hiding the element alone leaves its 8rem row
+ * reserved, which is why the old toggle would have bought nothing.
+ */
+function paintLogToggle() {
+  const tog = $('logtog');
   const scr = $('combat');
-  if (!box || !tog || !scr) return;
-  box.classList.toggle('collapsed', !handOpen);
-  scr.classList.toggle('handclosed', !handOpen);
-  tog.textContent = handOpen ? '▾' : '▸';
-  tog.title = handOpen ? 'Collapse hand' : 'Expand hand';
-  tog.onclick = () => { setHandOpen(!handOpen); drawAll(); };
+  if (!tog || !scr) return;
+  scr.classList.toggle('logclosed', !logOpen);
+  tog.classList.toggle('on', logOpen);
+  tog.setAttribute('aria-pressed', logOpen ? 'true' : 'false');
+  tog.title = logOpen ? 'Hide combat log' : 'Show combat log';
+  tog.onclick = () => { setLogOpen(!logOpen); drawAll(); };
+}
+
+/**
+ * The objective, stated as an order, above whatever is selected.
+ *
+ * This is the panel's resting state: it read "Nothing selected" for most of a
+ * turn while the mission's actual goal lived in a header span that is hidden
+ * on every compact layout. Progress gets pips up to five and a bar beyond —
+ * nine pips is a counting exercise, not a glance.
+ */
+function drawObjective() {
+  const el = $('objblk');
+  if (!el) return;
+  const b = objBrief();
+  const met = b.total > 0 && b.done >= b.total;
+  let prog = '';
+  if (b.total > 0 && b.total <= 5) {
+    prog = `<span class="pips">${Array.from({length: b.total}, (_, i) =>
+      `<i class="${i < b.done ? 'on' : ''}"></i>`).join('')}</span>`;
+  } else if (b.total > 0) {
+    prog = `<span class="obar"><span style="width:${Math.min(100, b.done / b.total * 100)}%"></span></span>`;
+  }
+  const count = b.total > 0 ? `<b class="onum">${b.done} / ${b.total}</b>` : '';
+  el.className = 'objblk' + (met ? ' met' : '');
+  el.innerHTML = `<span class="olab">Objective</span>
+    <span class="ogoal">${b.goal}</span>
+    <span class="orow">${prog}${count}<span class="oclock">${b.clock}</span></span>
+    <span class="olose">${b.lose}</span>`;
+}
+
+/**
+ * The hand header: how full you are, and why, when it matters.
+ *
+ * Two different situations wear two different colours. Gold FULL means the
+ * turn draw is being held back and you should spend; violet OVER means a card
+ * you played drew past the cap on purpose and nothing is being withheld.
+ * Neither is an error, so neither uses the loss colour.
+ */
+function paintHandCount() {
+  const n = $('handcount');
+  const chip = $('handchip');
+  if (!n || !chip) return;
+  const size = G.hand.length;
+  n.textContent = `Hand ${size}/${HAND_CAP}`;
+  if (size > HAND_CAP) {
+    chip.hidden = false;
+    chip.className = 'handchip over';
+    chip.textContent = 'over cap';
+  } else if (size === HAND_CAP) {
+    chip.hidden = false;
+    chip.className = 'handchip full';
+    chip.textContent = 'full — draw held';
+  } else {
+    chip.hidden = true;
+  }
 }
 
 function drawHand() {
-  paintHandToggle();
+  paintHandCount();
   const h = $('hcards');
   h.innerHTML = '';
 
@@ -10492,6 +10727,13 @@ function drawHand() {
     h.appendChild(el);
   });
 
+  // Whether the tray actually spills is a measurement, not a count: the cap
+  // says six but a card effect can push past it, and how many fit depends on
+  // the width the tray was given. Ask the layout, then fade the edge so the
+  // extra cards announce themselves.
+  h.classList.remove('spill');
+  if (h.scrollWidth > h.clientWidth + 1) h.classList.add('spill');
+
   if (!G.hand.length && !def) {
     h.innerHTML = '<div style="font-size:0.6875rem;color:var(--dim)">Hand empty — hold with what is on the board.</div>';
   }
@@ -10504,10 +10746,15 @@ function drawAll() {
   const waveLabel = G.endless ? `Wave ${G.turn}` : `Wave ${Math.min(G.turn, G.waves)} / ${G.waves}`;
   $('c-title').innerHTML = `${waveLabel} <span class="sep">·</span> ${m.n}` +
     (G.mod !== 'none' ? ` <span class="modtag">${MODS[G.mod].n}</span>` : '');
-  $('c-obj').textContent = objText();
   $('c-dp').textContent = G.dp;
-  $('c-ter').textContent = held();
-  $('c-br').innerHTML = G.breaches + '<span class="of">/' + breachAllowance(G.type) + '</span>';
+  paintLogToggle();
+  drawObjective();
+  const ground = held();
+  const allow = breachAllowance(G.type);
+  $('c-ter').textContent = ground;
+  $('c-ter').className = ground <= GROUND_FLOOR ? 'bad' : ground <= GROUND_FLOOR + 2 ? 'warn' : '';
+  $('c-br').innerHTML = G.breaches + '<span class="of">/' + allow + '</span>';
+  $('c-br').className = G.breaches >= allow - 1 ? 'bad' : '';
   $('c-deck').textContent = G.deck.length;
 
   // Field events ride at the front of the incoming strip: the live one bright,
@@ -11230,10 +11477,13 @@ function showResult() {
   $('rcard').className = 'rcard ' + r.kind;
   $('rt').textContent = r.title;
 
+  // Every loss has always led with its reason; wins arrived with none at all,
+  // which is why "why did I win?" was a fair question. Same line, both ways.
+  const why = r.why ? `<span class="rwhy">${r.why}</span><br>` : '';
   const payout = r.payout
     ? `<br><br><b style="color:var(--gold)">+${r.payout.cr} credits</b>`
     : '';
-  $('rs').innerHTML = r.lines.join('<br>') + payout;
+  $('rs').innerHTML = why + r.lines.join('<br>') + payout;
   $('result').classList.add('on');
 }
 

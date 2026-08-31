@@ -50,8 +50,9 @@ export const setReplaying = v => { replaying = v; };
 
 /** True while the combat hand tray is expanded. Collapse it to see more
  * board — a per-session preference, not saved to the profile. */
-export let handOpen = true;
-export const setHandOpen = v => { handOpen = !!v; };
+/** The combat log starts folded away — it is a history, not a control. */
+export let logOpen = false;
+export const setLogOpen = v => { logOpen = !!v; };
 
 let uid = 0;
 /** Monotonic id for units and hostiles. Unique within a session. */

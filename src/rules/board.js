@@ -37,6 +37,17 @@ export const crystalsHeld = () => G.crystals.filter(x => G.ter[x.l][x.c] === 'p'
  * rest, so it gets one more before the line calling it is calling it fair. */
 export const breachAllowance = type => type === 'crystals' ? MAXBREACH + 1 : MAXBREACH;
 
+/**
+ * Turns after the last wave commits before the objective is called.
+ *
+ * Stronghold and Extraction win at this count rather than failing at it —
+ * surviving IS the objective — but either way it is the number of turns left,
+ * which is what the readout has to print. Crystals gets one more because the
+ * mission spreads a defence across four points by design.
+ */
+export const ENDGAME_TURNS = type =>
+  type === 'crystals' ? 4 : (type === 'stronghold' || type === 'extract') ? 2 : 3;
+
 /** Lingering plasma. Burns hostiles moving through and denies capture. */
 export const scorched = (l, c) => (G.scorch[l + ',' + c] || 0) > 0;
 

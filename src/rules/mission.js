@@ -5,7 +5,7 @@
 // layer reads `G.result` when the showResult hook fires. That keeps the reward
 // maths testable and the result card free to change shape.
 
-import {LANES, COLS, MAXDP} from '../state/constants.js';
+import {LANES, COLS, MAXDP, GROUND_FLOOR} from '../state/constants.js';
 import {POOL} from '../content/cards.js';
 import {BEST} from '../content/hostiles.js';
 import {MISSIONS} from '../content/missions.js';
@@ -14,7 +14,7 @@ import {G, active, setG, MAPDEF, clearSelection} from '../state/session.js';
 import {shuffle, randInt, chance} from '../state/rng.js';
 import {hooks} from '../state/hooks.js';
 import {commit} from '../save/profile.js';
-import {held, heldEnemyHalf, crystalsHeld} from './board.js';
+import {held, heldEnemyHalf, crystalsHeld, breachAllowance, ENDGAME_TURNS} from './board.js';
 import {wave, rollDoctrine, predictSpawns} from './waves.js';
 import {opRun, genRun, opComplete} from './run.js';
 import {queuePack} from './packs.js';
@@ -83,6 +83,7 @@ export function launchSpec(nd) {
     ter: freshTerritory(), scorch: {}, rubble: {}, burrowAt: null,
     deck: shuffle([...deck]), hand: [], units: [], enemies: [],
     logs: [], kills: 0, lost: 0, extra: 0, doctrine: 'probe', leadUsed: false,
+    capNoted: false,
     civ: [], crystals: [], quota: 0, quotaK: null, quotaHit: 0,
     civGoal: 0, extracts: 0,
     uplinkAt: null, uplinkHeld: 0,
@@ -223,19 +224,77 @@ export function abortMission() {
   return {wasEndless, wasGauntlet, wasDaily};
 }
 
-/** The objective line shown in the combat header. */
-export function objText() {
+/**
+ * The objective as an order rather than a scoreboard, plus live progress and
+ * the two conditions that lose the mission.
+ *
+ * The header span this replaces printed a bare score — and was display:none
+ * on every compact layout, so on a phone the objective was never on screen at
+ * all. This answers "what am I doing", which is the question a player has on
+ * turn one and never had anywhere to read. `total` of 0 means the goal has no countable progress —
+ * surviving is not a tally — so the readout falls back to the wave clock.
+ *
+ * @returns {{goal:string, done:number, total:number, lose:string, clock:string}}
+ */
+export function objBrief() {
   const m = MISSIONS[G.type];
-  if (G.type === 'retake') return `Hostile tiles held: ${heldEnemyHalf()} / 3`;
-  if (G.type === 'crystals') return `Crystal nodes held: ${crystalsHeld()} / 4 — need 3`;
-  if (G.type === 'specimens') return `${BEST[G.quotaK].n} destroyed: ${G.quotaHit} / ${G.quota}`;
-  if (G.type === 'uplink') return `Uplink held: ${G.uplinkHeld} / 3 turns running`;
-  if (G.type === 'blitz') return `Hostiles destroyed: ${G.kills} / ${G.quota}`;
-  if (G.type === 'civilians') {
-    const bld = G.civ.find(v => v.building);
-    return `Extracted: ${G.extracts} / ${G.civGoal} — shelter ${bld ? bld.hp : 0} hull`;
+  const allow = breachAllowance(G.type);
+  const lose = `Lose if you hold under <b>${GROUND_FLOOR}</b> tiles, or take <b>${allow}</b> breach${allow > 1 ? 'es' : ''}.`;
+  // Past the last wave the wave counter is meaningless — what matters is how
+  // many turns are left to finish the job.
+  const left = ENDGAME_TURNS(G.type) - G.extra;
+  const clock = G.endless ? `Wave ${G.turn}`
+    : G.extra > 0 ? `Last wave committed — ${Math.max(0, left)} turn${left === 1 ? '' : 's'} to secure`
+      : `Wave ${Math.min(G.turn, G.waves)} / ${G.waves}`;
+
+  const b = (goal, done, total) => ({goal, done, total, lose, clock});
+  switch (G.type) {
+    case 'retake':
+      return b('Hold 3 tiles inside hostile ground when the clock runs out.', heldEnemyHalf(), 3);
+    case 'crystals':
+      return b('Hold 3 of the 4 crystal nodes when the clock runs out.', crystalsHeld(), 3);
+    case 'specimens':
+      return b(`Destroy ${G.quota} ${BEST[G.quotaK].n}. Other kills do not count.`, G.quotaHit, G.quota);
+    case 'uplink':
+      return b(`Hold the relay tile in lane ${G.uplinkAt.l + 1} for three turns running.`,
+        G.uplinkHeld, 3);
+    case 'blitz':
+      return b(`Destroy ${G.quota} hostiles before the waves run out.`, G.kills, G.quota);
+    case 'civilians': {
+      const bld = G.civ.find(v => v.building);
+      return {
+        goal: `Walk ${G.civGoal} survivors off the field, shelter still standing.`,
+        done: G.extracts, total: G.civGoal,
+        lose: `Shelter at <b>${bld ? bld.hp : 0}</b> hull. ` + lose, clock,
+      };
+    }
+    case 'extract':
+      return b('Short and heavy. Hold out to extraction.', 0, 0);
+    default:
+      return b(`Hold the line through all ${G.waves} waves. Nothing gets past you.`, 0, 0);
   }
-  return m.d;
+}
+
+/** Why the mission was won — the line a loss has always had and a win never did. */
+export function winWhy() {
+  switch (G.type) {
+    case 'retake': return `${heldEnemyHalf()} tiles held inside hostile ground.`;
+    case 'crystals': return `${crystalsHeld()} of 4 crystal nodes held when the clock ran out.`;
+    case 'specimens':
+      return `Quota filled — ${G.quotaHit} ${BEST[G.quotaK].n}${G.quotaHit === 1 ? '' : 's'} destroyed.`;
+    case 'uplink': return 'Uplink online — the relay held three turns running.';
+    case 'blitz': return `Zone purged — ${G.kills} hostiles destroyed.`;
+    case 'civilians': return `${G.extracts} survivors extracted, shelter intact.`;
+    // Two genuinely different wins live here: you either outlasted the waves
+    // or you cleared the field. Which one you got is the story of the mission,
+    // and the card never said either.
+    case 'extract': return G.enemies.length
+      ? 'Extraction reached — the squad is out.'
+      : 'Field cleared, then out. Nothing followed you.';
+    default: return G.enemies.length
+      ? `The line held. ${G.waves} waves, no breakthrough.`
+      : 'Field cleared — nothing left standing.';
+  }
 }
 
 function settleOnslaught() {
@@ -295,8 +354,8 @@ function settleGauntlet(win, why) {
   return {
     kind: win ? 'win' : 'lose',
     cleared: win,
-    title,
-    lines: [why, `Hostiles destroyed · ${G.kills}`, `Units lost · ${G.lost}`].filter(Boolean),
+    title, why,
+    lines: [`Hostiles destroyed · ${G.kills}`, `Units lost · ${G.lost}`],
     payout: win ? {cr} : null,
   };
 }
@@ -338,8 +397,9 @@ function settleCampaign(win, why) {
     kind: win ? 'win' : 'lose',
     cleared: win,
     title: win ? 'OBJECTIVE SECURED' : 'OPERATION FAILED',
-    lines: [why, `Hostiles destroyed · ${G.kills}`, `Units lost · ${G.lost}`,
-      `Ground held · ${held()} tiles`].filter(Boolean),
+    why,
+    lines: [`Hostiles destroyed · ${G.kills}`, `Units lost · ${G.lost}`,
+      `Ground held · ${held()} tiles`],
     payout: win ? {cr} : null,
   };
 }
@@ -374,8 +434,8 @@ function settleDaily(win, why) {
     kind: win ? 'win' : 'lose',
     cleared: win,
     title: win ? (alreadyToday ? 'DAILY ALREADY CLEARED' : 'DAILY CHALLENGE CLEARED') : 'DAILY CHALLENGE FAILED',
+    why,
     lines: [
-      why,
       `Hostiles destroyed · ${G.kills}`, `Units lost · ${G.lost}`,
       win ? `Streak · ${active.daily.streak}${alreadyToday ? ' — already banked today' : ''}`
         : 'Loss doesn\'t cost the streak — try again today.',

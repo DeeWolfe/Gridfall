@@ -4,14 +4,14 @@
 // rebuilds the screen from scratch each time rather than patching it, which is
 // why the rules layer only has to say "something changed".
 
-import {LANES, COLS} from '../state/constants.js';
+import {LANES, COLS, HAND_CAP, GROUND_FLOOR} from '../state/constants.js';
 import {POOL} from '../content/cards.js';
 import {BEST} from '../content/hostiles.js';
 import {MISSIONS} from '../content/missions.js';
 import {MODS} from '../content/modifiers.js';
 import {DOCTRINE} from '../content/doctrines.js';
 import {TGNAME} from '../content/targeting-names.js';
-import {G, active, sel, mover, foeSel, replaying, stratSel, handOpen, setSel, setMover, setFoeSel, setStratSel, setHandOpen} from '../state/session.js';
+import {G, active, sel, mover, foeSel, replaying, stratSel, logOpen, setSel, setMover, setFoeSel, setStratSel, setLogOpen} from '../state/session.js';
 import {STRATAGEMS} from '../content/stratagems.js';
 import {stratReady, canPlayStratagem, playStratagem, stratMarkers} from '../rules/stratagems.js';
 import {costOf, gearOf, vetOf, leadOf} from '../save/progression.js';
@@ -21,7 +21,7 @@ import {buffOf, dmgPreview} from '../rules/units.js';
 import {moveTargets, doMove, doAttack, doAbility, swapTargets, doSwap} from '../rules/actions.js';
 import {deploy} from '../rules/deploy.js';
 import {endTurn} from '../rules/phases.js';
-import {objText, abortMission} from '../rules/mission.js';
+import {objBrief, abortMission} from '../rules/mission.js';
 import {forecastThreat, foeThreatCells, enemyIntent, supportTargets, influenceCells, supportLabel} from '../rules/forecast.js';
 import {EVENTS, eventStrikeMalus} from '../rules/events.js';
 import {$, show} from './dom.js';
@@ -143,6 +143,7 @@ export function drawActions() {
 /** What the selected unit will do, or what the selected card will cost. */
 function drawSel() {
   const el = $('selinfo');
+  el.hidden = false;
 
   if (stratSel) {
     const def = stratReady();
@@ -248,11 +249,17 @@ function drawSel() {
     return;
   }
 
+  // Idle. "Nothing selected. Tap a card to deploy" cost 44px of a 664px phone
+  // to say nothing — and the objective now sits above this, so the panel is
+  // no longer empty without it. What survives is the part that was actually
+  // information: who can still act, and who is about to be hit. With neither
+  // to report the block folds away and gives the room back.
   const threatened = Object.keys(forecastThreat().hits).length;
   const ready = G.units.filter(u => !u.acted).length;
-  el.innerHTML = `Nothing selected.<div style="margin-top:7px">Tap a card to deploy, or a unit to act with it.</div>
-    ${ready ? `<div class="selfire live" style="margin-top:9px"><b>${ready}</b> unit${ready > 1 ? 's' : ''} still to act</div>` : ''}
-    ${threatened ? `<div class="selfire dead" style="margin-top:7px"><b style="color:var(--mag)">${threatened}</b> of your positions will be struck this turn</div>` : ''}`;
+  if (!ready && !threatened) { el.hidden = true; el.innerHTML = ''; return; }
+  el.innerHTML =
+    `${ready ? `<div class="selfire live"><b>${ready}</b> unit${ready > 1 ? 's' : ''} still to act</div>` : ''}
+     ${threatened ? `<div class="selfire dead" style="margin-top:7px"><b style="color:var(--mag)">${threatened}</b> of your positions will be struck this turn</div>` : ''}`;
 }
 
 /** Markup for one of your units standing in a cell. */
@@ -490,23 +497,84 @@ function drawLog() {
     : '<div class="logline l-info">Awaiting contact.</div>';
 }
 
-/** The tray can be collapsed to give the board back its room — see
- * #combat.handclosed in the stylesheet, which shrinks the board's height
- * budget to match. The DP total stays visible on the header either way. */
-function paintHandToggle() {
-  const box = $('handbox');
-  const tog = $('handtog');
+/**
+ * The combat log is the thing that folds away now, not the hand.
+ *
+ * The hand used to collapse because the tray was too big to live alongside the
+ * board; capped at HAND_CAP it fits on one row and has nothing to hide from.
+ * The log is genuinely optional — a history, not a control — so it is the one
+ * that earns a toggle. #combat.logclosed drops the intel column's whole grid
+ * track in the stylesheet: hiding the element alone leaves its 8rem row
+ * reserved, which is why the old toggle would have bought nothing.
+ */
+function paintLogToggle() {
+  const tog = $('logtog');
   const scr = $('combat');
-  if (!box || !tog || !scr) return;
-  box.classList.toggle('collapsed', !handOpen);
-  scr.classList.toggle('handclosed', !handOpen);
-  tog.textContent = handOpen ? '▾' : '▸';
-  tog.title = handOpen ? 'Collapse hand' : 'Expand hand';
-  tog.onclick = () => { setHandOpen(!handOpen); drawAll(); };
+  if (!tog || !scr) return;
+  scr.classList.toggle('logclosed', !logOpen);
+  tog.classList.toggle('on', logOpen);
+  tog.setAttribute('aria-pressed', logOpen ? 'true' : 'false');
+  tog.title = logOpen ? 'Hide combat log' : 'Show combat log';
+  tog.onclick = () => { setLogOpen(!logOpen); drawAll(); };
+}
+
+/**
+ * The objective, stated as an order, above whatever is selected.
+ *
+ * This is the panel's resting state: it read "Nothing selected" for most of a
+ * turn while the mission's actual goal lived in a header span that is hidden
+ * on every compact layout. Progress gets pips up to five and a bar beyond —
+ * nine pips is a counting exercise, not a glance.
+ */
+function drawObjective() {
+  const el = $('objblk');
+  if (!el) return;
+  const b = objBrief();
+  const met = b.total > 0 && b.done >= b.total;
+  let prog = '';
+  if (b.total > 0 && b.total <= 5) {
+    prog = `<span class="pips">${Array.from({length: b.total}, (_, i) =>
+      `<i class="${i < b.done ? 'on' : ''}"></i>`).join('')}</span>`;
+  } else if (b.total > 0) {
+    prog = `<span class="obar"><span style="width:${Math.min(100, b.done / b.total * 100)}%"></span></span>`;
+  }
+  const count = b.total > 0 ? `<b class="onum">${b.done} / ${b.total}</b>` : '';
+  el.className = 'objblk' + (met ? ' met' : '');
+  el.innerHTML = `<span class="olab">Objective</span>
+    <span class="ogoal">${b.goal}</span>
+    <span class="orow">${prog}${count}<span class="oclock">${b.clock}</span></span>
+    <span class="olose">${b.lose}</span>`;
+}
+
+/**
+ * The hand header: how full you are, and why, when it matters.
+ *
+ * Two different situations wear two different colours. Gold FULL means the
+ * turn draw is being held back and you should spend; violet OVER means a card
+ * you played drew past the cap on purpose and nothing is being withheld.
+ * Neither is an error, so neither uses the loss colour.
+ */
+function paintHandCount() {
+  const n = $('handcount');
+  const chip = $('handchip');
+  if (!n || !chip) return;
+  const size = G.hand.length;
+  n.textContent = `Hand ${size}/${HAND_CAP}`;
+  if (size > HAND_CAP) {
+    chip.hidden = false;
+    chip.className = 'handchip over';
+    chip.textContent = 'over cap';
+  } else if (size === HAND_CAP) {
+    chip.hidden = false;
+    chip.className = 'handchip full';
+    chip.textContent = 'full — draw held';
+  } else {
+    chip.hidden = true;
+  }
 }
 
 export function drawHand() {
-  paintHandToggle();
+  paintHandCount();
   const h = $('hcards');
   h.innerHTML = '';
 
@@ -559,6 +627,13 @@ export function drawHand() {
     h.appendChild(el);
   });
 
+  // Whether the tray actually spills is a measurement, not a count: the cap
+  // says six but a card effect can push past it, and how many fit depends on
+  // the width the tray was given. Ask the layout, then fade the edge so the
+  // extra cards announce themselves.
+  h.classList.remove('spill');
+  if (h.scrollWidth > h.clientWidth + 1) h.classList.add('spill');
+
   if (!G.hand.length && !def) {
     h.innerHTML = '<div style="font-size:0.6875rem;color:var(--dim)">Hand empty — hold with what is on the board.</div>';
   }
@@ -571,10 +646,15 @@ export function drawAll() {
   const waveLabel = G.endless ? `Wave ${G.turn}` : `Wave ${Math.min(G.turn, G.waves)} / ${G.waves}`;
   $('c-title').innerHTML = `${waveLabel} <span class="sep">·</span> ${m.n}` +
     (G.mod !== 'none' ? ` <span class="modtag">${MODS[G.mod].n}</span>` : '');
-  $('c-obj').textContent = objText();
   $('c-dp').textContent = G.dp;
-  $('c-ter').textContent = held();
-  $('c-br').innerHTML = G.breaches + '<span class="of">/' + breachAllowance(G.type) + '</span>';
+  paintLogToggle();
+  drawObjective();
+  const ground = held();
+  const allow = breachAllowance(G.type);
+  $('c-ter').textContent = ground;
+  $('c-ter').className = ground <= GROUND_FLOOR ? 'bad' : ground <= GROUND_FLOOR + 2 ? 'warn' : '';
+  $('c-br').innerHTML = G.breaches + '<span class="of">/' + allow + '</span>';
+  $('c-br').className = G.breaches >= allow - 1 ? 'bad' : '';
   $('c-deck').textContent = G.deck.length;
 
   // Field events ride at the front of the incoming strip: the live one bright,
