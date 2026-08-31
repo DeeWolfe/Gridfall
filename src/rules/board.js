@@ -8,7 +8,7 @@ import {LANES, COLS, MAXBREACH} from '../state/constants.js';
 import {POOL} from '../content/cards.js';
 import {BEST} from '../content/hostiles.js';
 import {G} from '../state/session.js';
-import {gearOf} from '../save/progression.js';
+import {gearOf, isProto} from '../save/progression.js';
 
 /** Your unit covering this cell — units may be two cells wide. */
 export const unitAt = (l, c) => G.units.find(u => u.lane === l && c >= u.col && c < u.col + u.size);
@@ -118,7 +118,7 @@ export function validTiles(cid) {
   // fill. This branch returns before the ownership loop below on purpose —
   // a Silent Insertion charge widens where ordinary cards may be played, and
   // it must not quietly turn a Frame into a card that drops anywhere.
-  if (k.frame) {
+  if (isProto(cid)) {
     const size = k.size || 1;
     for (let l = 0; l < LANES; l++) for (let c = 0; c < COLS; c++) {
       const cells = [];

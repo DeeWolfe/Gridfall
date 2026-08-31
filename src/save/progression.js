@@ -33,6 +33,22 @@ export function gearOf(id) {
 }
 
 /**
+ * The two machine classes, and what separates them.
+ *
+ * An EXO frame is a suit — Aegis Knights, the Ashura, the Exo Juggernaut, the
+ * Thruster Ram. Proven, in service, and deployed like any other card.
+ *
+ * A PROTO frame is a prototype: bigger, further along, and not yet trusted to
+ * walk itself onto a battlefield. It needs a Pilot already standing there, it
+ * takes one deck slot of its own, and there is exactly one per mission. Every
+ * rule that treats Frames specially keys off this, so the lore word and the
+ * behaviour cannot drift apart.
+ */
+export const isProto = id => !!(POOL[id] && POOL[id].chassis === 'proto');
+export const isExo = id => !!(POOL[id] && POOL[id].chassis === 'exo');
+export const CHASSIS_NAME = {proto: 'Proto Frame', exo: 'Exo Frame'};
+
+/**
  * Whether piece `gi` may be fitted to card `id`.
  *
  * Frames are closed kits, and that exclusivity is the whole point of them: a
@@ -50,7 +66,7 @@ export function gearFits(id, gi) {
   const g = GEAR[gi];
   if (!k || !g) return false;
   if (g.frame) return g.frame === id;
-  return !k.frame;
+  return !isProto(id);
 }
 
 /**
@@ -60,8 +76,7 @@ export function gearFits(id, gi) {
  * being rewritten at each call site.
  */
 export function frameWeapon(id) {
-  const k = POOL[id];
-  if (!k || !k.frame) return null;
+  if (!isProto(id)) return null;
   const g = gearOf(id);
   return g && g.frame === id ? g : null;
 }

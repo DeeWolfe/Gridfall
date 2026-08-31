@@ -7,7 +7,7 @@ import {DECKSIZE} from '../state/constants.js';
 import {POOL} from '../content/cards.js';
 import {TIERNAME} from '../content/ranks.js';
 import {active} from '../state/session.js';
-import {costOf, gearOf, vetOf} from '../save/progression.js';
+import {costOf, gearOf, vetOf, CHASSIS_NAME} from '../save/progression.js';
 import {cardMark} from './portraits.js';
 import {attr} from './dom.js';
 
@@ -30,6 +30,14 @@ export function cardEl(id, mode) {
         : affordable ? `<div class="gfoot buy">${k.price} cr</div>`
           : `<div class="gfoot no">${k.price} cr</div>`;
     cls = owned ? ' owned' : (!affordable && k.price > 0 ? ' cant' : '');
+  } else if (mode === 'proto') {
+    // The Frame slot holds exactly one, so the footer is a radio button in
+    // card form rather than an add/remove count.
+    const fielded = active.loadout.frame === id;
+    foot = fielded ? '<div class="gfoot own">Fielded</div>'
+      : owned ? '<div class="gfoot add">Field it</div>'
+        : `<div class="gfoot no">${k.price} cr</div>`;
+    cls = fielded ? ' indeck' : owned ? '' : ' cant';
   } else if (mode === 'deck' || mode === 'gear') {
     foot = inDeck ? '<div class="gfoot rem">In deck</div>'
       : active.loadout.deck.length >= DECKSIZE ? '<div class="gfoot no">Deck full</div>'
@@ -41,7 +49,7 @@ export function cardEl(id, mode) {
 
   const v = vetOf(id);
   const hull = k.hp + (g && g.hp ? g.hp : 0);
-  const tip = `${k.n} — ${TIERNAME[k.t]} · ${costOf(id)} DP${k.hp ? ' · ' + hull + ' hull' : ''}\n${k.d}` +
+  const tip = `${k.n} — ${CHASSIS_NAME[k.chassis] || TIERNAME[k.t]} · ${costOf(id)} DP${k.hp ? ' · ' + hull + ' hull' : ''}\n${k.d}` +
     `${g ? '\nGear: ' + g.n + ' — ' + g.d : ''}${v.t ? '\nRank: ' + v.n + ' (' + v.u + ' deployments)' : ''}`;
 
   return `<button class="gcard t-${k.t}${cls} v${v.t}" title="${attr(tip)}" data-focus="${id}" data-mode="${mode}">

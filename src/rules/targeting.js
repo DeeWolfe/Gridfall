@@ -131,6 +131,13 @@ function geomBase(u) {
       const cc = front + 1;
       return G.enemies.filter(e => e.col === cc && Math.abs(e.lane - L) <= 1);
     }
+    // Hyper Napalm: one cell at the mouth, three across behind it. The only
+    // widening pattern in the game, and the only one that leaves the ground
+    // burning after it lands (see `scorch` in units.js).
+    case 'cone':
+      return G.enemies.filter(e =>
+        (e.lane === L && e.col === front + 1) ||
+        (Math.abs(e.lane - L) <= 1 && e.col === front + 2));
     // A Laser Gatling fires past its own centre line: both forward diagonals
     // and a hole where every other forward weapon in the game puts its shot.
     // The gap is the card, so nothing here quietly fills it in.
@@ -249,6 +256,10 @@ export function geomCells(u, at) {
       break;
     case 'vert3':
       for (let l = L - 1; l <= L + 1; l++) add(l, front + 1);
+      break;
+    case 'cone':
+      add(L, front + 1);
+      for (let l = L - 1; l <= L + 1; l++) add(l, front + 2);
       break;
     case 'wings':
       add(L - 1, front + 1); add(L + 1, front + 1);

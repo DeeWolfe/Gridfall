@@ -387,6 +387,7 @@
   "aegis": {
    "n": "Aegis Knights",
    "t": "special",
+   "chassis": "exo",
    "single": 1,
    "dp": 5,
    "hp": 18,
@@ -498,6 +499,7 @@
   "exo": {
    "n": "Exo Juggernaut",
    "t": "special",
+   "chassis": "exo",
    "single": 1,
    "dp": 5,
    "hp": 20,
@@ -755,6 +757,7 @@
   "ram": {
    "n": "Thruster Ram",
    "t": "special",
+   "chassis": "exo",
    "single": 1,
    "dp": 4,
    "hp": 9,
@@ -828,6 +831,7 @@
   "ashura": {
    "n": "Ashura Frame",
    "t": "special",
+   "chassis": "exo",
    "dp": 5,
    "hp": 16,
    "price": 430,
@@ -857,30 +861,30 @@
   "whitedevil": {
    "n": "White Devil",
    "t": "special",
-   "dp": 5,
+   "chassis": "proto",
+   "dp": 6,
    "hp": 20,
    "price": 470,
    "mob": 1,
    "size": 2,
    "tg": "adj",
    "dmg": 2,
-   "frame": 1,
    "regen": 1,
    "blocker": 1,
    "single": 1,
-   "d": "The defensive frame. A regenerating shield and a service blade it barely needs. Bare it is a wall that hits back; kitted it is whatever you decided before the drop."
+   "d": "The all-rounder. A regenerating shield, a service blade, and three prototype weapons that between them answer armour, reach and ground denial."
   },
   "sevenblades": {
    "n": "Seven Blades",
    "t": "special",
-   "dp": 5,
+   "chassis": "proto",
+   "dp": 6,
    "hp": 18,
    "price": 480,
    "mob": 1,
    "size": 2,
    "tg": "adj",
    "dmg": 6,
-   "frame": 1,
    "blocker": 1,
    "single": 1,
    "d": "The melee frame. An arm-mounted blade and nothing else — it does not want range, it wants to be standing where you put it."
@@ -888,6 +892,7 @@
   "heavyarms": {
    "n": "Heavy Arms",
    "t": "special",
+   "chassis": "proto",
    "dp": 6,
    "hp": 25,
    "price": 510,
@@ -895,7 +900,6 @@
    "size": 2,
    "tg": "first",
    "dmg": 5,
-   "frame": 1,
    "blocker": 1,
    "single": 1,
    "d": "The artillery frame. Anchored, heaviest hull on the field, and a ballistic gatling that does not care what it is pointed at."
@@ -1049,27 +1053,6 @@
    "twin": 1,
    "role": "offense"
   },
-  "beamrifle": {
-   "n": "Beam Rifle",
-   "cost": 440,
-   "d": "Replaces the White Devil's blade. One hostile down the lane, hit very hard.",
-   "frame": "whitedevil",
-   "role": "offense",
-   "tg": "first",
-   "dmg": 8,
-   "single": 1
-  },
-  "beamsaber": {
-   "n": "Beam Saber",
-   "cost": 480,
-   "d": "Replaces the White Devil's blade. Brutal at contact, and it answers anything that strikes the frame.",
-   "frame": "whitedevil",
-   "role": "offense",
-   "tg": "adj",
-   "dmg": 10,
-   "single": 1,
-   "riposte": 3
-  },
   "greatsword": {
    "n": "Crystal Greatsword",
    "cost": 520,
@@ -1106,6 +1089,36 @@
    "role": "offense",
    "tg": "cross3",
    "dmg": 4
+  },
+  "railcannon": {
+   "n": "Hyper Rail Cannon",
+   "cost": 560,
+   "d": "Anti-armour. One hostile down the lane, and armour floors do not apply — what it hits, it hits for all of it.",
+   "frame": "whitedevil",
+   "role": "offense",
+   "tg": "first",
+   "dmg": 9,
+   "single": 1,
+   "pen": 1
+  },
+  "javelin": {
+   "n": "Beam Javelin",
+   "cost": 480,
+   "d": "A two-cell thrust. Reach without giving up the contact fight.",
+   "frame": "whitedevil",
+   "role": "offense",
+   "tg": "ahead2",
+   "dmg": 7
+  },
+  "napalm": {
+   "n": "Hyper Napalm",
+   "cost": 520,
+   "d": "A cone of burning promethium, and the ground keeps burning after it lands.",
+   "frame": "whitedevil",
+   "role": "offense",
+   "tg": "cone",
+   "dmg": 5,
+   "scorch": 1
   }
  },
  "hostiles": {
@@ -2343,7 +2356,8 @@
   "rear": "Nearest hostile BEHIND it in the lane",
   "wings": "Both forward diagonals — nothing in the centre",
   "sweep": "Every cell in the two columns directly ahead",
-  "cross3": "A cross centred three cells ahead"
+  "cross3": "A cross centred three cells ahead",
+  "cone": "A flame cone — one cell ahead, then three across"
  },
  "emptyProfile": {
   "version": 5,

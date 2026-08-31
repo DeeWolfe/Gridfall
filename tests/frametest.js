@@ -1,10 +1,13 @@
-// Frames: the Pilot, the machine, and the weapon chosen before the mission.
+// Proto Frames: the slot, the Pilot, the machine, and the weapon chosen before
+// the mission.
 //
-// A Frame is the only card in the game that costs a DECISION rather than a
-// turn. Deploy points renew, so an expensive card is just a slow card; a Frame
-// costs two cards, two deployments and a setup step you can be punished for.
-// Everything guarded here exists to keep that true:
+// A Proto Frame is the only card in the game that costs a DECISION rather than
+// a turn. Deploy points renew, so an expensive card is just a slow card; a
+// Frame costs a whole turn's points, a second card placed a turn earlier, and a
+// setup step the hive gets to punish. Everything guarded here keeps that true:
 //
+//   - one Frame per deck, in its own slot beside the twelve, never in them;
+//   - one deployment per mission, and the slot closes behind it;
 //   - a Frame cannot land without a Pilot, and lands ON one;
 //   - the Pilot is spent, not killed — it is climbing in;
 //   - a destroyed Frame puts its Pilot back on the board, alive;
@@ -16,16 +19,19 @@ import {failures} from './support/harness.js';
 import {spawnUnit, spawnFoe, clearBoard, unlockAll, stillAir} from './support/fixtures.js';
 import {POOL} from '../src/content/cards.js';
 import {GEAR} from '../src/content/gear.js';
-import {gearFits, frameWeapon} from '../src/save/progression.js';
+import {gearFits, frameWeapon, isProto, isExo} from '../src/save/progression.js';
 import {validTiles, isPilot} from '../src/rules/board.js';
+import {frameReady, seedFrame} from '../src/rules/frames.js';
 
 const F = failures();
-const FRAMES = Object.keys(POOL).filter(c => POOL[c].frame);
+const FRAMES = Object.keys(POOL).filter(c => isProto(c));
+const EXOS = Object.keys(POOL).filter(c => isExo(c));
 const PILOTS = Object.keys(POOL).filter(c => POOL[c].pilot);
 
 let p;
-const start = () => {
-  p = unlockAll(A.blankProfile('FRAME'), ['pilot', ...FRAMES, 'rifle', 'wall', 'medic', 'marks']);
+const start = (frame) => {
+  p = unlockAll(A.blankProfile('FRAME'), ['pilot', 'rifle', 'wall', 'medic', 'marks', 'cipher']);
+  p.loadout.frame = frame === undefined ? 'whitedevil' : frame;
   A.enterProfile(p);
   A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0});
   stillAir();
@@ -36,7 +42,9 @@ const start = () => {
   return p;
 };
 const cellsOf = ids => new Set(ids);
-const hand = cid => { if (!A.G.hand.includes(cid)) A.G.hand.push(cid); };
+// The Frame is never in hand; it is seeded into its slot at launch. Swapping
+// which one the mission carries means re-seeding, not dealing a card.
+const fieldFrame = cid => { p.loadout.frame = cid; seedFrame(); };
 
 // --- the shape of the content ---
 {
@@ -52,8 +60,22 @@ const hand = cid => { if (!A.G.hand.includes(cid)) A.G.hand.push(cid); };
     if ((k.size || 1) < 2) F.push(`${c} occupies one cell — it is a big Rifleman`);
     // A bare Frame must be playable, never a dead draw.
     if (!k.tg || k.tg === 'none' || !k.dmg) F.push(`${c} has no base weapon`);
-    const kit = Object.keys(GEAR).filter(g => GEAR[g].frame === c);
-    if (kit.length !== 2) F.push(`${c} has ${kit.length} weapons, expected 2`);
+    if (!Object.keys(GEAR).some(g => GEAR[g].frame === c)) F.push(`${c} has no weapons`);
+    // Every Proto costs a full turn's deploy points — the whole point of the
+    // class is that fielding one IS the turn.
+    if (k.dp !== A.MAXDP) F.push(`${c} costs ${k.dp} DP, not a full turn's ${A.MAXDP}`);
+  });
+  // The older machines are Exo frames: same lore family, no Pilot, no slot.
+  if (!EXOS.length) F.push('nothing is classed as an Exo frame');
+  EXOS.forEach(c => { if (isProto(c)) F.push(`${c} is both an Exo and a Proto`); });
+  console.log('proto:', FRAMES.join(', '), '| exo:', EXOS.join(', '));
+}
+
+// --- an Exo frame is deployed like any other card, Pilot or no Pilot ---
+{
+  start();
+  EXOS.forEach(c => {
+    if (!validTiles(c).length) F.push(`${c} (Exo) cannot deploy onto held ground`);
   });
 }
 
@@ -93,8 +115,7 @@ const hand = cid => { if (!A.G.hand.includes(cid)) A.G.hand.push(cid); };
 {
   start();
   const pv = spawnUnit('pilot', 2, 3);
-  hand('whitedevil');
-  const lost = A.G.lost;
+    const lost = A.G.lost;
   A.deploy('whitedevil', 2, 3);
   if (A.G.units.some(u => u.uid === pv.uid)) F.push('the Pilot survived alongside the Frame');
   if (A.G.lost !== lost) F.push('spending a Pilot was counted as losing a unit');
@@ -104,14 +125,15 @@ const hand = cid => { if (!A.G.hand.includes(cid)) A.G.hand.push(cid); };
     if (fr.size !== 2) F.push('the Frame landed one cell wide');
     if (fr.pilotId !== 'pilot') F.push('the Frame does not remember which Pilot it took aboard');
   }
-  if (A.G.hand.includes('whitedevil')) F.push('the Frame card was not spent');
+  if (frameReady()) F.push('the Frame slot stayed open after it was spent');
+  if (A.G.hand.includes('whitedevil')) F.push('the Frame ended up in the hand');
 }
 
 // --- a destroyed Frame puts its Pilot back on the board ---
 {
   start();
   spawnUnit('pilot', 2, 3);
-  hand('sevenblades');
+  fieldFrame('sevenblades');
   A.deploy('sevenblades', 2, 3);
   const fr = A.G.units.find(u => u.id === 'sevenblades');
   const lost = A.G.lost;
@@ -130,7 +152,7 @@ const hand = cid => { if (!A.G.hand.includes(cid)) A.G.hand.push(cid); };
 {
   const fr = A.G.units.find(u => u.id === 'sevenblades');
   if (fr) F.push('setup: the wreck is still standing');
-  hand('heavyarms');
+  fieldFrame('heavyarms');
   if (!validTiles('heavyarms').length) F.push('an ejected Pilot cannot take another Frame');
 }
 
@@ -138,7 +160,6 @@ const hand = cid => { if (!A.G.hand.includes(cid)) A.G.hand.push(cid); };
 {
   start();
   spawnUnit('pilot', 2, 3);
-  hand('whitedevil');
   A.deploy('whitedevil', 2, 3);
   const fr = A.G.units.find(u => u.id === 'whitedevil');
   spawnFoe('crawler', 2, 3);            // standing in the wreck's front cell
@@ -169,24 +190,21 @@ const hand = cid => { if (!A.G.hand.includes(cid)) A.G.hand.push(cid); };
   if (bare.tg !== POOL.whitedevil.tg) F.push('a bare Frame lost its service weapon');
   if (bare.dmg !== POOL.whitedevil.dmg) F.push('a bare Frame has the wrong damage');
 
-  p.loadout.gear.whitedevil = 'beamrifle';
+  p.loadout.gear.whitedevil = 'railcannon';
   const armed = A.mkUnit('whitedevil', 2, 3);
-  if (armed.tg !== GEAR.beamrifle.tg) F.push('the Beam Rifle did not replace the targeting');
-  if (armed.dmg !== GEAR.beamrifle.dmg) {
-    F.push(`damage is ${armed.dmg}, expected the weapon's ${GEAR.beamrifle.dmg} and not a sum`);
+  if (armed.tg !== GEAR.railcannon.tg) F.push('the Rail Cannon did not replace the targeting');
+  if (armed.dmg !== GEAR.railcannon.dmg) {
+    F.push(`damage is ${armed.dmg}, expected the weapon's ${GEAR.railcannon.dmg} and not a sum`);
   }
-  if (armed.dmg === POOL.whitedevil.dmg + GEAR.beamrifle.dmg) {
+  if (armed.dmg === POOL.whitedevil.dmg + GEAR.railcannon.dmg) {
     F.push('the weapon was added to the printed one instead of replacing it');
   }
-  if (frameWeapon('whitedevil') !== GEAR.beamrifle) F.push('frameWeapon did not report the fitted weapon');
+  if (frameWeapon('whitedevil') !== GEAR.railcannon) F.push('frameWeapon did not report the fitted weapon');
 
-  // A saber's riposte rides on top of the frame's own, because that is a
-  // property of the machine being struck rather than of what it is holding.
-  p.loadout.gear.whitedevil = 'beamsaber';
-  const saber = A.mkUnit('whitedevil', 2, 3);
-  if (saber.riposte !== (POOL.whitedevil.riposte || 0) + GEAR.beamsaber.riposte) {
-    F.push('the Beam Saber riposte did not carry through');
-  }
+  // The frame's own riposte survives whatever it is holding, because that is a
+  // property of the machine being struck rather than of the weapon.
+  const keep = A.mkUnit('whitedevil', 2, 3);
+  if (keep.riposte !== (POOL.whitedevil.riposte || 0)) F.push('the frame lost its own riposte to a weapon');
   delete p.loadout.gear.whitedevil;
 }
 
@@ -241,7 +259,7 @@ const hand = cid => { if (!A.G.hand.includes(cid)) A.G.hand.push(cid); };
 {
   start();
   spawnUnit('pilot', 2, 3);
-  hand('heavyarms');
+  fieldFrame('heavyarms');
   A.deploy('heavyarms', 2, 3);
   const fr = A.G.units.find(u => u.id === 'heavyarms');
   const cipher = spawnUnit('cipher', 4, 0);
@@ -266,4 +284,96 @@ const hand = cid => { if (!A.G.hand.includes(cid)) A.G.hand.push(cid); };
   if (A.unitAt(4, 1) !== fr) F.push('the swapped Frame is not covering both of its cells');
 }
 
-F.report('frames: a Pilot, a machine, and a weapon chosen before the drop');
+// --- the slot: beside the deck, never in it ---
+{
+  start();
+  if (p.loadout.deck.some(c => isProto(c))) F.push('a Proto Frame sat inside the twelve');
+  if (frameReady() !== 'whitedevil') F.push('the fielded Frame is not the one the slot holds');
+  // The deck the mission shuffles must not contain it either.
+  if (A.G.deck.includes('whitedevil') || A.G.hand.includes('whitedevil')) {
+    F.push('the Frame was shuffled in with the deck');
+  }
+  console.log('mission deck:', A.G.deck.length + A.G.hand.length, 'cards, frame held separately');
+}
+
+// --- an empty slot means no Frame at all ---
+{
+  start(null);
+  if (frameReady()) F.push('a mission with an empty slot still offered a Frame');
+}
+
+// --- one deployment per mission, and the slot closes behind it ---
+{
+  start();
+  spawnUnit('pilot', 2, 3);
+  A.deploy('whitedevil', 2, 3);
+  if (frameReady()) F.push('the Frame was still on offer after being played');
+  // A second Pilot does not reopen it.
+  spawnUnit('pilot', 4, 3);
+  if (validTiles('whitedevil').length && frameReady()) F.push('a second Pilot re-armed a spent Frame');
+  if (A.G.units.filter(u => u.id === 'whitedevil').length !== 1) F.push('more than one Frame reached the board');
+}
+
+// --- migration moves a stray Frame out of the twelve rather than binning it ---
+{
+  const old = A.migrate({
+    version: 6, callsign: 'OLD',
+    unlocks: {cards: ['rifle', 'pilot', 'whitedevil'], gear: [], enemies: [], leads: []},
+    loadout: {deck: ['rifle', 'pilot', 'whitedevil'], gear: {}},
+    progress: {rank: 1, xp: 0, credits: 0},
+  });
+  if (old.loadout.deck.includes('whitedevil')) F.push('a Frame survived inside the twelve');
+  if (old.loadout.frame !== 'whitedevil') F.push('a stray Frame was binned instead of moved to its slot');
+  // A record that never owned one keeps an empty slot rather than a broken id.
+  const clean = A.migrate({
+    version: 6, callsign: 'CLEAN',
+    unlocks: {cards: ['rifle'], gear: [], enemies: [], leads: []},
+    loadout: {deck: ['rifle'], gear: {}, frame: 'nonsense'},
+    progress: {rank: 1, xp: 0, credits: 0},
+  });
+  if (clean.loadout.frame !== null) F.push('an unknown Frame id survived migration');
+}
+
+// --- White Devil is the all-rounder: three answers, three shapes ---
+{
+  start();
+  const kit = Object.keys(GEAR).filter(g => GEAR[g].frame === 'whitedevil');
+  if (kit.length !== 3) F.push(`White Devil carries ${kit.length} weapons, expected 3`);
+  const shapes = new Set(kit.map(g => GEAR[g].tg));
+  if (shapes.size !== 3) F.push('two White Devil weapons cover the same shape');
+  const rail = GEAR.railcannon;
+  if (!rail || !rail.pen) F.push('the Hyper Rail Cannon is not anti-armour');
+  if (!rail.single) F.push('the Hyper Rail Cannon is not single-target');
+  if (!GEAR.napalm || !GEAR.napalm.scorch) F.push('Hyper Napalm leaves no burning ground');
+
+  // pen and scorch have to survive the trip onto the unit.
+  p.loadout.gear.whitedevil = 'railcannon';
+  if (!A.mkUnit('whitedevil', 2, 3).pen) F.push('the rail cannon lost its armour-piercing on deploy');
+  p.loadout.gear.whitedevil = 'napalm';
+  if (!A.mkUnit('whitedevil', 2, 3).scorch) F.push('the napalm lost its burning ground on deploy');
+  delete p.loadout.gear.whitedevil;
+}
+
+// --- the napalm cone widens, and the board lights exactly what it burns ---
+{
+  start();
+  p.loadout.gear.whitedevil = 'napalm';
+  const u = A.mkUnit('whitedevil', 2, 2);
+  A.G.units.push(u);
+  const front = u.col + u.size - 1;
+  const mouth = spawnFoe('crawler', 2, front + 1);
+  const wideUp = spawnFoe('crawler', 1, front + 2);
+  const wideDown = spawnFoe('crawler', 3, front + 2);
+  const shoulder = spawnFoe('crawler', 1, front + 1);   // not at the mouth
+  const hit = A.geomFor(u).map(e => e.uid);
+  [['mouth', mouth], ['wide left', wideUp], ['wide right', wideDown]].forEach(([where, e]) => {
+    if (!hit.includes(e.uid)) F.push(`the cone missed its ${where}`);
+  });
+  if (hit.includes(shoulder.uid)) F.push('the cone is not a cone — it hit beside its own mouth');
+  const lit = A.geomCells(u);
+  if (lit.length !== 4) F.push(`the cone lights ${lit.length} cells, expected 4`);
+  console.log('napalm cone:', lit.length, 'cells, widening');
+  delete p.loadout.gear.whitedevil;
+}
+
+F.report('proto frames: one slot, one deployment, a Pilot spent and a Pilot returned');

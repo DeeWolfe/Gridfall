@@ -136,17 +136,41 @@ function gearLocker() {
    <div class="cgrid">${tiles}</div>`;
 }
 
+/**
+ * The Proto Frame slot: one per deck, beside the twelve rather than inside
+ * them, and one per mission. Its own section because it is its own decision —
+ * burying a once-per-mission commitment among fifty reserve cards would make
+ * it read like any other card, which is exactly what it is not.
+ */
+function frameSlot() {
+  const owned = active.unlocks.cards.filter(c => POOL[c].chassis === 'proto');
+  const all = Object.keys(POOL).filter(c => POOL[c].chassis === 'proto');
+  const fielded = active.loadout.frame;
+  if (!owned.length) {
+    return `<div class="sect" style="color:var(--violet)">Proto Frame slot</div>
+     <div class="stub"><b>No prototype on strength</b>${all.length} Proto Frames exist.
+       They take a slot of their own beside the deck — one per deck, one per mission —
+       and each needs a Frame Pilot in the twelve to land on.</div>`;
+  }
+  return `<div class="sect" style="color:var(--violet)">Proto Frame slot — ${fielded ? POOL[fielded].n : 'empty'}</div>
+   <div class="bar"><div>One Frame per deck, one deployment per mission</div>
+     <div style="color:var(--dim);font-size:0.6875rem">It rides beside the twelve, never drawn — tap to field it and choose its weapon</div></div>
+   ${cardGrid(owned, 'proto')}`;
+}
+
 function squadPanel() {
   const deck = active.loadout.deck;
-  const reserve = active.unlocks.cards.filter(c => !deck.includes(c));
-  // A Frame with no Pilot in the same deck is a dead draw, and the deck screen
-  // is the only place that can say so before the mission starts. Cheap to
-  // check, and the alternative is finding out on the board with 5 DP spent.
-  const frames = deck.filter(c => POOL[c].frame);
+  // Proto Frames live in their own slot and never in the twelve, so they are
+  // filtered out of both grids rather than competing for a deck place.
+  const reserve = active.unlocks.cards.filter(c => !deck.includes(c) && POOL[c].chassis !== 'proto');
+  // A Frame with no Pilot in the deck is a dead slot, and the deck screen is
+  // the only place that can say so before the mission starts. Cheap to check,
+  // and the alternative is finding out on the board with six DP spent.
+  const fielded = active.loadout.frame;
   const pilots = deck.filter(c => POOL[c].pilot);
-  const orphan = frames.length && !pilots.length
+  const orphan = fielded && !pilots.length
     ? `<div class="bar"><div style="color:var(--gold)"><b style="color:var(--gold)">⚠</b>
-        ${frames.map(c => POOL[c].n).join(' and ')} cannot deploy without a Frame Pilot in this deck</div>
+        ${POOL[fielded].n} cannot deploy without a Frame Pilot in this deck</div>
         <div style="color:var(--dim);font-size:0.6875rem">A Frame lands on a Pilot, never on open ground</div></div>`
     : '';
   return `<div class="sect">Team lead — answers to you</div>${leadCardHTML()}
@@ -160,6 +184,7 @@ function squadPanel() {
    <div class="sect">Reserve — ${reserve.length}</div>
    ${squadControls()}
    ${reserveCards(reserve)}
+   ${frameSlot()}
    ${gearLocker()}`;
 }
 

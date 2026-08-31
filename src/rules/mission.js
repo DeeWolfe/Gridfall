@@ -20,6 +20,7 @@ import {opRun, genRun, opComplete} from './run.js';
 import {queuePack} from './packs.js';
 import {tapeEnd} from './tape.js';
 import {seedStratagem} from './stratagems.js';
+import {seedFrame} from './frames.js';
 import {EVENTS, rollEvent} from './events.js';
 import {clog} from './log.js';
 
@@ -87,7 +88,7 @@ export function launchSpec(nd) {
     civ: [], crystals: [], quota: 0, quotaK: null, quotaHit: 0,
     civGoal: 0, extracts: 0,
     uplinkAt: null, uplinkHeld: 0,
-    strat: null, freeDrop: 0,
+    strat: null, frame: null, freeDrop: 0,
     gridCharge: Array(LANES).fill(1), event: null, eventNext: null,
     predict: [], held: [], result: null,
   });
@@ -114,6 +115,7 @@ export function launchSpec(nd) {
 
   for (let i = 0; i < Math.min(5, G.deck.length); i++) G.hand.push(G.deck.pop());
   seedStratagem();               // the lead's one call, outside the deck
+  seedFrame();                   // and the deck's one Proto Frame, likewise
   // The first field event can land as early as turn 2 — telegraphed now.
   G.eventNext = rollEvent();
   if (G.eventNext) clog(`Field report: <span style="color:var(--violet)">${EVENTS[G.eventNext].n}</span> expected next turn.`, 'info');

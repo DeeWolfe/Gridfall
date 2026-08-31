@@ -24,7 +24,7 @@ export function blankProfile(callsign) {
     lastPlayed: Date.now(),
     progress: {rank: 1, xp: 0, credits: 420},
     unlocks: {cards: [...STARTER], enemies: [], gear: [], leads: [], schemes: ['standard']},
-    loadout: {deck: [...STARTER], gear: {}, scheme: 'standard'},
+    loadout: {deck: [...STARTER], gear: {}, scheme: 'standard', frame: null},
     stats: {deployments: 0, held: 0, lost: 0, breaches: 0, kills: 0, unitsLost: 0},
     ship: 'ANVIL-7',
     lead: 'ironbrand',
@@ -104,6 +104,14 @@ export function migrate(p) {
   p.loadout.gear = p.loadout.gear || {};
   p.loadout.scheme = typeof p.loadout.scheme === 'string' ? p.loadout.scheme : 'standard';
   p.unlocks.schemes = Array.isArray(p.unlocks.schemes) ? p.unlocks.schemes : ['standard'];
+
+  // The Proto Frame slot sits beside the deck, not inside it. Anything that
+  // ended up in the twelve — a v6 save, a pack drop from before the slot
+  // existed — moves out rather than being deleted.
+  const strayFrame = p.loadout.deck.find(c => POOL[c] && POOL[c].chassis === 'proto');
+  p.loadout.frame = POOL[p.loadout.frame] && POOL[p.loadout.frame].chassis === 'proto'
+    ? p.loadout.frame : (strayFrame || null);
+  p.loadout.deck = p.loadout.deck.filter(c => !(POOL[c] && POOL[c].chassis === 'proto'));
 
   // Strip anything that points at content we no longer ship.
   p.loadout.deck = p.loadout.deck.filter(c => POOL[c]);

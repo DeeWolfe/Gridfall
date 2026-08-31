@@ -10,7 +10,7 @@ import {TGNAME} from '../content/targeting-names.js';
 import {TIERNAME, VET} from '../content/ranks.js';
 import {active, setSel, setMover} from '../state/session.js';
 import {commit} from '../save/profile.js';
-import {costOf, gearOf, vetOf, gearFits, frameWeapon, leadUnlocked, leadPrice, leadGateText} from '../save/progression.js';
+import {costOf, gearOf, vetOf, gearFits, frameWeapon, isProto, CHASSIS_NAME, leadUnlocked, leadPrice, leadGateText} from '../save/progression.js';
 import {$, attr} from './dom.js';
 import {sigil, artFor, portrait, bokehLayer} from './art.js';
 import {notify} from './dialog.js';
@@ -48,7 +48,7 @@ function statRows(id) {
   // about a number the player is choosing between two of.
   const w = frameWeapon(id);
   return [
-    k.frame ? ['Crew', 'Needs a Frame Pilot on or beside the cells it fills'] : null,
+    isProto(id) ? ['Crew', 'Needs a Frame Pilot on or beside the cells it fills'] : null,
     k.pilot ? ['Purpose', 'Unarmed. A Frame deploys onto it and takes it aboard'] : null,
     // Only worth a row when the geared cost differs from the printed one.
     (g && g.dp) ? ['Deploy cost', costOf(id) + ' DP (geared)'] : null,
@@ -120,6 +120,22 @@ function actionsFor(id, mode) {
     if (mode === 'deck' && !inDeck && active.loadout.deck.length >= DECKSIZE) return toggle;
     return toggle + close;
   }
+  if (mode === 'proto') {
+    if (!owned) {
+      return affordable
+        ? `<button class="btn gold" data-fbuy="${id}">Buy · ${k.price} cr</button>${close}`
+        : `<button class="btn ghost" data-close="1">Need ${k.price} cr</button>`;
+    }
+    // One slot, so fielding a second Frame replaces the first rather than
+    // failing — the alternative is asking the player to unfield one by hand
+    // before they can try the other.
+    const here = active.loadout.frame === id;
+    const other = active.loadout.frame && POOL[active.loadout.frame];
+    return (here
+      ? `<button class="btn ghost" data-fframe="none">Remove from the Frame slot</button>`
+      : `<button class="btn" data-fframe="${id}">Field it${other ? ` — replaces ${other.n}` : ''}</button>`)
+      + close;
+  }
   if (mode === 'hand') {
     return `<button class="btn" data-fsel="${id}">Select for deployment</button>${close}`;
   }
@@ -176,7 +192,11 @@ function frameWeaponBlock(id, mode) {
   const carried = w ? `${w.n}` : `${k.n} service weapon`;
   const rules = w ? w.d : `${TGNAME[k.tg] || k.tg} · ${k.dmg} damage. Fit a weapon in Squad to change it.`;
 
-  if (mode !== 'gear') {
+  // The picker belongs on both surfaces a Frame is reachable from: the deck
+  // grid ('gear') and the Frame slot ('proto'). It used to check only the
+  // first, and moving Frames out of the deck therefore left no way at all to
+  // change what one was carrying.
+  if (mode !== 'gear' && mode !== 'proto') {
     return `<div class="fab"><b>Weapon · ${carried}</b>${rules}</div>`;
   }
 
@@ -198,7 +218,7 @@ function gearBlock(id, mode) {
   // An attachment card is gear in card form; it has no slot of its own.
   if (k.attach) return '';
   // A Frame is a closed kit and reads as one.
-  if (k.frame) return frameWeaponBlock(id, mode);
+  if (isProto(id)) return frameWeaponBlock(id, mode);
   const g = gearOf(id);
 
   // Everywhere but the fitting surface this is a readout, not a control — and
@@ -247,7 +267,7 @@ export function focusCard(id, mode) {
         ${v.t ? `<div class="pips big">${'◆'.repeat(v.t)}</div>` : ''}
         ${k.hp ? `<div class="fhp">${k.hp + (g && g.hp ? g.hp : 0)} HULL</div>` : ''}</div>
       <div class="fname">${k.n}</div>
-      <div class="ftype">${TIERNAME[k.t]}${k.instant ? '' : ' · ' + (k.attach ? 'Attachment'
+      <div class="ftype">${CHASSIS_NAME[k.chassis] || TIERNAME[k.t]}${k.instant ? '' : ' · ' + (k.attach ? 'Attachment'
     : k.mob ? (g && g.servo ? 'Mobile · fires moving' : 'Mobile') : 'Anchored')}${g ? ' · ' + g.n : ''}</div>
       ${cardChips(id)}
       <div class="vetbar"><div class="vlab"><span style="color:${v.col}">${v.n}</span>
@@ -521,6 +541,14 @@ function wireFocus() {
       });
       active.loadout.gear[id] = gi;
     }
+    commit();
+    closeFocus();
+    onAfterFocusAction('squad');
+  });
+
+  each('data-fframe', b => {
+    const id = b.dataset.fframe;
+    active.loadout.frame = id === 'none' ? null : id;
     commit();
     closeFocus();
     onAfterFocusAction('squad');

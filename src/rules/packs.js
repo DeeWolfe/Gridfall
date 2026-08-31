@@ -84,7 +84,10 @@ export function claimPack(pick) {
   if (pick.kind === 'card') {
     if (!active.unlocks.cards.includes(pick.id)) active.unlocks.cards.push(pick.id);
     // A new card slides straight into the deck while there is room for it.
-    if (active.loadout.deck.length < DECKSIZE && !active.loadout.deck.includes(pick.id)) {
+    // A Proto Frame takes its own slot beside the deck, never one of the
+    // twelve — auto-adding one here would silently evict a real card.
+    if (POOL[pick.id].chassis !== 'proto'
+      && active.loadout.deck.length < DECKSIZE && !active.loadout.deck.includes(pick.id)) {
       active.loadout.deck.push(pick.id);
     }
   } else if (pick.kind === 'gear') {

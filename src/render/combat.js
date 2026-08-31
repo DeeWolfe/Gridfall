@@ -14,7 +14,8 @@ import {TGNAME} from '../content/targeting-names.js';
 import {G, active, sel, mover, foeSel, replaying, stratSel, logOpen, setSel, setMover, setFoeSel, setStratSel, setLogOpen} from '../state/session.js';
 import {STRATAGEMS} from '../content/stratagems.js';
 import {stratReady, canPlayStratagem, playStratagem, stratMarkers} from '../rules/stratagems.js';
-import {costOf, gearOf, vetOf, frameWeapon, leadOf} from '../save/progression.js';
+import {frameReady} from '../rules/frames.js';
+import {costOf, gearOf, vetOf, frameWeapon, isProto, leadOf} from '../save/progression.js';
 import {unitAt, foeAt, civAt, held, scorched, validTiles, breachAllowance} from '../rules/board.js';
 import {geomFor, geomCells, candidatesFor, targetsFor} from '../rules/targeting.js';
 import {buffOf, dmgPreview} from '../rules/units.js';
@@ -243,20 +244,20 @@ function drawSel() {
     // so by lighting nothing at all. That is the one selection state where an
     // empty highlight is the rule working rather than a mistake, so it gets a
     // sentence instead of leaving the player tapping at dead tiles.
-    const anchors = k.frame ? validTiles(sel).length : 1;
+    const anchors = isProto(sel) ? validTiles(sel).length : 1;
     el.innerHTML = `<div class="selhead"><b style="color:var(--green)">${k.n}</b>
         <span class="hpbadge">${costOf(sel)} DP</span></div>
       <div class="selgrid">
         ${k.hp ? `<div><span>Hull</span><b>${k.hp + (g && g.hp ? g.hp : 0)}</b></div>` : ''}
         ${dmg ? `<div><span>Damage</span><b>${dmg}</b></div>` : ''}
         ${tg && tg !== 'none' ? `<div><span>${w ? w.n : 'Targeting'}</span><b>${TGNAME[tg]}</b></div>` : ''}
-        <div><span>Deploy</span><b>${k.frame ? 'On a Pilot'
+        <div><span>Deploy</span><b>${isProto(sel) ? 'On a Pilot'
     : k.drop ? 'Any tile'
       : k.anyGround ? `Any ground · col ${k.zoneMin}+`
         : k.zoneMin ? `Held · col ${k.zoneMin}+` : 'Held tiles'}</b></div>
       </div>
       <div class="selfire ${anchors ? 'live' : 'dead'}">${anchors
-    ? (k.frame ? 'Tap a lit tile — the Pilot there goes aboard' : 'Tap a lit tile to deploy')
+    ? (isProto(sel) ? 'Tap a lit tile — the Pilot there goes aboard' : 'Tap a lit tile to deploy')
     : 'No Frame Pilot on the board. Deploy one first, and keep it alive.'}</div>
       <div class="abline">${k.d}</div>`;
     return;
@@ -663,6 +664,32 @@ export function drawHand() {
       setSel(null);
       setMover(null);
       setStratSel(!stratSel);
+      drawAll();
+    };
+    h.appendChild(el);
+  }
+
+  // The mission's one Proto Frame, beside the deck rather than in it — always
+  // there, never drawn, spent once. Same tile as a hand card because it IS a
+  // card; the violet rail says the deck did not deal it.
+  const proto = frameReady();
+  if (proto) {
+    const k = POOL[proto];
+    const w = frameWeapon(proto);
+    const v = vetOf(proto);
+    const cant = costOf(proto) > G.dp || G.over || replaying;
+    const el = document.createElement('div');
+    el.className = `hc proto t-${k.t} v${v.t}` + (cant ? ' poor' : '') + (sel === proto ? ' sel' : '');
+    el.innerHTML = `<div class="protomark" aria-hidden="true">◈</div>
+      <div class="hart">${artFor(proto, k.t, null, v.t >= 2 ? v.col : null)}</div>
+      <div class="n">${k.n}</div>`;
+    el.title = `${k.n} — ${k.d}\nCarrying ${w ? w.n : 'its service weapon'}. One per mission.`;
+    el.onclick = () => {
+      if (cant) return;
+      sfx(sel === proto ? 'tap' : 'select');
+      setSel(sel === proto ? null : proto);
+      setMover(null);
+      setStratSel(false);
       drawAll();
     };
     h.appendChild(el);

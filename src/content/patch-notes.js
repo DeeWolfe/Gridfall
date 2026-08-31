@@ -4,9 +4,19 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.4';
+export const VERSION = '2.5';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.5',
+    notes: [
+      'Frames are Proto Frames now, and they have a slot of their own. One per deck, beside the twelve rather than inside them, and one deployment per mission. It sits at the front of your hand from the first turn, never drawn — a plan this expensive should not also be a gamble on the shuffle.',
+      'Every Proto Frame costs a full turn of deploy points. Six, against a six-point turn: fielding one IS the turn, and since the Pilot has to be standing there already, the machine is always a turn behind the person. That window is the price, and it is now the same price for all three.',
+      'The machines you already had — Aegis Knights, the Ashura Frame, the Exo Juggernaut, the Thruster Ram — are Exo frames: proven suits, in service, deployed like any other card. The three new ones are prototypes, and the cards say which is which.',
+      'The White Devil is the all-rounder, and it carries three weapons instead of two. Hyper Rail Cannon puts one hostile down the lane and ignores armour floors entirely. Beam Javelin is a two-cell thrust — reach without giving up the contact fight. Hyper Napalm throws a widening cone and leaves the ground burning behind it.',
+      'Squad has a Proto Frame section: field one, choose its weapon, and see at a glance that it cannot deploy without a Frame Pilot among your twelve.',
+    ],
+  },
   {
     v: '2.4',
     notes: [

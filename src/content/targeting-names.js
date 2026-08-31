@@ -23,4 +23,5 @@ export const TGNAME = {
   wings: "Both forward diagonals — nothing in the centre",
   sweep: "Every cell in the two columns directly ahead",
   cross3: "A cross centred three cells ahead",
+  cone: "A flame cone — one cell ahead, then three across",
 };

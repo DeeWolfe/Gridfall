@@ -580,6 +580,12 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* A corner mark, not a caption: it says the card is geared and sends you to
    View card for which piece and what it does. */
+/* The Proto Frame sits in the tray but was never dealt — a violet rail and a
+   corner glyph, the same violet the game uses for everything the deck did not
+   hand you. */
+.hc.proto{border-color:var(--violet);box-shadow:inset 3px 0 0 var(--violet)}
+.protomark{position:absolute;top:2px;left:4px;font-size:0.5625rem;color:var(--violet);
+  line-height:1;pointer-events:none;text-shadow:0 0 6px rgba(157,107,255,.6)}
 .hgear{position:absolute;bottom:2px;left:4px;font-size:0.5625rem;color:var(--cyan);
   line-height:1;pointer-events:none;text-shadow:0 0 6px rgba(77,232,255,.55)}
 .mini:disabled{opacity:.4;cursor:not-allowed}

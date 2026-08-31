@@ -3208,6 +3208,94 @@ on gear, so the sampler now covers gear-declared patterns too — and it fits th
 weapon per trial rather than once up front, because two of them live on the same
 Frame and the second assignment was silently swallowing the first.
 
+## v2.5 — Proto Frames take a slot
+
+Four revisions to the Frames that shipped in v2.4, and one of them changes the
+class more than the other three together.
+
+### The slot
+
+A Proto Frame is no longer a card in the deck. It has a slot beside the deck —
+`active.loadout.frame` — holding one Frame, and the mission carries exactly one
+deployment of it. `src/rules/frames.js` mirrors `stratagems.js` deliberately:
+seed at launch, read from the hand tray, spend once, gone.
+
+The argument for it is the same one that justifies the class at all. A Frame
+costs a whole turn's deploy points AND a Pilot placed a turn earlier. A plan
+that expensive cannot also be at the mercy of the shuffle — a Frame that never
+draws is a wasted slot and a wasted 470 credits, and the player would correctly
+stop building around it. Making it always available is what turns the cost into
+a decision rather than a wish.
+
+`consume()` closes the slot instead of splicing a hand it was never in.
+`migrate()` moves any Frame that ended up among the twelve — a v6 save, a pack
+drop from before the slot existed — into the slot rather than deleting it.
+`packs.js` no longer auto-adds a Frame to the deck, which would have silently
+evicted a real card.
+
+### One cost, and the window it forces
+
+All three Frames are 6 DP now, against a 6 DP turn. That was the open question
+in the v2.4 notes and this settles it in the direction the brief wanted: the
+Pilot costs 1, so 1 + 6 = 7 and the two can never be fielded on the same turn.
+The vulnerable window is no longer a property of which Frame you picked. It is
+the rule.
+
+It also means a Frame turn is *only* a Frame turn — nothing else gets deployed
+alongside it. Watching the bot script fumble this repeatedly was the clearest
+demonstration that the cost is real: it kept spending three points on a
+Barricade and then finding the Frame greyed out.
+
+### Proto and Exo
+
+`chassis` on a card is the whole classification, and the behaviour keys off it
+rather than off a separate flag — so the lore word and the rule cannot drift.
+
+- `chassis: 'proto'` — White Devil, Seven Blades, Heavy Arms. Prototypes:
+  bigger, further along, and not trusted to walk themselves onto a battlefield.
+  Pilot-anchored, slot-bound, one per mission.
+- `chassis: 'exo'` — Aegis Knights, Ashura Frame, Exo Juggernaut, Thruster Ram.
+  Proven suits in service, deployed like any other card, unchanged.
+
+The four Exo cards were chosen as the heavy machine chassis already in the pool.
+Nothing about them changed except the word on the card.
+
+### White Devil, the all-rounder
+
+Beam Rifle and Beam Saber are gone; three weapons replace them, and between them
+they answer the three things a lane defence runs into:
+
+- **Hyper Rail Cannon** (560) — `first`, single target, `pen`. Armour floors do
+  not apply, so it is the answer to a Hulk or a lane under a Bulwark Pylon.
+- **Beam Javelin** (480) — `ahead2`. Reach without giving up contact.
+- **Hyper Napalm** (520) — a new `cone` geometry: one cell at the mouth, three
+  across behind it, plus `scorch`. The only widening pattern in the game and
+  the only weapon that leaves the ground burning.
+
+`pen` and `scorch` had to learn to ride on a Proto weapon in `mkUnit` — they
+were card-only fields until now.
+
+### The bug this revision introduced and caught
+
+Moving Frames out of the deck grid removed the only surface that rendered their
+weapon picker: `frameWeaponBlock` checked `mode === 'gear'`, and the new Frame
+slot passes `mode === 'proto'`. For one build there was no way at all to change
+what a Frame was carrying. Caught in the browser, not by a guard — the guards
+test the rules, and this was a route that stopped existing.
+
+## Still to decide
+
+- **Frame weapon pricing** (480–560) sits above the general gear ceiling as the
+  brief required, but a Frame weapon fits one card. Watch whether that reads as
+  aspirational or as a tax.
+- **Pilot fragility** is still 2 hull, still the first dial. Live play shows it
+  dying to the first thing that reaches it, which is the intent — but it means
+  a Frame turn can be wasted before it starts.
+- **The bot cannot see any of this.** `mtest` plays STARTER decks with no Pilot
+  and an empty Frame slot, so every balance number in this file is blind to the
+  class. Frames need either a bot that drafts or a dedicated harness before any
+  number about them means anything.
+
 ## Card backlog — the next pass
 
 Not built. Recorded here so the next card batch starts from a list rather than a

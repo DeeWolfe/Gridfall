@@ -67,8 +67,8 @@ export function mkUnit(cid, l, c) {
     hot: k.hot || 0,
     healType: k.healType,
     healMode: k.healMode,
-    pen: !!k.pen || !!(g && g.pen),
-    scorch: !!k.scorch,
+    pen: !!k.pen || !!(g && g.pen) || !!(w && w.pen),
+    scorch: !!k.scorch || !!(w && w.scorch),
     cool: !!(g && g.cool),
     phase: !!(g && g.phase),
     choose: !!k.choose,
@@ -86,7 +86,7 @@ export function mkUnit(cid, l, c) {
     ab: k.ab || null,
     // Which Pilot walked in with it — the one that steps back out if the
     // machine is destroyed. Set by deploy(), never by the card data.
-    frame: !!k.frame,
+    frame: k.chassis === 'proto',
     pilotId: null,
     att: {},
     acted: false,

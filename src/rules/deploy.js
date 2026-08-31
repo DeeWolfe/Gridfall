@@ -9,7 +9,7 @@ import {POOL} from '../content/cards.js';
 import {BEST} from '../content/hostiles.js';
 import {G, active, clearSelection} from '../state/session.js';
 import {randInt} from '../state/rng.js';
-import {costOf, vetOf, gearOf, frameWeapon} from '../save/progression.js';
+import {costOf, vetOf, gearOf, frameWeapon, isProto} from '../save/progression.js';
 import {VET} from '../content/ranks.js';
 import {hooks} from '../state/hooks.js';
 import {unitAt, foeAt, civAt, frameAnchorFor, frameCells} from './board.js';
@@ -17,6 +17,7 @@ import {mkUnit} from './units.js';
 import {fire, blast, healPass, dmgEnemy} from './combat.js';
 import {clog} from './log.js';
 import {drawCard} from './deck.js';
+import {isMissionFrame} from './frames.js';
 
 /** Spend the card, bill the deploy points, and log any promotion it earned. */
 function consume(cid) {
@@ -30,7 +31,10 @@ function consume(cid) {
   if (after > before) clog(`<span class="g">${k.n} promoted to ${VET[after].n}.</span>`, 'info');
 
   G.dp -= costOf(cid);
-  G.hand.splice(G.hand.indexOf(cid), 1);
+  // The Frame never entered the hand, so it is not removed from one. Spending
+  // it closes the slot for the rest of the mission — there is no second Frame.
+  if (isMissionFrame(cid)) G.frame.played = true;
+  else G.hand.splice(G.hand.indexOf(cid), 1);
   clearSelection();
   hooks.invalidate();
 }
@@ -156,7 +160,7 @@ export function deploy(cid, l, c) {
     // not counted as a casualty. The machine remembers which Pilot walked in
     // with it, because that is who steps back out if it is destroyed.
     let rider = null;
-    if (k.frame) {
+    if (isProto(cid)) {
       rider = frameAnchorFor(frameCells(cid, l, c));
       if (!rider) return;
       G.units = G.units.filter(x => x.uid !== rider.uid);
