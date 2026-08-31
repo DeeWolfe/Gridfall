@@ -824,6 +824,23 @@
    "instant": 1,
    "homestrike": 5,
    "d": "One volley across both home columns, every lane at once. Fired once, then spent."
+  },
+  "ashura": {
+   "n": "Ashura Frame",
+   "t": "special",
+   "dp": 5,
+   "hp": 16,
+   "price": 430,
+   "mob": 1,
+   "tg": "vert3",
+   "dmg": 4,
+   "blocker": 1,
+   "ab": {
+    "n": "Crossing Cut",
+    "d": "Slide one lane toward the heavier side and cut every hostile in the column ahead for 6.",
+    "cd": 2
+   },
+   "d": "A four-armed war frame. The scythes sweep the column ahead across three lanes at once, so nothing gets past it by stepping sideways."
   }
  },
  "gear": {
@@ -1139,6 +1156,17 @@
    "mindctrl": 3,
    "d": "Never moves. Every 3 turns it seizes the nearest unit in its lane, turning it against you until it breaks free or the Puppeteer dies.",
    "counter": "Keep your best unit out of its lane, or kill it before the third turn lands."
+  },
+  "oni": {
+   "n": "Oni Frame",
+   "t": "special",
+   "hp": 18,
+   "dmg": 5,
+   "threat": 7,
+   "spd": 1,
+   "flank": 1,
+   "d": "A hive-built war frame. It does not queue and it does not wait — it reads your line and walks into whichever lane is thinnest.",
+   "counter": "It will always be where you are weakest. Hold the lanes evenly, or bring something that cuts across them."
   }
  },
  "leads": {
@@ -2283,7 +2311,8 @@
    "n": "Breaching Charge",
    "dp": 3,
    "target": "column",
-   "d": "Destroy every hostile in the chosen column that is at or below 8 hull."
+   "d": "Destroy every hostile in the chosen column that is at or below 8 hull. Lands at the end of the turn you call it, once the horde has moved.",
+   "now": 1
   },
   "grapple": {
    "n": "Grapple Net",

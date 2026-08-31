@@ -305,6 +305,16 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .gwhere{flex:0 0 auto;font-size:0.5625rem;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
 .gwhere.on{color:var(--green)}
 .gwhere.moved{color:var(--gold)}
+/* The picker is folded behind its own answer: which card carries this piece is
+   what you came to find out, and a twelve-row list above it buries that. */
+.gpick{display:flex;align-items:center;gap:8px;width:100%;margin-top:6px;
+  background:var(--deep);border:1px solid var(--line2);color:var(--cyan);
+  font-family:inherit;font-size:0.75rem;font-weight:700;padding:.5rem .7rem;text-align:left}
+.gpick:hover{border-color:var(--cyan-d)}
+.gpickn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gcar{flex:0 0 auto;color:var(--dim);font-size:0.6875rem}
+.gfold{display:none}
+.gfold.open{display:flex}
 
 .stub{border:1px dashed var(--line2);padding:22px;text-align:center;color:var(--dim);font-size:0.6875rem;line-height:1.9}
 .stub b{color:var(--zan);display:block;font-size:0.75rem;letter-spacing:.16em;margin-bottom:5px}

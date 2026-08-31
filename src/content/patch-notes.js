@@ -4,9 +4,23 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.2';
+export const VERSION = '2.3';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.3',
+    notes: [
+      'Hostiles go round dead ends. A bombardment crater used to park whatever was behind it for the rest of the mission, and a slow body plugged a lane for everything queued up behind it. Both step into an open lane now — a fast one keeps its tempo doing it, a slow one pays a turn. A unit of yours standing in front is still a fight, never a wall to walk around.',
+      'New Specialist: the Ashura Frame. Sixteen hull, blocks a lane, and its scythes sweep the column ahead across three lanes at once. Crossing Cut slides it one lane toward the heavier side and cuts everything in front for 6.',
+      'New hostile: the Oni Frame. The hive read the same brief. It does not queue and it does not wait — every step it crosses toward whichever lane is thinnest, so it will always turn up where you are weakest.',
+      'Breaching Charge now lands at the end of the turn you call it, after the horde has moved, instead of at the start of the next. It is still a prediction — you aim at where a body will be — just a shorter one. A full turn was long enough for the column to empty itself.',
+      'Nine new achievements, including a no-breach record, a seven-day Daily streak, the full uniform rack, and the deep end of Onslaught.',
+      'Squad sorting applies to the Reserve only. The twelve cards in your deck are twelve you chose one at a time, and rearranging those on a preference takes something away.',
+      'Gear in the locker looks like gear everywhere else in the game again — the same tile as the Quartermaster shelf, with the card carrying it printed on the front.',
+      'Opening a piece of gear now leads with which card it is linked to. Tap that to unfold the full list of units, "None" included, instead of scrolling past a picker to find the answer.',
+      'Every Central Command transmission control is the cycling dots, sign-off included.',
+    ],
+  },
   {
     v: '2.2',
     notes: [

@@ -3,7 +3,7 @@
 // Cooldowns are set on use and tick down in the player phase; a Coolant Core
 // shortens them by a turn, never below one.
 
-import {COLS} from '../state/constants.js';
+import {LANES, COLS} from '../state/constants.js';
 import {G} from '../state/session.js';
 import {buffOf} from './units.js';
 import {dmgEnemy} from './combat.js';
@@ -71,6 +71,24 @@ const ABILITIES = {
       u.col = nc;
       clog('Hammer Charge — ground gained.', 'order');
     }
+  },
+
+  // Ashura Frame — Crossing Cut: step into the heavier lane, then sweep the
+  // whole column in front across all three. The slide is the point: the
+  // hostiles this card exists to answer are the ones that step sideways.
+  ashura(u) {
+    const load = l => G.enemies.filter(e => e.lane === l && e.col > u.col).length;
+    const open = [u.lane - 1, u.lane + 1]
+      .filter(l => l >= 0 && l < LANES && !unitAt(l, u.col) && !foeAt(l, u.col));
+    const to = open.sort((a, b) => load(b) - load(a))[0];
+    const slid = to !== undefined && load(to) > load(u.lane);
+    if (slid) u.lane = to;
+
+    const cc = u.col + u.size;
+    const hit = G.enemies.filter(e => e.col === cc && Math.abs(e.lane - u.lane) <= 1);
+    hit.forEach(e => dmgEnemy(e, 6 + buffOf(u), 'Crossing Cut', u.pen));
+    clog(`<span class="g">Crossing Cut</span> — ${slid ? `slid into lane ${u.lane + 1} and cut ` : 'cut '}` +
+      `${hit.length} across three lanes.`, 'order');
   },
 };
 

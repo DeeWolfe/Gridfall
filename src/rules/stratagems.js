@@ -3,10 +3,21 @@
 // A stratagem is a card, not a button — it costs deploy points and is spent
 // through the same turn the units act in. It differs from a deployable in
 // four ways: it is seeded into the mission rather than drafted, it exists
-// once, it leaves no body, and — the part that matters — it resolves at the
-// START of the following turn. Playing one is a prediction, not an undo: the
-// marker lands this turn, the effect fires next. That beat is also the
+// once, it leaves no body, and — the part that matters — it does not resolve
+// when you play it. Playing one is a prediction, not an undo. That beat is the
 // balancing lever for the whole class; do not remove it.
+//
+// There are two beats, and a call declares which one it takes:
+//
+//   default   fires at the START of the following turn. You commit against a
+//             board you have not seen yet — a full turn of prediction.
+//   now: 1    fires at the END of the turn you call it, after the hostiles
+//             have moved but before the tiles flip. Still a prediction, just a
+//             shorter one: you know where they are, not where they will be.
+//
+// Only Breaching Charge takes the short beat. Sweeping a column is the one
+// effect the long beat made close to unusable — a full turn is long enough for
+// the column you aimed at to empty itself.
 
 import {LANES, COLS} from '../state/constants.js';
 import {STRATAGEMS} from '../content/stratagems.js';
@@ -49,7 +60,8 @@ export function playStratagem(target) {
   G.dp -= def.dp;
   G.strat.played = true;
   G.strat.armed = {k: G.strat.k, target: def.target === 'none' ? null : target};
-  clog(`<span class="t">STRATAGEM</span> — <span class="g">${def.n}</span> called in. Resolves at the start of next turn.`, 'order');
+  clog(`<span class="t">STRATAGEM</span> — <span class="g">${def.n}</span> called in. ` +
+    (def.now ? 'Lands at the end of this turn.' : 'Resolves at the start of next turn.'), 'order');
   hooks.invalidate();
   return true;
 }
@@ -76,14 +88,31 @@ export const BREACH_HULL = 8;
 
 /**
  * Start-of-turn tick: last turn's short-lived effects expire, then the armed
- * call — if any — fires. Runs once per turn from endTurn, after the new
+ * call fires — unless it is a `now` call, which already went off at the end of
+ * the turn it was played. Runs once per turn from endTurn, after the new
  * turn's deploy points are dealt.
  */
 export function resolveStratagem() {
   G.units.forEach(u => { u.dueled = false; });
   G.freeDrop = 0;
   if (!G.strat || !G.strat.armed) return;
+  if (STRATAGEMS[G.strat.armed.k].now) return;
+  fireStratagem();
+}
 
+/**
+ * End-of-turn tick: fires a `now` call and nothing else. Runs from endTurn
+ * after the hostiles have moved and before the tiles flip, so a swept column
+ * is ground the player then holds.
+ */
+export function resolveStratagemEnd() {
+  if (!G || !G.strat || !G.strat.armed) return;
+  if (!STRATAGEMS[G.strat.armed.k].now) return;
+  fireStratagem();
+}
+
+/** The effect itself, once something has decided it is time. */
+function fireStratagem() {
   const {k, target} = G.strat.armed;
   const def = STRATAGEMS[k];
   G.strat.armed = null;

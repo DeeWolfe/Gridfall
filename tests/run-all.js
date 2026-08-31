@@ -16,10 +16,10 @@ const ROOT = join(HERE, '..');
 const GUARDS = [
   'acttest', 'movetest', 'aimtest', 'hltest', 'clashtest', 'spawntest',
   'swaptest', 'pushtest', 'zonetest', 'hecatetest',
-  'stratagemtest', 'passivetest', 'grappletest', 'breachtest', 'foetest', 'eventtest',
+  'stratagemtest', 'passivetest', 'grappletest', 'breachtest', 'flanktest', 'mechtest', 'foetest', 'eventtest',
   'opentest', 'leadtest', 'packtest', 'maptest', 'cardtest', 'codectest', 'geomtest', 'foeseltest', 'repro',
   'playtest', 'actbar', 'csstest', 'cssdup', 'headtest', 'navtest', 'scaletest',
-  'handtest', 'captest', 'uitest', 'statictest', 'geartest', 'tapetest', 'tuttest', 'sndtest', 'arttest', 'pixtest', 'buildtest',
+  'handtest', 'captest', 'uitest', 'statictest', 'geartest', 'achievetest', 'tapetest', 'tuttest', 'sndtest', 'arttest', 'pixtest', 'buildtest',
 ];
 const BALANCE = ['test', 'mtest', 'onstest'];
 

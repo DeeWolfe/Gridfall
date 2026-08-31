@@ -17,13 +17,13 @@ import {leadOf} from '../save/progression.js';
 import {unitAt, foeAt, civAt, held, heldEnemyHalf, crystalsHeld, scorched, breachAllowance, ENDGAME_TURNS} from './board.js';
 import {fire, healPass, dmgUnit, dmgEnemy, breachAt} from './combat.js';
 import {eventTick, eventStrikeMalus} from './events.js';
-import {wave, rollDoctrine, predictSpawns} from './waves.js';
+import {wave, rollDoctrine, predictSpawns, laneScore} from './waves.js';
 import {spawnPhase, mkFoe} from './spawn.js';
 import {drawCard} from './deck.js';
 import {finish, winWhy} from './mission.js';
 import {clog} from './log.js';
 import {tapeBegin, tapeEnd, tapeMark, tapeEvent} from './tape.js';
-import {resolveStratagem} from './stratagems.js';
+import {resolveStratagem, resolveStratagemEnd} from './stratagems.js';
 
 /** Step 2, then reset every unit for the turn ahead. */
 export function playerPhase() {
@@ -148,6 +148,94 @@ function mindControlPulse(e, D) {
   clog(`<span class="d">Puppeteer</span> seized control of ${t.n}.`, 'loss');
 }
 
+/**
+ * Sideways.
+ *
+ * A hostile whose lane runs out — a bombardment crater it cannot cross, a
+ * traffic jam behind a slower body — used to stand there until the obstacle
+ * cleared, which turned a crater into a free permanent wall and let a Hulk
+ * plug a lane for the whole mission. It steps into an open lane instead.
+ *
+ * The lane the horde ARRIVES in is still the promise the markers make (see
+ * waves.js) — nothing re-rolls a spawn. This only governs what a body already
+ * on the board does once its own road is shut.
+ *
+ * A player's unit standing in front is not a dead end and never triggers this:
+ * that is the game. So is a civilian. Only terrain and other hostiles are.
+ *
+ * Preference order: a lane it can keep advancing down beats one that is merely
+ * open, and among equals the softest lane wins — the same reading of the board
+ * the spawn doctrine uses, so a flank is the horde being consistent rather than
+ * the horde cheating.
+ *
+ * @param {boolean} loud whether the move is worth a log line — a crater
+ *   rerouting the horde explains itself, a queue shuffling does not.
+ * @returns {boolean} whether it actually moved
+ */
+function flankStep(e, D, loud) {
+  // An emplacement is placed, not driven; a tunneller has no obstacles to dodge.
+  if (!D.spd || D.tunnel) return false;
+  const free = l => G.ter[l][e.col] !== 'x'
+    && !unitAt(l, e.col) && !foeAt(l, e.col) && !civAt(l, e.col);
+  const open = [e.lane - 1, e.lane + 1].filter(l => l >= 0 && l < LANES && free(l));
+  if (!open.length) return false;
+
+  const ahead = e.col - 1;
+  const stuck = l => ahead >= 0 && (G.ter[l][ahead] === 'x' || foeAt(l, ahead));
+  const to = open.map(l => ({l, v: (stuck(l) ? 100 : 0) + laneScore(l)}))
+    .sort((a, b) => a.v - b.v)[0].l;
+
+  const dir = to > e.lane ? 'down' : 'up';
+  e.lane = to;
+  tapeEvent({type: 'spawn', lane: to, col: e.col});
+  if (loud) {
+    clog(`<span class="d">${D.n}</span> broke ${dir} into lane ${to + 1} — its own was cratered.`, 'wave');
+  }
+  return true;
+}
+
+/**
+ * How much softer an adjacent lane has to look before a `flank` hostile will
+ * cross into it. Without a margin it would drift on rounding noise; with one
+ * it commits to the thin lane and then holds it, because laneScore reads the
+ * player's units and moving does not change them.
+ */
+const FLANK_GAIN = 1.5;
+
+/**
+ * The Oni Frame's signature: it does not wait to be stopped. Every step it
+ * re-reads the line and crosses into the thinner lane while it still has the
+ * choice — which is the whole counter-play, since it will always end up
+ * wherever you left a gap.
+ */
+function seekFlank(e) {
+  const free = l => G.ter[l][e.col] !== 'x'
+    && !unitAt(l, e.col) && !foeAt(l, e.col) && !civAt(l, e.col);
+  const best = [e.lane - 1, e.lane + 1]
+    .filter(l => l >= 0 && l < LANES && free(l))
+    .map(l => ({l, v: laneScore(l)}))
+    .sort((a, b) => a.v - b.v)[0];
+  if (!best || best.v + FLANK_GAIN > laneScore(e.lane)) return false;
+  e.lane = best.l;
+  tapeEvent({type: 'spawn', lane: best.l, col: e.col});
+  return true;
+}
+
+/**
+ * Whether a strike from here would land on anything. Mirrors strike()'s own
+ * search, and exists so a hostile only trades a shot for a sidestep when the
+ * shot was going to hit nothing. Keep the two in step.
+ */
+function hasStrikeTarget(e) {
+  if (!BEST[e.k].dmg) return false;
+  if (civAt(e.lane, e.col - 1)) return true;
+  for (let c = e.col - 1; c >= 0; c--) {
+    const u = unitAt(e.lane, c);
+    if (u) return !u.controlled;
+  }
+  return false;
+}
+
 /** One hostile's action for the turn: it moves or it attacks, never both. */
 function actHostile(e, chorus) {
   if (e.hp <= 0) return;
@@ -179,23 +267,47 @@ function actHostile(e, chorus) {
   // A minefield does not read as an obstacle — hostiles walk straight onto it.
   const blocked = ahead >= 0 && ((aheadUnit && !D.tunnel && !aheadUnit.mine) || civAt(e.lane, ahead));
   const queued = ahead >= 0 && foeAt(e.lane, ahead);
-  // An unarmed hostile blocked in traffic simply waits.
-  if (blocked || queued) { if (D.dmg) strike(e, D, chorus, queued && !blocked); return; }
+  // A body in front is a fight, not a wall — that is the whole game, and no
+  // amount of open lane either side changes it.
+  if (blocked) { if (D.dmg) strike(e, D, chorus); return; }
+  // Queued behind another hostile with a shot to take: take it. Firing past
+  // the body in front is the horde working as intended, and trading that for a
+  // sidestep handed the player a measured 14 points of win rate.
+  if (queued && hasStrikeTarget(e)) { if (D.dmg) strike(e, D, chorus, true); return; }
 
-  // Fractional speeds bank movement across turns.
+  // Fractional speeds bank movement across turns. A sidestep spends one of
+  // those steps rather than the whole turn, so a Crawler flows round a crater
+  // without losing tempo and a Hulk pays for the detour — which is the
+  // difference between rerouting the horde and stalling it.
   e.mv = (e.mv || 0) + D.spd;
   let steps = 0;
   while (e.mv >= 1) { steps++; e.mv--; }
 
+  let advanced = false;
   for (let s = 0; s < steps; s++) {
+    // A flanker spends a step crossing before it spends one advancing.
+    if (D.flank && seekFlank(e)) { advanced = true; continue; }
     const nc = e.col - 1;
     if (nc < 0) {
       breachAt(e);
+      advanced = true;
       break;
     }
-    if (G.ter[e.lane][nc] === 'x') break;
+    // Cratered ground is a wall that never comes down, so the horde routes
+    // round it rather than parking in front of it for the rest of the mission.
+    if (G.ter[e.lane][nc] === 'x') {
+      if (!flankStep(e, D, true)) break;
+      advanced = true;
+      continue;
+    }
     const stepUnit = unitAt(e.lane, nc);
-    if ((stepUnit && !D.tunnel && !stepUnit.mine) || foeAt(e.lane, nc) || civAt(e.lane, nc)) break;
+    if ((stepUnit && !D.tunnel && !stepUnit.mine) || civAt(e.lane, nc)) break;
+    // Traffic: go round it if there is room, otherwise wait it out.
+    if (foeAt(e.lane, nc)) {
+      if (!flankStep(e, D, false)) break;
+      advanced = true;
+      continue;
+    }
     // First body in detonates the minefield; the mine is spent either way.
     if (stepUnit && stepUnit.mine) {
       G.units = G.units.filter(x => x.uid !== stepUnit.uid);
@@ -206,9 +318,17 @@ function actHostile(e, chorus) {
     if (scorched(e.lane, nc)) dmgEnemy(e, 2, 'Plasma');
     if (e.hp <= 0) break;
     e.col = nc;
+    advanced = true;
     if (D.convert) G.ter[e.lane][nc] = 'e';   // a Sovereign salts the earth
     if (D.hold !== undefined && e.col <= D.hold) break;
   }
+  // Nowhere to go at all — no road forward, no lane either side. It still has
+  // a weapon, and standing still is not a reason to holster it.
+  //
+  // `steps` guards this: a half-speed hostile banking its move has not been
+  // stopped by anything, and letting it shell the lane on its off turn is a
+  // quiet damage buff to every slow type on the board.
+  if (steps > 0 && !advanced && D.dmg && e.hp > 0) strike(e, D, chorus);
 }
 
 /** Hijacked units fight for the hive: whichever of the player's own units
@@ -227,10 +347,12 @@ function controlledUnitsAct() {
 export function enemyPhase() {
   const chorus = G.enemies.some(e => BEST[e.k].aura) ? 1 : 0;
   [...G.enemies].forEach(e => {
-    const moved = e.col;
+    const wasCol = e.col;
+    const wasLane = e.lane;
     actHostile(e, chorus);
-    // A frame per hostile that did anything visible: struck, spawned, or moved.
-    tapeMark('enemy', e.col !== moved);
+    // A frame per hostile that did anything visible: struck, spawned, advanced
+    // — or broke sideways into another lane, which is movement too.
+    tapeMark('enemy', e.col !== wasCol || e.lane !== wasLane);
   });
   controlledUnitsAct();
 }
@@ -486,6 +608,9 @@ export function endTurn() {
   tapeBegin();
   playerPhase();
   enemyPhase();
+  // A short-beat call (Breaching Charge) lands here: after the horde has moved,
+  // before the tiles flip, so the column it clears is ground you then hold.
+  resolveStratagemEnd();
   if (G.type === 'civilians') civilianWalk();
   territoryPhase();
   tapeMark('territory', true);   // a deliberate beat as the tiles flip

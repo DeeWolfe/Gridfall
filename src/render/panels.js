@@ -7,7 +7,7 @@ import {POOL} from '../content/cards.js';
 import {GEAR} from '../content/gear.js';
 import {BEST} from '../content/hostiles.js';
 import {OPS} from '../content/operations.js';
-import {TIERNAME} from '../content/ranks.js';
+import {TIERNAME, RANKS} from '../content/ranks.js';
 import {LEADS} from '../content/leads.js';
 import {active, profiles, setActive} from '../state/session.js';
 import {store} from '../save/store.js';
@@ -41,9 +41,14 @@ const cardGrid = (ids, mode) => `<div class="cgrid">${ids.map(c => cardEl(c, mod
 const cardGridEmpty = text => `<div class="cgrid"><div class="cempty">${text}</div></div>`;
 
 /**
- * How the Squad grids are arranged. Both are the player's choice and both are
+ * How the Squad reserve is arranged. Both choices are the player's and both are
  * remembered on the profile: a commander who thinks in classes should not have
  * to re-say so every time they open the panel.
+ *
+ * Only the RESERVE sorts. The active deck is twelve cards you chose one at a
+ * time and it is the thing you learn the position of — rearranging that on a
+ * preference is taking something away, not adding one. The reserve is the pile
+ * you hunt through, and the pile that grows to fifty.
  *
  * "Level" is veteran rank first, then deployments inside a rank, so the two
  * Elites sort by which one has actually done the work.
@@ -81,9 +86,9 @@ function sortCards(ids) {
   });
 }
 
-/** A section's cards: one grid, or one grid per class with its own subheading. */
-function squadCards(ids, empty) {
-  if (!ids.length) return cardGridEmpty(empty);
+/** The reserve: one grid, or one grid per class with its own subheading. */
+function reserveCards(ids) {
+  if (!ids.length) return cardGridEmpty('Nothing in reserve.');
   if (!squadGroup()) return cardGrid(sortCards(ids), 'gear');
   return TIERS.map(t => {
     const inTier = sortCards(ids.filter(c => POOL[c].t === t));
@@ -103,14 +108,10 @@ const squadControls = () => `<div class="orgbar">
      <button class="mini${squadGroup() ? '' : ' on'}" data-sqgroup="flat">One list</button></span></div>`;
 
 /**
- * The gear locker.
- *
- * Fitting used to be reachable only from inside a card's focus view, which
- * asks the question backwards: you had to already know which piece you wanted
- * before you could read what any of them did. The locker lists every piece you
- * own with its rules text and where it currently is, and opens onto the list
- * of cards it can go to — so "what have I got, and what is it doing" is one
- * screen instead of nineteen.
+ * The gear locker: the same tile the Quartermaster shelf and the card grids
+ * use, so a piece of gear looks like a piece of gear everywhere in the game.
+ * The footer answers the question the locker exists for — which card is
+ * carrying it — and a tap opens the piece to change that.
  */
 function gearLocker() {
   const owned = active.unlocks.gear;
@@ -120,21 +121,19 @@ function gearLocker() {
        One piece per card, one copy of each piece.</div>`;
   }
   const fitted = Object.keys(active.loadout.gear).length;
-  const rows = owned.map(gi => {
+  const tiles = owned.map(gi => {
     const g = GEAR[gi];
     const on = Object.keys(active.loadout.gear).find(k => active.loadout.gear[k] === gi);
-    return dbRow({
-      label: g.n,
-      body: g.d,
-      right: on ? POOL[on].n : 'Unfitted',
-      hot: !!on,
-      attrs: ` data-gearfit="${gi}"`,
-    });
+    return `<button class="gcard t-tech${on ? ' indeck' : ''}" data-gearfit="${gi}"
+       title="${attr(g.n + '\n' + g.d + (on ? '\nFitted to ' + POOL[on].n : '\nNot fitted'))}">
+       <div class="inkmark">${sigil(gi, 'tech')}</div>
+       <div class="tn">${g.n}</div>
+       <div class="gfoot ${on ? 'own' : 'add'}">${on ? POOL[on].n : 'Fit'}</div></button>`;
   }).join('');
   return `<div class="sect" style="color:var(--cyan)">Gear locker — ${fitted} of ${owned.length} fitted</div>
    <div class="bar"><div>Tap a piece to read it and choose which card carries it</div>
      <div style="color:var(--dim);font-size:0.6875rem">One slot per card · one copy of each piece</div></div>
-   <div class="rows">${rows}</div>`;
+   <div class="cgrid">${tiles}</div>`;
 }
 
 function squadPanel() {
@@ -145,11 +144,11 @@ function squadPanel() {
    <div class="sect">Deck</div>
    <div class="bar"><div><b>${deck.length}</b> / ${DECKSIZE} in deck · <b style="color:var(--cyan)">${Object.keys(active.loadout.gear).length}</b> geared</div>
      <div style="color:var(--dim);font-size:0.6875rem">Tap any card to enlarge it — inspect, fit gear, add or remove</div></div>
-   ${squadControls()}
    <div class="sect">Active deck</div>
-   ${squadCards(deck, 'Empty.')}
+   ${deck.length ? cardGrid(deck, 'gear') : cardGridEmpty('Empty.')}
    <div class="sect">Reserve — ${reserve.length}</div>
-   ${squadCards(reserve, 'Nothing in reserve.')}
+   ${squadControls()}
+   ${reserveCards(reserve)}
    ${gearLocker()}`;
 }
 
@@ -274,30 +273,57 @@ function databasePanel() {
 }
 
 /** Achievements are pure functions of the profile — nothing new is tracked,
- * so they can never desync from the record they sit beside. */
+ * so they can never desync from the record they sit beside. That constraint is
+ * also the design rule: if an achievement cannot be computed from what the save
+ * already holds, it does not get added, because a counter added for a badge is
+ * a counter that will one day disagree with the badge. */
 function achievementList() {
   const s = active.stats;
   const opsDone = Object.values(OPS).filter(o => {
     const r = active.ops[o.k];
     return r && r.cleared.length >= o.nodes.length;
   }).length;
-  const maxVet = Math.max(0, ...Object.keys(active.usage || {}).map(id => vetOf(id).t));
+  const vets = Object.keys(active.usage || {}).map(id => vetOf(id).t);
+  const maxVet = Math.max(0, ...vets);
+  const daily = active.daily || {streak: 0};
+  const deck = active.loadout.deck;
+  const gearedInDeck = deck.filter(c => active.loadout.gear[c]).length;
+  // "No breach yet" is not a stored flag, it is the absence of one: progress
+  // reads as deployments while the breach count is nil and collapses to zero
+  // the moment a lane opens, which is exactly what the badge means.
+  const clean = s.breaches === 0 ? s.deployments : 0;
+
   return [
     {n: 'First Strike', d: 'Secure your first objective.', have: s.held, need: 1},
     {n: 'Line Holder', d: 'Secure ten objectives.', have: s.held, need: 10},
     {n: 'Iron Wall', d: 'Secure twenty-five objectives.', have: s.held, need: 25},
+    {n: 'Long War', d: 'Deploy on a hundred missions.', have: s.deployments, need: 100},
     {n: 'Exterminator', d: 'Destroy 100 hostiles.', have: s.kills, need: 100},
     {n: 'Annihilator', d: 'Destroy 1,000 hostiles.', have: s.kills, need: 1000},
+    {n: 'Not One Step', d: 'Reach twenty-five deployments having never allowed a breach.',
+      have: clean, need: 25},
     {n: 'Zero Ground', d: 'Clear every node of one operation.', have: opsDone, need: 1},
     {n: 'Theatre Commander', d: 'Clear every operation on the shelf.', have: opsDone, need: Object.keys(OPS).length},
     {n: 'Sworn Officer', d: 'Reach rank 5.', have: active.progress.rank, need: 5},
+    {n: 'Marshal', d: `Reach the top of the ladder — ${RANKS[RANKS.length - 1]}.`,
+      have: active.progress.rank, need: RANKS.length},
     {n: 'Living Legend', d: 'Raise any card to Legend rank.', have: maxVet, need: 3},
+    {n: 'Veteran Corps', d: 'Raise five cards to Veteran rank or better.',
+      have: vets.filter(t => t >= 1).length, need: 5},
     {n: 'Full Manifest', d: 'Own every card in the pool.', have: active.unlocks.cards.length, need: Object.keys(POOL).length},
     {n: 'Armourer', d: 'Own every piece of gear.', have: active.unlocks.gear.length, need: Object.keys(GEAR).length},
+    {n: 'Well Found', d: 'Field a deck with eight cards carrying gear at once.',
+      have: gearedInDeck, need: 8},
+    {n: 'Colours Flying', d: 'Own every uniform in the Quartermaster.',
+      have: (active.unlocks.schemes || []).length, need: Object.keys(SCHEMES).length},
     {n: 'Head-hunter', d: 'Recruit every team lead.', have: Object.keys(LEADS).filter(leadUnlocked).length, need: Object.keys(LEADS).length},
     {n: 'Bestiary', d: 'Log every hostile in the Database.', have: active.unlocks.enemies.length, need: Object.keys(BEST).length},
     {n: 'Stormbreaker', d: 'Hold ten waves in one Onslaught.', have: active.bests.onslaught || 0, need: 10},
+    {n: 'Deep Water', d: 'Hold twenty-five waves in one Onslaught.', have: active.bests.onslaught || 0, need: 25},
     {n: 'Chainrunner', d: 'Complete a Gauntlet chain.', have: active.bests.gauntlet || 0, need: 1},
+    {n: 'Chain of Command', d: 'Complete five Gauntlet chains.', have: active.bests.gauntlet || 0, need: 5},
+    {n: 'Standing Order', d: 'Carry a seven-day Daily Challenge streak.',
+      have: daily.streak || 0, need: 7},
   ];
 }
 

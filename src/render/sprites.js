@@ -485,6 +485,20 @@ const PIXMAP = {
   kessen: ov(TROOPER, sparse({0: '....gg..gg..', 3: '...ovvssvo..', 5: '..oosssso...', 8: '.........gg.', 9: '.........gg.'})),
   ram: ov(HEAVY, sparse({1: '..gooooooog.', 5: '.wwwbssssb..', 6: '.wwwbssssb..'})),
   marshal: ov(TROOPER, sparse({0: '....gg..gg..', 1: '...oggggggo.', 8: '.g..........', 9: '.gg.........', 10: '.g..........'})),
+  // Twin shoulder scythes over a heavy frame, a low guard blade and a katana
+  // trailing down and right. Single-pixel diagonals read as noise at this size,
+  // so every blade is a two-pixel shaft — the silhouette has to say "reaches
+  // into the lanes either side of it" before the hitbox diagram gets a chance.
+  ashura: ov(HEAVY, sparse({
+    0: 'ww........ww',
+    1: '.w........w.',
+    2: '.w........w.',
+    7: 'w...........',
+    8: 'ww.......ww.',
+    9: '.w........ww',
+    10: '...........w',
+    11: '..........w.',
+  })),
 };
 
 // -- uniform schemes ----------------------------------------------------------
@@ -655,6 +669,24 @@ const FOE_PIX = {
     '....obbo....',
     '....o..o....',
     '...oo..oo...',
+    '............',
+  ],
+  // The hive's answer to the Ashura: the same broad frame read back in hive
+  // plate. Horns instead of a crest, a blade out either side because it fights
+  // whichever way it turns, and a full pixel wider than the Harrower so the
+  // two never get mistaken for each other at a glance.
+  oni: [
+    '.x........x.',
+    '.xx......xx.',
+    '..oooooooo..',
+    '.obbxbbxbbo.',
+    '.obbbbbbbbo.',
+    'wwobssssbow.',
+    '.wwbbbbbbww.',
+    '..obssssbo..',
+    '..obbbbbbo..',
+    '..oob..boo..',
+    '.oo......oo.',
     '............',
   ],
   mender: [

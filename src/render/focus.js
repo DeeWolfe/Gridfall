@@ -123,6 +123,7 @@ function actionsFor(id, mode) {
 // rather than staying one flat list — a pool this small doesn't need it yet,
 // but it stops the fitting list from becoming a wall as the pool grows.
 const GEAR_ROLES = [['offense', 'Offense'], ['defense', 'Defense'], ['utility', 'Utility']];
+const ROLE_NAME = Object.fromEntries(GEAR_ROLES);
 // A role this size or smaller reads fine without a filter on top of it.
 const GEAR_SEARCH_THRESHOLD = 10;
 
@@ -264,11 +265,16 @@ export function focusEnemy(id) {
  * the piece answers "where should this go", which is the question the Gear
  * locker opens with and the one the game had no answer for at all. Both end in
  * the same one-slot-per-card, one-copy-per-profile assignment.
+ *
+ * The list is folded behind the current answer. Which card is carrying this
+ * piece is the fact you came here for; a twelve-row picker unfurled above it
+ * buries that fact under the means of changing it. Tap the name to change it.
  */
 function gearFitList(gi) {
   const deck = active.loadout.deck.filter(c => POOL[c] && !POOL[c].attach);
+  const on = gearWearer(gi);
   if (!deck.length) {
-    return `<div class="fab"><b>Fit to</b><span style="color:var(--dim)">
+    return `<div class="fab"><b>Linked card</b><span style="color:var(--dim)">
       No card in the deck can carry gear yet.</span></div>`;
   }
   const rows = deck.map(c => {
@@ -283,11 +289,14 @@ function gearFitList(gi) {
       <span class="gtop"><span class="gn">${POOL[c].n}</span>${state}</span>
       <span class="gd">${TIERNAME[POOL[c].t]} · ${costOf(c)} DP${POOL[c].hp ? ' · ' + POOL[c].hp + ' hull' : ''}</span></button>`;
   }).join('');
-  const on = gearWearer(gi);
-  return `<div class="fab"><b>Fit to</b>Pick the card that carries it. One slot per card, so
-      fitting it somewhere new takes it off wherever it is.
-    <div class="glist" style="margin-top:8px">${rows}</div>
-    ${on ? `<button class="mini" data-wear="${gi}:none" style="color:var(--mag);margin-top:8px">Strip from ${POOL[on].n}</button>` : ''}</div>`;
+  const none = `<button class="grow${on ? '' : ' on'}" data-wear="${gi}:none">
+    <span class="gtop"><span class="gn">None</span>${on ? '' : '<span class="gwhere on">Current</span>'}</span>
+    <span class="gd">Leave it in the locker, fitted to nothing.</span></button>`;
+
+  return `<div class="fab"><b>Linked card</b>
+    <button class="gpick" data-gtoggle="1" aria-expanded="false">
+      <span class="gpickn">${on ? POOL[on].n : 'None'}</span><span class="gcar">▾</span></button>
+    <div class="glist gfold" data-gfold="1">${rows}${none}</div></div>`;
 }
 
 /**
@@ -305,7 +314,9 @@ export function focusGear(gi, viewOnly, fit) {
       <div class="fname">${g.n}</div><div class="ftype">Gear · one slot per card</div>
       <div class="ftxt">${g.d}</div>
       <div class="fstats"><div class="fstat"><span class="k">Cost</span><span class="v">${g.cost} cr</span></div>
-      <div class="fstat"><span class="k">Fitted to</span><span class="v">${owned ? (on ? POOL[on].n : 'Nothing') : 'Not owned'}</span></div></div>
+      <div class="fstat"><span class="k">${owned && fit ? 'Role' : 'Fitted to'}</span><span class="v">${
+    owned && fit ? ROLE_NAME[g.role] || 'Utility'
+      : owned ? (on ? POOL[on].n : 'Nothing') : 'Not owned'}</span></div></div>
       ${owned && fit ? gearFitList(gi) : ''}
     </div><div class="facts">${viewOnly ? '<button class="btn ghost" data-close="1">Close</button>'
     : owned ? `<button class="btn ghost" data-close="1">${fit ? 'Done' : 'Owned — fit it in Squad'}</button>`
@@ -341,7 +352,7 @@ export function focusLead(k, ctx) {
       <div class="ftype">${L.role} · ${L.n}</div>
       <div class="ftxt">${L.bio}</div>
       ${L.passive ? `<div class="fab"><b>Passive · ${L.passive.n}</b>${L.passive.d}</div>` : ''}
-      ${def ? `<div class="fab"><b>Stratagem · ${def.n} · ${def.dp} DP</b>${def.d} Once per mission; resolves at the start of the following turn.</div>` : ''}
+      ${def ? `<div class="fab"><b>Stratagem · ${def.n} · ${def.dp} DP</b>${def.d} Once per mission; ${def.now ? 'lands at the end of the turn you call it' : 'resolves at the start of the following turn'}.</div>` : ''}
       <div class="fstats"><div class="fstat"><span class="k">Status</span>
         <span class="v">${assigned ? 'Assigned' : open ? 'On the roster' : leadGateText(k)}</span></div></div>
     </div><div class="facts">${acts}</div>`;
@@ -422,6 +433,19 @@ function wireFocus() {
   // Fitting from the piece's side. Same assignment as data-fitgear, arguments
   // the other way round, and it stays on the piece so you can see where it
   // landed instead of being thrown back to the roster.
+  // The picker folds. `hidden` is avoided on purpose: the stub DOM the guards
+  // run against does not honour it, and a class keeps the rows in the markup
+  // either way so the tests can still read them.
+  each('data-gtoggle', b => {
+    const list = $('fwrap').querySelector('[data-gfold]');
+    if (!list) return;
+    const open = !list.classList.contains('open');
+    list.classList.toggle('open', open);
+    b.setAttribute('aria-expanded', open ? 'true' : 'false');
+    const car = b.querySelector('.gcar');
+    if (car) car.textContent = open ? '\u25b4' : '\u25be';
+  });
+
   each('data-wear', b => {
     const [gi, cid] = b.dataset.wear.split(':');
     const was = gearWearer(gi);

@@ -38,7 +38,7 @@ export {
 } from '../../src/rules/board.js';
 export {wave, laneScore, rollDoctrine, predictSpawns} from '../../src/rules/waves.js';
 export {mkUnit, buffOf, dmgPreview, leadBonus} from '../../src/rules/units.js';
-export {seedStratagem, stratReady, canPlayStratagem, playStratagem, stratMarkers, resolveStratagem, BREACH_HULL} from '../../src/rules/stratagems.js';
+export {seedStratagem, stratReady, canPlayStratagem, playStratagem, stratMarkers, resolveStratagem, resolveStratagemEnd, BREACH_HULL} from '../../src/rules/stratagems.js';
 export {laneJammed, laneFloor, laneAhead, geomFor, geomCells, candidatesFor, targetsFor} from '../../src/rules/targeting.js';
 export {dampenIn, dmgEnemy, blast, dmgUnit, fire, healPass, breachAt} from '../../src/rules/combat.js';
 export {useAbility} from '../../src/rules/abilities.js';

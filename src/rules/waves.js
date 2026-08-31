@@ -1,11 +1,16 @@
 // Wave composition and the spawn-marker contract.
 //
 // THE CONTRACT: the chevrons drawn on the enemy edge promise which lane each
-// hostile enters next turn. Markers are computed BEFORE the player's turn and
-// consumed AFTER it, unchanged. A hostile never diverts to a different lane —
-// if its lane is genuinely full it holds at the edge and arrives next turn in
-// the same lane. Players shape the horde by shaping lane scores, so quietly
-// re-rolling a lane at spawn time would make the whole preview a lie.
+// hostile ENTERS next turn. Markers are computed BEFORE the player's turn and
+// consumed AFTER it, unchanged. A hostile never diverts on the way in — if its
+// lane is genuinely full it holds at the edge and arrives next turn in the same
+// lane. Players shape the horde by shaping lane scores, so quietly re-rolling a
+// lane at spawn time would make the whole preview a lie.
+//
+// What a body does once it is ON the board is a separate question and not part
+// of this promise: it will step into another lane when its own road is shut,
+// and an Oni Frame will do it by choice (see flankStep/seekFlank in phases.js).
+// The marker said where it comes in, never where it stays.
 
 import {LANES, COLS} from '../state/constants.js';
 import {BEST} from '../content/hostiles.js';
@@ -31,7 +36,7 @@ export function wave(t) {
   if (t >= 2) pool.push('hulk', 'breacher', 'husk');
   if (t >= 3) pool.push('spitter', 'burrower');
   if (t >= 4 || G.mod === 'nest') pool.push('spore', 'jammer', 'pylon', 'mender');
-  if (t >= 5) pool.push('harrower', 'puppeteer');
+  if (t >= 5) pool.push('harrower', 'puppeteer', 'oni');
   if (t >= 6) pool.push('screamer');
   if ((t >= G.waves || (G.endless && t >= 7)) && G.type !== 'extract') pool.push('chorus', 'sovereign');
   // The wider bestiary dilutes the quota type; three extra entries keep the

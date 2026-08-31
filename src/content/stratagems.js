@@ -25,7 +25,8 @@ export const STRATAGEMS = {
     n: "Breaching Charge",
     dp: 3,
     target: "column",
-    d: "Destroy every hostile in the chosen column that is at or below 8 hull.",
+    d: "Destroy every hostile in the chosen column that is at or below 8 hull. Lands at the end of the turn you call it, once the horde has moved.",
+    now: 1,
   },
   grapple: {
     n: "Grapple Net",

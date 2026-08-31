@@ -2979,6 +2979,163 @@ nothing at an edge you have already reached. The inbound-wave strip in the
 combat header keeps its scrollbar: `headtest.js` asserts that deliberately, and
 it was not what was asked about.
 
+## v2.3 — the board grows a vertical axis
+
+### Hostiles go sideways
+
+The report: "when enemies reach a dead end like a bombardment field or something
+have them move up or down instead. also give enemies on the field already the
+choice to move up or down as well."
+
+Before this, `actHostile` had exactly one answer to a cell it could not enter:
+`break`. A bombardment crater — permanent `'x'` terrain — therefore turned into a
+free permanent wall, and a Hulk could plug a lane for a whole mission with
+everything behind it standing in a queue.
+
+Three rules now, in this order, and the order is the whole design:
+
+1. **A player's unit in front is a fight.** Never a wall to walk around. This is
+   the game; nothing about open lanes either side changes it.
+2. **Queued behind another hostile with a shot to take?** Take the shot. Firing
+   past the body in front is the horde working as intended.
+3. **Otherwise move** — forward if the road is open, sideways if it is not.
+
+The third rule spends **one step, not the turn**. That distinction is worth more
+than it looks: at whole-turn cost a Crawler that met a crater lost its tempo and
+the detour read as a stall; at one step it flows round and keeps going, while a
+Hulk still pays a full turn for the same detour. Preference order is a lane it
+can keep advancing down, then the softest lane — the same reading `predictSpawns`
+uses, so a flank is the horde being consistent rather than the horde cheating.
+
+The spawn contract is untouched and `flanktest.js` pins that down explicitly:
+the markers promise which lane a hostile **enters**, never where it stays.
+
+**Two things this got wrong on the way, both caught by measurement:**
+
+- The first cut let a queued hostile sidestep instead of firing. Over ~6,900
+  simulated missions per arm that was **+14 points of win rate** handed to the
+  player — the horde was trading its damage for a shuffle. Hence rule 2.
+- Adding a "stopped, so shoot instead" fallback quietly armed every slow hostile
+  on its off turn: a Hulk banking half a step is not *stopped*, it is walking.
+  `steps > 0` guards it. The `mechtest` fixture caught this by accident, which is
+  the argument for fixtures that play a real turn.
+
+A third thing it broke, worth recording because it is the useful kind: `aimtest`
+went from 0/40 flaky to 8/40. Not a defect in the rules — the test took
+`enemies[0]` blindly and stood an Assassin at `foe.col - 1`, which is column −1
+whenever the oldest hostile has reached the edge. Hostiles reach the edge far
+more often now that an obstacle reroutes them instead of stalling them, so a
+latent unsoundness in the fixture started firing. Fixed in the test, by picking
+a hostile that has a cell in front of it.
+
+**Balance:** 15 aggregated runs of `mtest` per arm, 6,900 missions each.
+Overall **57.1% → 60.4%**, and it is concentrated: stronghold +7.2, blitz +12.0,
+everything else inside ±3. The hard missions (uplink 31%, crystals 43%,
+specimens 44%) did not move. Left as-is rather than compensating in the same
+change — a wave-budget nudge would confound the measurement — but the spread is
+wider than it was and that is the thing to watch.
+
+### A matched pair of war frames
+
+**Ashura Frame** (Specialist, 5 DP, 16 hull, blocker, 430 cr) targets `vert3` —
+the column ahead across three lanes at once. *Crossing Cut* slides it one lane
+toward the heavier side and cuts everything in front for 6.
+
+**Oni Frame** (Specialist hostile, 18 hull, 5 damage, threat 7, wave 5+) carries
+the new `flank` flag: it does not wait to be stopped, it re-reads the line every
+step and crosses into the thinner lane while it still has the choice. `FLANK_GAIN
+= 1.5` is what stops it drifting on rounding noise — and it cannot oscillate,
+because `laneScore` reads the player's units and a hostile moving does not change
+them.
+
+They are a designed pair. The Oni exists because the board now has a vertical
+axis and something should exploit it; the Ashura exists because something should
+answer that. Both are guarded together in `mechtest.js` for exactly that reason —
+if either half stops working the other stops meaning anything.
+
+Single-pixel diagonals are noise at 12×12; both sprites went back for a second
+pass with two-pixel blade shafts before they read as frames rather than static.
+
+### Breaching Charge takes the short beat
+
+Stratagems resolve at the *start of the following turn* by design — playing one
+is a prediction, not an undo. Breaching Charge was the one call that delay made
+close to unusable: a full turn is long enough for the column you aimed at to
+empty itself.
+
+It now declares `now: 1` and fires at the **end of the turn you call it**, after
+the hostiles have moved and before the tiles flip — so a swept column is ground
+you then hold. It is still a prediction, just a shorter one: you know where they
+are, not where they will be. `breachtest` case F guards precisely that, by aiming
+at where a Crawler *stands* and asserting the charge misses.
+
+The class keeps its long beat; `now` is a per-call opt-in and only this call
+takes it.
+
+### Achievements, 15 → 24
+
+Nine added: Long War, Not One Step, Marshal, Veteran Corps, Well Found, Colours
+Flying, Deep Water, Chain of Command, Standing Order.
+
+The constraint held: every badge is a pure function of what the save already
+holds. *Not One Step* is the interesting one — "no breach yet" is not a stored
+flag, it is the absence of one, so progress reads as deployments while the breach
+count is nil and collapses to zero the moment a lane opens. `achievetest.js`
+checks the list on a fresh record, a maxed one, and a v4 record that predates
+half the fields it reads.
+
+### Squad and gear, second pass
+
+Sorting is **reserve-only** now. The twelve cards in a deck are twelve chosen one
+at a time and their position is learned; rearranging them on a preference takes
+something away. The reserve is the pile you hunt through and the pile that grows
+to fifty.
+
+The gear locker went back to the same `.gcard` tile the Quartermaster shelf and
+the card grids use — a piece of gear should look like a piece of gear everywhere
+— with the card carrying it printed on the front.
+
+Opening a piece now leads with **which card it is linked to**, folded: that is
+the fact you came for, and a thirteen-row picker unfurled above it buries the
+answer under the means of changing it. Tap the name to unfold, "None" at the
+bottom of the list.
+
+## Card backlog — the next pass
+
+Not built. Recorded here so the next card batch starts from a list rather than a
+blank page. Two sources: the lane-defence reference the brief pointed at, and
+PvZ, which is the ancestor of the whole genre.
+
+**Mechanics the game does not have yet, ranked by how well they fit the board:**
+
+1. **Permanent cratering as a player tool.** A Doom-shroom analogue: an instant
+   that turns cells to `'x'` for good. This was a blunt "stop" before v2.3 and is
+   now a *steering* tool — you crater a lane to push the horde into your guns.
+   The strongest synergy available with what just shipped, and the rules already
+   support it.
+2. **Slow / chill.** Nothing in the game costs a hostile tempo. With lateral
+   movement in, slowing is spatially interesting rather than just arithmetic:
+   the thing you slow is also the thing that reroutes.
+3. **A conduit cell.** Torchwood: a friendly that amplifies any friendly fire
+   passing through its cell. Fits a lane game exactly and nothing does it.
+4. **Armour stripping.** Magnet-shroom: removes a hostile's damage floor.
+   A direct counter to Hulk and Bulwark Pylon, which currently only Rail Sniper
+   and `pen` gear answer.
+5. **Coop attacks.** Two adjacent friendlies of a class firing as one. The
+   reference calls this out as its own section; Gridfall has adjacency buffs but
+   nothing that combines two units into one stronger action.
+6. **Minimum range with self-damage.** A bazooka that is powerful at 3–6 and
+   hurts its own line at 1–2. Gridfall has `hold` (a hostile stopping at range)
+   but no player weapon with a dead zone.
+7. **Stealth.** Not targetable until it attacks. Cheap to express — hostiles
+   already pick targets through one search in `strike()`.
+8. **A lane-spanning barrier.** Irisation: one deployment that shields three
+   lanes rather than one cell. Aegis Knights shield a lane; nothing spans.
+
+**Apply to every new hostile:** it needs an answer to the question the flank rule
+now asks — does it cross lanes, and if so, why? `flank` is the flag; the Oni is
+the worked example.
+
 ## Still open
 
 1. **Crystals at a hot operation is better, not soft.** Auto-rolled Crystals

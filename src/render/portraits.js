@@ -34,7 +34,7 @@ const KANJI = {
   // specialists
   aegis: '盾', biomed: '命', techmed: '療', dragoon: '竜', railgun: '貫',
   hell: '焔', plasma: '光', exo: '鎧', hecate: '砲', kessen: '斬', ram: '衝',
-  marshal: '将',
+  marshal: '将', ashura: '阿',
 };
 
 const INK = '#e8e4f5';

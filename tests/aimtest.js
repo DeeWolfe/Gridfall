@@ -15,9 +15,15 @@ A.launch(Object.keys(A.opRun().nodes)[0]);
 // Push a few turns so hostiles actually arrive.
 for (let t = 0; t < 5; t++) A.endTurn();
 
-const foe = A.G.enemies[0];
+// Any hostile that has left the board's edge column will do, so long as there
+// is a cell in FRONT of it to stand in. Taking enemies[0] blindly put the
+// Assassin on column -1 whenever the oldest hostile had reached column 0 —
+// which it now does far more often, because a hostile that meets an obstacle
+// reroutes instead of stalling. The test was always unsound; v2.3 just made it
+// show up one run in five.
+const foe = A.G.enemies.find(e => e.col >= 1);
 if (!foe) {
-  F.push('no enemies present to test aiming');
+  F.push('no hostile stopped short of the edge column to test aiming against');
 } else {
   // An Assassin surrounded on several sides has a real choice to make.
   const asn = spawnUnit('assassin', foe.lane, foe.col - 1);

@@ -156,7 +156,8 @@ function drawSel() {
       el.innerHTML = `<div class="selhead"><b style="color:var(--violet)">${def.n}</b>
           <span class="hpbadge">${def.dp} DP</span></div>
         <div class="abline">${def.d}</div>
-        <div class="selfire live">Resolves at the START of your next turn. ${how}</div>
+        <div class="selfire live">${STRATAGEMS[G.strat.k].now
+          ? 'Lands at the END of this turn.' : 'Resolves at the START of your next turn.'} ${how}</div>
         ${def.target === 'none' ? '<div class="selacts"><button class="mini" data-callstrat="1">Call it in</button></div>' : ''}`;
       const b = el.querySelector('[data-callstrat]');
       if (b) b.onclick = () => { sfx('confirm'); playStratagem(null); setStratSel(false); drawAll(); };
@@ -642,7 +643,8 @@ export function drawHand() {
     el.className = 'hc strat' + (cant ? ' poor' : '') + (stratSel ? ' sel' : '');
     el.innerHTML = `<div class="hart"><div class="stratmark-art">⬡</div></div>
       <div class="n">${def.n}</div>`;
-    el.title = def.n + ' — ' + def.d + ' Resolves at the start of your next turn.';
+    el.title = def.n + ' — ' + def.d +
+      (def.now ? ' Lands at the end of this turn.' : ' Resolves at the start of your next turn.');
     el.onclick = () => {
       if (cant) return;
       sfx(stratSel ? 'tap' : 'select');
