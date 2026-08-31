@@ -137,10 +137,37 @@ function gearLocker() {
 }
 
 /**
- * The Proto Frame slot: one per deck, beside the twelve rather than inside
- * them, and one per mission. Its own section because it is its own decision —
- * burying a once-per-mission commitment among fifty reserve cards would make
- * it read like any other card, which is exactly what it is not.
+ * The Frame you are actually taking, shown with the deck it deploys alongside.
+ *
+ * One tile, the equipped one, hanging off the bottom of the Active deck on a
+ * violet rail: the rail says "attached to this", the gap above says "not one of
+ * the twelve". Deliberately NOT the collection — a row of three prototypes
+ * beside your deck answers "what could I take", and the only question the deck
+ * screen should be answering there is "what am I taking".
+ *
+ * Choosing between them is a different job and lives in its own section below.
+ */
+function deckFrame() {
+  const fielded = active.loadout.frame;
+  const owned = active.unlocks.cards.filter(c => POOL[c].chassis === 'proto');
+  const head = `<div class="slothead">Proto Frame
+     <span class="ct">${fielded ? 1 : 0} / 1</span></div>`;
+  if (!fielded) {
+    return `<div class="frameslot">${head}
+     <div class="framehint">${owned.length
+      ? 'Nothing fielded — pick one in the Proto Frame slot below.'
+      : 'No prototype on strength. The Quartermaster carries them.'}</div></div>`;
+  }
+  return `<div class="frameslot">${head}
+   ${cardGrid([fielded], 'proto')}
+   <div class="framehint">Rides beside the twelve — never drawn, one deployment per mission.</div></div>`;
+}
+
+/**
+ * The Proto Frame picker: every prototype on strength, fielded one first.
+ * Its own section because choosing one is its own decision, and because it is
+ * a shelf rather than a loadout — the deck screen above already says which one
+ * is going with you.
  */
 function frameSlot() {
   const owned = active.unlocks.cards.filter(c => POOL[c].chassis === 'proto');
@@ -150,12 +177,15 @@ function frameSlot() {
     return `<div class="sect" style="color:var(--violet)">Proto Frame slot</div>
      <div class="stub"><b>No prototype on strength</b>${all.length} Proto Frames exist.
        They take a slot of their own beside the deck — one per deck, one per mission —
-       and each needs a Frame Pilot in the twelve to land on.</div>`;
+       and each needs a Frame Pilot among the twelve to land on.</div>`;
   }
+  // Fielded first: the answer, then what you could swap it for.
+  const order = [...owned].sort((a, b) => (b === fielded ? 1 : 0) - (a === fielded ? 1 : 0)
+    || POOL[a].n.localeCompare(POOL[b].n));
   return `<div class="sect" style="color:var(--violet)">Proto Frame slot — ${fielded ? POOL[fielded].n : 'empty'}</div>
    <div class="bar"><div>One Frame per deck, one deployment per mission</div>
-     <div style="color:var(--dim);font-size:0.6875rem">It rides beside the twelve, never drawn — tap to field it and choose its weapon</div></div>
-   ${cardGrid(owned, 'proto')}`;
+     <div style="color:var(--dim);font-size:0.6875rem">Tap to field it and choose its weapon</div></div>
+   ${cardGrid(order, 'proto')}`;
 }
 
 function squadPanel() {
@@ -183,6 +213,7 @@ function squadPanel() {
    ${orphan}
    <div class="sect">Active deck</div>
    ${deck.length ? cardGrid(deck, 'gear') : cardGridEmpty('Empty.')}
+   ${deckFrame()}
    <div class="sect">Reserve — ${reserve.length}</div>
    ${squadControls()}
    ${reserveCards(reserve)}

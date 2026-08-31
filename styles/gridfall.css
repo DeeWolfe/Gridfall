@@ -287,6 +287,15 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
   font-size:0.625rem;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
 .subsect .ct{color:var(--cyan);letter-spacing:.06em}
 
+/* The Frame slot hangs off the bottom of the Active deck: a violet rail says
+   "attached to this", the gap above says "not one of the twelve". */
+.frameslot{border-left:2px solid var(--violet);padding-left:clamp(9px,1vw,15px);
+  margin:14px 0 6px}
+.slothead{display:flex;align-items:center;gap:7px;margin:0 0 5px;
+  font-size:0.625rem;letter-spacing:.18em;text-transform:uppercase;color:var(--violet)}
+.slothead .ct{color:var(--dim);letter-spacing:.06em}
+.framehint{font-size:0.6875rem;color:var(--dim);line-height:1.5;margin-bottom:7px}
+
 /* ============ GEAR FITTING ROWS ============
    A name alone told a player nothing about what the piece did, which is the
    reason gear went unused. The row carries the rules text and, on the right,
