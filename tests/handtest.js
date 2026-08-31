@@ -49,7 +49,13 @@ const rule = sel => {
   }
 }
 
-// --- the hand is a scrolling row of upright cards ---
+// --- the hand is one row of cards that divide the tray between them ---
+//
+// The tray used to be a fixed-width row you scrolled through: on a 390px
+// phone it showed 2 of 9 cards in a third of the screen. Now HAND_CAP cards
+// divide whatever width the tray is given, so the card size follows the
+// screen rather than a ladder of breakpoints — which is why the width has to
+// stay a function of --cap. A literal width here would be the old bug back.
 {
   const strip = rule('\\.hcards');
   if (!strip) {
@@ -57,7 +63,12 @@ const rule = sel => {
   } else {
     if (!/display:\s*flex/.test(strip)) F.push('hand is not laid out as a row');
     if (/grid-template-columns/.test(strip)) F.push('hand is still a stacked grid');
-    if (!/overflow-x:\s*auto/.test(strip)) F.push('hand does not scroll sideways');
+    // Card effects draw past the cap on purpose; the surplus has to go
+    // somewhere, and sideways is the only direction that costs the board
+    // nothing. Losing this makes an over-cap draw silently unreachable.
+    if (!/overflow-x:\s*auto/.test(strip)) F.push('an over-cap hand has nowhere to scroll');
+    if (!/--cap:\s*\d/.test(strip)) F.push('the tray declares no card count to divide by');
+    if (/flex-wrap:\s*wrap/.test(strip)) F.push('the tray wraps instead of staying one row');
   }
 
   const card = rule('\\.hc');
@@ -66,10 +77,25 @@ const rule = sel => {
   } else {
     if (/width:\s*auto/.test(card)) F.push('hand cards still stretch to the container');
     if (!/width:\s*clamp\(/.test(card)) F.push('hand cards have no clamped width — they will not scale');
+    if (!/var\(--cap\)/.test(card)) {
+      F.push('hand card width is not derived from --cap — the tray will not fit its own cap');
+    }
     if (!/flex:\s*0\s+0\s+auto/.test(card)) F.push('hand cards can shrink instead of scrolling');
     if (!/flex-direction:\s*column/.test(card)) F.push('hand cards are not upright');
-    if (!/aspect-ratio/.test(card)) F.push('hand cards lost their trading-card proportions');
   }
+
+  // The tile is no longer a 5:7 portrait — that was the collection card's
+  // shape, and the tray is a control. The art keeps its proportion instead.
+  const art = rule('\\.hc \\.hart');
+  if (!art || !/aspect-ratio/.test(art)) F.push('hand card art lost its fixed proportion');
+
+  // The fade that tells you cards are off the edge. Without it the last tile
+  // ends flush with the boundary and an over-cap draw looks like a no-op.
+  if (!rule('\\.hcards\\.spill')) F.push('no spill hint when the tray overflows');
+  if (page.includes('handtog') || page.includes('handclosed')) {
+    F.push('the hand toggle is still wired — the log is what folds now');
+  }
+  if (!page.includes('id="logtog"')) F.push('no combat log toggle in the action bar');
 
   // The card face is art, name and tier — the rules text lives in the details
   // panel and the focus view, never on the card itself.

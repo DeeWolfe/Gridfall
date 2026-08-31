@@ -11,6 +11,9 @@ const MAX_ENTRIES = 120;
  */
 export function clog(html, cat) {
   if (!G) return;
-  G.logs.unshift({h: html, c: cat || 'info'});
+  // The turn stamp is what lets the alert strip under the board show what just
+  // happened rather than the newest loss line of the whole mission, which
+  // would sit there unchanged for the rest of the game.
+  G.logs.unshift({h: html, c: cat || 'info', t: G.turn});
   if (G.logs.length > MAX_ENTRIES) G.logs.pop();
 }

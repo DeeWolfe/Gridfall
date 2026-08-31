@@ -8,19 +8,19 @@
 //   6. the previewed wave spawns in its promised lane
 //   7. the next wave is rolled and previewed
 
-import {LANES, COLS, MAXDP} from '../state/constants.js';
+import {LANES, COLS, MAXDP, GROUND_FLOOR} from '../state/constants.js';
 import {BEST} from '../content/hostiles.js';
 import {G, active, nextUid, clearSelection, replaying} from '../state/session.js';
 import {hooks} from '../state/hooks.js';
 import {randInt} from '../state/rng.js';
 import {leadOf} from '../save/progression.js';
-import {unitAt, foeAt, civAt, held, heldEnemyHalf, crystalsHeld, scorched, breachAllowance} from './board.js';
+import {unitAt, foeAt, civAt, held, heldEnemyHalf, crystalsHeld, scorched, breachAllowance, ENDGAME_TURNS} from './board.js';
 import {fire, healPass, dmgUnit, dmgEnemy, breachAt} from './combat.js';
 import {eventTick, eventStrikeMalus} from './events.js';
 import {wave, rollDoctrine, predictSpawns} from './waves.js';
 import {spawnPhase, mkFoe} from './spawn.js';
 import {drawCard} from './deck.js';
-import {finish} from './mission.js';
+import {finish, winWhy} from './mission.js';
 import {clog} from './log.js';
 import {tapeBegin, tapeEnd, tapeMark, tapeEvent} from './tape.js';
 import {resolveStratagem} from './stratagems.js';
@@ -433,7 +433,7 @@ function lossCheck() {
   if (G.breaches >= allow) {
     return allow === 1 ? 'The line was breached.' : allow + ' breaches.';
   }
-  if (held() < 6) return 'Ground lost — no viable deployment line.';
+  if (held() < GROUND_FLOOR) return 'Ground lost — no viable deployment line.';
   return null;
 }
 
@@ -443,39 +443,39 @@ function lossCheck() {
  */
 function endgameCheck() {
   if (G.type === 'retake') {
-    if (heldEnemyHalf() >= 3) return {win: true};
-    if (G.extra >= 3) return {win: false, why: 'Not enough hostile ground taken.'};
+    if (heldEnemyHalf() >= 3) return {win: true, why: winWhy()};
+    if (G.extra >= ENDGAME_TURNS(G.type)) return {win: false, why: 'Not enough hostile ground taken.'};
     return null;
   }
   if (G.type === 'crystals') {
-    if (crystalsHeld() >= 3) return {win: true};
+    if (crystalsHeld() >= 3) return {win: true, why: winWhy()};
     // One extra endgame turn over every other objective type — the mission
     // spreads a defence across four points by design, so it earns a beat
     // longer to consolidate a hold before the clock calls it.
-    if (G.extra >= 4) return {win: false, why: `Only ${crystalsHeld()} of 4 crystal nodes held.`};
+    if (G.extra >= ENDGAME_TURNS(G.type)) return {win: false, why: `Only ${crystalsHeld()} of 4 crystal nodes held.`};
     return null;
   }
   if (G.type === 'specimens') {
-    if (G.quotaHit >= G.quota) return {win: true};
-    if (G.extra >= 3) return {win: false, why: `Quota short — ${G.quotaHit} of ${G.quota}.`};
+    if (G.quotaHit >= G.quota) return {win: true, why: winWhy()};
+    if (G.extra >= ENDGAME_TURNS(G.type)) return {win: false, why: `Quota short — ${G.quotaHit} of ${G.quota}.`};
     return null;
   }
   if (G.type === 'uplink') {
-    if (G.uplinkHeld >= 3) return {win: true};
-    if (G.extra >= 3) return {win: false, why: 'The uplink never came online.'};
+    if (G.uplinkHeld >= 3) return {win: true, why: winWhy()};
+    if (G.extra >= ENDGAME_TURNS(G.type)) return {win: false, why: 'The uplink never came online.'};
     return null;
   }
   if (G.type === 'blitz') {
-    if (G.kills >= G.quota) return {win: true};
-    if (G.extra >= 3) return {win: false, why: `Purge incomplete — ${G.kills} of ${G.quota} destroyed.`};
+    if (G.kills >= G.quota) return {win: true, why: winWhy()};
+    if (G.extra >= ENDGAME_TURNS(G.type)) return {win: false, why: `Purge incomplete — ${G.kills} of ${G.quota} destroyed.`};
     return null;
   }
   if (G.type === 'civilians') {
-    if (G.extracts >= G.civGoal) return {win: true};
-    if (G.extra >= 3) return {win: false, why: `Extraction incomplete — ${G.extracts} of ${G.civGoal} got out.`};
+    if (G.extracts >= G.civGoal) return {win: true, why: winWhy()};
+    if (G.extra >= ENDGAME_TURNS(G.type)) return {win: false, why: `Extraction incomplete — ${G.extracts} of ${G.civGoal} got out.`};
     return null;
   }
-  if (!G.enemies.length || G.extra >= 2) return {win: true};
+  if (!G.enemies.length || G.extra >= ENDGAME_TURNS(G.type)) return {win: true, why: winWhy()};
   return null;
 }
 
@@ -493,10 +493,10 @@ export function endTurn() {
 
   const lost = lossCheck();
   if (lost) return finish(false, lost);
-  if (G.type === 'specimens' && G.quotaHit >= G.quota) return finish(true);
-  if (G.type === 'blitz' && G.kills >= G.quota) return finish(true);
+  if (G.type === 'specimens' && G.quotaHit >= G.quota) return finish(true, winWhy());
+  if (G.type === 'blitz' && G.kills >= G.quota) return finish(true, winWhy());
   if (G.type === 'civilians') {
-    if (G.extracts >= G.civGoal) return finish(true);
+    if (G.extracts >= G.civGoal) return finish(true, winWhy());
     if (G.turn % CIV_SPAWN_EVERY(G.heat) === 0) civilianSpawnTick();
   }
 
@@ -506,7 +506,7 @@ export function endTurn() {
       G.uplinkHeld++;
       clog(G.uplinkHeld >= 3 ? '<span class="g">UPLINK ONLINE.</span>'
         : `<span class="g">Uplink charging</span> — ${G.uplinkHeld} of 3 turns held.`, 'order');
-      if (G.uplinkHeld >= 3) return finish(true);
+      if (G.uplinkHeld >= 3) return finish(true, winWhy());
     } else if (G.uplinkHeld) {
       G.uplinkHeld = 0;
       clog('<span class="d">Relay tile lost — uplink charge reset.</span>', 'loss');
@@ -553,7 +553,16 @@ export function endTurn() {
     G.dp += 2;
     clog('<span class="g">Firebrand</span> — losses answered with +2 deploy points.', 'order');
   }
-  for (let i = 0; i < 2; i++) drawCard();
+  // The turn draw respects the hand cap: a held card is not discarded, it
+  // stays on the deck. Said once when it starts happening rather than every
+  // turn it keeps happening — the hand's own FULL chip is the standing
+  // reminder, so repeating it here would just be filling the log.
+  let drawn = 0;
+  for (let i = 0; i < 2; i++) if (drawCard()) drawn++;
+  if (drawn < 2 && !G.capNoted) {
+    clog(`<span class="d">Hand full</span> — requisition is held back until you deploy. Nothing is lost.`, 'info');
+  }
+  G.capNoted = drawn < 2;
   // The new turn has begun: last turn's call resolves, short effects expire.
   resolveStratagem();
   clearSelection();

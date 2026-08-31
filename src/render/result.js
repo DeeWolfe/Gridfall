@@ -13,9 +13,12 @@ export function showResult() {
   $('rcard').className = 'rcard ' + r.kind;
   $('rt').textContent = r.title;
 
+  // Every loss has always led with its reason; wins arrived with none at all,
+  // which is why "why did I win?" was a fair question. Same line, both ways.
+  const why = r.why ? `<span class="rwhy">${r.why}</span><br>` : '';
   const payout = r.payout
     ? `<br><br><b style="color:var(--gold)">+${r.payout.cr} credits</b>`
     : '';
-  $('rs').innerHTML = r.lines.join('<br>') + payout;
+  $('rs').innerHTML = why + r.lines.join('<br>') + payout;
   $('result').classList.add('on');
 }

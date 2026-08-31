@@ -489,6 +489,9 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .rcard h2{font-size:1.25rem;letter-spacing:.2em;margin-bottom:6px}
 .rcard.win h2{color:var(--green)} .rcard.lose h2{color:var(--mag)}
 .rcard .rs{font-size:0.6875rem;color:var(--dim);line-height:1.95;margin:15px 0 22px}
+/* What happened, above the tally of how it happened. */
+.rcard .rwhy{color:var(--txt);font-size:0.75rem}
+.rcard.win .rwhy{color:#a8f0c6}
 
 .modegrid{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:6px}
 @media(min-width:700px){.modegrid{grid-template-columns:repeat(2,1fr)}}
@@ -598,7 +601,6 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 @media(max-width:560px){
   .cbhead{column-gap:8px;padding:7px 9px}
   .mtitle b{font-size:0.75rem}
-  .mtitle span#c-obj{display:none}
   .incoming{gap:4px}
   .incp{font-size:0.6562rem;padding:2px 5px}
 }
@@ -848,8 +850,6 @@ body{font-size:1rem}
 .mtitle .modtag{color:var(--violet);font-size:0.7188rem;letter-spacing:.1em}
 .mtitle .doctrine{font-size:0.7188rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
   color:var(--violet);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mtitle span#c-obj{font-size:0.6875rem;color:var(--dim);line-height:1.4;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .incoming{grid-area:inc;display:flex;align-items:center;gap:5px;flex-wrap:nowrap;min-width:0;
   overflow-x:auto;overscroll-behavior-x:contain;padding-bottom:3px;
   scrollbar-width:thin;scrollbar-color:var(--mag-d) transparent}
@@ -871,46 +871,108 @@ body{font-size:1rem}
 .cbcol.mid{align-items:center;justify-content:flex-start}
 .field{background:linear-gradient(180deg,#0b0919 0%,#100d24 100%);border:1px solid var(--line2);
   padding:clamp(9px,.9vw,15px);width:100%;max-width:min(100%,96vw)}
-.bstats{display:flex;gap:16px;margin-top:8px;font-size:0.7188rem;letter-spacing:.14em;
+.bstats{display:flex;gap:14px;margin-top:6px;font-size:0.7188rem;letter-spacing:.14em;
   text-transform:uppercase;color:var(--dim)}
 .bstats b{color:var(--cyan);font-size:0.75rem;margin-left:5px}
 .bstats .of{color:var(--dim);font-size:0.7188rem}
+/* The two numbers that end the mission say so by colour. The rule itself is
+   written out once in the objective panel, where there is room for a sentence
+   — printing "6 min" and "1 ends it" here wrapped the line on a 390px phone. */
+.bstats b.warn{color:var(--gold)}
+.bstats b.bad{color:var(--mag)}
 
 .box.grow{flex:1;min-height:0;display:flex;flex-direction:column}
-.selbox{display:flex;flex-direction:column;padding:.65rem .8rem}
+.selbox{display:flex;flex-direction:column;gap:6px;padding:.5rem .7rem}
 .selbox #selinfo{font-size:0.7188rem;color:var(--dim);line-height:1.6;flex:1;min-height:0;overflow-y:auto}
+.selbox #selinfo[hidden]{display:none}
+
+/* ============ OBJECTIVE PANEL ============
+   The details box read "Nothing selected" for most of a turn while the
+   mission's goal lived in a header span hidden on every compact layout. The
+   objective is this panel's resting state; a selection stacks under it. */
+.objblk{flex:0 0 auto;display:flex;flex-direction:column;gap:3px;
+  border-bottom:1px solid var(--line);padding-bottom:6px}
+.objblk:empty{display:none;border:none;padding:0}
+.olab{font-size:0.5625rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.ogoal{font-size:0.6875rem;color:var(--txt);line-height:1.4}
+.orow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.oclock{font-size:0.625rem;letter-spacing:.1em;text-transform:uppercase;color:var(--violet);
+  margin-left:auto}
+.olose{font-size:0.625rem;color:#7d76a8;line-height:1.35}
+/* Both counts on one row: the two stacked panels these replace cost 72px to
+   carry nine words. */
+.idlerow{display:flex;gap:12px;flex-wrap:wrap;font-size:0.6875rem;letter-spacing:.02em}
+.idlerow .ok{color:var(--dim)} .idlerow .ok b{color:var(--cyan)}
+.idlerow .hit{color:var(--dim)} .idlerow .hit b{color:var(--mag)}
+.olose b{color:var(--gold)}
+/* Up to five steps read as pips; past that they are a counting exercise. */
+.pips{display:flex;gap:3px;flex:0 0 auto}
+.pips i{width:8px;height:8px;background:#241e4d;border:1px solid var(--line2);display:block}
+.pips i.on{background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 7px rgba(77,232,255,.5)}
+.obar{width:70px;height:7px;background:#241e4d;border:1px solid var(--line2);position:relative;
+  flex:0 0 auto}
+.obar>span{position:absolute;inset:0;right:auto;background:var(--cyan);
+  box-shadow:0 0 7px rgba(77,232,255,.45)}
+.onum{font-size:0.6875rem;color:var(--cyan);letter-spacing:.1em;font-variant-numeric:tabular-nums}
+/* Met, not merely progressing: you are holding a win rather than chasing one. */
+.objblk.met .pips i.on,.objblk.met .obar>span{background:var(--green);border-color:var(--green);
+  box-shadow:0 0 7px rgba(93,255,160,.5)}
+.objblk.met .onum{color:var(--green)}
 .handbox{flex:0 0 auto;display:flex;flex-direction:column;min-height:0}
-.handbox h3{display:flex;justify-content:space-between;align-items:center}
+.handbox h3{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.handbox h3 .handhead-r{margin-left:auto}
 .handhead-r{display:flex;align-items:center;gap:9px}
 .dpchip{font-size:0.6875rem;letter-spacing:.1em;color:var(--dim)}
 .dpchip b{color:var(--gold);font-size:0.8125rem;margin-right:3px}
 .handbox .hcards{flex:0 0 auto}
-/* Collapse the tray to see more board — the header (and its DP total) stays
-   put so a collapsed hand still reads at a glance. */
-.handtog{width:26px;height:20px;flex:0 0 auto;border:1px solid var(--line2);background:transparent;
-  color:var(--dim);font-size:0.6875rem;line-height:1;cursor:pointer;transition:.15s}
-.handtog:hover{color:var(--zan);border-color:var(--zan)}
-.handbox.collapsed .hcards{display:none}
+.handcount{flex:0 0 auto}
+/* Two states, two colours, neither of them an error. Gold: the turn draw is
+   being held and you should spend. Violet: a card you played drew past the cap
+   on purpose, and nothing is being withheld. */
+.handchip{font-size:0.5625rem;letter-spacing:.14em;text-transform:uppercase;
+  padding:2px 7px;border:1px solid currentColor;flex:0 0 auto;white-space:nowrap}
+.handchip.full{color:var(--gold);background:rgba(255,201,77,.09)}
+.handchip.over{color:var(--violet);background:rgba(157,107,255,.11)}
+.logtog{flex:0 0 auto}
+.logtog.on{color:var(--cyan);border-color:var(--cyan-d)}
 .cbfoot{flex:0 0 auto;display:grid;grid-template-columns:minmax(0,1fr);
   gap:clamp(7px,.8vw,12px);padding:0 clamp(8px,.9vw,14px) clamp(8px,.9vw,14px)}
-.cbacts{flex:0 0 auto;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.cbacts{flex:0 0 auto;display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center}
 .cbacts .btn{padding:.85rem 1.2rem;text-align:center;font-size:0.6875rem;white-space:nowrap}
 .cbacts .btn.ghost{padding:13px 16px;color:var(--dim);border:1px solid var(--line2)}
 .cbacts .btn.ghost:hover{color:var(--mag);border-color:var(--mag-d)}
 .btn.danger{background:linear-gradient(135deg,var(--red),#c23a3a);color:#1a0510}
 .btn.danger:hover{filter:brightness(1.12)}
 
-.hcards{display:flex;gap:clamp(5px,.5vw,9px);overflow-x:auto;overflow-y:hidden;
-  padding-bottom:5px;scroll-snap-type:x proximity;overscroll-behavior-x:contain;
+/* One row, always. --cap cards divide whatever tray they are given, so the
+   card size is a consequence of the screen instead of a ladder of breakpoints
+   to keep in step. The floor keeps the seal readable on a 320px phone; the
+   ceiling stops a 1920px tray printing playing cards and stealing the board's
+   room, and centring spends that surplus on the board rather than the hand.
+   Card-effect draws (Recon, Falconer) push past --cap by design — the tray's
+   height is fixed at --cap across, and the surplus scrolls sideways. */
+.hcards{--cap:6;--hgap:clamp(4px,.5vw,8px);
+  display:flex;gap:var(--hgap);justify-content:center;
+  overflow-x:auto;overflow-y:hidden;padding-bottom:4px;
+  scroll-snap-type:x proximity;overscroll-behavior-x:contain;
   scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+/* A card beyond the edge is invisible otherwise: at the cap the last tile ends
+   exactly on the boundary, so an over-cap draw would look like it did nothing. */
+.hcards.spill{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 34px),transparent);
+  mask-image:linear-gradient(90deg,#000 calc(100% - 34px),transparent);
+  justify-content:flex-start}
 .hcards::-webkit-scrollbar{height:4px}
 .hcards::-webkit-scrollbar-track{background:transparent}
 .hcards::-webkit-scrollbar-thumb{background:var(--line2)}
-.hc{flex:0 0 auto;width:clamp(104px,9.2vw,140px);aspect-ratio:5/7;scroll-snap-align:start;
-  display:flex;flex-direction:column;gap:4px;align-items:center;
+.hc{flex:0 0 auto;scroll-snap-align:start;
+  width:clamp(40px,calc((100% - (var(--cap) - 1) * var(--hgap)) / var(--cap)),128px);
+  display:flex;flex-direction:column;gap:3px;align-items:center;
   background:linear-gradient(170deg,var(--panel2),var(--deep));
-  border:1px solid var(--line2);padding:1.5rem .4rem .45rem;
+  border:1px solid var(--line2);padding:.28rem .22rem .3rem;
   cursor:pointer;transition:.1s;position:relative}
+/* Square art rather than a 5:7 portrait: the tall crop was the collection
+   card's shape, and the tray is a control, not a display case. */
+.hc .hart{aspect-ratio:1;flex:0 0 auto}
 .hart{width:100%;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;
   border:1px solid var(--line);background:radial-gradient(ellipse at 50% 80%,rgba(77,232,255,.05),transparent 70%)}
 .hart svg{width:min(72%,64px);height:auto}
@@ -933,17 +995,18 @@ body{font-size:1rem}
 .hc.t-tech{border-color:var(--cyan-d)} .hc.t-special{border-color:#9a7420}
 .hc.sel{border-color:var(--green);box-shadow:0 0 16px rgba(93,255,160,.28)}
 .hc.poor{opacity:.3;cursor:not-allowed;filter:none}
-.hc .n{font-size:0.75rem;font-weight:700;line-height:1.25;color:var(--txt);
-  text-align:center;overflow-wrap:anywhere}
+.hc .n{font-size:clamp(0.5rem,calc(0.28rem + 0.55vw),0.75rem);font-weight:700;line-height:1.18;
+  color:var(--txt);text-align:center;overflow-wrap:anywhere}
 
 @media(min-width:1000px){
   .cbmain{grid-template-columns:minmax(0,1fr) clamp(212px,17vw,340px);overflow:hidden}
   .cbcol{overflow-y:auto}
   .cbcol.mid{overflow:hidden;justify-content:center}
-  .field{max-width:min(100%,calc((100vh - 24rem) * 1.62))}
-  /* A collapsed hand gives the board back the room its tray used to own. */
-  #combat.handclosed .field{max-width:min(100%,calc((100vh - 15rem) * 1.62))}
-  .cbfoot{grid-template-columns:minmax(0,1fr) clamp(240px,19vw,360px)}
+  /* Sized against the one-row tray. It used to be 24rem for a 5:7 portrait
+     tray that could also be collapsed; capped at six square tiles the tray is
+     some 4rem shorter and never folds, so the board simply keeps the room. */
+  .field{max-width:min(100%,calc((100vh - 20rem) * 1.62))}
+  .cbfoot{grid-template-columns:minmax(0,1fr) clamp(310px,24vw,440px)}
 }
 @media(min-width:1800px){.cbmain{grid-template-columns:minmax(0,1fr) clamp(300px,17vw,420px)}}
 @media(max-width:999px){
@@ -955,23 +1018,62 @@ body{font-size:1rem}
   .incoming{order:3;width:100%;flex:0 0 auto}
   .cbhead .btn{padding:9px 15px}
 }
-@media(max-width:560px){.hc{width:clamp(104px,30vw,132px)}}
 /* ============ DESKTOP LAYOUT ============
    Applied when :root carries data-ui="pc". uimode.js resolves the player's
    "automatic" preference to a concrete value and stamps it, so this is the only
    place the desktop layout is described — there is no parallel media query to
    keep in step. Everything above is the compact, touch-first layout. */
 
-/* The intel rail: a full column on desktop, a stacked row between the details
-   panel and the hand in the compact layout, hidden only on a wide compact
-   window where the two-column board leaves it nowhere to go. */
-.cbcol.intel{display:none}
-.logbox{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
-.cblog{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:4px;
-  scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
-.cblog::-webkit-scrollbar{width:4px}
-.cblog::-webkit-scrollbar-track{background:transparent}
-.cblog::-webkit-scrollbar-thumb{background:var(--line2)}
+/* ============ ALERT STRIP + LOG OVERLAY ============
+   The log ran a median of 5 lines a turn and up to 34, of which 43% were your
+   own orders, 28% kills you watched happen and 17% a wave the header already
+   announced. The `loss` class — the only one reporting something done TO you —
+   was 3.6%, about a line every four turns, buried in all of it.
+
+   So that 3.6% comes out and sits under the board, and the rest lives in an
+   overlay. The overlay is the point: as a column the log cost the board a grid
+   track on every layout, and folding it away did not even work, because the
+   compact grid kept reserving the row. */
+.alertstrip{display:flex;align-items:center;gap:8px;width:100%;margin-top:6px;
+  padding:5px 8px;text-align:left;cursor:pointer;
+  border:1px solid var(--mag-d);background:rgba(255,77,143,.1);
+  font-family:inherit;font-size:0.6875rem;line-height:1.4;color:#e5a3bd;
+  animation:alertin .35s ease-out}
+.alertstrip[hidden]{display:none}
+.alertstrip:hover{background:rgba(255,77,143,.17);border-color:var(--mag)}
+.alertstrip .aglyph{flex:0 0 auto;width:15px;height:15px;display:grid;place-items:center;
+  background:var(--mag);color:#1a0510;font-weight:700;font-size:0.625rem}
+.alertstrip .atext{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.alertstrip .atext .g{color:var(--green)} .alertstrip .atext .d{color:var(--mag)}
+.alertstrip .atext .t{color:var(--zan)}
+.alertstrip .amore{flex:0 0 auto;font-size:0.625rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--dim);border:1px solid var(--line2);padding:1px 5px}
+@keyframes alertin{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+
+/* Above the focus view, below the dialog — same rank the codec call takes. */
+#logview{position:fixed;inset:0;z-index:93;display:none;align-items:flex-end;justify-content:center;
+  padding:clamp(8px,2vw,28px)}
+#logview.on{display:flex}
+.lvbg{position:absolute;inset:0;background:rgba(7,6,15,.7);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.lvbox{position:relative;z-index:2;width:100%;max-width:520px;max-height:min(70vh,560px);
+  display:flex;flex-direction:column;
+  background:linear-gradient(170deg,var(--panel2) 0%,var(--deep) 70%);border:1px solid var(--line2);
+  clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));
+  box-shadow:0 24px 70px -20px rgba(0,0,0,.95);animation:lvrise .22s ease-out both}
+@keyframes lvrise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.lvhead{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;
+  padding:.7rem .9rem;border-bottom:1px solid var(--line);
+  font-size:0.6875rem;letter-spacing:.2em;text-transform:uppercase;color:var(--zan)}
+.lvx{width:26px;height:26px;flex:0 0 auto;border:1px solid var(--line2);background:transparent;
+  color:var(--dim);font-size:0.6875rem;line-height:1}
+.lvx:hover{color:var(--zan);border-color:var(--zan)}
+.lvlist{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:5px;
+  padding:.75rem .9rem;scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+.lvlist::-webkit-scrollbar{width:4px}
+.lvlist::-webkit-scrollbar-track{background:transparent}
+.lvlist::-webkit-scrollbar-thumb{background:var(--line2)}
+
 .logline{font-size:0.6875rem;line-height:1.55;color:var(--dim);padding-left:7px;
   border-left:2px solid var(--line)}
 .logline.l-kill{border-left-color:var(--green);color:#9fd9b6}
@@ -989,24 +1091,22 @@ body{font-size:1rem}
 .uipick{display:flex;gap:5px;flex-wrap:wrap}
 .uipick .mini.on{color:var(--zan);border-color:var(--zan)}
 
-:root[data-ui="pc"] .cbcol.intel{display:flex}
 :root[data-ui="pc"] .hkey{display:block}
 
 /* Three columns: what has happened, where it is happening, what you can do. */
-:root[data-ui="pc"] .cbmain{grid-template-columns:clamp(190px,15vw,290px) minmax(0,1fr) clamp(212px,16vw,320px);
+:root[data-ui="pc"] .cbmain{grid-template-columns:minmax(0,1fr) clamp(240px,18vw,360px);
   overflow:hidden;gap:clamp(7px,.7vw,12px);padding:clamp(7px,.7vw,12px);align-content:stretch}
 :root[data-ui="pc"] .cbcol{overflow:hidden}
 :root[data-ui="pc"] .cbcol.mid{overflow:hidden;justify-content:center}
 :root[data-ui="pc"] .cbcol.side{overflow-y:auto}
-:root[data-ui="pc"] .field{max-width:min(100%,calc((100vh - 23.5rem) * 1.62));padding:clamp(7px,.7vw,12px)}
-:root[data-ui="pc"] #combat.handclosed .field{max-width:min(100%,calc((100vh - 14.5rem) * 1.62))}
+:root[data-ui="pc"] .field{max-width:min(100%,calc((100vh - 19.5rem) * 1.62));padding:clamp(7px,.7vw,12px)}
 
 /* Denser chrome throughout — a mouse does not need 44px targets. */
 :root[data-ui="pc"] .cbhead{padding:6px clamp(9px,.9vw,15px);row-gap:4px}
 :root[data-ui="pc"] .box{padding:.5rem .62rem}
-:root[data-ui="pc"] .cbfoot{grid-template-columns:minmax(0,1fr) clamp(230px,18vw,330px);
+:root[data-ui="pc"] .cbfoot{grid-template-columns:minmax(0,1fr) clamp(300px,23vw,420px);
   gap:clamp(6px,.6vw,10px);padding:0 clamp(7px,.7vw,12px) clamp(7px,.7vw,12px)}
-:root[data-ui="pc"] .hc{width:clamp(94px,7.8vw,124px);padding:1.35rem .4rem .45rem}
+:root[data-ui="pc"] .hc{padding:.3rem .3rem .35rem}
 :root[data-ui="pc"] .cbacts .btn{padding:.62rem 1rem}
 :root[data-ui="pc"] .bstats{margin-top:6px;gap:13px}
 
@@ -1068,9 +1168,14 @@ body{font-size:1rem}
      below their content — auto rows here would shrink (the columns carry
      min-height:0) and let the grid paint over the panel beneath it. When the
      three rows outgrow the viewport, .cbmain scrolls instead. */
-  .cbmain{grid-template-rows:max-content max-content minmax(8rem,1fr)}
-  .cbcol.intel{display:flex;order:3;min-height:0}
-}
+  .cbmain{grid-template-rows:max-content max-content}
+  /* The loss conditions hold their place on a desktop, where there is room for
+     reference text. On a phone they appear while you are reading the brief and
+     again once a threshold is close, and stay out of the way between. */
+  .objblk .olose{display:none}
+  .objblk.press .olose{display:block}
+  #combat.hasalert .objblk .olose{display:none}
+  }
 
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 

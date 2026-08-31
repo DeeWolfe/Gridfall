@@ -39,6 +39,7 @@ check('doctrines', DOCTRINE, data.doctrines);
 check('targeting', TGNAME, data.targeting);
 check('constants', {
   LANES: C.LANES, COLS: C.COLS, MAXDP: C.MAXDP, MAXBREACH: C.MAXBREACH,
+  GROUND_FLOOR: C.GROUND_FLOOR, HAND_CAP: C.HAND_CAP,
   DECKSIZE: C.DECKSIZE, SAVE_VERSION: C.SAVE_VERSION, STARTER: C.STARTER,
 }, data.constants);
 

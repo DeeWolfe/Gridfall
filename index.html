@@ -113,22 +113,16 @@
     <div class="mtitle">
       <b id="c-title">—</b>
       <span class="doctrine" id="c-doc">—</span>
-      <span id="c-obj">—</span>
     </div>
     <div class="incoming" id="man"></div>
     <button class="leadbadge" id="leadbadge"></button>
   </div>
   <div class="cbmain">
-    <div class="cbcol intel">
-      <div class="box logbox">
-        <h3>Combat log</h3>
-        <div class="cblog" id="cblog"></div>
-      </div>
-    </div>
     <div class="cbcol mid">
       <div class="field">
         <div class="board" id="board"></div>
         <div class="terbar" id="terbar"></div>
+        <button class="alertstrip" id="alertstrip" hidden></button>
         <div class="bstats">
           <span>Ground <b id="c-ter">0</b></span>
           <span>Breaches <b id="c-br">0</b></span>
@@ -137,17 +131,22 @@
       </div>
     </div>
     <div class="cbcol side">
-      <div class="box grow selbox"><div id="selinfo">Nothing selected.</div></div>
+      <div class="box grow selbox">
+        <div class="objblk" id="objblk"></div>
+        <div id="selinfo">Nothing selected.</div>
+      </div>
     </div>
   </div>
   <div class="cbfoot">
     <div class="box handbox" id="handbox">
-      <h3>Hand<span class="handhead-r"><span class="dpchip"><b id="c-dp">6</b> DP</span>
-        <button class="handtog" id="handtog" aria-label="Toggle hand">▾</button></span></h3>
+      <h3><span class="handcount" id="handcount">Hand</span>
+        <span class="handchip" id="handchip" hidden></span>
+        <span class="handhead-r"><span class="dpchip"><b id="c-dp">6</b> DP</span></span></h3>
       <div class="hcards" id="hcards"></div>
     </div>
     <div class="cbacts">
       <button class="btn" id="actPrimary">End turn</button>
+      <button class="btn ghost logtog" id="logtog" aria-pressed="false">Log</button>
       <button class="btn ghost" id="actSecondary">Abort</button>
     </div>
   </div>
@@ -178,6 +177,15 @@
 <div id="focus"><div class="fbg" id="fbg"></div><div class="fwrap" id="fwrap"></div></div>
 
 <div id="codec"></div>
+
+<div id="logview">
+  <div class="lvbg" id="lvbg"></div>
+  <div class="lvbox">
+    <div class="lvhead">Combat log
+      <button class="lvx" id="lvx" aria-label="Close">✕</button></div>
+    <div class="lvlist" id="cblog"></div>
+  </div>
+</div>
 
 <div id="drawer">
   <div class="drawmenu">

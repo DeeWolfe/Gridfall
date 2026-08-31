@@ -37,6 +37,6 @@ export const MISSIONS = {
   blitz: {
     n: "Eradication Blitz",
     waves: 6,
-    d: "Purge the zone. Destroy ten hostiles before the wave count runs out.",
+    d: "Purge the zone. Destroy nine hostiles before the wave count runs out.",
   },
 };

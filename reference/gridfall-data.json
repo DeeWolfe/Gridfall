@@ -4,6 +4,8 @@
   "COLS": 8,
   "MAXDP": 6,
   "MAXBREACH": 1,
+  "GROUND_FLOOR": 6,
+  "HAND_CAP": 6,
   "DECKSIZE": 12,
   "SAVE_VERSION": 5,
   "STARTER": [
@@ -1273,7 +1275,7 @@
   "blitz": {
    "n": "Eradication Blitz",
    "waves": 6,
-   "d": "Purge the zone. Destroy ten hostiles before the wave count runs out."
+   "d": "Purge the zone. Destroy nine hostiles before the wave count runs out."
   }
  },
  "modifiers": {

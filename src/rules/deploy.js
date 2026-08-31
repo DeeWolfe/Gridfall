@@ -59,7 +59,7 @@ function playInstant(cid) {
   if (k.gain) { G.dp += k.gain; done.push(`+${k.gain} DP`); }
   if (k.homestrike) done.push(homeStrike(k));
   if (k.draw) {
-    for (let i = 0; i < k.draw; i++) drawCard();
+    for (let i = 0; i < k.draw; i++) drawCard(true);
     done.push(`${k.draw} cards called in`);
   }
   // Supply Cache's own price, declared on the card — being an instant does
@@ -168,7 +168,7 @@ export function deploy(cid, l, c) {
       clog(`<span class="g">${k.n}</span> — +${k.dpGain} deploy points.`, 'info');
     }
     if (k.draw) {
-      for (let i = 0; i < k.draw; i++) drawCard();
+      for (let i = 0; i < k.draw; i++) drawCard(true);
       clog(`<span class="g">${k.n}</span> — ${k.draw} cards called in.`, 'info');
     }
     clog(`Deployed <span class="g">${k.n}</span> — lane ${l + 1}, col ${c}.`, 'order');
