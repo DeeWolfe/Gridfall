@@ -4,9 +4,23 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.3';
+export const VERSION = '2.4';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.4',
+    notes: [
+      'Frames. A Frame is a Specialist war machine that cannot deploy on its own — it needs a Frame Pilot already standing on the board, and it lands on or beside that Pilot and takes them aboard. Two cards, two deployments, and a setup step the hive gets a turn to punish.',
+      'Three of them. White Devil holds a lane behind a regenerating shield. Seven Blades wants to be standing exactly where you put it. Heavy Arms never moves, carries the heaviest hull on the field, and shells whatever is in front of it.',
+      'A Frame carries a weapon you choose before the mission, not gear you bolt on during it. Frame weapons REPLACE the machine\'s service weapon rather than adding to it, and each one fits one Frame and nothing else — a Beam Saber is a White Devil weapon and will not go anywhere near a Rifleman. A bare Frame is always playable, just less specialised.',
+      'Six weapons: Beam Rifle and Beam Saber for the White Devil, Crystal Greatsword and Crystal Longsword for Seven Blades, Laser Gatling and Missile Gatling for Heavy Arms.',
+      'The Laser Gatling fires both forward diagonals and nothing at all through the centre. It is the only weapon in the game with a hole in its own pattern, and the card draws it.',
+      'A destroyed Frame is not a destroyed Pilot. The Pilot ejects at one hull and stays on the board — you lose the machine, keep the person, and that Pilot can climb into another Frame later. If something is standing in the wreck, they go up with it.',
+      'Squad only offers a card the gear it can actually take, and the Quartermaster shelves Frame weapons separately and says which Frame each one needs. Buying a Beam Saber with no White Devil is money gone.',
+      'A deck carrying a Frame with no Pilot in it says so on the Squad screen, rather than letting you find out on the board with five deploy points spent.',
+      'Fixed: a weapon firing at exactly three cells was blocked by your own two-cell units inconsistently — the rules cut the shot where the board had not dimmed the tile, so it struck from a cell that never lit up.',
+    ],
+  },
   {
     v: '2.3',
     notes: [

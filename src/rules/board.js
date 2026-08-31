@@ -61,6 +61,34 @@ export function cellPassable(l, c, selfUid) {
   return true;
 }
 
+/** A Frame Pilot: the cheap body a Frame needs in order to exist. */
+export const isPilot = u => !!(u && POOL[u.id] && POOL[u.id].pilot);
+
+/**
+ * The Pilot a Frame filling `cells` would climb into: one standing inside the
+ * footprint first, otherwise the nearest one orthogonally beside it.
+ *
+ * Shared by validTiles() and deploy() so the cell you are offered and the Pilot
+ * you actually spend can never disagree.
+ */
+export function frameAnchorFor(cells) {
+  const pilots = G.units.filter(isPilot);
+  if (!pilots.length) return null;
+  const inside = pilots.find(p => cells.some(([l, c]) => p.lane === l && p.col === c));
+  if (inside) return inside;
+  const beside = pilots
+    .map(p => ({p, d: Math.min(...cells.map(([l, c]) => Math.abs(p.lane - l) + Math.abs(p.col - c)))}))
+    .filter(x => x.d === 1)
+    .sort((a, b) => a.p.uid - b.p.uid)[0];
+  return beside ? beside.p : null;
+}
+
+/** The cells a Frame played at (l, c) would fill. */
+export const frameCells = (cid, l, c) => {
+  const size = (POOL[cid] && POOL[cid].size) || 1;
+  return Array.from({length: size}, (_, i) => [l, c + i]);
+};
+
 /**
  * Every cell index (lane * COLS + col) where this card may legally be played.
  * Each card family answers the question differently, so they branch out early
@@ -81,6 +109,37 @@ export function validTiles(cid) {
   // Attachments go onto one of your units that does not already carry one.
   if (k.attach) {
     G.units.forEach(u => { if (!u.att[k.attach]) out.push(u.lane * COLS + u.col); });
+    return out;
+  }
+
+  // A Frame does not land on ground, it lands on a person. The usual held-tile
+  // rule does not apply at all: the only question is whether one of your
+  // Pilots is standing on, or orthogonally beside, the cells the machine will
+  // fill. This branch returns before the ownership loop below on purpose —
+  // a Silent Insertion charge widens where ordinary cards may be played, and
+  // it must not quietly turn a Frame into a card that drops anywhere.
+  if (k.frame) {
+    const size = k.size || 1;
+    for (let l = 0; l < LANES; l++) for (let c = 0; c < COLS; c++) {
+      const cells = [];
+      let ok = true;
+      let inside = 0;
+      for (let i = 0; i < size; i++) {
+        const cc = c + i;
+        if (cc >= COLS || G.ter[l][cc] === 'x') { ok = false; break; }
+        if (foeAt(l, cc) || civAt(l, cc)) { ok = false; break; }
+        const holder = unitAt(l, cc);
+        // Only the Pilot being climbed into may be standing in the footprint,
+        // and only one of them — two would mean silently deleting a card.
+        if (holder) {
+          if (!isPilot(holder)) { ok = false; break; }
+          inside++;
+        }
+        cells.push([l, cc]);
+      }
+      if (!ok || inside > 1) continue;
+      if (frameAnchorFor(cells)) out.push(l * COLS + c);
+    }
     return out;
   }
 

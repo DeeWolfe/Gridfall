@@ -3100,6 +3100,114 @@ the fact you came for, and a thirteen-row picker unfurled above it buries the
 answer under the means of changing it. Tap the name to unfold, "None" at the
 bottom of the list.
 
+## v2.4 — Frames
+
+Built from a concept brief that said, correctly, to treat every number in it as
+an argument rather than a value. What follows is what those arguments became
+against the code as it actually is, and where they were bent.
+
+### The shape
+
+Three data flags carry the whole class, and nothing else in the game had to
+learn about Frames to make them work:
+
+- `pilot: 1` on a card — the cheap body a Frame needs. One cell, no weapon,
+  two hull.
+- `frame: 1` on a card — Specialist, two cells, deploys only onto or beside a
+  friendly Pilot, consumes it.
+- `frame: '<cardId>'` on a gear entry — that piece is a Frame weapon, bound to
+  that Frame, and it REPLACES the printed weapon rather than riding on it.
+
+The replacement is the part that touches the most code, because everything that
+reads a card's targeting or damage had to learn to ask a different question.
+`frameWeapon(id)` is the single accessor; `mkUnit`, `statRows`, the hitbox
+diagram, and the combat details panel all go through it, and the card is the
+fallback so a bare Frame is a real card rather than a dead draw.
+
+`gearFits(cardId, gearId)` is the exclusivity rule, one function, read by both
+fitting surfaces AND by both fitting handlers. A filter that is only applied
+where options are *offered* is a filter you will eventually route around.
+
+### Where the deployment rule lives
+
+`validTiles` gets a `k.frame` branch that returns before the ownership loop
+below it — deliberately, and the comment says so. A Silent Insertion charge
+widens where ordinary cards may be played, and without the early return it
+would have quietly turned a Frame into a card that drops anywhere. `frametest`
+asserts that specifically.
+
+The offer is: every two-cell footprint that is passable, contains at most one
+Pilot and no other unit, and has some Pilot on it or orthogonally beside it.
+Around a single Pilot that is eight cells. `frameAnchorFor()` is shared by
+`validTiles` and `deploy`, so the cell you are offered and the Pilot you
+actually spend cannot disagree.
+
+Spending the Pilot is a filter, not a kill: `G.lost` does not move, because the
+Pilot is climbing in rather than dying.
+
+### The decisions the brief left open
+
+Taken as recommended, with one exception:
+
+- **Pilot first** — yes, and it falls out of the rule rather than being
+  enforced separately.
+- **Ejection** — yes. A destroyed Frame puts its Pilot back at one hull in the
+  cell the wreck's front stood in. If something is standing there, the Pilot
+  goes up with it, which keeps the mercy from being unconditional.
+- **Two cells** — yes, matching Aegis Knights. Four was not tried; two already
+  makes finding somewhere to land a real question.
+- **No general gear on Frames** — yes, both directions.
+
+**The exception is the cost, and it needs a decision.** A Pilot is 1 DP and a
+Frame is 5 or 6, against a 6 DP turn. So:
+
+- Heavy Arms (6) can *never* be fielded in one turn. The window is forced.
+- White Devil and Seven Blades (5) can be, at the cost of the entire turn's
+  deploy points and two cards drawn together.
+
+That gradient is defensible — the cheaper Frames buy the option of skipping the
+vulnerable window by spending everything else — but it is currently an accident
+of the numbers rather than a decision, which is exactly what the brief warned
+about. Push both to 6 to force the window everywhere, or leave it. It is one
+value in `reference/gridfall-data.json`.
+
+### The dials, in the order they will need turning
+
+1. **Pilot fragility.** 2 hull, so a Crawler (2 damage) kills it in one hit and
+   anything larger does so trivially. That is "genuinely vulnerable" as asked,
+   and it is the number most likely to be wrong in either direction.
+2. **Frame weapon pricing.** 440–540 credits, above the general pool's ceiling
+   (450, Shoulder Cannon) as the brief required. But a Frame weapon is bound to
+   one card, so it is buying less flexibility for more money — watch whether
+   that reads as fair or as a tax.
+3. **Frame cost**, per the decision above.
+
+Balance was not re-measured against the bot, and deliberately: `mtest` plays
+STARTER decks, which contain no Frames and no Pilot, so the harness cannot see
+this feature at all. Numbers stayed in their usual band, which proves only that
+nothing was broken in passing.
+
+### The bug this found
+
+`geomtest` is randomised on purpose — every firing pattern, scattered across
+hundreds of boards, asserting that everything `geomFor()` strikes stands on a
+cell `geomCells()` lit. Adding Frames put two-cell blockers into the fixture in
+quantity for the first time, and it immediately failed on `range3`.
+
+`geomFor`'s blocker check compared anchor columns (`f.col > front`), while
+`geomCells`' `cutTo` walks `unitAt` and is footprint-aware. A two-cell blocker
+anchored ON the shooter's own front cell covers front+1: the rules said the
+shot was clear, the board said the tile was dark, and the game struck a hostile
+from a cell it had never lit. Fixed by giving `geomFor` the same walk.
+
+That bug predates Frames by months. It was unreachable only because the one
+two-cell blocker in the game was rarely in the way.
+
+`geomtest` also needed a fix of its own: three of the new geometries exist only
+on gear, so the sampler now covers gear-declared patterns too — and it fits the
+weapon per trial rather than once up front, because two of them live on the same
+Frame and the second assignment was silently swallowing the first.
+
 ## Card backlog — the next pass
 
 Not built. Recorded here so the next card batch starts from a list rather than a

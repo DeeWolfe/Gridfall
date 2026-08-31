@@ -10,7 +10,7 @@ import {TGNAME} from '../content/targeting-names.js';
 import {TIERNAME, VET} from '../content/ranks.js';
 import {active, setSel, setMover} from '../state/session.js';
 import {commit} from '../save/profile.js';
-import {costOf, gearOf, vetOf, leadUnlocked, leadPrice, leadGateText} from '../save/progression.js';
+import {costOf, gearOf, vetOf, gearFits, frameWeapon, leadUnlocked, leadPrice, leadGateText} from '../save/progression.js';
 import {$, attr} from './dom.js';
 import {sigil, artFor, portrait, bokehLayer} from './art.js';
 import {notify} from './dialog.js';
@@ -43,13 +43,20 @@ export function closeFocus() {
 function statRows(id) {
   const k = POOL[id];
   const g = gearOf(id);
+  // Frame gear replaces rather than adds, so the damage row has to read the
+  // weapon when there is one — printing "4 + 8" for a Beam Rifle would be a lie
+  // about a number the player is choosing between two of.
+  const w = frameWeapon(id);
   return [
+    k.frame ? ['Crew', 'Needs a Frame Pilot on or beside the cells it fills'] : null,
+    k.pilot ? ['Purpose', 'Unarmed. A Frame deploys onto it and takes it aboard'] : null,
     // Only worth a row when the geared cost differs from the printed one.
     (g && g.dp) ? ['Deploy cost', costOf(id) + ' DP (geared)'] : null,
     (k.hp && g && g.hp) ? ['Hull', k.hp + ' +' + g.hp] : null,
     // An instant never lands, so it has no footprint to report.
-    (!k.instant && (k.size > 1 || k.attach)) ? ['Footprint', k.size > 1 ? '2 cells' : 'Attachment'] : null,
-    k.dmg ? ['Damage', (k.dmg + (g && g.dmg ? g.dmg : 0)) + (k.burst ? ` (${k.burst} on play)` : '')] : null,
+    (!k.instant && (k.size > 1 || k.attach)) ? ['Footprint', k.size > 1 ? k.size + ' cells' : 'Attachment'] : null,
+    (w && w.dmg) ? ['Damage', `${w.dmg} — ${w.n}`] : null,
+    (!w && k.dmg) ? ['Damage', (k.dmg + (g && g.dmg ? g.dmg : 0)) + (k.burst ? ` (${k.burst} on play)` : '')] : null,
     k.recharge ? ['Rate of fire', 'Every other turn — needs a turn to cycle'] : null,
     k.charge ? ['Charge', `Moves up to ${k.charge} cells forward`] : null,
     k.push ? ['On hit', 'Drives the survivor back one cell'] : null,
@@ -61,7 +68,7 @@ function statRows(id) {
     k.zoneMin ? ['Deployment', `Column ${k.zoneMin} and beyond${k.anyGround ? ', any ground' : ', held ground only'}`] : null,
     k.drop ? ['Deployment', 'Any tile, including hostile ground'] : null,
     k.regen ? ['Shield', 'Regenerates each turn'] : null,
-    k.riposte ? ['Riposte', k.riposte + ' back to attackers'] : null,
+    (k.riposte || (w && w.riposte)) ? ['Riposte', ((k.riposte || 0) + ((w && w.riposte) || 0)) + ' back to attackers'] : null,
     k.pristine ? ['Pristine bonus', '+' + k.pristine + ' damage at full hull'] : null,
     k.claim ? ['On deployment', 'Claims ' + k.claim + ' tiles ahead'] : null,
     k.instant ? ['Type', 'Instant — no body left behind'] : null,
@@ -155,10 +162,43 @@ function gearRow(id, gi) {
     <span class="gd">${g.d}</span></button>`;
 }
 
+/**
+ * The weapon block for a Frame.
+ *
+ * A Frame's gear does not ride on top of the card, it IS the card's weapon —
+ * so this reads as a loadout choice rather than an accessory slot, and a bare
+ * Frame has to say what it is carrying instead of reading as empty. Role tabs
+ * would be silly over two pieces, so the list is flat.
+ */
+function frameWeaponBlock(id, mode) {
+  const k = POOL[id];
+  const w = frameWeapon(id);
+  const carried = w ? `${w.n}` : `${k.n} service weapon`;
+  const rules = w ? w.d : `${TGNAME[k.tg] || k.tg} · ${k.dmg} damage. Fit a weapon in Squad to change it.`;
+
+  if (mode !== 'gear') {
+    return `<div class="fab"><b>Weapon · ${carried}</b>${rules}</div>`;
+  }
+
+  const owned = active.unlocks.gear.filter(gi => gearFits(id, gi));
+  const all = Object.keys(GEAR).filter(gi => GEAR[gi].frame === id);
+  if (!owned.length) {
+    return `<div class="fab"><b>Weapon · ${carried}</b>${rules}
+      <div style="margin-top:8px;color:var(--dim)">No ${k.n} weapon owned yet — ${all.length} exist,
+        and they fit nothing else. The Quartermaster has them.</div></div>`;
+  }
+  const rows = owned.map(gi => gearRow(id, gi)).join('');
+  return `<div class="fab"><b>Weapon · ${carried}</b>${rules}
+      <div class="glist" style="margin-top:8px">${rows}</div>
+      ${w ? `<button class="mini" data-fitgear="${id}:none" style="color:var(--mag);margin-top:8px">Back to the service weapon</button>` : ''}</div>`;
+}
+
 function gearBlock(id, mode) {
   const k = POOL[id];
   // An attachment card is gear in card form; it has no slot of its own.
   if (k.attach) return '';
+  // A Frame is a closed kit and reads as one.
+  if (k.frame) return frameWeaponBlock(id, mode);
   const g = gearOf(id);
 
   // Everywhere but the fitting surface this is a readout, not a control — and
@@ -168,7 +208,10 @@ function gearBlock(id, mode) {
     return g ? `<div class="fab"><b>Gear fitted · ${g.n}</b>${g.d}</div>` : '';
   }
 
-  const owned = active.unlocks.gear;
+  // Frame weapons never appear here, and general gear never appears on a
+  // Frame — one predicate, both directions, so the rule cannot be enforced on
+  // one surface and forgotten on the other.
+  const owned = active.unlocks.gear.filter(gi => gearFits(id, gi));
   if (!owned.length) {
     return `<div class="fab"><b>Gear slot</b>Empty.
       <div style="margin-top:8px;color:var(--dim)">No gear owned. Visit the Quartermaster.</div></div>`;
@@ -271,11 +314,14 @@ export function focusEnemy(id) {
  * buries that fact under the means of changing it. Tap the name to change it.
  */
 function gearFitList(gi) {
-  const deck = active.loadout.deck.filter(c => POOL[c] && !POOL[c].attach);
+  // Frame gear is bound to one Frame; general gear goes anywhere but a Frame.
+  const deck = active.loadout.deck.filter(c => POOL[c] && !POOL[c].attach && gearFits(c, gi));
   const on = gearWearer(gi);
   if (!deck.length) {
-    return `<div class="fab"><b>Linked card</b><span style="color:var(--dim)">
-      No card in the deck can carry gear yet.</span></div>`;
+    const bound = GEAR[gi].frame;
+    return `<div class="fab"><b>Linked card</b><span style="color:var(--dim)">${bound
+      ? `This is a ${POOL[bound].n} weapon. It fits nothing else, and the ${POOL[bound].n} is not in your deck.`
+      : 'No card in the deck can carry gear yet.'}</span></div>`;
   }
   const rows = deck.map(c => {
     const worn = active.loadout.gear[c];
@@ -448,6 +494,7 @@ function wireFocus() {
 
   each('data-wear', b => {
     const [gi, cid] = b.dataset.wear.split(':');
+    if (cid !== 'none' && !gearFits(cid, gi)) return;
     const was = gearWearer(gi);
     // Tapping the card it is already on is a no-op, not a silent strip — the
     // Strip button below the list is the one control that takes gear off.
@@ -461,6 +508,9 @@ function wireFocus() {
 
   each('data-fitgear', b => {
     const [id, gi] = b.dataset.fitgear.split(':');
+    // The lists are already filtered; this is the rule itself, enforced where
+    // the assignment actually happens rather than only where it is offered.
+    if (gi !== 'none' && !gearFits(id, gi)) return;
     if (gi === 'none') {
       delete active.loadout.gear[id];
     } else {

@@ -14,7 +14,7 @@ import {TGNAME} from '../content/targeting-names.js';
 import {G, active, sel, mover, foeSel, replaying, stratSel, logOpen, setSel, setMover, setFoeSel, setStratSel, setLogOpen} from '../state/session.js';
 import {STRATAGEMS} from '../content/stratagems.js';
 import {stratReady, canPlayStratagem, playStratagem, stratMarkers} from '../rules/stratagems.js';
-import {costOf, gearOf, vetOf, leadOf} from '../save/progression.js';
+import {costOf, gearOf, vetOf, frameWeapon, leadOf} from '../save/progression.js';
 import {unitAt, foeAt, civAt, held, scorched, validTiles, breachAllowance} from '../rules/board.js';
 import {geomFor, geomCells, candidatesFor, targetsFor} from '../rules/targeting.js';
 import {buffOf, dmgPreview} from '../rules/units.js';
@@ -235,17 +235,29 @@ function drawSel() {
   if (sel) {
     const k = POOL[sel];
     const g = gearOf(sel);
+    // A Frame carries the weapon you chose in Squad, not the printed one.
+    const w = frameWeapon(sel);
+    const tg = (w && w.tg) || k.tg;
+    const dmg = w ? w.dmg : k.dmg + (g && g.dmg ? g.dmg : 0);
+    // A Frame with no Pilot on the board has nowhere to go, and the board says
+    // so by lighting nothing at all. That is the one selection state where an
+    // empty highlight is the rule working rather than a mistake, so it gets a
+    // sentence instead of leaving the player tapping at dead tiles.
+    const anchors = k.frame ? validTiles(sel).length : 1;
     el.innerHTML = `<div class="selhead"><b style="color:var(--green)">${k.n}</b>
         <span class="hpbadge">${costOf(sel)} DP</span></div>
       <div class="selgrid">
         ${k.hp ? `<div><span>Hull</span><b>${k.hp + (g && g.hp ? g.hp : 0)}</b></div>` : ''}
-        ${k.dmg ? `<div><span>Damage</span><b>${k.dmg + (g && g.dmg ? g.dmg : 0)}</b></div>` : ''}
-        ${k.tg && k.tg !== 'none' ? `<div><span>Targeting</span><b>${TGNAME[k.tg]}</b></div>` : ''}
-        <div><span>Deploy</span><b>${k.drop ? 'Any tile'
-    : k.anyGround ? `Any ground · col ${k.zoneMin}+`
-      : k.zoneMin ? `Held · col ${k.zoneMin}+` : 'Held tiles'}</b></div>
+        ${dmg ? `<div><span>Damage</span><b>${dmg}</b></div>` : ''}
+        ${tg && tg !== 'none' ? `<div><span>${w ? w.n : 'Targeting'}</span><b>${TGNAME[tg]}</b></div>` : ''}
+        <div><span>Deploy</span><b>${k.frame ? 'On a Pilot'
+    : k.drop ? 'Any tile'
+      : k.anyGround ? `Any ground · col ${k.zoneMin}+`
+        : k.zoneMin ? `Held · col ${k.zoneMin}+` : 'Held tiles'}</b></div>
       </div>
-      <div class="selfire live">Tap a lit tile to deploy</div>
+      <div class="selfire ${anchors ? 'live' : 'dead'}">${anchors
+    ? (k.frame ? 'Tap a lit tile — the Pilot there goes aboard' : 'Tap a lit tile to deploy')
+    : 'No Frame Pilot on the board. Deploy one first, and keep it alive.'}</div>
       <div class="abline">${k.d}</div>`;
     return;
   }

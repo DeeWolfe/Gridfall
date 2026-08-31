@@ -841,6 +841,64 @@
     "cd": 2
    },
    "d": "A four-armed war frame. The scythes sweep the column ahead across three lanes at once, so nothing gets past it by stepping sideways."
+  },
+  "pilot": {
+   "n": "Frame Pilot",
+   "t": "common",
+   "dp": 1,
+   "hp": 2,
+   "price": 70,
+   "mob": 1,
+   "tg": "none",
+   "dmg": 0,
+   "pilot": 1,
+   "d": "Carries no weapon and cannot hold a cell. Deploy one, keep it alive, and a Frame can land on it — that is the whole job."
+  },
+  "whitedevil": {
+   "n": "White Devil",
+   "t": "special",
+   "dp": 5,
+   "hp": 20,
+   "price": 470,
+   "mob": 1,
+   "size": 2,
+   "tg": "adj",
+   "dmg": 2,
+   "frame": 1,
+   "regen": 1,
+   "blocker": 1,
+   "single": 1,
+   "d": "The defensive frame. A regenerating shield and a service blade it barely needs. Bare it is a wall that hits back; kitted it is whatever you decided before the drop."
+  },
+  "sevenblades": {
+   "n": "Seven Blades",
+   "t": "special",
+   "dp": 5,
+   "hp": 18,
+   "price": 480,
+   "mob": 1,
+   "size": 2,
+   "tg": "adj",
+   "dmg": 6,
+   "frame": 1,
+   "blocker": 1,
+   "single": 1,
+   "d": "The melee frame. An arm-mounted blade and nothing else — it does not want range, it wants to be standing where you put it."
+  },
+  "heavyarms": {
+   "n": "Heavy Arms",
+   "t": "special",
+   "dp": 6,
+   "hp": 25,
+   "price": 510,
+   "mob": 0,
+   "size": 2,
+   "tg": "first",
+   "dmg": 5,
+   "frame": 1,
+   "blocker": 1,
+   "single": 1,
+   "d": "The artillery frame. Anchored, heaviest hull on the field, and a ballistic gatling that does not care what it is pointed at."
   }
  },
  "gear": {
@@ -990,6 +1048,64 @@
    "d": "Fires a second time every turn, at the same targets.",
    "twin": 1,
    "role": "offense"
+  },
+  "beamrifle": {
+   "n": "Beam Rifle",
+   "cost": 440,
+   "d": "Replaces the White Devil's blade. One hostile down the lane, hit very hard.",
+   "frame": "whitedevil",
+   "role": "offense",
+   "tg": "first",
+   "dmg": 8,
+   "single": 1
+  },
+  "beamsaber": {
+   "n": "Beam Saber",
+   "cost": 480,
+   "d": "Replaces the White Devil's blade. Brutal at contact, and it answers anything that strikes the frame.",
+   "frame": "whitedevil",
+   "role": "offense",
+   "tg": "adj",
+   "dmg": 10,
+   "single": 1,
+   "riposte": 3
+  },
+  "greatsword": {
+   "n": "Crystal Greatsword",
+   "cost": 520,
+   "d": "Replaces the Seven Blades' arm blade. One swing takes the whole area directly ahead.",
+   "frame": "sevenblades",
+   "role": "offense",
+   "tg": "sweep",
+   "dmg": 5
+  },
+  "longsword": {
+   "n": "Crystal Longsword",
+   "cost": 460,
+   "d": "Replaces the Seven Blades' arm blade. Reach — it strikes at three cells without ever closing.",
+   "frame": "sevenblades",
+   "role": "offense",
+   "tg": "range3",
+   "dmg": 8,
+   "single": 1
+  },
+  "lasergat": {
+   "n": "Laser Gatling",
+   "cost": 500,
+   "d": "Replaces the Heavy Arms gatling. Both forward diagonals at once, and nothing at all in the centre.",
+   "frame": "heavyarms",
+   "role": "offense",
+   "tg": "wings",
+   "dmg": 6
+  },
+  "missilegat": {
+   "n": "Missile Gatling",
+   "cost": 540,
+   "d": "Replaces the Heavy Arms gatling. A cross of warheads centred three cells out.",
+   "frame": "heavyarms",
+   "role": "offense",
+   "tg": "cross3",
+   "dmg": 4
   }
  },
  "hostiles": {
@@ -2224,7 +2340,10 @@
   "diag": "The four diagonals only",
   "range2": "Exactly two cells ahead",
   "boardFurthest": "Furthest hostile on the board",
-  "rear": "Nearest hostile BEHIND it in the lane"
+  "rear": "Nearest hostile BEHIND it in the lane",
+  "wings": "Both forward diagonals — nothing in the centre",
+  "sweep": "Every cell in the two columns directly ahead",
+  "cross3": "A cross centred three cells ahead"
  },
  "emptyProfile": {
   "version": 5,

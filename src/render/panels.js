@@ -139,11 +139,22 @@ function gearLocker() {
 function squadPanel() {
   const deck = active.loadout.deck;
   const reserve = active.unlocks.cards.filter(c => !deck.includes(c));
+  // A Frame with no Pilot in the same deck is a dead draw, and the deck screen
+  // is the only place that can say so before the mission starts. Cheap to
+  // check, and the alternative is finding out on the board with 5 DP spent.
+  const frames = deck.filter(c => POOL[c].frame);
+  const pilots = deck.filter(c => POOL[c].pilot);
+  const orphan = frames.length && !pilots.length
+    ? `<div class="bar"><div style="color:var(--gold)"><b style="color:var(--gold)">⚠</b>
+        ${frames.map(c => POOL[c].n).join(' and ')} cannot deploy without a Frame Pilot in this deck</div>
+        <div style="color:var(--dim);font-size:0.6875rem">A Frame lands on a Pilot, never on open ground</div></div>`
+    : '';
   return `<div class="sect">Team lead — answers to you</div>${leadCardHTML()}
    ${leadTilesHTML('squad')}
    <div class="sect">Deck</div>
    <div class="bar"><div><b>${deck.length}</b> / ${DECKSIZE} in deck · <b style="color:var(--cyan)">${Object.keys(active.loadout.gear).length}</b> geared</div>
      <div style="color:var(--dim);font-size:0.6875rem">Tap any card to enlarge it — inspect, fit gear, add or remove</div></div>
+   ${orphan}
    <div class="sect">Active deck</div>
    ${deck.length ? cardGrid(deck, 'gear') : cardGridEmpty('Empty.')}
    <div class="sect">Reserve — ${reserve.length}</div>
@@ -156,17 +167,31 @@ function quartermasterPanel() {
   const tier = t => `<div class="sect">${TIERNAME[t]}</div>` +
     cardGrid(Object.keys(POOL).filter(c => POOL[c].t === t), 'shop');
 
+  // Frame weapons are shelved separately and say which Frame they need. A
+  // Beam Saber bought without a White Devil is a wasted 480 credits, and the
+  // shop is the last place that can say so before the money is gone.
+  const gearTile = gi => {
+    const g = GEAR[gi];
+    const owned = active.unlocks.gear.includes(gi);
+    const affordable = active.progress.credits >= g.cost;
+    const needsFrame = g.frame && !active.unlocks.cards.includes(g.frame);
+    const foot = owned ? '<div class="gfoot own">Owned</div>'
+      : needsFrame ? `<div class="gfoot no">Needs ${POOL[g.frame].n}</div>`
+        : `<div class="gfoot ${affordable ? 'buy' : 'no'}">${g.cost} cr</div>`;
+    return `<button class="gcard t-tech${owned ? ' owned' : (affordable && !needsFrame) ? '' : ' cant'}" data-gear="${gi}"
+       title="${attr(g.n + ' — ' + g.cost + ' cr\n' + g.d +
+         (g.frame ? '\nFits the ' + POOL[g.frame].n + ' and nothing else.' : ''))}">
+       <div class="inkmark">${sigil(gi, 'tech')}</div>
+       <div class="tn">${g.n}</div>${foot}</button>`;
+  };
+  const general = Object.keys(GEAR).filter(gi => !GEAR[gi].frame);
+  const frameGear = Object.keys(GEAR).filter(gi => GEAR[gi].frame);
   const gearGrid = `<div class="sect" style="color:var(--cyan)">Gear</div>
-     <div class="cgrid">${Object.keys(GEAR).map(gi => {
-       const g = GEAR[gi];
-       const owned = active.unlocks.gear.includes(gi);
-       const affordable = active.progress.credits >= g.cost;
-       return `<button class="gcard t-tech${owned ? ' owned' : affordable ? '' : ' cant'}" data-gear="${gi}"
-         title="${attr(g.n + ' — ' + g.cost + ' cr\n' + g.d)}">
-         <div class="inkmark">${sigil(gi, 'tech')}</div>
-         <div class="tn">${g.n}</div>
-         <div class="gfoot ${owned ? 'own' : affordable ? 'buy' : 'no'}">${owned ? 'Owned' : g.cost + ' cr'}</div></button>`;
-     }).join('')}</div>`;
+     <div class="cgrid">${general.map(gearTile).join('')}</div>` +
+    (frameGear.length ? `<div class="sect" style="color:var(--violet)">Frame weapons</div>
+     <div class="bar"><div>Each one fits a single Frame and replaces its service weapon</div>
+       <div style="color:var(--dim);font-size:0.6875rem">Buy the Frame first — a weapon with no Frame does nothing</div></div>
+     <div class="cgrid">${frameGear.map(gearTile).join('')}</div>` : '');
 
   const schemeGrid = `<div class="sect" style="color:var(--gold)">Uniforms</div>
      <div class="cgrid">${Object.keys(SCHEMES).map(k => {

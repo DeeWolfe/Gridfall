@@ -9,10 +9,10 @@ import {POOL} from '../content/cards.js';
 import {BEST} from '../content/hostiles.js';
 import {G, active, clearSelection} from '../state/session.js';
 import {randInt} from '../state/rng.js';
-import {costOf, vetOf, gearOf} from '../save/progression.js';
+import {costOf, vetOf, gearOf, frameWeapon} from '../save/progression.js';
 import {VET} from '../content/ranks.js';
 import {hooks} from '../state/hooks.js';
-import {unitAt, foeAt, civAt} from './board.js';
+import {unitAt, foeAt, civAt, frameAnchorFor, frameCells} from './board.js';
 import {mkUnit} from './units.js';
 import {fire, blast, healPass, dmgEnemy} from './combat.js';
 import {clog} from './log.js';
@@ -151,7 +151,19 @@ export function deploy(cid, l, c) {
       }
     }
 
+    // A Frame spends a Pilot rather than a tile. The Pilot is consumed, not
+    // killed — it is climbing in, so G.lost stays where it is and the card is
+    // not counted as a casualty. The machine remembers which Pilot walked in
+    // with it, because that is who steps back out if it is destroyed.
+    let rider = null;
+    if (k.frame) {
+      rider = frameAnchorFor(frameCells(cid, l, c));
+      if (!rider) return;
+      G.units = G.units.filter(x => x.uid !== rider.uid);
+    }
+
     const u = mkUnit(cid, l, c);
+    if (rider) u.pilotId = rider.id;
     G.units.push(u);
     if (k.drop) {
       G.ter[l][c] = 'p';
@@ -171,7 +183,13 @@ export function deploy(cid, l, c) {
       for (let i = 0; i < k.draw; i++) drawCard(true);
       clog(`<span class="g">${k.n}</span> — ${k.draw} cards called in.`, 'info');
     }
-    clog(`Deployed <span class="g">${k.n}</span> — lane ${l + 1}, col ${c}.`, 'order');
+    if (rider) {
+      const w = frameWeapon(cid);
+      clog(`<span class="g">${k.n}</span> came down on your ${rider.n} — lane ${l + 1}, ` +
+        `carrying ${w ? w.n : 'its service weapon'}.`, 'order');
+    } else {
+      clog(`Deployed <span class="g">${k.n}</span> — lane ${l + 1}, col ${c}.`, 'order');
+    }
   }
 
   consume(cid);

@@ -489,6 +489,56 @@ const PIXMAP = {
   // trailing down and right. Single-pixel diagonals read as noise at this size,
   // so every blade is a two-pixel shaft — the silhouette has to say "reaches
   // into the lanes either side of it" before the hitbox diagram gets a chance.
+  // -- frames, and the pilot ------------------------------------------------
+  // The Pilot is the only token in the game with no weapon pixel at all. Bubble
+  // canopy, hands empty: at a glance you should read "this one cannot fight".
+  pilot: ov(TROOPER, sparse({1: '....oooo....', 2: '...oWWWWo...', 3: '...oWvvWo...'})),
+  // White Devil: gold V-fin over a pale chassis, the one light-bodied unit.
+  whitedevil: [
+    '............',
+    '..g......g..',
+    '...gooooog..',
+    '..oWWvvWWo..',
+    '..oWWWWWWo..',
+    '.ooWssssWoo.',
+    '.o.WWWWWW.o.',
+    '.o.WssssW.o.',
+    '...WWWWWW...',
+    '...oWW.WWo..',
+    '..oo....oo..',
+    '............',
+  ],
+  // Seven Blades: bristling. Four blade shafts up, three out either side.
+  sevenblades: [
+    '.w..w..w..w.',
+    '.w..w..w..w.',
+    '...oooooo...',
+    '..obbvvbbo..',
+    '..obbbbbbo..',
+    'woobssssboow',
+    'w..bbbbbb..w',
+    'wo.bssssb.ow',
+    '...bbbbbb...',
+    '...obb.bbo..',
+    '..oo....oo..',
+    '............',
+  ],
+  // Heavy Arms: the widest silhouette on the board, planted on braced feet —
+  // it never moves, and the token should say so before the card does.
+  heavyarms: [
+    '............',
+    '..oooooooo..',
+    '.obbbbbbbbo.',
+    '.obbvvvvbbo.',
+    'wwwbbbbbbbww',
+    'wwwbssssbbww',
+    'wwwbbbbbbbww',
+    '.obssssssbo.',
+    '.obbbbbbbbo.',
+    '.oo......oo.',
+    'oooo....oooo',
+    '............',
+  ],
   ashura: ov(HEAVY, sparse({
     0: 'ww........ww',
     1: '.w........w.',

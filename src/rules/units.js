@@ -2,7 +2,7 @@
 
 import {POOL} from '../content/cards.js';
 import {G, nextUid} from '../state/session.js';
-import {gearOf, leadOf} from '../save/progression.js';
+import {gearOf, frameWeapon, leadOf} from '../save/progression.js';
 import {eventTechBonus} from './events.js';
 
 /** Buffs stack but are capped, so a Scout/Relay/Herald stack cannot run away. */
@@ -16,6 +16,12 @@ const MAX_BUFF = 2;
 export function mkUnit(cid, l, c) {
   const k = POOL[cid];
   const g = gearOf(cid);
+  // A Frame's weapon is chosen before the mission and REPLACES the printed one
+  // — a Beam Saber is not a rider on the White Devil's service blade, it is
+  // what the White Devil is carrying instead. `w` is therefore consulted ahead
+  // of the card for targeting and damage, and the card is the fallback so a
+  // bare Frame is always playable rather than a dead draw.
+  const w = frameWeapon(cid);
   const lead = leadOf();
   const hardened = lead.passive && lead.passive.n === 'Hardened Frames' && k.hp ? 1 : 0;
   const fabricated = lead.passive && lead.passive.n === 'Field Fabrication' && k.tech && k.hp ? 2 : 0;
@@ -33,15 +39,15 @@ export function mkUnit(cid, l, c) {
     hp,
     max: hp,
     mob: !!k.mob,
-    tg: k.tg || 'none',
-    dmg: (k.dmg || 0) + (g && g.dmg ? g.dmg : 0),
+    tg: (w && w.tg) || k.tg || 'none',
+    dmg: w ? (w.dmg || 0) : (k.dmg || 0) + (g && g.dmg ? g.dmg : 0),
     indirect: !!k.indirect || !!(g && g.indirect),
     rearsight: !!(g && g.rearsight),
     // NOTE: the reference build dropped this flag on the floor, which quietly
     // turned every single-target card into an area attack in live play. The
     // data, the spec, the targeting UI and the test suite all assume it is
     // here; see docs/NOTES.md for the balance impact of putting it back.
-    single: !!k.single,
+    single: w ? !!w.single : !!k.single,
     blocker: !!k.blocker,
     aura: k.aura || 0,
     colBuff: k.col || 0,
@@ -71,13 +77,17 @@ export function mkUnit(cid, l, c) {
     dynamo: k.dynamo || 0,
     tech: !!k.tech,
     regen: !!k.regen,
-    riposte: k.riposte || 0,
+    riposte: (k.riposte || 0) + (w && w.riposte ? w.riposte : 0),
     servo: !!(g && g.servo),
     // Shoulder Cannon. It was a card that landed on a unit mid-mission; as
     // gear it is chosen at the armoury instead, so the second shot is a
     // property of the unit from the moment it deploys.
     twin: !!(g && g.twin),
     ab: k.ab || null,
+    // Which Pilot walked in with it — the one that steps back out if the
+    // machine is destroyed. Set by deploy(), never by the card data.
+    frame: !!k.frame,
+    pilotId: null,
     att: {},
     acted: false,
     moved: false,

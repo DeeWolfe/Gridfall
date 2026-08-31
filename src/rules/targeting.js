@@ -101,10 +101,21 @@ function geomBase(u) {
     case 'ahead3': return inLane.filter(e => e.col <= front + 3);
     case 'range2':
       return G.enemies.filter(e => e.lane === L && e.col === front + 2);
-    case 'range3':
+    case 'range3': {
       // Direct fire at a fixed range: a blocker of yours in between cuts it.
-      return G.enemies.filter(e => e.lane === L && e.col === front + 3 &&
-        !G.units.some(f => f.blocker && f.uid !== u.uid && f.lane === L && f.col > front && f.col < front + 3));
+      //
+      // The walk has to be footprint-aware. This compared anchor columns —
+      // `f.col > front` — so a two-cell blocker anchored ON our own front cell
+      // covered front+1 and was not counted, while geomCells (which walks
+      // unitAt) counted it and dimmed the tile. The board therefore struck a
+      // hostile from a cell it had never lit. geomtest caught it the moment
+      // two-cell blockers became common enough to land in the way.
+      for (let x = front + 1; x <= front + 2; x++) {
+        const f = unitAt(L, x);
+        if (f && f.blocker && f.uid !== u.uid) return [];
+      }
+      return G.enemies.filter(e => e.lane === L && e.col === front + 3);
+    }
     case 'blast4': {
       const centre = front + 4;
       return G.enemies.filter(e => Math.abs(e.lane - L) <= 1 && Math.abs(e.col - centre) <= 1);
@@ -119,6 +130,24 @@ function geomBase(u) {
     case 'vert3': {
       const cc = front + 1;
       return G.enemies.filter(e => e.col === cc && Math.abs(e.lane - L) <= 1);
+    }
+    // A Laser Gatling fires past its own centre line: both forward diagonals
+    // and a hole where every other forward weapon in the game puts its shot.
+    // The gap is the card, so nothing here quietly fills it in.
+    case 'wings':
+      return G.enemies.filter(e => Math.abs(e.lane - L) === 1 && e.col === front + 1);
+    // One swing, the whole area in front: three lanes by two columns.
+    case 'sweep':
+      return G.enemies.filter(e => Math.abs(e.lane - L) <= 1 &&
+        e.col >= front + 1 && e.col <= front + 2);
+    // A cross of warheads centred three cells out — the centre and its four
+    // orthogonal neighbours, so it reaches a lane either side without covering
+    // the ground between.
+    case 'cross3': {
+      const cc = front + 3;
+      return G.enemies.filter(e =>
+        (e.lane === L && Math.abs(e.col - cc) <= 1) ||
+        (Math.abs(e.lane - L) === 1 && e.col === cc));
     }
     case 'adj4':
       return G.enemies.filter(e => Math.abs(e.lane - L) + Math.abs(e.col - u.col) === 1);
@@ -221,6 +250,17 @@ export function geomCells(u, at) {
     case 'vert3':
       for (let l = L - 1; l <= L + 1; l++) add(l, front + 1);
       break;
+    case 'wings':
+      add(L - 1, front + 1); add(L + 1, front + 1);
+      break;
+    case 'sweep':
+      for (let l = L - 1; l <= L + 1; l++) for (let d = 1; d <= 2; d++) add(l, front + d);
+      break;
+    case 'cross3': {
+      const cc = front + 3;
+      add(L, cc - 1); add(L, cc); add(L, cc + 1); add(L - 1, cc); add(L + 1, cc);
+      break;
+    }
     case 'adj4':
       [[0, 1], [0, -1], [-1, 0], [1, 0]].forEach(([dl, dc]) => add(L + dl, col + dc));
       break;

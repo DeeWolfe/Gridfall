@@ -15,6 +15,7 @@ import * as A from './support/api.js';
 import {failures} from './support/harness.js';
 import {geomFor, geomCells} from '../src/rules/targeting.js';
 import {POOL} from '../src/content/cards.js';
+import {GEAR} from '../src/content/gear.js';
 import {BEST} from '../src/content/hostiles.js';
 import {LANES, COLS} from '../src/state/constants.js';
 
@@ -23,9 +24,25 @@ const p = A.blankProfile('GEOM');
 A.setActive(p);
 p.unlocks.cards = Object.keys(POOL);
 
-const TGS = [...new Set(Object.values(POOL).map(k => k.tg).filter(t => t && t !== 'none'))];
-// One representative card per pattern, so every geometry gets exercised.
-const SAMPLE = TGS.map(tg => [tg, Object.keys(POOL).find(k => POOL[k].tg === tg)]);
+// Every pattern the game can put on the board, from cards AND from gear — a
+// Frame's weapon replaces its printed one, so three geometries (wings, sweep,
+// cross3) exist only on gear and would otherwise never be sampled here at all.
+const GEAR_TG = Object.values(GEAR).filter(g => g.tg);
+const TGS = [...new Set([
+  ...Object.values(POOL).map(k => k.tg),
+  ...GEAR_TG.map(g => g.tg),
+].filter(t => t && t !== 'none'))];
+// One representative card per pattern. A gear-only pattern is exercised by
+// fitting that weapon to the Frame it belongs to.
+// A Frame carries one weapon at a time, and two of the gear-only patterns live
+// on the same Frame — so the weapon is fitted per trial, not once up front, or
+// the second assignment silently swallows the first.
+const SAMPLE = TGS.map(tg => {
+  const onCard = Object.keys(POOL).find(k => POOL[k].tg === tg);
+  if (onCard) return {tg, id: onCard, gear: null};
+  const gi = Object.keys(GEAR).find(g => GEAR[g].tg === tg);
+  return {tg, id: GEAR[gi].frame, gear: gi};
+});
 
 let uid = 90000;
 const place = (id, lane, col) => {
@@ -44,7 +61,12 @@ for (let trial = 0; trial < 400; trial++) {
   G.units = [];
   G.enemies = [];
 
-  for (const [, id] of SAMPLE) G.units.push(place(id, rand(LANES), rand(3)));
+  for (const {id, gear} of SAMPLE) {
+    // Fit this pattern's weapon just before building the unit that carries it.
+    if (gear) p.loadout.gear[GEAR[gear].frame] = gear;
+    G.units.push(place(id, rand(LANES), rand(3)));
+    if (gear) delete p.loadout.gear[GEAR[gear].frame];
+  }
   // Friendly blockers, so the beam-cutting path is exercised rather than
   // assumed — that is where the two functions are most likely to drift.
   for (let i = 0; i < 3; i++) G.units.push(place('wall', rand(LANES), 2 + rand(4)));

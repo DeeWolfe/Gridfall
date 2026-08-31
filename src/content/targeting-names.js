@@ -20,4 +20,7 @@ export const TGNAME = {
   range2: "Exactly two cells ahead",
   boardFurthest: "Furthest hostile on the board",
   rear: "Nearest hostile BEHIND it in the lane",
+  wings: "Both forward diagonals — nothing in the centre",
+  sweep: "Every cell in the two columns directly ahead",
+  cross3: "A cross centred three cells ahead",
 };

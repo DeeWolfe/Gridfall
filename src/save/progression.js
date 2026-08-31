@@ -32,6 +32,40 @@ export function gearOf(id) {
   return GEAR[active.loadout.gear[id]] || null;
 }
 
+/**
+ * Whether piece `gi` may be fitted to card `id`.
+ *
+ * Frames are closed kits, and that exclusivity is the whole point of them: a
+ * Beam Saber fits the White Devil and nothing else, and no amount of general
+ * gear goes on a Frame. Without this the Frames would just be chassis competing
+ * for the same nineteen-piece pool as everything else, which is the opposite of
+ * what makes them a commitment.
+ *
+ * One function, read by both fitting surfaces and by both directions of the
+ * fitting flow, so the rule cannot be enforced in one place and forgotten in
+ * the other.
+ */
+export function gearFits(id, gi) {
+  const k = POOL[id];
+  const g = GEAR[gi];
+  if (!k || !g) return false;
+  if (g.frame) return g.frame === id;
+  return !k.frame;
+}
+
+/**
+ * A Frame's fitted weapon, or null. Frame gear REPLACES the printed weapon
+ * rather than riding on top of it, so everything that reads a card's targeting
+ * or damage has to ask this first — hence one accessor rather than the check
+ * being rewritten at each call site.
+ */
+export function frameWeapon(id) {
+  const k = POOL[id];
+  if (!k || !k.frame) return null;
+  const g = gearOf(id);
+  return g && g.frame === id ? g : null;
+}
+
 /** Deploy-point cost including any gear discount. Never below 1. */
 export function costOf(id) {
   const k = POOL[id];

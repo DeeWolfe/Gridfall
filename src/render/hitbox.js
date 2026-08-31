@@ -14,7 +14,7 @@ import {LANES, COLS} from '../state/constants.js';
 import {POOL} from '../content/cards.js';
 import {BEST} from '../content/hostiles.js';
 import {geomCells} from '../rules/targeting.js';
-import {gearOf} from '../save/progression.js';
+import {gearOf, frameWeapon} from '../save/progression.js';
 
 // A window wide enough for the deepest pattern (blast4 reaches +5) plus one
 // cell behind, and tall enough for the three lanes anything spans.
@@ -35,13 +35,19 @@ const HB_SEEKS = {first: 'nearest', furthest: 'deepest', lane: null, boardFurthe
 function hbOffsets(id) {
   const k = POOL[id];
   const g = gearOf(id);
-  if (!k.tg || k.tg === 'none' || !k.dmg) return null;
+  // A Frame's fitted weapon replaces the printed one, so the diagram has to be
+  // of what it is actually carrying — otherwise a Laser Gatling draws the
+  // gatling's single cell and the hole in the middle never appears anywhere.
+  const w = frameWeapon(id);
+  const tg = (w && w.tg) || k.tg;
+  const dmg = w ? w.dmg : k.dmg;
+  if (!tg || tg === 'none' || !dmg) return null;
 
   // A stand-in with just the fields geomCells reads. Deliberately not mkUnit:
   // the diagram is the card's printed pattern, not one unit's live situation.
   const stub = {
-    tg: k.tg,
-    dmg: k.dmg,
+    tg,
+    dmg,
     size: k.size || 1,
     indirect: !!k.indirect || !!(g && g.indirect),
     rearsight: !!(g && g.rearsight),
@@ -94,7 +100,11 @@ export function hitboxFor(id) {
   const offs = hbOffsets(id);
   if (!offs || !offs.length) return '';
   const k = POOL[id];
-  const seek = HB_SEEKS[k.tg];
+  // Same substitution the offsets made: a Beam Rifle seeks down the lane even
+  // though the White Devil's printed blade does not.
+  const w = frameWeapon(id);
+  const tg = (w && w.tg) || k.tg;
+  const seek = HB_SEEKS[tg];
 
   // A seeking pattern settles on one cell out of its reach: draw that one
   // solid so "searches here, strikes there" reads without a caption.
@@ -107,7 +117,7 @@ export function hitboxFor(id) {
     if (pick) solid = [pick];
   }
 
-  const label = k.tg === 'boardFurthest' ? 'Any lane'
+  const label = tg === 'boardFurthest' ? 'Any lane'
     : seek ? (seek === 'nearest' ? 'Nearest in lane' : 'Deepest in lane')
       : `${offs.length} tile${offs.length > 1 ? 's' : ''}`;
 

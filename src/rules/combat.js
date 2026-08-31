@@ -5,7 +5,7 @@ import {POOL} from '../content/cards.js';
 import {BEST} from '../content/hostiles.js';
 import {G, active, nextUid} from '../state/session.js';
 import {unitAt, foeAt, civAt, scorched} from './board.js';
-import {buffOf, leadBonus} from './units.js';
+import {mkUnit, buffOf, leadBonus} from './units.js';
 import {leadOf} from '../save/progression.js';
 import {targetsFor, laneFloor} from './targeting.js';
 import {eventTechBonus} from './events.js';
@@ -175,7 +175,34 @@ export function dmgUnit(u, d, src, attacker) {
     G.units = G.units.filter(x => x.uid !== u.uid);
     G.lost++;
     clog(`<span class="d">${src}</span> destroyed your ${u.n}.`, 'loss');
+    ejectPilot(u);
   }
+}
+
+/**
+ * A destroyed Frame puts its Pilot back on the board at one hull.
+ *
+ * You lose the machine and keep the person — and that Pilot can climb into
+ * another Frame later if you have one. Losing two cards, two deployments and a
+ * setup step to one bad turn is the kind of punishment that stops people
+ * fielding Frames at all, which would waste the whole class.
+ *
+ * The machine still counts as lost above; this is not a save, it is a survivor.
+ */
+function ejectPilot(u) {
+  if (!u.frame || !u.pilotId || !POOL[u.pilotId]) return;
+  // It lands in the cell the Frame's front stood in, which the Frame itself
+  // has just vacated. Anything else there means there is nowhere to eject to.
+  if (unitAt(u.lane, u.col) || foeAt(u.lane, u.col) || civAt(u.lane, u.col)) {
+    clog(`<span class="d">${u.n}</span> went up with its pilot aboard.`, 'loss');
+    return;
+  }
+  const pv = mkUnit(u.pilotId, u.lane, u.col);
+  pv.hp = 1;
+  pv.fresh = false;
+  pv.acted = true;
+  G.units.push(pv);
+  clog(`<span class="g">${pv.n}</span> ejected — 1 hull, still on the board.`, 'info');
 }
 
 /**
