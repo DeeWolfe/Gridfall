@@ -593,6 +593,11 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .hc.proto{border-color:var(--violet);box-shadow:inset 3px 0 0 var(--violet)}
 .protomark{position:absolute;top:2px;left:4px;font-size:0.5625rem;color:var(--violet);
   line-height:1;pointer-events:none;text-shadow:0 0 6px rgba(157,107,255,.6)}
+/* Everything before this tile is something you brought; everything after it is
+   what the deck dealt. A gap and a hairline, not a different kind of card. */
+.hc.railend{margin-right:14px}
+.hc.railend::after{content:'';position:absolute;top:14%;bottom:14%;right:-8px;width:1px;
+  background:linear-gradient(180deg,transparent,var(--line2) 30%,var(--line2) 70%,transparent)}
 .hgear{position:absolute;bottom:2px;left:4px;font-size:0.5625rem;color:var(--cyan);
   line-height:1;pointer-events:none;text-shadow:0 0 6px rgba(77,232,255,.55)}
 .mini:disabled{opacity:.4;cursor:not-allowed}
@@ -11824,6 +11829,10 @@ function drawHand() {
   paintHandCount();
   const h = $('hcards');
   h.innerHTML = '';
+  // The last tile the deck did not deal. Everything in front of it — the
+  // lead's call, the Proto Frame — is something you brought rather than drew,
+  // and the tray says so with a gap instead of asking the player to remember.
+  let offdeck = null;
 
   // The lead's one call rides at the front of the hand, outside the deck.
   const def = stratReady();
@@ -11844,6 +11853,7 @@ function drawHand() {
       drawAll();
     };
     h.appendChild(el);
+    offdeck = el;
   }
 
   // The mission's one Proto Frame, beside the deck rather than in it — always
@@ -11870,7 +11880,11 @@ function drawHand() {
       drawAll();
     };
     h.appendChild(el);
+    offdeck = el;
   }
+
+  // Only worth a divider when there is something on the other side of it.
+  if (offdeck && G.hand.length) offdeck.classList.add('railend');
 
   G.hand.forEach((cid, index) => {
     const k = POOL[cid];
@@ -12166,8 +12180,10 @@ function takePack(i) {
 const HINTS = {
   squad: {
     title: 'Squad',
-    body: 'Your lead sets the squad\'s passive — pick one before you touch the deck. ' +
-      'Tap any card to inspect it, fit gear, or move it between deck and reserve.',
+    body: 'Every card is a fireteam, not a soldier — what lands on the grid is a whole ' +
+      'unit, and the name on the card is the role it fills. Your lead sets their shared ' +
+      'passive, so pick one before you touch the deck. Tap any card to inspect it, fit ' +
+      'gear, or move it between deck and reserve.',
   },
   quartermaster: {
     title: 'Quartermaster',
@@ -12468,7 +12484,7 @@ function databasePanel() {
         `<div class="rows">${rows}</div>`;
     };
     return `<div class="bar"><div>Assets on file <b>${Object.keys(POOL).length}</b></div>
-       <div style="color:var(--dim);font-size:0.6875rem">Tap an entry to enlarge — full stats, targeting and abilities</div></div>${dbTabs()}
+       <div style="color:var(--dim);font-size:0.6875rem">Every entry is a fireteam, not a soldier · tap one to enlarge</div></div>${dbTabs()}
        ${TIERS.map(tier).join('')}`;
   }
 

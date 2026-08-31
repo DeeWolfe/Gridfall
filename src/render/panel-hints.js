@@ -15,8 +15,10 @@ import {$} from './dom.js';
 const HINTS = {
   squad: {
     title: 'Squad',
-    body: 'Your lead sets the squad\'s passive — pick one before you touch the deck. ' +
-      'Tap any card to inspect it, fit gear, or move it between deck and reserve.',
+    body: 'Every card is a fireteam, not a soldier — what lands on the grid is a whole ' +
+      'unit, and the name on the card is the role it fills. Your lead sets their shared ' +
+      'passive, so pick one before you touch the deck. Tap any card to inspect it, fit ' +
+      'gear, or move it between deck and reserve.',
   },
   quartermaster: {
     title: 'Quartermaster',

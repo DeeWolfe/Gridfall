@@ -647,6 +647,10 @@ export function drawHand() {
   paintHandCount();
   const h = $('hcards');
   h.innerHTML = '';
+  // The last tile the deck did not deal. Everything in front of it — the
+  // lead's call, the Proto Frame — is something you brought rather than drew,
+  // and the tray says so with a gap instead of asking the player to remember.
+  let offdeck = null;
 
   // The lead's one call rides at the front of the hand, outside the deck.
   const def = stratReady();
@@ -667,6 +671,7 @@ export function drawHand() {
       drawAll();
     };
     h.appendChild(el);
+    offdeck = el;
   }
 
   // The mission's one Proto Frame, beside the deck rather than in it — always
@@ -693,7 +698,11 @@ export function drawHand() {
       drawAll();
     };
     h.appendChild(el);
+    offdeck = el;
   }
+
+  // Only worth a divider when there is something on the other side of it.
+  if (offdeck && G.hand.length) offdeck.classList.add('railend');
 
   G.hand.forEach((cid, index) => {
     const k = POOL[cid];

@@ -586,6 +586,11 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .hc.proto{border-color:var(--violet);box-shadow:inset 3px 0 0 var(--violet)}
 .protomark{position:absolute;top:2px;left:4px;font-size:0.5625rem;color:var(--violet);
   line-height:1;pointer-events:none;text-shadow:0 0 6px rgba(157,107,255,.6)}
+/* Everything before this tile is something you brought; everything after it is
+   what the deck dealt. A gap and a hairline, not a different kind of card. */
+.hc.railend{margin-right:14px}
+.hc.railend::after{content:'';position:absolute;top:14%;bottom:14%;right:-8px;width:1px;
+  background:linear-gradient(180deg,transparent,var(--line2) 30%,var(--line2) 70%,transparent)}
 .hgear{position:absolute;bottom:2px;left:4px;font-size:0.5625rem;color:var(--cyan);
   line-height:1;pointer-events:none;text-shadow:0 0 6px rgba(77,232,255,.55)}
 .mini:disabled{opacity:.4;cursor:not-allowed}

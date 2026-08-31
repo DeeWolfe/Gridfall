@@ -280,7 +280,7 @@ function databasePanel() {
         `<div class="rows">${rows}</div>`;
     };
     return `<div class="bar"><div>Assets on file <b>${Object.keys(POOL).length}</b></div>
-       <div style="color:var(--dim);font-size:0.6875rem">Tap an entry to enlarge — full stats, targeting and abilities</div></div>${dbTabs()}
+       <div style="color:var(--dim);font-size:0.6875rem">Every entry is a fireteam, not a soldier · tap one to enlarge</div></div>${dbTabs()}
        ${TIERS.map(tier).join('')}`;
   }
 
