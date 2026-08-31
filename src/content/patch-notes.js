@@ -4,9 +4,24 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.0';
+export const VERSION = '2.1';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.1',
+    notes: [
+      'Every mission now states its objective on the field, as an order rather than a score — with live progress, the wave clock, and the two ways to lose. It was previously a line in the header that no phone ever showed.',
+      'A win says why it was a win. Every loss already named its reason; wins arrived with nothing but a kill count. Holding the line and clearing the field are now told apart, because they are not the same victory.',
+      'Ground and Breaches under the board turn gold as they approach the line and magenta at it.',
+      'Your hand holds six cards and the whole hand is on screen — one row, no sideways scrolling, on any size of screen. Cards size themselves to the display instead of a fixed width that fitted two of them on a phone.',
+      'Cards that call in more cards — Recon Lark, Falconer — ignore the hand limit. You paid for those draws.',
+      'A full hand holds the turn draw rather than discarding it. Nothing is ever lost to the limit; the card is waiting when you deploy.',
+      'The hand no longer folds away, because it no longer needs to. The combat log took its place as the thing that folds, and it is a floating panel now instead of a column — so it is finally readable on a phone, where the log used to be desktop-only.',
+      'Anything that happens TO you — a unit destroyed, a lane cratered, a breach — now surfaces under the board the moment it happens, instead of scrolling past in a log you had to go looking for.',
+      'The combat board is a third larger on desktop, using the room the hand tray and log column gave back.',
+      'Fixed: Eradication Blitz asked for ten hostiles in its briefing and nine in the mission.',
+    ],
+  },
   {
     v: '2.0',
     notes: [

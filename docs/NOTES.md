@@ -2748,6 +2748,84 @@ handler when `!u.acted`. So nothing is selectable on the turn it lands, and any
 harness that deploys and immediately clicks sees an empty selection rather than
 a bug.
 
+## v2.1 — the objective you can read, the hand you can see
+
+Two player reports, one root cause underneath both, and a third problem
+found while measuring.
+
+**"I don't know what the objective is."** `objText()` returned a live score,
+not a task, and it lived in `#c-obj` — a header span set to `display:none`
+below 999px. On a phone the objective was never on screen at all. The two
+loss conditions that apply to every mission (breach allowance, holding at
+least six tiles) existed only inside `lossCheck()` and were stated nowhere.
+
+**"I don't know why I won."** Every loss called `finish(false, why)`.
+All seven win paths called `finish(true)` with nothing. A win was the only
+outcome in the game that arrived unexplained.
+
+`objBrief()` now states the goal as an order with live progress, the clock,
+and the loss conditions; `winWhy()` names every win, including the two
+genuinely different ways Stronghold and Extraction end. `GROUND_FLOOR` and
+`ENDGAME_TURNS` are named once and read by both the rule and the readout, so
+the printed threshold cannot drift from the check that enforces it.
+
+**The tray.** Measuring the combat screen to find room for the objective
+turned up the real problem: on a 390px phone the hand spent 219 of 664
+pixels — a third of the screen — to show **2 cards out of 9**, and the
+screen overflowed its viewport by 192px. Desktop was already fine; this was
+almost entirely a compact-layout failure nobody had measured.
+
+`HAND_CAP = 6`, set by the narrowest phone the tray must fit on one row
+rather than by balance. Card effects are exempt — the player spent DP on
+those draws. A held draw is never destroyed. The tray is one row of `--cap`
+cards dividing whatever width they are given:
+
+```css
+.hc{width:clamp(40px,calc((100% - (var(--cap) - 1) * var(--hgap)) / var(--cap)),128px)}
+```
+
+45px at 320 through 128px on desktop, no breakpoints. Two stale `.hc` width
+rules (`@media(max-width:560px)` and the `data-ui="pc"` override) were
+silently beating the new formula and had to go — worth remembering that a
+new rule is not in force until the old ones are gone.
+
+**A/B'd the cap over ~6,400 missions per arm: 57.2% against 57.4% overall**,
+per-type differences within noise and going both ways. A single sim run
+swings 20 points, so one comparison would have proved nothing.
+
+**The log.** Median 5 lines a turn, up to 34. 43% your own orders, 28% kills
+you watched happen, 17% a wave the header already announced — and the `loss`
+class, the only category reporting something done *to* you, is **3.6%**,
+about one line every four turns. The log was not too hidden; it was too
+noisy. It also could not be deleted: the visual layer fires effects for
+breach, clash, hit, shield and spawn, none of which carry a *reason*, so a
+Mender healing or a Puppeteer seizing a unit had no other explanation.
+
+So it split. The 3.6% became an alert strip under the board needing no tap;
+the rest became an overlay. As a column the log cost the board a grid track
+on every layout, was desktop-only, and folding it away did not even work —
+the compact grid kept reserving its `minmax(8rem,1fr)` row. Hiding an
+element does not reclaim its track.
+
+**Bugs found on the way:**
+
+* `breaches >= allow - 1`, meant as "one from the end", is `0 >= 0` with the
+  standard allowance of 1 — true on turn one of every mission. The condition
+  it guarded was a no-op that always fired.
+* "Nothing selected." cost exactly the 51px of overflow the phone had left.
+* Eradication Blitz asked for ten hostiles in its briefing and nine in the
+  mission.
+* A stray `—` in the combat header from the retired `#c-obj` span.
+* Abort fell off the right edge once the action bar had three buttons.
+
+Verified mid-game on a 390px phone with a full board, units deployed and the
+alert firing: 0px overflow. Desktop board 440px → 518px.
+
+`captest` covers the cap, the exemption, and that a held draw never consumes
+a card. `handtest` pins the tray to `--cap` rather than a fixed width, since
+a literal width there is exactly the bug this removed. `uitest` pins the
+overlay contract.
+
 ## Still open
 
 1. **Crystals at a hot operation is better, not soft.** Auto-rolled Crystals
