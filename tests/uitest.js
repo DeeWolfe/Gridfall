@@ -17,7 +17,8 @@ import {openPanel} from '../src/render/panels.js';
 import {drawAll} from '../src/render/combat.js';
 
 const F = failures();
-const {head, css} = pageParts(builtPage());
+const page = builtPage();
+const {head, css} = pageParts(page);
 const stamp = () => document.documentElement.dataset.ui;
 
 // --- the preference round-trips through the profile ---
@@ -71,18 +72,21 @@ const stamp = () => document.documentElement.dataset.ui;
   if (/@media[^{]*pointer:\s*fine/.test(css)) {
     F.push('a pointer media query duplicates the stamped desktop layer');
   }
-  // The three-column board and the log rail are what make it a desktop layout.
+  // Board and details rail. The log used to be a third column here; it is an
+  // overlay now, so a .cbcol.intel anywhere means the rail crept back and the
+  // board is paying a grid track for a history nobody reads mid-turn.
   const mainRule = (/:root\[data-ui="pc"\] \.cbmain\{([^}]*)\}/.exec(css) || [])[1] || '';
-  if ((mainRule.match(/clamp\(/g) || []).length < 2) F.push('desktop board is not three columns');
-  if (!/:root\[data-ui="pc"\] \.cbcol\.intel\{[^}]*display:\s*flex/.test(css)) {
-    F.push('the intel rail never appears on desktop');
-  }
-  if (!/^\.cbcol\.intel\{[^}]*display:\s*none/m.test(css)) {
-    F.push('the intel rail is not hidden by default');
+  if (!/grid-template-columns/.test(mainRule)) F.push('desktop board has no column layout');
+  if (/\.cbcol\.intel/.test(css) || head.includes('cbcol intel')) {
+    F.push('the log is a grid column again — it should be the #logview overlay');
   }
 }
 
-// --- the combat log renders, and only the desktop layout shows it ---
+// --- the combat log is an overlay, reachable from every layout ---
+//
+// As a column it was desktop-only, so the explanation of what just killed your
+// unit was simply unavailable on a phone. Floating it makes one behaviour for
+// every screen — and the alert strip carries the 3.6% that cannot wait.
 {
   A.enterProfile(A.blankProfile('LOG'));
   setUiMode('pc');
@@ -93,7 +97,18 @@ const stamp = () => document.documentElement.dataset.ui;
   const log = get('cblog')._html;
   if (!log.includes('logline')) F.push('combat log rendered no entries');
   if (/undefined|NaN|\[object/.test(log)) F.push('combat log artefact');
-  if (!head.includes('id="cblog"')) F.push('no combat log in the markup');
+  if (!head.includes('id="logview"')) F.push('no log overlay in the markup');
+  if (!head.includes('id="alertstrip"')) F.push('no alert strip under the board');
+  if (!head.includes('id="logtog"')) F.push('no way to open the log');
+  // The overlay must not be gated behind a layout mode the way the rail was.
+  if (/data-ui="pc"[^{]*#logview/.test(css)) F.push('the log overlay is desktop-only again');
+
+  // The strip carries losses only. Anything else and it stops being an alert:
+  // at 2.9 orders and 1.9 kills a turn it would be the noisy log all over again.
+  const body = page.slice(page.indexOf('function paintAlert'));
+  const fn = body.slice(0, body.indexOf('\n}'));
+  if (!/c === 'loss'/.test(fn)) F.push('the alert strip is not filtered to losses');
+  if (!/e\.t >=/.test(fn)) F.push('the alert strip does not expire — it will pin one line forever');
 }
 
 // --- number keys are advertised on the cards and in the controls list ---

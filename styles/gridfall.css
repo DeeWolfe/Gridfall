@@ -871,7 +871,7 @@ body{font-size:1rem}
 .cbcol.mid{align-items:center;justify-content:flex-start}
 .field{background:linear-gradient(180deg,#0b0919 0%,#100d24 100%);border:1px solid var(--line2);
   padding:clamp(9px,.9vw,15px);width:100%;max-width:min(100%,96vw)}
-.bstats{display:flex;gap:16px;margin-top:8px;font-size:0.7188rem;letter-spacing:.14em;
+.bstats{display:flex;gap:14px;margin-top:6px;font-size:0.7188rem;letter-spacing:.14em;
   text-transform:uppercase;color:var(--dim)}
 .bstats b{color:var(--cyan);font-size:0.75rem;margin-left:5px}
 .bstats .of{color:var(--dim);font-size:0.7188rem}
@@ -882,7 +882,7 @@ body{font-size:1rem}
 .bstats b.bad{color:var(--mag)}
 
 .box.grow{flex:1;min-height:0;display:flex;flex-direction:column}
-.selbox{display:flex;flex-direction:column;gap:8px;padding:.65rem .8rem}
+.selbox{display:flex;flex-direction:column;gap:6px;padding:.5rem .7rem}
 .selbox #selinfo{font-size:0.7188rem;color:var(--dim);line-height:1.6;flex:1;min-height:0;overflow-y:auto}
 .selbox #selinfo[hidden]{display:none}
 
@@ -890,15 +890,20 @@ body{font-size:1rem}
    The details box read "Nothing selected" for most of a turn while the
    mission's goal lived in a header span hidden on every compact layout. The
    objective is this panel's resting state; a selection stacks under it. */
-.objblk{flex:0 0 auto;display:flex;flex-direction:column;gap:4px;
-  border-bottom:1px solid var(--line);padding-bottom:8px}
+.objblk{flex:0 0 auto;display:flex;flex-direction:column;gap:3px;
+  border-bottom:1px solid var(--line);padding-bottom:6px}
 .objblk:empty{display:none;border:none;padding:0}
 .olab{font-size:0.5625rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
 .ogoal{font-size:0.6875rem;color:var(--txt);line-height:1.4}
 .orow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .oclock{font-size:0.625rem;letter-spacing:.1em;text-transform:uppercase;color:var(--violet);
   margin-left:auto}
-.olose{font-size:0.625rem;color:#7d76a8;line-height:1.4}
+.olose{font-size:0.625rem;color:#7d76a8;line-height:1.35}
+/* Both counts on one row: the two stacked panels these replace cost 72px to
+   carry nine words. */
+.idlerow{display:flex;gap:12px;flex-wrap:wrap;font-size:0.6875rem;letter-spacing:.02em}
+.idlerow .ok{color:var(--dim)} .idlerow .ok b{color:var(--cyan)}
+.idlerow .hit{color:var(--dim)} .idlerow .hit b{color:var(--mag)}
 .olose b{color:var(--gold)}
 /* Up to five steps read as pips; past that they are a counting exercise. */
 .pips{display:flex;gap:3px;flex:0 0 auto}
@@ -1019,18 +1024,56 @@ body{font-size:1rem}
    place the desktop layout is described — there is no parallel media query to
    keep in step. Everything above is the compact, touch-first layout. */
 
-/* The intel rail: a full column on desktop, a stacked row between the details
-   panel and the hand in the compact layout — and folded away by default, from
-   the Log button in the action bar. It is a history, not a control, so it is
-   the thing that earns a toggle now that the hand fits on one row. */
-.cbcol.intel{display:none}
-#combat.logclosed .cbcol.intel{display:none!important}
-.logbox{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
-.cblog{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:4px;
-  scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
-.cblog::-webkit-scrollbar{width:4px}
-.cblog::-webkit-scrollbar-track{background:transparent}
-.cblog::-webkit-scrollbar-thumb{background:var(--line2)}
+/* ============ ALERT STRIP + LOG OVERLAY ============
+   The log ran a median of 5 lines a turn and up to 34, of which 43% were your
+   own orders, 28% kills you watched happen and 17% a wave the header already
+   announced. The `loss` class — the only one reporting something done TO you —
+   was 3.6%, about a line every four turns, buried in all of it.
+
+   So that 3.6% comes out and sits under the board, and the rest lives in an
+   overlay. The overlay is the point: as a column the log cost the board a grid
+   track on every layout, and folding it away did not even work, because the
+   compact grid kept reserving the row. */
+.alertstrip{display:flex;align-items:center;gap:8px;width:100%;margin-top:6px;
+  padding:5px 8px;text-align:left;cursor:pointer;
+  border:1px solid var(--mag-d);background:rgba(255,77,143,.1);
+  font-family:inherit;font-size:0.6875rem;line-height:1.4;color:#e5a3bd;
+  animation:alertin .35s ease-out}
+.alertstrip[hidden]{display:none}
+.alertstrip:hover{background:rgba(255,77,143,.17);border-color:var(--mag)}
+.alertstrip .aglyph{flex:0 0 auto;width:15px;height:15px;display:grid;place-items:center;
+  background:var(--mag);color:#1a0510;font-weight:700;font-size:0.625rem}
+.alertstrip .atext{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.alertstrip .atext .g{color:var(--green)} .alertstrip .atext .d{color:var(--mag)}
+.alertstrip .atext .t{color:var(--zan)}
+.alertstrip .amore{flex:0 0 auto;font-size:0.625rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--dim);border:1px solid var(--line2);padding:1px 5px}
+@keyframes alertin{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+
+/* Above the focus view, below the dialog — same rank the codec call takes. */
+#logview{position:fixed;inset:0;z-index:93;display:none;align-items:flex-end;justify-content:center;
+  padding:clamp(8px,2vw,28px)}
+#logview.on{display:flex}
+.lvbg{position:absolute;inset:0;background:rgba(7,6,15,.7);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.lvbox{position:relative;z-index:2;width:100%;max-width:520px;max-height:min(70vh,560px);
+  display:flex;flex-direction:column;
+  background:linear-gradient(170deg,var(--panel2) 0%,var(--deep) 70%);border:1px solid var(--line2);
+  clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));
+  box-shadow:0 24px 70px -20px rgba(0,0,0,.95);animation:lvrise .22s ease-out both}
+@keyframes lvrise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.lvhead{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;
+  padding:.7rem .9rem;border-bottom:1px solid var(--line);
+  font-size:0.6875rem;letter-spacing:.2em;text-transform:uppercase;color:var(--zan)}
+.lvx{width:26px;height:26px;flex:0 0 auto;border:1px solid var(--line2);background:transparent;
+  color:var(--dim);font-size:0.6875rem;line-height:1}
+.lvx:hover{color:var(--zan);border-color:var(--zan)}
+.lvlist{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:5px;
+  padding:.75rem .9rem;scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+.lvlist::-webkit-scrollbar{width:4px}
+.lvlist::-webkit-scrollbar-track{background:transparent}
+.lvlist::-webkit-scrollbar-thumb{background:var(--line2)}
+
 .logline{font-size:0.6875rem;line-height:1.55;color:var(--dim);padding-left:7px;
   border-left:2px solid var(--line)}
 .logline.l-kill{border-left-color:var(--green);color:#9fd9b6}
@@ -1048,13 +1091,10 @@ body{font-size:1rem}
 .uipick{display:flex;gap:5px;flex-wrap:wrap}
 .uipick .mini.on{color:var(--zan);border-color:var(--zan)}
 
-:root[data-ui="pc"] .cbcol.intel{display:flex}
-:root[data-ui="pc"] #combat.logclosed .cbmain{
-  grid-template-columns:minmax(0,1fr) clamp(240px,18vw,360px)}
 :root[data-ui="pc"] .hkey{display:block}
 
 /* Three columns: what has happened, where it is happening, what you can do. */
-:root[data-ui="pc"] .cbmain{grid-template-columns:clamp(190px,15vw,290px) minmax(0,1fr) clamp(212px,16vw,320px);
+:root[data-ui="pc"] .cbmain{grid-template-columns:minmax(0,1fr) clamp(240px,18vw,360px);
   overflow:hidden;gap:clamp(7px,.7vw,12px);padding:clamp(7px,.7vw,12px);align-content:stretch}
 :root[data-ui="pc"] .cbcol{overflow:hidden}
 :root[data-ui="pc"] .cbcol.mid{overflow:hidden;justify-content:center}
@@ -1128,12 +1168,14 @@ body{font-size:1rem}
      below their content — auto rows here would shrink (the columns carry
      min-height:0) and let the grid paint over the panel beneath it. When the
      three rows outgrow the viewport, .cbmain scrolls instead. */
-  .cbmain{grid-template-rows:max-content max-content minmax(8rem,1fr)}
-  .cbcol.intel{display:flex;order:3;min-height:0}
-  /* Hiding the element is not enough: the third track keeps reserving its
-     8rem, so folding the log would buy back nothing. Drop the track too. */
-  #combat.logclosed .cbmain{grid-template-rows:max-content max-content}
-}
+  .cbmain{grid-template-rows:max-content max-content}
+  /* The loss conditions hold their place on a desktop, where there is room for
+     reference text. On a phone they appear while you are reading the brief and
+     again once a threshold is close, and stay out of the way between. */
+  .objblk .olose{display:none}
+  .objblk.press .olose{display:block}
+  #combat.hasalert .objblk .olose{display:none}
+  }
 
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 

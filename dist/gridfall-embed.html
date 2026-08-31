@@ -873,7 +873,7 @@ body{font-size:1rem}
 .cbcol.mid{align-items:center;justify-content:flex-start}
 .field{background:linear-gradient(180deg,#0b0919 0%,#100d24 100%);border:1px solid var(--line2);
   padding:clamp(9px,.9vw,15px);width:100%;max-width:min(100%,96vw)}
-.bstats{display:flex;gap:16px;margin-top:8px;font-size:0.7188rem;letter-spacing:.14em;
+.bstats{display:flex;gap:14px;margin-top:6px;font-size:0.7188rem;letter-spacing:.14em;
   text-transform:uppercase;color:var(--dim)}
 .bstats b{color:var(--cyan);font-size:0.75rem;margin-left:5px}
 .bstats .of{color:var(--dim);font-size:0.7188rem}
@@ -884,7 +884,7 @@ body{font-size:1rem}
 .bstats b.bad{color:var(--mag)}
 
 .box.grow{flex:1;min-height:0;display:flex;flex-direction:column}
-.selbox{display:flex;flex-direction:column;gap:8px;padding:.65rem .8rem}
+.selbox{display:flex;flex-direction:column;gap:6px;padding:.5rem .7rem}
 .selbox #selinfo{font-size:0.7188rem;color:var(--dim);line-height:1.6;flex:1;min-height:0;overflow-y:auto}
 .selbox #selinfo[hidden]{display:none}
 
@@ -892,15 +892,20 @@ body{font-size:1rem}
    The details box read "Nothing selected" for most of a turn while the
    mission's goal lived in a header span hidden on every compact layout. The
    objective is this panel's resting state; a selection stacks under it. */
-.objblk{flex:0 0 auto;display:flex;flex-direction:column;gap:4px;
-  border-bottom:1px solid var(--line);padding-bottom:8px}
+.objblk{flex:0 0 auto;display:flex;flex-direction:column;gap:3px;
+  border-bottom:1px solid var(--line);padding-bottom:6px}
 .objblk:empty{display:none;border:none;padding:0}
 .olab{font-size:0.5625rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
 .ogoal{font-size:0.6875rem;color:var(--txt);line-height:1.4}
 .orow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .oclock{font-size:0.625rem;letter-spacing:.1em;text-transform:uppercase;color:var(--violet);
   margin-left:auto}
-.olose{font-size:0.625rem;color:#7d76a8;line-height:1.4}
+.olose{font-size:0.625rem;color:#7d76a8;line-height:1.35}
+/* Both counts on one row: the two stacked panels these replace cost 72px to
+   carry nine words. */
+.idlerow{display:flex;gap:12px;flex-wrap:wrap;font-size:0.6875rem;letter-spacing:.02em}
+.idlerow .ok{color:var(--dim)} .idlerow .ok b{color:var(--cyan)}
+.idlerow .hit{color:var(--dim)} .idlerow .hit b{color:var(--mag)}
 .olose b{color:var(--gold)}
 /* Up to five steps read as pips; past that they are a counting exercise. */
 .pips{display:flex;gap:3px;flex:0 0 auto}
@@ -1021,18 +1026,56 @@ body{font-size:1rem}
    place the desktop layout is described — there is no parallel media query to
    keep in step. Everything above is the compact, touch-first layout. */
 
-/* The intel rail: a full column on desktop, a stacked row between the details
-   panel and the hand in the compact layout — and folded away by default, from
-   the Log button in the action bar. It is a history, not a control, so it is
-   the thing that earns a toggle now that the hand fits on one row. */
-.cbcol.intel{display:none}
-#combat.logclosed .cbcol.intel{display:none!important}
-.logbox{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
-.cblog{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:4px;
-  scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
-.cblog::-webkit-scrollbar{width:4px}
-.cblog::-webkit-scrollbar-track{background:transparent}
-.cblog::-webkit-scrollbar-thumb{background:var(--line2)}
+/* ============ ALERT STRIP + LOG OVERLAY ============
+   The log ran a median of 5 lines a turn and up to 34, of which 43% were your
+   own orders, 28% kills you watched happen and 17% a wave the header already
+   announced. The `loss` class — the only one reporting something done TO you —
+   was 3.6%, about a line every four turns, buried in all of it.
+
+   So that 3.6% comes out and sits under the board, and the rest lives in an
+   overlay. The overlay is the point: as a column the log cost the board a grid
+   track on every layout, and folding it away did not even work, because the
+   compact grid kept reserving the row. */
+.alertstrip{display:flex;align-items:center;gap:8px;width:100%;margin-top:6px;
+  padding:5px 8px;text-align:left;cursor:pointer;
+  border:1px solid var(--mag-d);background:rgba(255,77,143,.1);
+  font-family:inherit;font-size:0.6875rem;line-height:1.4;color:#e5a3bd;
+  animation:alertin .35s ease-out}
+.alertstrip[hidden]{display:none}
+.alertstrip:hover{background:rgba(255,77,143,.17);border-color:var(--mag)}
+.alertstrip .aglyph{flex:0 0 auto;width:15px;height:15px;display:grid;place-items:center;
+  background:var(--mag);color:#1a0510;font-weight:700;font-size:0.625rem}
+.alertstrip .atext{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.alertstrip .atext .g{color:var(--green)} .alertstrip .atext .d{color:var(--mag)}
+.alertstrip .atext .t{color:var(--zan)}
+.alertstrip .amore{flex:0 0 auto;font-size:0.625rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--dim);border:1px solid var(--line2);padding:1px 5px}
+@keyframes alertin{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+
+/* Above the focus view, below the dialog — same rank the codec call takes. */
+#logview{position:fixed;inset:0;z-index:93;display:none;align-items:flex-end;justify-content:center;
+  padding:clamp(8px,2vw,28px)}
+#logview.on{display:flex}
+.lvbg{position:absolute;inset:0;background:rgba(7,6,15,.7);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.lvbox{position:relative;z-index:2;width:100%;max-width:520px;max-height:min(70vh,560px);
+  display:flex;flex-direction:column;
+  background:linear-gradient(170deg,var(--panel2) 0%,var(--deep) 70%);border:1px solid var(--line2);
+  clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));
+  box-shadow:0 24px 70px -20px rgba(0,0,0,.95);animation:lvrise .22s ease-out both}
+@keyframes lvrise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.lvhead{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;
+  padding:.7rem .9rem;border-bottom:1px solid var(--line);
+  font-size:0.6875rem;letter-spacing:.2em;text-transform:uppercase;color:var(--zan)}
+.lvx{width:26px;height:26px;flex:0 0 auto;border:1px solid var(--line2);background:transparent;
+  color:var(--dim);font-size:0.6875rem;line-height:1}
+.lvx:hover{color:var(--zan);border-color:var(--zan)}
+.lvlist{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:5px;
+  padding:.75rem .9rem;scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+.lvlist::-webkit-scrollbar{width:4px}
+.lvlist::-webkit-scrollbar-track{background:transparent}
+.lvlist::-webkit-scrollbar-thumb{background:var(--line2)}
+
 .logline{font-size:0.6875rem;line-height:1.55;color:var(--dim);padding-left:7px;
   border-left:2px solid var(--line)}
 .logline.l-kill{border-left-color:var(--green);color:#9fd9b6}
@@ -1050,13 +1093,10 @@ body{font-size:1rem}
 .uipick{display:flex;gap:5px;flex-wrap:wrap}
 .uipick .mini.on{color:var(--zan);border-color:var(--zan)}
 
-:root[data-ui="pc"] .cbcol.intel{display:flex}
-:root[data-ui="pc"] #combat.logclosed .cbmain{
-  grid-template-columns:minmax(0,1fr) clamp(240px,18vw,360px)}
 :root[data-ui="pc"] .hkey{display:block}
 
 /* Three columns: what has happened, where it is happening, what you can do. */
-:root[data-ui="pc"] .cbmain{grid-template-columns:clamp(190px,15vw,290px) minmax(0,1fr) clamp(212px,16vw,320px);
+:root[data-ui="pc"] .cbmain{grid-template-columns:minmax(0,1fr) clamp(240px,18vw,360px);
   overflow:hidden;gap:clamp(7px,.7vw,12px);padding:clamp(7px,.7vw,12px);align-content:stretch}
 :root[data-ui="pc"] .cbcol{overflow:hidden}
 :root[data-ui="pc"] .cbcol.mid{overflow:hidden;justify-content:center}
@@ -1130,12 +1170,14 @@ body{font-size:1rem}
      below their content — auto rows here would shrink (the columns carry
      min-height:0) and let the grid paint over the panel beneath it. When the
      three rows outgrow the viewport, .cbmain scrolls instead. */
-  .cbmain{grid-template-rows:max-content max-content minmax(8rem,1fr)}
-  .cbcol.intel{display:flex;order:3;min-height:0}
-  /* Hiding the element is not enough: the third track keeps reserving its
-     8rem, so folding the log would buy back nothing. Drop the track too. */
-  #combat.logclosed .cbmain{grid-template-rows:max-content max-content}
-}
+  .cbmain{grid-template-rows:max-content max-content}
+  /* The loss conditions hold their place on a desktop, where there is room for
+     reference text. On a phone they appear while you are reading the brief and
+     again once a threshold is close, and stay out of the way between. */
+  .objblk .olose{display:none}
+  .objblk.press .olose{display:block}
+  #combat.hasalert .objblk .olose{display:none}
+  }
 
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
@@ -1388,16 +1430,11 @@ body{font-size:1rem}
     <button class="leadbadge" id="leadbadge"></button>
   </div>
   <div class="cbmain">
-    <div class="cbcol intel">
-      <div class="box logbox">
-        <h3>Combat log</h3>
-        <div class="cblog" id="cblog"></div>
-      </div>
-    </div>
     <div class="cbcol mid">
       <div class="field">
         <div class="board" id="board"></div>
         <div class="terbar" id="terbar"></div>
+        <button class="alertstrip" id="alertstrip" hidden></button>
         <div class="bstats">
           <span>Ground <b id="c-ter">0</b></span>
           <span>Breaches <b id="c-br">0</b></span>
@@ -1452,6 +1489,15 @@ body{font-size:1rem}
 <div id="focus"><div class="fbg" id="fbg"></div><div class="fwrap" id="fwrap"></div></div>
 
 <div id="codec"></div>
+
+<div id="logview">
+  <div class="lvbg" id="lvbg"></div>
+  <div class="lvbox">
+    <div class="lvhead">Combat log
+      <button class="lvx" id="lvx" aria-label="Close">✕</button></div>
+    <div class="lvlist" id="cblog"></div>
+  </div>
+</div>
 
 <div id="drawer">
   <div class="drawmenu">
@@ -4151,7 +4197,10 @@ const MAX_ENTRIES = 120;
  */
 function clog(html, cat) {
   if (!G) return;
-  G.logs.unshift({h: html, c: cat || 'info'});
+  // The turn stamp is what lets the alert strip under the board show what just
+  // happened rather than the newest loss line of the whole mission, which
+  // would sit there unchanged for the rest of the game.
+  G.logs.unshift({h: html, c: cat || 'info', t: G.turn});
   if (G.logs.length > MAX_ENTRIES) G.logs.pop();
 }
 
@@ -5193,7 +5242,7 @@ function abortMission() {
  * turn one and never had anywhere to read. `total` of 0 means the goal has no countable progress —
  * surviving is not a tally — so the readout falls back to the wave clock.
  *
- * @returns {{goal:string, done:number, total:number, lose:string, clock:string}}
+ * @returns {{goal:string, done:number, total:number, lose:string, clock:string, press:boolean}}
  */
 function objBrief() {
   const m = MISSIONS[G.type];
@@ -5206,14 +5255,23 @@ function objBrief() {
     : G.extra > 0 ? `Last wave committed — ${Math.max(0, left)} turn${left === 1 ? '' : 's'} to secure`
       : `Wave ${Math.min(G.turn, G.waves)} / ${G.waves}`;
 
-  const b = (goal, done, total) => ({goal, done, total, lose, clock});
+  // Whether the loss conditions are worth the room they take. They never change
+  // during a mission, so on a small screen they are wallpaper in the middle of
+  // one — but they are exactly what a player is reading on turn one, and what
+  // they need again once a threshold is close. Those two moments, not the rest.
+  // `breaches >= allow - 1` reads like "one from the end" but the standard
+  // allowance is 1, so it was `0 >= 0` — true on turn one of every mission,
+  // which made the whole condition a no-op. What actually means pressure is
+  // ground running out, or a breach already spent.
+  const press = held() <= GROUND_FLOOR + 2 || G.breaches > 0;
+  const b = (goal, done, total) => ({goal, done, total, lose, clock, press: press || G.turn <= 2});
   switch (G.type) {
     case 'retake':
-      return b('Hold 3 tiles inside hostile ground when the clock runs out.', heldEnemyHalf(), 3);
+      return b('Hold 3 tiles in hostile ground at the clock.', heldEnemyHalf(), 3);
     case 'crystals':
-      return b('Hold 3 of the 4 crystal nodes when the clock runs out.', crystalsHeld(), 3);
+      return b('Hold 3 of the 4 crystal nodes at the clock.', crystalsHeld(), 3);
     case 'specimens':
-      return b(`Destroy ${G.quota} ${BEST[G.quotaK].n}. Other kills do not count.`, G.quotaHit, G.quota);
+      return b(`Destroy ${G.quota} ${BEST[G.quotaK].n}s. Other kills do not count.`, G.quotaHit, G.quota);
     case 'uplink':
       return b(`Hold the relay tile in lane ${G.uplinkAt.l + 1} for three turns running.`,
         G.uplinkHeld, 3);
@@ -5222,7 +5280,7 @@ function objBrief() {
     case 'civilians': {
       const bld = G.civ.find(v => v.building);
       return {
-        goal: `Walk ${G.civGoal} survivors off the field, shelter still standing.`,
+        goal: `Walk ${G.civGoal} survivors out. Keep the shelter standing.`,
         done: G.extracts, total: G.civGoal,
         lose: `Shelter at <b>${bld ? bld.hp : 0}</b> hull. ` + lose, clock,
       };
@@ -5230,7 +5288,7 @@ function objBrief() {
     case 'extract':
       return b('Short and heavy. Hold out to extraction.', 0, 0);
     default:
-      return b(`Hold the line through all ${G.waves} waves. Nothing gets past you.`, 0, 0);
+      return b(`Hold the line through all ${G.waves} waves.`, 0, 0);
   }
 }
 
@@ -10350,9 +10408,11 @@ function drawSel() {
   const threatened = Object.keys(forecastThreat().hits).length;
   const ready = G.units.filter(u => !u.acted).length;
   if (!ready && !threatened) { el.hidden = true; el.innerHTML = ''; return; }
-  el.innerHTML =
-    `${ready ? `<div class="selfire live"><b>${ready}</b> unit${ready > 1 ? 's' : ''} still to act</div>` : ''}
-     ${threatened ? `<div class="selfire dead" style="margin-top:7px"><b style="color:var(--mag)">${threatened}</b> of your positions will be struck this turn</div>` : ''}`;
+  // One line, not two boxes. As stacked .selfire panels these two counts cost
+  // 72px of a 664px phone to carry about nine words between them.
+  el.innerHTML = `<div class="idlerow">
+    ${ready ? `<span class="ok"><b>${ready}</b> to act</span>` : ''}
+    ${threatened ? `<span class="hit"><b>${threatened}</b> will be struck</span>` : ''}</div>`;
 }
 
 /** Markup for one of your units standing in a cell. */
@@ -10591,24 +10651,72 @@ function drawLog() {
 }
 
 /**
- * The combat log is the thing that folds away now, not the hand.
+ * The one line in the log that a player cannot afford to miss.
  *
- * The hand used to collapse because the tray was too big to live alongside the
- * board; capped at HAND_CAP it fits on one row and has nothing to hide from.
- * The log is genuinely optional — a history, not a control — so it is the one
- * that earns a toggle. #combat.logclosed drops the intel column's whole grid
- * track in the stylesheet: hiding the element alone leaves its 8rem row
- * reserved, which is why the old toggle would have bought nothing.
+ * Measured across 938 turns of real missions, the log runs a median of 5 lines
+ * a turn and up to 34 — and 43% of it is your own orders, 28% kills you watched
+ * happen and 17% a wave the header already announced. The `loss` class, the
+ * only category that reports something being done TO you, is 3.6% of it: about
+ * one line every four turns, buried in narration of things already on screen.
+ *
+ * So that 3.6% comes out and sits under the board where the player is already
+ * looking, and the other 96% stays in the history behind it. At a quarter of a
+ * line per turn this can never become noise, which is the whole reason it is
+ * allowed to interrupt without being asked.
  */
+function paintAlert() {
+  const el = $('alertstrip');
+  if (!el) return;
+  // The enemy phase resolves before the turn counter advances, so what was
+  // just done to you is stamped with the turn that ended. Both count as "now";
+  // anything older has been answered or absorbed and stops shouting.
+  const hits = G.logs.filter(e => e.c === 'loss' && e.t >= G.turn - 1);
+  const scr = $('combat');
+  if (!hits.length || G.over) {
+    el.hidden = true; el.innerHTML = '';
+    if (scr) scr.classList.remove('hasalert');
+    return;
+  }
+  const more = hits.length > 1 ? `<span class="amore">+${hits.length - 1} more</span>` : '';
+  el.hidden = false;
+  // One alarm at a time. While this strip is up it is already saying a
+  // threshold was crossed, so the objective panel does not also need to recite
+  // the rules underneath it — on a phone that is 20px of duplicate warning.
+  $('combat').classList.add('hasalert');
+  el.innerHTML = `<span class="aglyph">!</span><span class="atext">${hits[0].h}</span>${more}`;
+  el.title = 'Open the combat log';
+  el.onclick = () => openLog();
+}
+
+/**
+ * The full history, as an overlay rather than a column.
+ *
+ * It used to be a grid track that the board had to pay for on every layout —
+ * and folding it away was not even free, because the compact grid kept
+ * reserving the row. Floating it costs the board nothing, works the same on a
+ * phone as on a desktop, and lets the log be as long as it likes.
+ */
+function openLog() {
+  setLogOpen(true);
+  drawLog();
+  $('logview').classList.add('on');
+  sfx('tap');
+}
+
+function closeLog() {
+  setLogOpen(false);
+  $('logview').classList.remove('on');
+}
+
+/** The Log button, and the two ways out of the overlay it opens. */
 function paintLogToggle() {
   const tog = $('logtog');
-  const scr = $('combat');
-  if (!tog || !scr) return;
-  scr.classList.toggle('logclosed', !logOpen);
-  tog.classList.toggle('on', logOpen);
-  tog.setAttribute('aria-pressed', logOpen ? 'true' : 'false');
-  tog.title = logOpen ? 'Hide combat log' : 'Show combat log';
-  tog.onclick = () => { setLogOpen(!logOpen); drawAll(); };
+  if (!tog) return;
+  tog.onclick = () => (logOpen ? closeLog() : openLog());
+  const bg = $('lvbg');
+  const x = $('lvx');
+  if (bg) bg.onclick = closeLog;
+  if (x) x.onclick = closeLog;
 }
 
 /**
@@ -10632,10 +10740,11 @@ function drawObjective() {
     prog = `<span class="obar"><span style="width:${Math.min(100, b.done / b.total * 100)}%"></span></span>`;
   }
   const count = b.total > 0 ? `<b class="onum">${b.done} / ${b.total}</b>` : '';
-  el.className = 'objblk' + (met ? ' met' : '');
-  el.innerHTML = `<span class="olab">Objective</span>
+  el.className = 'objblk' + (met ? ' met' : '') + (b.press ? ' press' : '');
+  el.innerHTML = `<span class="orow"><span class="olab">Objective</span>
+      <span class="oclock">${b.clock}</span></span>
     <span class="ogoal">${b.goal}</span>
-    <span class="orow">${prog}${count}<span class="oclock">${b.clock}</span></span>
+    ${prog || count ? `<span class="orow">${prog}${count}</span>` : ''}
     <span class="olose">${b.lose}</span>`;
 }
 
@@ -10741,6 +10850,7 @@ function drawAll() {
     (G.mod !== 'none' ? ` <span class="modtag">${MODS[G.mod].n}</span>` : '');
   $('c-dp').textContent = G.dp;
   paintLogToggle();
+  paintAlert();
   drawObjective();
   const ground = held();
   const allow = breachAllowance(G.type);

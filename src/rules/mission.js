@@ -234,7 +234,7 @@ export function abortMission() {
  * turn one and never had anywhere to read. `total` of 0 means the goal has no countable progress —
  * surviving is not a tally — so the readout falls back to the wave clock.
  *
- * @returns {{goal:string, done:number, total:number, lose:string, clock:string}}
+ * @returns {{goal:string, done:number, total:number, lose:string, clock:string, press:boolean}}
  */
 export function objBrief() {
   const m = MISSIONS[G.type];
@@ -247,14 +247,23 @@ export function objBrief() {
     : G.extra > 0 ? `Last wave committed — ${Math.max(0, left)} turn${left === 1 ? '' : 's'} to secure`
       : `Wave ${Math.min(G.turn, G.waves)} / ${G.waves}`;
 
-  const b = (goal, done, total) => ({goal, done, total, lose, clock});
+  // Whether the loss conditions are worth the room they take. They never change
+  // during a mission, so on a small screen they are wallpaper in the middle of
+  // one — but they are exactly what a player is reading on turn one, and what
+  // they need again once a threshold is close. Those two moments, not the rest.
+  // `breaches >= allow - 1` reads like "one from the end" but the standard
+  // allowance is 1, so it was `0 >= 0` — true on turn one of every mission,
+  // which made the whole condition a no-op. What actually means pressure is
+  // ground running out, or a breach already spent.
+  const press = held() <= GROUND_FLOOR + 2 || G.breaches > 0;
+  const b = (goal, done, total) => ({goal, done, total, lose, clock, press: press || G.turn <= 2});
   switch (G.type) {
     case 'retake':
-      return b('Hold 3 tiles inside hostile ground when the clock runs out.', heldEnemyHalf(), 3);
+      return b('Hold 3 tiles in hostile ground at the clock.', heldEnemyHalf(), 3);
     case 'crystals':
-      return b('Hold 3 of the 4 crystal nodes when the clock runs out.', crystalsHeld(), 3);
+      return b('Hold 3 of the 4 crystal nodes at the clock.', crystalsHeld(), 3);
     case 'specimens':
-      return b(`Destroy ${G.quota} ${BEST[G.quotaK].n}. Other kills do not count.`, G.quotaHit, G.quota);
+      return b(`Destroy ${G.quota} ${BEST[G.quotaK].n}s. Other kills do not count.`, G.quotaHit, G.quota);
     case 'uplink':
       return b(`Hold the relay tile in lane ${G.uplinkAt.l + 1} for three turns running.`,
         G.uplinkHeld, 3);
@@ -263,7 +272,7 @@ export function objBrief() {
     case 'civilians': {
       const bld = G.civ.find(v => v.building);
       return {
-        goal: `Walk ${G.civGoal} survivors off the field, shelter still standing.`,
+        goal: `Walk ${G.civGoal} survivors out. Keep the shelter standing.`,
         done: G.extracts, total: G.civGoal,
         lose: `Shelter at <b>${bld ? bld.hp : 0}</b> hull. ` + lose, clock,
       };
@@ -271,7 +280,7 @@ export function objBrief() {
     case 'extract':
       return b('Short and heavy. Hold out to extraction.', 0, 0);
     default:
-      return b(`Hold the line through all ${G.waves} waves. Nothing gets past you.`, 0, 0);
+      return b(`Hold the line through all ${G.waves} waves.`, 0, 0);
   }
 }
 
