@@ -55,6 +55,7 @@ writeFileSync(join(root, 'src/content/modifiers.js'),
 console.log('  wrote src/content/modifiers.js');
 emit('operations.js', banner(`The ${Object.keys(data.operations).length} campaign operations — maps, zones, nodes and edges.`), 'OPS', data.operations);
 emit('doctrines.js', banner('Enemy doctrines: how a wave distributes itself across lanes.'), 'DOCTRINE', data.doctrines);
+emit('bosses.js', banner(`The ${Object.keys(data.bosses).length} operation bosses and their encounter scripts.`), 'BOSSDEF', data.bosses);
 emit('targeting-names.js', banner('Human-readable names for each targeting geometry.'), 'TGNAME', data.targeting);
 
 const c = data.constants;

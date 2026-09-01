@@ -7,6 +7,7 @@ import {OPS} from '../content/operations.js';
 import {active, MAPDEF, setActive, setMapdef} from '../state/session.js';
 import {randInt, chance} from '../state/rng.js';
 import {commit} from '../save/profile.js';
+import {bossForOp} from './boss.js';
 
 /** Roll a fresh set of missions for the active operation. */
 export function genRun() {
@@ -16,8 +17,9 @@ export function genRun() {
   if (!OPS[active.op]) active.op = 'ironveil';
 
   // Extraction is reserved for the final node — the way out is always the way
-  // out. Side objectives draw from the objective pool, Helldivers-style.
-  const mainPool = Object.keys(MISSIONS).filter(t => t !== 'extract');
+  // out, unless the operation has a boss, in which case the way out is through
+  // it. Side objectives draw from the objective pool, Helldivers-style.
+  const mainPool = Object.keys(MISSIONS).filter(t => t !== 'extract' && t !== 'boss');
   const sidePool = ['crystals', 'specimens', 'uplink', 'blitz'].filter(t => MISSIONS[t]);
   const mods = Object.keys(MODS);
   const map = OPS[active.op];
@@ -31,7 +33,7 @@ export function genRun() {
       // first node of an operation is always a straight Defend Stronghold,
       // so a new player meets the base rules before any variant.
       type: n.type || (role === 'start' ? 'stronghold'
-        : role === 'final' ? 'extract'
+        : role === 'final' ? (bossForOp(active.op) ? 'boss' : 'extract')
           : role === 'side' ? sidePool[randInt(sidePool.length)]
             : mainPool[randInt(mainPool.length)]),
       // An operation can name a signature modifier (Blackmarrow's tunnels
@@ -50,6 +52,7 @@ export function genRun() {
     if (nd.type === 'specimens') nd.reward = Math.round(nd.reward * 1.55) + 2;
     if (nd.type === 'uplink') nd.reward = Math.round(nd.reward * 1.4) + 2;
     if (nd.type === 'blitz') nd.reward = Math.round(nd.reward * 1.25) + 2;
+    if (nd.type === 'boss') nd.reward = Math.round(nd.reward * 2) + 60;
   });
 
   // A bonus side objective is a detour — it pays like one.

@@ -24,6 +24,9 @@ import {randInt} from '../state/rng.js';
  */
 export function wave(t) {
   if (t > G.waves) return null;
+  // A boss is excluded from the wave threat budget in both directions: the
+  // hive sends nothing, and everything on the board is the boss's own work.
+  if (G.type === 'boss') return {};
   // Dead Air: the tunnels are silent — the manifest this event promised on
   // is empty. Rolled AFTER eventTick(), so G.event is this turn's event.
   if (G.event === 'calm') return {};

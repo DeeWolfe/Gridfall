@@ -4,9 +4,20 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.7';
+export const VERSION = '2.8';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.8',
+    notes: [
+      'Operation bosses. Ironveil, Blackmarrow and Sunderglass no longer end at an extraction point — each ends at a Kill Order: one machine, a hard 18-turn clock, and a mission you win by bringing it down. The hive sends no waves; everything on the board is the boss\'s own work. Boss fights run a deploy point richer per turn.',
+      'A boss fills a rectangle of cells and every one of them shares a single hull pool — so an area weapon lands once per cell it covers. Your cone, your sweep, your cross of warheads: that is the anti-boss arsenal, and nobody had to design it. Bosses block movement like terrain and cannot be crushed, netted or demolition-charged — only damaged.',
+      'Every boss turns once, irreversibly, and loudly. THE GANTRY fabricates behind a 30-point containment field and does not fight — until the field breaks, and then every cell it has fires. Breaking the shield is what makes it dangerous; that is the decision.',
+      'THE BROOD MOTHER works the field like a seam of ore: drifting across lanes, crushing what it rolls over, lashing whole rows, and marking breach points anywhere on the board a full turn before something surfaces. Stand a soldier on the mark and it takes the hit instead — nothing surfaces. At half hull it splits into three bodies, and all three must die.',
+      'THE PRISM has never attacked anything. It reflects a quarter of every hit back up the barrel that fired it, past shields, and it can kill. At half hull it shatters into four fragments that each grow every turn — up to a cap, because a fight you cannot win is a bug wearing a difficulty costume.',
+      'Bringing a boss down completes the operation and lands the Specialist requisition pack. First kills enter the Database, bestiary page and all.',
+    ],
+  },
   {
     v: '2.7',
     notes: [

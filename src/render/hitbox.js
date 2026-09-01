@@ -153,15 +153,18 @@ export function hitboxForFoe(kid) {
   const right = HB_COLS - 1 - HB_FOE_ORIGIN.col;
   // The Chorus buffs every hostile alive, so its reach is the board, not a
   // lane — the one hostile whose effect the lane treatment would understate.
-  if (D.aura) {
+  // A boss threatens the engagement, not a lane: breaches anywhere on the
+  // board, every emitter at once, reflection up whichever barrel fires.
+  if (D.aura || D.boss) {
     for (let l = -1; l <= 1; l++) for (let c = left; c <= right; c++) if (l || c) infl.push([l, c]);
   } else if (D.lanefloor || D.jam || D.mend || D.mindctrl || D.spawn) {
     for (let c = left; c <= right; c++) if (c !== 0) infl.push([0, c]);
   }
 
   if (!cells.length && !solid.length && !infl.length) return '';
-  const label = D.aura ? 'Every hostile alive'
-    : ranged ? 'Whole lane, from cover'
+  const label = D.boss ? 'The whole engagement'
+    : D.aura ? 'Every hostile alive'
+      : ranged ? 'Whole lane, from cover'
       : D.dmg ? (D.spd >= 2 ? 'Ahead, two cells a turn' : 'The cell ahead')
         : 'Its whole lane';
 

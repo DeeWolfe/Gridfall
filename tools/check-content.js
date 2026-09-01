@@ -15,6 +15,7 @@ import {MISSIONS} from '../src/content/missions.js';
 import {MODS} from '../src/content/modifiers.js';
 import {OPS} from '../src/content/operations.js';
 import {DOCTRINE} from '../src/content/doctrines.js';
+import {BOSSDEF} from '../src/content/bosses.js';
 import {TGNAME} from '../src/content/targeting-names.js';
 import * as C from '../src/state/constants.js';
 import {CARD_ART} from '../src/content/card-art.js';
@@ -36,6 +37,7 @@ check('missions', MISSIONS, data.missions);
 check('modifiers', MODS, data.modifiers);
 check('operations', OPS, data.operations);
 check('doctrines', DOCTRINE, data.doctrines);
+check('bosses', BOSSDEF, data.bosses);
 check('targeting', TGNAME, data.targeting);
 check('constants', {
   LANES: C.LANES, COLS: C.COLS, MAXDP: C.MAXDP, MAXBREACH: C.MAXBREACH,

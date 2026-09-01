@@ -21,6 +21,8 @@ import {queuePack} from './packs.js';
 import {tapeEnd} from './tape.js';
 import {seedStratagem} from './stratagems.js';
 import {seedFrame} from './frames.js';
+import {seedBoss, bossHp} from './boss.js';
+import {BOSSDEF} from '../content/bosses.js';
 import {EVENTS, rollEvent} from './events.js';
 import {clog} from './log.js';
 
@@ -112,12 +114,20 @@ export function launchSpec(nd) {
   // definition, and reachable without holding hostile ground.
   if (G.type === 'uplink') G.uplinkAt = {l: 1 + randInt(3), c: 4};
   if (G.type === 'blitz') G.quota = 9;
+  if (G.type === 'boss') {
+    // A boss fight is its own weather: the machine spawns its own adds outside
+    // the wave budget, field events sit the fight out, and the mission wants a
+    // point more room per turn than a standard drop (boss-patch economy note).
+    G.noEvents = true;
+    G.dp = MAXDP + 1;
+    seedBoss();
+  }
 
   for (let i = 0; i < Math.min(5, G.deck.length); i++) G.hand.push(G.deck.pop());
   seedStratagem();               // the lead's one call, outside the deck
   seedFrame();                   // and the deck's one Proto Frame, likewise
   // The first field event can land as early as turn 2 — telegraphed now.
-  G.eventNext = rollEvent();
+  G.eventNext = G.noEvents ? null : rollEvent();
   if (G.eventNext) clog(`Field report: <span style="color:var(--violet)">${EVENTS[G.eventNext].n}</span> expected next turn.`, 'info');
   G.manifest = wave(1);
   G.doctrine = rollDoctrine();
@@ -156,7 +166,9 @@ export function launchOnslaught() {
 export function launchGauntlet() {
   if (!active) return false;
   if (!active.gaunt || active.gaunt.i >= GAUNTLET_LEGS) {
-    const types = Object.keys(MISSIONS);
+    // A boss encounter belongs to its operation's final node — the random
+    // modes draw from everything else.
+    const types = Object.keys(MISSIONS).filter(t => t !== 'boss');
     const mods = Object.keys(MODS);
     active.gaunt = {
       i: 0,
@@ -170,6 +182,7 @@ export function launchGauntlet() {
     commit();
   }
   const leg = active.gaunt.legs[active.gaunt.i];
+  if (!MISSIONS[leg.type] || leg.type === 'boss') leg.type = 'stronghold';
   return launchSpec({
     node: null, type: leg.type, mod: leg.mod,
     reward: 85 + active.gaunt.i * 52,
@@ -194,7 +207,7 @@ function dayHash(s) {
 }
 
 function dailyPick(key) {
-  const types = Object.keys(MISSIONS);
+  const types = Object.keys(MISSIONS).filter(t => t !== 'boss');
   const mods = Object.keys(MODS).filter(k => k !== 'none');
   return {
     type: types[dayHash(key + ':type') % types.length],
@@ -255,6 +268,20 @@ export function objBrief() {
   // few turns, which shunted everything under it; the terms simply stay up.
   const b = (goal, done, total) => ({goal, done, total, lose, clock});
   switch (G.type) {
+    case 'boss': {
+      // The clock is the wave counter wearing its true name: running out of
+      // turns is a loss here, not an endgame grace.
+      const def = G.boss ? BOSSDEF[G.boss.k] : null;
+      const name = G.boss ? BEST[G.boss.k].n : 'the target';
+      const left = Math.max(0, G.waves - G.turn + 1);
+      return {
+        goal: `Bring down ${name} before the clock runs out.`,
+        done: def ? Math.max(0, def.hp - bossHp()) : 0, total: def ? def.hp : 1,
+        lose: (G.boss && G.boss.shield > 0
+          ? `Containment field at <b>${G.boss.shield}</b>. ` : '') + lose,
+        clock: `Turn ${Math.min(G.turn, G.waves)} / ${G.waves} — ${left} left on the clock`,
+      };
+    }
     case 'retake':
       return b('Hold 3 tiles in hostile ground at the clock.', heldEnemyHalf(), 3);
     case 'crystals':
@@ -284,6 +311,7 @@ export function objBrief() {
 /** Why the mission was won — the line a loss has always had and a win never did. */
 export function winWhy() {
   switch (G.type) {
+    case 'boss': return `${G.boss ? BEST[G.boss.k].n : 'The target'} destroyed with ${Math.max(0, G.waves - G.turn)} turn${G.waves - G.turn === 1 ? '' : 's'} to spare.`;
     case 'retake': return `${heldEnemyHalf()} tiles held inside hostile ground.`;
     case 'crystals': return `${crystalsHeld()} of 4 crystal nodes held when the clock ran out.`;
     case 'specimens':

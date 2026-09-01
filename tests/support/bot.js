@@ -88,7 +88,8 @@ export function playOut({maxTurns = 40, advance = false, frames = false} = {}) {
   while (A.G && !A.G.over && guard++ < maxTurns) {
     spendPoints(frames);
     if (frames && !framed && !A.frameReady() && A.G.frame) framed = true;
-    if (advance && A.G && (A.G.type === 'retake' || A.G.type === 'crystals' || A.G.type === 'uplink')) pushForward();
+    if (advance && A.G && (A.G.type === 'retake' || A.G.type === 'crystals' ||
+      A.G.type === 'uplink' || A.G.type === 'boss')) pushForward();
     A.endTurn();
   }
   const G = A.G;

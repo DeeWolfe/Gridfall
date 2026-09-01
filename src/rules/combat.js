@@ -9,6 +9,7 @@ import {mkUnit, buffOf, leadBonus} from './units.js';
 import {leadOf} from '../save/progression.js';
 import {targetsFor, laneFloor} from './targeting.js';
 import {eventTechBonus} from './events.js';
+import {dmgBoss} from './boss.js';
 import {clog} from './log.js';
 import {tapeEvent} from './tape.js';
 
@@ -23,8 +24,13 @@ function logContact(k) {
 /**
  * Apply `d` damage to a hostile. Armour floors subtract from it and always
  * leave at least 1 through, unless the source penetrates (`pen`).
+ *
+ * A boss proxy routes everything into the shared pool instead — no floors, no
+ * instant kills, and the attacking unit rides along so a reflective boss knows
+ * whose barrel to answer.
  */
-export function dmgEnemy(e, d, src, pen) {
+export function dmgEnemy(e, d, src, pen, attacker) {
+  if (e.boss) { dmgBoss(e, d, src, attacker); return; }
   const dealt = pen ? d : Math.max(1, d - laneFloor(e));
   e.hp -= dealt;
   tapeEvent({type: 'hit', foe: true, lane: e.lane, col: e.col, amount: dealt, died: e.hp <= 0});
@@ -68,7 +74,8 @@ export function breachAt(e, how) {
     // have earned are rolled back, though splits and screams still resolve.
     const kills = G.kills;
     const quota = G.quotaHit;
-    [...G.enemies].filter(x => x.lane === e.lane)
+    // The grid saves the lane; it does not delete a boss standing in it.
+    [...G.enemies].filter(x => x.lane === e.lane && !x.boss)
       .forEach(x => { if (x.hp > 0) dmgEnemy(x, 999, 'Defense Grid', true); });
     G.kills = kills;
     G.quotaHit = quota;
@@ -180,6 +187,31 @@ export function dmgUnit(u, d, src, attacker) {
 }
 
 /**
+ * Damage that goes around the shield: straight to hull, though a Phase Cloak
+ * still converts a killing blow. Exists for the Prism's reflection, which the
+ * brief specifies pierces shields and can kill.
+ */
+export function pierceUnit(u, d, src) {
+  u.hp -= d;
+  tapeEvent({type: 'hit', foe: false, lane: u.lane, col: u.col, amount: d,
+    died: u.hp <= 0 && !(u.phase && !u.phased)});
+  if (u.hp <= 0 && u.phase && !u.phased) {
+    u.phased = true;
+    u.hp = 1;
+    clog(`<span class="g">Phase Cloak</span> — ${u.n} slipped the killing blow.`, 'loss');
+    return;
+  }
+  if (u.hp <= 0) {
+    G.units = G.units.filter(x => x.uid !== u.uid);
+    G.lost++;
+    clog(`<span class="d">${src}</span> destroyed your ${u.n}.`, 'loss');
+    ejectPilot(u);
+  } else {
+    clog(`<span class="d">${src}</span> — ${d} into ${u.n}, past any shield.`, 'info');
+  }
+}
+
+/**
  * A destroyed Frame puts its Pilot back on the board at one hull.
  *
  * You lose the machine and keep the person — and that Pilot can climb into
@@ -220,7 +252,7 @@ export function fire(u, onPlay) {
   for (let shot = 0; shot < (u.twin ? 2 : 1); shot++) {
     const ts = targetsFor(u);
     if (!ts.length) break;
-    ts.forEach(e => dmgEnemy(e, base, u.n, u.pen));
+    ts.forEach(e => dmgEnemy(e, base, u.n, u.pen, u));
 
     // A recharge weapon spends the next turn cycling. Set to 2 because the
     // end-of-turn reset decrements once immediately after this fires.
@@ -230,7 +262,8 @@ export function fire(u, onPlay) {
     // quietly if the cell behind is occupied or off the board — damage stands,
     // and two bodies never share a cell.
     if (u.push) {
-      ts.filter(e => e.hp > 0).forEach(e => {
+      // A boss body is not driven anywhere — the footprint holds its ground.
+      ts.filter(e => e.hp > 0 && !e.boss).forEach(e => {
         const back = e.col + 1;
         if (back >= COLS || G.ter[e.lane][back] === 'x') return;
         if (G.enemies.some(o => o.uid !== e.uid && o.lane === e.lane && o.col === back)) return;

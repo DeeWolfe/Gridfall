@@ -823,6 +823,69 @@ const FOE_PIX = {
     '..o..oo..o..',
     '............',
   ],
+  // Fresh off the Gantry's line: a walker still half plate, half exposed
+  // frame — smaller than a Crawler and visibly unfinished on purpose.
+  fabricant: [
+    '............',
+    '............',
+    '....oooo....',
+    '...obbxbo...',
+    '...osbbbo...',
+    '....obbo....',
+    '...oosbo....',
+    '...obbbbo...',
+    '....o..o....',
+    '...oo..oo...',
+    '............',
+    '............',
+  ],
+  // The fabrication rig itself: scaffold verticals, a gold power core, and
+  // emitter studs at the corners. Fills its frame — it is the whole cell.
+  gantry: [
+    '............',
+    'oooooooooooo',
+    'obxbsbbsbxbo',
+    'obbobbbbobbo',
+    'obbobggbobbo',
+    'obbobggbobbo',
+    'obbobbbbobbo',
+    'obxbsbbsbxbo',
+    'oooooooooooo',
+    '.oo..oo..oo.',
+    '............',
+    '............',
+  ],
+  // A bulbous digging mass, tendrils out both flanks, egg-glints in the folds.
+  brood: [
+    '............',
+    '....oooo....',
+    '..oobbbboo..',
+    '.obbxbbxbbo.',
+    'wobbbbbbbow.',
+    '.obsbbbbsbo.',
+    'wobbxbbxbbow',
+    '.obbbbbbbbo.',
+    '..obsbbsbo..',
+    '...oobboo...',
+    '..oo....oo..',
+    '............',
+  ],
+  // A faceted crystal column — white planes, one lime refraction glint. It
+  // has no face because it has never needed one.
+  prism: [
+    '.....oo.....',
+    '....obbo....',
+    '...obWbbo...',
+    '..obbWbbbo..',
+    '.obbWbbbbbo.',
+    '.obWbbxbbbo.',
+    '.obbbbbbWbo.',
+    '..obbbWbbo..',
+    '...obbWbo...',
+    '....obbo....',
+    '.....oo.....',
+    '............',
+  ],
 };
 
 export const hasFoeSprite = k => !!FOE_PIX[k];

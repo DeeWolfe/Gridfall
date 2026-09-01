@@ -137,13 +137,16 @@ function fireStratagem() {
     clog(`<span class="g">${def.n}</span> — the next three deployments may land on any tile.`, 'order');
   } else if (k === 'breach') {
     // Ignores blockers by design: it reaches the emplacements nothing else can.
-    const hit = G.enemies.filter(e => e.col === target.col && e.hp <= BREACH_HULL);
+    // A boss is immune to anything that deletes rather than damages — a hurt
+    // fragment under the threshold does not get erased by a demolition charge.
+    const hit = G.enemies.filter(e => !e.boss && e.col === target.col && e.hp <= BREACH_HULL);
     hit.forEach(e => dmgEnemy(e, 999, def.n, true));
     clog(`<span class="g">${def.n}</span> — column ${target.col} swept, ${hit.length} destroyed.`, 'order');
   } else if (k === 'grapple') {
     // Drag toward the hostile edge, farthest first so nothing stacks; clamped
     // at the last column and stopped by anything standing in the way.
-    const caught = G.enemies.filter(e => e.lane === target.lane).sort((a, b) => b.col - a.col);
+    // A boss does not fit in a net — its bodies hold their ground.
+    const caught = G.enemies.filter(e => e.lane === target.lane && !e.boss).sort((a, b) => b.col - a.col);
     caught.forEach(e => {
       for (let s = 0; s < 2; s++) {
         const nc = e.col + 1;

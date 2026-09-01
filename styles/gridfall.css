@@ -490,6 +490,13 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
   animation:burrowpulse 2s ease-in-out infinite;z-index:2}
 @keyframes burrowpulse{0%,100%{box-shadow:inset 0 0 0 2px var(--violet),0 0 20px rgba(157,107,255,.6)}
   50%{box-shadow:inset 0 0 0 3px var(--violet),0 0 6px rgba(157,107,255,.25)}}
+/* The Brood Mother's telegraphed breach: the same hazard language as the
+   Burrow Breach warning — it IS the same threat, delivered by a boss — on a
+   magenta cast so the source reads at a glance. */
+.cell.breachwarn{box-shadow:inset 0 0 0 2px var(--mag),0 0 20px rgba(255,77,143,.55);
+  animation:breachpulse 2s ease-in-out infinite;z-index:2}
+@keyframes breachpulse{0%,100%{box-shadow:inset 0 0 0 2px var(--mag),0 0 20px rgba(255,77,143,.55)}
+  50%{box-shadow:inset 0 0 0 3px var(--mag),0 0 6px rgba(255,77,143,.2)}}
 .cell.strattgt{cursor:pointer;box-shadow:inset 0 0 0 1px rgba(157,107,255,.55)}
 .cell.strattgt:hover{filter:brightness(1.35)}
 .cell.orderdest{box-shadow:inset 0 0 0 2px var(--green)}
@@ -523,6 +530,11 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .e-unit{background:#3d1428;border-color:var(--mag-d);color:#ff8fb5}
 .e-tech{background:#2d1440;border-color:#6b3a9a;color:#c79bff}
 .e-spec{background:#4a1020;border-color:#c23a5e;color:#ff6f9a}
+/* A boss body: one machine across many cells, so the cells share a heavier
+   fill and a hot border — footprint first, hit points second. */
+.e-boss{background:#3a0a2a;border-color:var(--mag);color:#ff9fce;
+  box-shadow:inset 0 0 12px rgba(255,77,143,.35)}
+.e-boss .fglyph{font-size:0.9rem}
 .anchor{outline:1px dashed rgba(255,255,255,.16);outline-offset:-3px}
 .ord{position:absolute;bottom:0;right:1px;font-size:0.7188rem;font-weight:700}
 .ord.done{color:var(--green)}

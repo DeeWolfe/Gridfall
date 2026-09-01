@@ -167,7 +167,9 @@ export function validTiles(cid) {
   // Specialist armour, and only for a unit that fits in the one cell it clears.
   if (gearOf(cid) && gearOf(cid).crush && (k.size || 1) === 1) {
     G.enemies.forEach(e => {
-      if (BEST[e.k].t === 'special') return;
+      // Specialist armour stops a pod; a boss is immune to anything that
+      // deletes rather than damages (boss-patch: no instant kills, ever).
+      if (BEST[e.k].t === 'special' || BEST[e.k].t === 'boss') return;
       if (G.ter[e.lane][e.col] === 'x') return;
       out.push(e.lane * COLS + e.col);
     });

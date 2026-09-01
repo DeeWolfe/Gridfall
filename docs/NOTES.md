@@ -3523,6 +3523,70 @@ a plan and the control arm greedily. Between-round drift on the shared arms
 — control 61.1–61.6, pilot 57.1–61.0 across rounds — is the size of the
 noise floor; only within-round comparisons are quoted above.)
 
+## v2.8 — Operation bosses (the last unbuilt patch)
+
+The design handoff bundle (`gridfallpatches.zip`) resurfaced with four patches.
+Audit against the build: **Cards** (all 8 + Stim Injector + I-Field + the Medic
+rework, no flamer), **Leads & Stratagems**, and **Frames** were already shipped
+in earlier versions. **Bosses** — patch 3, "a system, not a content batch" —
+was the one thing never built. Now it is.
+
+### The one representational decision everything else fell out of
+
+A boss body is N proxy entries in `G.enemies`, one per covered cell, all
+routing damage into a shared pool on `G.boss` (`dmgBoss` in combat's damage
+path). That one choice bought, for free: blocking (hostiles queue behind it,
+`flankStep` walks around it), targeting (every geometry just sees enemies),
+the drop-fight and territory rules, hostile selection/intel in the UI — and
+the patch's headline rule, *an area weapon lands once per covered cell*, with
+no special case anywhere. The guard proves it with one `blast(1,6,5)`: six
+covered cells, thirty points, the Gantry's field gone in a swing.
+
+### What shipped
+
+- `boss` mission type: hard 18-turn clock (running out = loss), kill = win,
+  `wave()` returns an empty manifest (the boss spawns its own adds), field
+  events sit the fight out (`noEvents`), MAXDP+1 per turn per the patch's
+  economy note. Final node of ironveil/blackmarrow/sunderglass; extraction
+  stays the finale everywhere else. Gauntlet/daily/random pools exclude it.
+- One irreversible phase flip, checked after every damage event — half hull
+  default, shield collapse for the Gantry (the shield protects the player
+  from phase two; that inversion is the fight).
+- Immunity to deletion, not damage: drop-pod crush, Breaching Charge's
+  999-through-the-threshold, Grapple Net, Outrider push, the Last-Stand
+  grid sweep — all guarded against boss proxies.
+- The three scripts: Gantry (ramp 1-2-3-hold fabrication, six-cell barrage
+  after collapse), Brood Mother (lateral drift reversing at edges, seam one
+  column forward every 3rd turn — the rig's "never reaches the player" bug —
+  telegraphed breaches that a standing unit absorbs, untelegraphed row
+  tendril, three-way split into disjoint lanes), Prism (25% reflection past
+  shields that can kill, four growing fragments capped at 1.25x — the rig's
+  unwinnable-growth bug, guarded).
+- Four pixel tokens (the Gantry fills its frame; the Prism has no face
+  because it has never needed one), bestiary entries that unlock on the
+  first kill, board-wide influence hitbox diagrams, breach telegraph cells
+  in the Burrow-Breach hazard language recast magenta, boss intel drawer
+  (pool, field, phase, bodies, footprint), clock-forward objective block.
+- `bosstest` in the guard suite: footprint/pool/blocking, both flip
+  triggers, all three scripts beat by beat, clock loss + kill win, and nine
+  bot fights that must resolve inside the clock.
+
+### Numbers at bot level
+
+First balance pass (informational suite): boss missions land ~37% bot win
+rate — inside the brief's 35-60% band, on the first try, with the bot merely
+taught to push forward. Left untuned on purpose: the brief itself says the
+real read has to come from play, and the Prism's reflection punishes humans
+harder than bots.
+
+### Deliberately not built (backlog)
+
+- Onslaught boss every ten waves (patch marks it optional).
+- Bosses for Lumenspire, Crownring, Shallowhelm — three more machines, a
+  content batch now that the system exists.
+- Boss-kill achievements.
+- Requiem Sage stays shelved with the cards patch's own reasoning.
+
 ## Card backlog — the next pass
 
 Not built. Recorded here so the next card batch starts from a list rather than a

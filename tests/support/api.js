@@ -39,6 +39,9 @@ export {
 export {wave, laneScore, rollDoctrine, predictSpawns} from '../../src/rules/waves.js';
 export {mkUnit, buffOf, dmgPreview, leadBonus} from '../../src/rules/units.js';
 export {seedFrame, frameReady, isMissionFrame} from '../../src/rules/frames.js';
+export {seedBoss, bossForOp, bossHp, dmgBoss, bossTick} from '../../src/rules/boss.js';
+export {BOSSDEF} from '../../src/content/bosses.js';
+export {pierceUnit} from '../../src/rules/combat.js';
 export {seedStratagem, stratReady, canPlayStratagem, playStratagem, stratMarkers, resolveStratagem, resolveStratagemEnd, BREACH_HULL} from '../../src/rules/stratagems.js';
 export {laneJammed, laneFloor, laneAhead, geomFor, geomCells, candidatesFor, targetsFor} from '../../src/rules/targeting.js';
 export {dampenIn, dmgEnemy, blast, dmgUnit, fire, healPass, breachAt} from '../../src/rules/combat.js';

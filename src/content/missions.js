@@ -39,4 +39,9 @@ export const MISSIONS = {
     waves: 6,
     d: "Purge the zone. Destroy nine hostiles before the wave count runs out.",
   },
+  boss: {
+    n: "Kill Order",
+    waves: 18,
+    d: "One target. The waves are its to spawn, not the hive’s — bring it down before the clock runs out.",
+  },
 };

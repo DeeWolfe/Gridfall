@@ -24,6 +24,7 @@ import {finish, winWhy} from './mission.js';
 import {clog} from './log.js';
 import {tapeBegin, tapeEnd, tapeMark, tapeEvent} from './tape.js';
 import {resolveStratagem, resolveStratagemEnd} from './stratagems.js';
+import {bossTick} from './boss.js';
 
 /** Step 2, then reset every unit for the turn ahead. */
 export function playerPhase() {
@@ -564,6 +565,10 @@ function lossCheck() {
  * turns since; three of them and an unmet objective is a failure.
  */
 function endgameCheck() {
+  // A boss mission runs on a hard clock, not a wave count with a grace period:
+  // the last turn ends and the target either fell (checked in endTurn, before
+  // this) or it did not.
+  if (G.type === 'boss') return {win: false, why: 'The clock ran out — the target still stands.'};
   if (G.type === 'retake') {
     if (heldEnemyHalf() >= 3) return {win: true, why: winWhy()};
     if (G.extra >= ENDGAME_TURNS(G.type)) return {win: false, why: 'Not enough hostile ground taken.'};
@@ -608,6 +613,7 @@ export function endTurn() {
   tapeBegin();
   playerPhase();
   enemyPhase();
+  bossTick();                    // the boss's own script: fabrication, breaches, growth
   // A short-beat call (Breaching Charge) lands here: after the horde has moved,
   // before the tiles flip, so the column it clears is ground you then hold.
   resolveStratagemEnd();
@@ -618,6 +624,7 @@ export function endTurn() {
 
   const lost = lossCheck();
   if (lost) return finish(false, lost);
+  if (G.type === 'boss' && G.bossDown) return finish(true, winWhy());
   if (G.type === 'specimens' && G.quotaHit >= G.quota) return finish(true, winWhy());
   if (G.type === 'blitz' && G.kills >= G.quota) return finish(true, winWhy());
   if (G.type === 'civilians') {
@@ -653,7 +660,11 @@ export function endTurn() {
     G.manifest = wave(G.turn);
     G.doctrine = rollDoctrine();
     predictSpawns();
-    clog(`<span class="t">WAVE ${G.turn}</span> inbound — entry lanes marked.`, 'wave');
+    if (G.type === 'boss') {
+      clog(`<span class="t">TURN ${G.turn}</span> — ${G.waves - G.turn + 1} left on the clock.`, 'wave');
+    } else {
+      clog(`<span class="t">WAVE ${G.turn}</span> inbound — entry lanes marked.`, 'wave');
+    }
   } else {
     G.manifest = null;
     G.predict = [];
@@ -663,7 +674,7 @@ export function endTurn() {
     if (verdict) return finish(verdict.win, verdict.why);
   }
 
-  G.dp = MAXDP;
+  G.dp = MAXDP + (G.type === 'boss' ? 1 : 0);   // a boss fight runs a point richer
   // Dynamos hum: +1 DP each, capped at +2 — greed has a ceiling.
   const dynamos = Math.min(2, G.units.filter(u => u.dynamo).length);
   if (dynamos) {

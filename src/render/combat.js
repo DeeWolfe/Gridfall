@@ -10,6 +10,8 @@ import {BEST} from '../content/hostiles.js';
 import {MISSIONS} from '../content/missions.js';
 import {MODS} from '../content/modifiers.js';
 import {DOCTRINE} from '../content/doctrines.js';
+import {BOSSDEF} from '../content/bosses.js';
+import {bossHp} from '../rules/boss.js';
 import {TGNAME} from '../content/targeting-names.js';
 import {G, active, sel, mover, foeSel, replaying, stratSel, logOpen, setSel, setMover, setFoeSel, setStratSel, setLogOpen} from '../state/session.js';
 import {STRATAGEMS} from '../content/stratagems.js';
@@ -214,6 +216,26 @@ function drawSel() {
       (G.enemies.some(o => BEST[o.k].aura) ? 1 : 0) - eventStrikeMalus());
     const speed = D.spd === 0 ? 'Immobile' : D.spd === 0.5 ? 'Every other turn' : D.spd + ' / turn';
 
+    // A boss proxy reads as the whole machine: the shared pool, the shield,
+    // and which phase of its script it is running.
+    if (e.boss && G.boss) {
+      const def = BOSSDEF[G.boss.k];
+      const cells = G.boss.bodies.reduce((a, b) => a + b.cells.length, 0);
+      el.innerHTML = `<div class="selhead"><b style="color:var(--mag)">${D.n}</b>
+          <span class="hpbadge">${bossHp()}/${def.hp}</span></div>
+        ${G.boss.shield > 0 ? `<div class="hpbar"><i style="width:${Math.max(0, G.boss.shield / def.shield * 100)}%;background:var(--cyan)"></i></div>` : ''}
+        <div class="hpbar"><i style="width:${Math.max(0, bossHp() / def.hp * 100)}%;background:var(--mag)"></i></div>
+        <div class="selgrid">
+          <div><span>Phase</span><b>${G.boss.phase} of 2</b></div>
+          ${G.boss.shield > 0 ? `<div><span>Field</span><b>${G.boss.shield}</b></div>` : ''}
+          <div><span>Bodies</span><b>${G.boss.bodies.length}</b></div>
+          <div><span>Footprint</span><b>${cells} cell${cells === 1 ? '' : 's'}</b></div>
+        </div>
+        <div class="selfire live">${G.boss.phase === 1 ? def.p1 : def.p2}</div>
+        <div class="hintline">${D.d}</div>`;
+      return;
+    }
+
     const verdict = e.stun ? 'Stunned — it does nothing this turn.'
       : hitCell !== null ? `Will strike ${victim ? victim.n : 'the line'} for <b>${dmg}</b>`
         : t.threat.length ? `Closes <b>${t.threat.length}</b> cell${t.threat.length > 1 ? 's' : ''} — nothing in reach yet`
@@ -297,6 +319,7 @@ const FOE_GLYPH = {
   crawler: '▪', hulk: '⬢', breacher: '◣', spitter: '◆', burrower: '⋒',
   spore: '✱', jammer: '⌁', pylon: '▣', harrower: '✠', mender: '✚',
   husk: '◍', screamer: '◉', chorus: '≋', sovereign: '♚', puppeteer: '☍',
+  fabricant: '⚙', gantry: '☰', brood: '❉', prism: '◇',
 };
 
 /** The intent badge: what this hostile will do next turn, per enemyIntent(). */
@@ -312,11 +335,17 @@ function intentBadge(e) {
 /** Markup for a hostile standing in a cell. */
 function foeMarkup(e, locked) {
   const D = BEST[e.k];
-  const kind = D.t === 'special' ? 'e-spec' : D.t === 'tech' ? 'e-tech' : 'e-unit';
+  const kind = D.t === 'boss' ? 'e-boss' : D.t === 'special' ? 'e-spec' : D.t === 'tech' ? 'e-tech' : 'e-unit';
+  // A boss proxy's bar reads against its BODY's pool (bmax), which after a
+  // split or shatter is smaller than the bestiary total.
+  const denom = e.bmax || D.hp;
+  const shieldPip = e.boss && G.boss && G.boss.shield > 0
+    ? `<span class="shield">◈${G.boss.shield}</span>` : '';
   return `<div class="ent ${kind}${e.stun ? ' stunned' : ''}" title="${D.n}">
-        ${intentBadge(e)}
+        ${e.boss ? '' : intentBadge(e)}
         ${locked ? '<span class="lockpip">⌖</span>' : ''}
-        <span class="minihp foe"><i style="width:${Math.max(0, e.hp / D.hp * 100)}%"></i></span>
+        ${shieldPip}
+        <span class="minihp foe"><i style="width:${Math.max(0, e.hp / denom * 100)}%"></i></span>
         ${foeSprite(e.k, e.uid) || `<div class="nm"><span class="fglyph">${FOE_GLYPH[e.k] || '▪'}</span>${D.n.split(' ')[0]}</div>`}
         <div class="hp">${e.hp}</div></div>`;
 }
@@ -396,6 +425,9 @@ export function drawBoard() {
     if (aimable.has(i)) cls += ' aimable';
     const burrowWarn = G.burrowAt && G.burrowAt.l === l && G.burrowAt.c === c;
     if (burrowWarn) cls += ' burrowmark';
+    // The Brood Mother's telegraphed breaches: marked this turn, erupting next.
+    const breachWarn = G.boss && G.boss.marks.some(m => m.l === l && m.c === c);
+    if (breachWarn) cls += ' breachwarn';
     cell.className = cls;
 
     let marker = c === COLS - 1 && spawnLanes[l]
@@ -782,7 +814,10 @@ export function drawAll() {
     ? (Object.keys(G.manifest).length
       ? Object.entries(G.manifest)
         .map(([k, v]) => `<span class="incp" data-foe="${k}"><span class="fglyph">${FOE_GLYPH[k] || '▪'}</span>${BEST[k].n}<b>${v}</b></span>`).join('')
-      : '<span class="incp">Dead air — no spawns</span>')
+      // A boss mission's manifest is empty every turn — the hive sends nothing,
+      // the machine makes its own. "Dead air" would be a lie here.
+      : G.type === 'boss' ? '<span class="incp">The target spawns its own escort</span>'
+        : '<span class="incp">Dead air — no spawns</span>')
     : G.manifest ? '<span class="incp">Blackout — no preview</span>'
       : '<span class="incp">No further hostiles</span>';
   $('man').innerHTML = evChips + manChips;

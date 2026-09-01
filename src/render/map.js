@@ -101,7 +101,8 @@ export function renderMap() {
       const nd = run.nodes[n.id];
       const m = MISSIONS[nd.type];
       const md = MODS[nd.mod];
-      const tag = n.role === 'final' ? ' <span style="color:var(--gold)">· EXTRACTION — ends the operation</span>'
+      const tag = n.role === 'final'
+        ? ` <span style="color:var(--gold)">· ${nd.type === 'boss' ? 'PRIORITY TARGET' : 'EXTRACTION'} — ends the operation</span>`
         : n.role === 'side' ? ' <span style="color:var(--gold)">· BONUS OBJECTIVE</span>' : '';
       return `<div class="row" data-go="${n.id}" style="cursor:pointer">
         <span><b style="color:var(--zan)">${n.l ? n.l + ' — ' : ''}${m.n}</b>${nd.mod !== 'none' ? ` <span style="color:var(--violet)">· ${md.n}</span>` : ''}${tag}

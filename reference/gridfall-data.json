@@ -1310,6 +1310,49 @@
    "flank": 1,
    "d": "A hive-built war frame. It does not queue and it does not wait — it reads your line and walks into whichever lane is thinnest.",
    "counter": "It will always be where you are weakest. Hold the lanes evenly, or bring something that cuts across them."
+  },
+  "fabricant": {
+   "n": "Fabricant",
+   "t": "common",
+   "hp": 5,
+   "dmg": 2,
+   "threat": 1,
+   "spd": 1,
+   "d": "Assembled mid-battle and walking off the line already armed. One is nothing; the problem is that the Gantry never stops making them.",
+   "counter": "Kill the factory. Every turn spent thinning the product is a turn the assembly line wins."
+  },
+  "gantry": {
+   "n": "The Gantry",
+   "t": "boss",
+   "boss": 1,
+   "hp": 40,
+   "dmg": 0,
+   "threat": 0,
+   "spd": 0,
+   "d": "A hive fabrication rig behind a containment field — six cells of scaffold and emitters. It does not fight you; it builds the things that do.",
+   "counter": "The shield is protecting you as much as it. Break it when you are ready to fight everything at once — or clear the fabricants first and eat the ramp."
+  },
+  "brood": {
+   "n": "The Brood Mother",
+   "t": "boss",
+   "boss": 1,
+   "hp": 34,
+   "dmg": 0,
+   "threat": 0,
+   "spd": 0,
+   "d": "A burrowing mass that works the field like a seam of ore — drifting across lanes, crushing what it rolls over, opening breaches anywhere on the board and lashing whole rows with tendrils.",
+   "counter": "Stand a soldier on a marked breach and it takes the hit instead of a hostile surfacing. At half hull it splits — three bodies, three faces, and all of them must die."
+  },
+  "prism": {
+   "n": "The Prism",
+   "t": "boss",
+   "boss": 1,
+   "hp": 70,
+   "dmg": 0,
+   "threat": 0,
+   "spd": 0,
+   "d": "A crystalline growth that has never attacked anything. It reflects a quarter of every hit back up the barrel that fired it, and it can wait longer than your clock can.",
+   "counter": "Small hits reflect small — spread the work. At half hull it shatters into four growing fragments; kill them fast or watch them outgrow your guns."
   }
  },
  "leads": {
@@ -1444,6 +1487,11 @@
    "n": "Eradication Blitz",
    "waves": 6,
    "d": "Purge the zone. Destroy nine hostiles before the wave count runs out."
+  },
+  "boss": {
+   "n": "Kill Order",
+   "waves": 18,
+   "d": "One target. The waves are its to spawn, not the hive’s — bring it down before the clock runs out."
   }
  },
  "modifiers": {
@@ -2494,6 +2542,68 @@
   "firebrand": {
    "req": "store",
    "price": 480
+  }
+ },
+ "bosses": {
+  "gantry": {
+   "op": "ironveil",
+   "hp": 40,
+   "shield": 30,
+   "w": 3,
+   "h": 2,
+   "l": 1,
+   "c": 5,
+   "turns": 18,
+   "add": "fabricant",
+   "ramp": [
+    1,
+    2,
+    3
+   ],
+   "cellDmg": 2,
+   "p1": "Shielded — fabricating, not firing",
+   "p2": "Shield down — every emitter firing, assembly continuing",
+   "bt": "SHIELD COLLAPSE",
+   "bb": "The containment field fails and the rig is suddenly aware of you. Every emitter it has comes online at once."
+  },
+  "brood": {
+   "op": "blackmarrow",
+   "hp": 34,
+   "w": 2,
+   "h": 2,
+   "l": 1,
+   "c": 5,
+   "turns": 18,
+   "seamEvery": 3,
+   "breachDmg": 4,
+   "breachPool": [
+    "crawler",
+    "hulk",
+    "spitter",
+    "breacher"
+   ],
+   "tendrilDmg": 2,
+   "splitBodies": 3,
+   "p1": "Excavating — breaches and tendrils",
+   "p2": "Split — three bodies working separate faces",
+   "bt": "NEW FACES OPENED",
+   "bb": "Standard procedure for a collapsed shaft. The body contracts and the work continues elsewhere."
+  },
+  "prism": {
+   "op": "sunderglass",
+   "hp": 70,
+   "w": 2,
+   "h": 3,
+   "l": 1,
+   "c": 5,
+   "turns": 18,
+   "reflect": 0.25,
+   "fragments": 4,
+   "growCap": 1.25,
+   "p1": "Inert — reflecting damage taken",
+   "p2": "Fractured — four fragments, each growing",
+   "bt": "FRACTURE",
+   "bb": "Crystal under sustained stress fails along its planes. You have made three more problems by solving one badly."
   }
  }
 }

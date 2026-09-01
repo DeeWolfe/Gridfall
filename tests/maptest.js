@@ -1,6 +1,7 @@
-// Campaign map structure: the final node is always Extraction, gates hold
-// routes shut until their requirement is cleared, side objectives are optional
-// and pay a bonus, and the operation completes on the final node alone.
+// Campaign map structure: the final node is always Extraction — or the
+// operation's boss, on the three ops that have one — gates hold routes shut
+// until their requirement is cleared, side objectives are optional and pay a
+// bonus, and the operation completes on the final node alone.
 import * as A from './support/api.js';
 import {failures} from './support/harness.js';
 
@@ -32,9 +33,10 @@ for (const opKey of Object.keys(A.OPS)) {
     const run = p.ops[opKey];
     for (const n of A.OPS[opKey].nodes) {
       const nd = run.nodes[n.id];
-      if (n.role === 'final' && nd.type !== 'extract') F.push(`${opKey} final rolled ${nd.type}`);
+      const finalType = A.bossForOp(opKey) ? 'boss' : 'extract';
+      if (n.role === 'final' && nd.type !== finalType) F.push(`${opKey} final rolled ${nd.type}, wanted ${finalType}`);
       if (n.role === 'start' && nd.type !== 'stronghold') F.push(`${opKey} start rolled ${nd.type}`);
-      if (n.role !== 'final' && nd.type === 'extract') F.push(`${opKey} ${n.id}: extract off the final node`);
+      if (n.role !== 'final' && (nd.type === 'extract' || nd.type === 'boss')) F.push(`${opKey} ${n.id}: ${nd.type} off the final node`);
       if (n.type && nd.type !== n.type) F.push(`${opKey} ${n.id}: pinned type ${n.type}, rolled ${nd.type}`);
       if (n.role === 'side') {
         const pool = n.type ? [n.type] : ['crystals', 'specimens', 'uplink', 'blitz'];
