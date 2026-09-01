@@ -1361,6 +1361,39 @@
    "spd": 0,
    "d": "A crystalline growth that has never attacked anything. It reflects a quarter of every hit back up the barrel that fired it, and it can wait longer than your clock can.",
    "counter": "Small hits reflect small — spread the work. At half hull it shatters into four growing fragments; kill them fast or watch them outgrow your guns."
+  },
+  "aperture": {
+   "n": "The Aperture",
+   "t": "boss",
+   "boss": 1,
+   "hp": 52,
+   "dmg": 0,
+   "threat": 0,
+   "spd": 0,
+   "d": "The Lumenspire transmission lens with something living fused through it — a three-cell column of glass and intent. It marks a lane of the grid, and one cycle later that lane burns.",
+   "counter": "The sweep is mechanical: one lane over, reversing at the edges. Read the light, step out of it, and punish the lanes it is not watching. At half hull the fan opens to three lanes — keep moving."
+  },
+  "envoy": {
+   "n": "The Envoy",
+   "t": "boss",
+   "boss": 1,
+   "hp": 38,
+   "dmg": 0,
+   "threat": 0,
+   "spd": 0,
+   "d": "The thing holding the Summit Hall floor. It strikes everything that stands adjacent, and every few cycles it dives beneath the wards — untouchable — to surface somewhere else with its burrower delegation.",
+   "counter": "Hit it hard while it holds the floor; hold your line while it is under. Keep your people out of arm's reach. At half hull it dives faster and surfaces on YOUR side of the board."
+  },
+  "reliquary": {
+   "n": "The Reliquary",
+   "t": "boss",
+   "boss": 1,
+   "hp": 64,
+   "dmg": 0,
+   "threat": 0,
+   "spd": 0,
+   "d": "The fortress ward core, rebuilt by the cult and finished by the hive. On a visible cycle it fires the wards fortress-wide — and everything standing on ground you do not hold burns. Between purges it converts your held ground back, tile by tile.",
+   "counter": "Hold your ground, literally: when the purge fires, tiles your line has claimed are the only safe floor. Stand your advance on held tiles before the count hits zero, and burst the core down between cycles."
   }
  },
  "leads": {
@@ -2802,6 +2835,240 @@
     "close": "Channel closed. The glass fields are dark. The system is watching back.",
     "go": "Close channel"
    }
+  },
+  "aperture": {
+   "op": "lumenspire",
+   "hp": 52,
+   "w": 1,
+   "h": 3,
+   "l": 1,
+   "c": 6,
+   "turns": 18,
+   "beamDmg": 4,
+   "add": "husk",
+   "addEvery": 2,
+   "p1": "Focusing — one lane marked, burning next turn",
+   "p2": "Wide open — the fan burns three lanes",
+   "bt": "APERTURE WIDE",
+   "bb": "The lens stops choosing. Whatever held it to one lane at a time has burned away, and the fan opens.",
+   "brief": {
+    "freq": "141.92",
+    "net": "残心ネット",
+    "cap": "Kill Order · Priority target briefing",
+    "from": {
+     "n": "Hikaru",
+     "r": "CC Liaison"
+    },
+    "beats": [
+     {
+      "say": [
+       "Commander. The Lumenspire research division was working on focused-energy transmission when Meridian City fell. The spire is still transmitting — but not to anywhere on our grid.",
+       "Something has fused itself through the transmission lens and is using the array as a body. We are designating it: THE APERTURE."
+      ],
+      "reply": "Using it how?"
+     },
+     {
+      "say": [
+       "It burns a full lane of the grid at a time. The one mercy: the array's targeting is mechanical — it locks its firing line a full cycle before it fires, and it sweeps in order.",
+       "Read the light, Commander. The lane it marks is the lane it burns. Do not be standing in it when it does."
+      ],
+      "reply": "And the researchers?"
+     },
+     {
+      "say": [
+       "The dorms went dark before your descent window opened. I'm sorry, Commander. The families have already been told.",
+       "One more thing. The dead of Meridian City do not stay where they fell. Expect the Aperture to raise them against you."
+      ],
+      "reply": "Understood. Out."
+     }
+    ],
+    "close": "Channel closed. Target designate: THE APERTURE. Read the light.",
+    "go": "Begin descent"
+   },
+   "debrief": {
+    "freq": "141.92",
+    "net": "残心ネット",
+    "cap": "After-action · CC uplink",
+    "from": {
+     "n": "Hikaru",
+     "r": "CC Liaison"
+    },
+    "beats": [
+     {
+      "say": [
+       "Confirmed kill, Commander. The spire is dark for the first time in six months.",
+       "The recovered lab data is fragmentary, but the direction is clear: the research division was close to point-to-point energy transmission. The hive finished their work for them — and pointed it at you."
+      ],
+      "reply": "Then it died with the lens. Didn't it?"
+     },
+     {
+      "say": [
+       "We don't know. The spire was transmitting continuously, right up until your kill — and we cannot find the receiver.",
+       "Somewhere in the system, something now knows how to build that lens. Central has moved the search to the top of the queue. Stay sharp, Commander."
+      ],
+      "reply": "Acknowledged. Out."
+     }
+    ],
+    "close": "Channel closed. Receiver location: UNKNOWN.",
+    "go": "Close channel"
+   }
+  },
+  "envoy": {
+   "op": "crownring",
+   "hp": 38,
+   "w": 2,
+   "h": 2,
+   "l": 1,
+   "c": 5,
+   "turns": 18,
+   "diveEvery": 3,
+   "escort": "burrower",
+   "escortN": 2,
+   "adjDmg": 2,
+   "p1": "In session — holding the floor",
+   "p2": "Protocol abandoned — diving faster, surfacing close",
+   "bt": "RECESS ENDED",
+   "bb": "It stops pretending the Summit Hall matters. The floor is wherever it surfaces — and it is surfacing on yours.",
+   "brief": {
+    "freq": "141.95",
+    "net": "残心ネット",
+    "cap": "Kill Order · Priority target briefing",
+    "from": {
+     "n": "Hikaru",
+     "r": "CC Liaison"
+    },
+    "beats": [
+     {
+      "say": [
+       "Commander. The delegations are out — your escort work bought the alliance its lives. But the thing that took the Summit Hall floor is still in session.",
+       "It surfaced mid-evacuation, took position at the head of the chamber, and has not left it since. We are designating it: THE ENVOY."
+      ],
+      "reply": "In session?"
+     },
+     {
+      "say": [
+       "Watch the footage and you will understand. It sits where the chair sits. It waits. When our recovery teams approached the floor, it went through them — and then returned to its place.",
+       "It moves under the wards, Commander. When it dives, nothing we have can touch it — and it chooses where it comes up. Its burrower escort comes up with it."
+      ],
+      "reply": "So I hit it while it holds the floor, and brace my line when it dives."
+     },
+     {
+      "say": [
+       "That is the read. And keep your people out of arm's reach — anything standing beside it when it acts does not stand back up.",
+       "Eighteen cycles. After that the Concordat writes off the hall, and the region tips anyway. Make them count."
+      ],
+      "reply": "Understood. Out."
+     }
+    ],
+    "close": "Channel closed. Target designate: THE ENVOY. The floor is yours to take.",
+    "go": "Begin descent"
+   },
+   "debrief": {
+    "freq": "141.95",
+    "net": "残心ネット",
+    "cap": "After-action · CC uplink",
+    "from": {
+     "n": "Hikaru",
+     "r": "CC Liaison"
+    },
+    "beats": [
+     {
+      "say": [
+       "Kill confirmed. The Summit Hall is a ruin — but it is our ruin again, and the delegations are alive to argue in it.",
+       "Analysis flagged something you should hear directly. The Envoy's positioning, its timing, the way it held the chamber — it was not nesting, Commander. It was imitating the summit it interrupted."
+      ],
+      "reply": "Imitating. It was practicing being us."
+     },
+     {
+      "say": [
+       "First our machines, at the yards. Now our institutions. The scientists argue about what that means. Central does not: whatever directs these things is studying more than our weapons.",
+       "The delegations reconvene next month — in a bunker, under guard. The alliance holds, Commander. That is your doing."
+      ],
+      "reply": "One for the many. Out."
+     }
+    ],
+    "close": "Channel closed. The Concordat holds.",
+    "go": "Close channel"
+   }
+  },
+  "reliquary": {
+   "op": "shallowhelm",
+   "hp": 64,
+   "w": 2,
+   "h": 2,
+   "l": 1,
+   "c": 6,
+   "turns": 18,
+   "chargeEvery": 4,
+   "purgeDmg": 5,
+   "anoint": 2,
+   "add": "husk",
+   "p1": "Charging — held ground is safe when the wards fire",
+   "p2": "Cracked — charging faster, converting deeper",
+   "bt": "RELIQUARY CRACKED",
+   "bb": "Half its mass is gone, and the cult's machine reads that as devotion. The purge cycle shortens.",
+   "brief": {
+    "freq": "141.98",
+    "net": "残心ネット",
+    "cap": "Kill Order · Priority target briefing",
+    "from": {
+     "n": "Hikaru",
+     "r": "CC Liaison"
+    },
+    "beats": [
+     {
+      "say": [
+       "Commander. Purge Protocol is armed, but the fortress heart is not answering ours. The cult welded something into the ward reliquary before the end — and the hive finished the job.",
+       "The wards are firing on their own fortress now. We are designating it: THE RELIQUARY."
+      ],
+      "reply": "The fortress is shooting at itself?"
+     },
+     {
+      "say": [
+       "On a cycle. It charges the ward grid, and when it discharges, everything standing on ground the grid does not read as held burns. The old friend-or-foe logic survived — that is the only mercy in there.",
+       "Hold your ground, Commander. Literally. When the discharge comes, the floor your line has claimed is the only safe floor there is."
+      ],
+      "reply": "And between discharges?"
+     },
+     {
+      "say": [
+       "It unmakes your claim. Tile by tile, it converts held ground back to theirs. And the dead the cult left behind still walk its halls.",
+       "Scour it clean. All of it. Then come back out the way you went in."
+      ],
+      "reply": "Understood. Out."
+     }
+    ],
+    "close": "Channel closed. Target designate: THE RELIQUARY. Hold your ground when the wards fire.",
+    "go": "Begin descent"
+   },
+   "debrief": {
+    "freq": "141.98",
+    "net": "残心ネット",
+    "cap": "After-action · CC uplink",
+    "from": {
+     "n": "Hikaru",
+     "r": "CC Liaison"
+    },
+    "beats": [
+     {
+      "say": [
+       "The fortress is dark, Commander. Dark is recoverable — engineering crews descend at first light, and the line holds because Shallow Helm holds.",
+       "The reliquary core is on its way to Central for study. Inside the hive growth, the cult's own work is intact. Deliberate. They did not break the wards, Commander. They taught them a new definition of foe."
+      ],
+      "reply": "People did this. Willingly."
+     },
+     {
+      "say": [
+       "Willingly. And Central believes Shallow Helm was not the only chapel. Counter-intelligence has stood up a task group — that is all I am cleared to say on this channel.",
+       "You gave the line back its anchor. Get some rest, Commander."
+      ],
+      "reply": "Zanshin still stands. Out."
+     }
+    ],
+    "close": "Channel closed. Fortress Shallow Helm: reclaimed.",
+    "go": "Close channel"
+   },
+   "addN": 2
   }
  }
 }

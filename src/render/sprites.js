@@ -886,6 +886,54 @@ const FOE_PIX = {
     '.....oo.....',
     '............',
   ],
+  // The transmission lens with something living behind it: concentric rings,
+  // a gold core, one lime glint that blinks — the eye that marks your lane.
+  aperture: [
+    '.....oo.....',
+    '....obbo....',
+    '...obssbo...',
+    '..obsWWsbo..',
+    '..obWggWbo..',
+    '..obWgxWbo..',
+    '..obsWWsbo..',
+    '...obssbo...',
+    '....obbo....',
+    '..oo.oo.oo..',
+    '.oo......oo.',
+    '............',
+  ],
+  // A hooded mass seated where the chair sits: dome, two pale eye pips, a
+  // lime sigil where a delegate's badge would be, folded flanks at rest.
+  envoy: [
+    '............',
+    '....oooo....',
+    '...obbbbo...',
+    '..obsbbsbo..',
+    '..obWbbWbo..',
+    '.oobbbbbboo.',
+    '.obbsbbsbbo.',
+    '.obbbxxbbbo.',
+    '.osbbbbbbso.',
+    '..obbbbbbo..',
+    '...oooooo...',
+    '............',
+  ],
+  // The ward core as the cult remade it: a stepped shrine block, a gold
+  // flame above a burning reliquary window, spread to a fortress footing.
+  reliquary: [
+    '............',
+    '.....gg.....',
+    '....ogxo....',
+    '...obggbo...',
+    '..obbggbbo..',
+    '..obsggsbo..',
+    '..obbbbbbo..',
+    '.oobsbbsboo.',
+    '.obbbbbbbbo.',
+    'oobbbbbbbboo',
+    'oooooooooooo',
+    '............',
+  ],
 };
 
 export const hasFoeSprite = k => !!FOE_PIX[k];

@@ -3693,6 +3693,60 @@ mood/toggle contract already covers start/stop/tier); the reference
 file's analyser/viz. The handoff files live outside the repo; the spec's
 numbers now live in the module and its guard.
 
+## v2.11 — Kill Orders for the newer three operations
+
+Backlog item "bosses for the 3 newer ops", done. Six bosses, six ops; the
+final node of every operation is now a boss (run.js needed no change —
+bossForOp covering the new ops did it). Each design deliberately claims a
+mechanic none of the first three uses:
+
+- **THE APERTURE** (lumenspire, hp 52, 1×3 column at c6): telegraphed
+  lane beam. `G.boss.beam = {lane, dir}` — the marked lane burns for
+  `beamDmg` (4) NEXT tick, then the mark steps one lane, ping-ponging at
+  the edges. Deliberately deterministic where the Brood's marks are
+  random: this one is about *reading*, and a player who reads it takes
+  zero beam damage (the bot doesn't dodge, so human play skews easier
+  than the measured rate — acceptable for a mechanics-reading fight).
+  Phase two: the fan burns the marked lane ± 1. Raises a husk every
+  `addEvery` (2) turns. Board shows the lit lane as a gold `.beamwarn`
+  wash (soft on purpose — it covers a whole lane).
+- **THE ENVOY** (crownring, hp 38, 2×2): censure — `adjDmg` (2) to every
+  unit orthogonally adjacent to its footprint — and every `diveEvery`
+  (3rd) turn it dives: proxies leave the board entirely, so nothing can
+  target it (elegantly free of special cases), while the 18-turn clock
+  keeps running. Next tick it surfaces at the fittable anchor with the
+  fewest units under it (crushes only when it must), bringing `escortN`
+  (2) burrowers. Phase two: dives every 2, surfaces at anchor col ≤ 2
+  (your side), +1 escort.
+- **THE RELIQUARY** (shallowhelm, hp 64, 2×2 at c6, never moves):
+  `B.charge` counts to `chargeEvery` (4; 3 in phase two) — on discharge,
+  every unit standing on ground you do NOT hold ('p' check at bossTick,
+  which runs before territoryPhase, so "held" = held since last turn)
+  takes `purgeDmg` (5), and `addN` (2) husks walk. Between discharges it
+  anoints: converts `anoint` (2; 3 in p2) unoccupied held tiles to hive.
+  Counterplay is presence on both halves of the kit; the purge countdown
+  is in the log every turn and in the boss drawer.
+- Shared plumbing: `summonAdds(kind, count)` extracted from gantryTick
+  (identical placement, mid-field first); `beam/under/charge` seeded on
+  G.boss for everyone; intel drawer grew Beam/Dives/Purge rows (`p2cut`
+  helper for the shortened phase-two cycles).
+- **Balance** (bot, 60 runs each after tuning): aperture 43%, envoy 53%,
+  reliquary 52% — inside the 35–60 band. The tune that got there:
+  aperture hp 44→52 + beamDmg 3→4 (was 70%), reliquary hp 48→60→64 +
+  purgeDmg 3→5 + addN 2 (was 83%, then 70%). Envoy landed at ~50 untuned.
+- **Codec**: briefs and debriefs for all three, in the established
+  Hikaru voice, freqs 141.92/.95/.98. Debrief lore arc: the receiver of
+  the Aperture's transmissions is unfound; the Envoy was imitating our
+  institutions, not nesting; Shallow Helm's cult was not the only
+  chapel (counter-intelligence task group stood up). MY DRAFTS — the
+  user proofreads/rewrites codec text; offer these for review.
+- Tests: bosstest count 3→6 + a mechanics block per machine (beam
+  telegraph/sweep/fan, censure/dive-untouchable/surface-with-escort,
+  purge-spares-held/anoint/static-seat/shortened-p2-cycle); resolve loop
+  covers all six (18 bot fights). Browser-verified all three: brief
+  intercepts launch, fight opens, beamwarn renders, drawer rows correct,
+  no page errors (seeds in scratchpad newbossprofile.json + mkbossseed.mjs).
+
 ## Card backlog — the next pass
 
 Not built. Recorded here so the next card batch starts from a list rather than a

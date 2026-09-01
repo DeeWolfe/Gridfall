@@ -242,6 +242,9 @@ function drawSel() {
     if (e.boss && G.boss) {
       const def = BOSSDEF[G.boss.k];
       const cells = G.boss.bodies.reduce((a, b) => a + b.cells.length, 0);
+      // Phase two shortens the Envoy's dive and the Reliquary's purge cycle.
+      const p2cut = n => (G.boss.phase === 2 ? Math.max(2, n - 1) : n);
+      const purgeIn = def.chargeEvery ? p2cut(def.chargeEvery) - G.boss.charge : 0;
       el.innerHTML = `<div class="selhead"><b style="color:var(--mag)">${D.n}</b>
           <span class="hpbadge">${bossHp()}/${def.hp}</span></div>
         ${G.boss.shield > 0 ? `<div class="hpbar"><i style="width:${Math.max(0, G.boss.shield / def.shield * 100)}%;background:var(--cyan)"></i></div>` : ''}
@@ -251,6 +254,9 @@ function drawSel() {
           ${G.boss.shield > 0 ? `<div><span>Field</span><b>${G.boss.shield}</b></div>` : ''}
           <div><span>Bodies</span><b>${G.boss.bodies.length}</b></div>
           <div><span>Footprint</span><b>${cells} cell${cells === 1 ? '' : 's'}</b></div>
+          ${G.boss.beam ? `<div><span>Beam</span><b>lane ${G.boss.beam.lane + 1} next</b></div>` : ''}
+          ${def.diveEvery ? `<div><span>Dives</span><b>every ${p2cut(def.diveEvery)} turns</b></div>` : ''}
+          ${def.chargeEvery ? `<div><span>Purge</span><b>in ${purgeIn} turn${purgeIn === 1 ? '' : 's'}</b></div>` : ''}
         </div>
         <div class="selfire live">${G.boss.phase === 1 ? def.p1 : def.p2}</div>
         <div class="hintline">${D.d}</div>`;
@@ -341,6 +347,7 @@ const FOE_GLYPH = {
   spore: '✱', jammer: '⌁', pylon: '▣', harrower: '✠', mender: '✚',
   husk: '◍', screamer: '◉', chorus: '≋', sovereign: '♚', puppeteer: '☍',
   fabricant: '⚙', gantry: '☰', brood: '❉', prism: '◇',
+  aperture: '◎', envoy: '♔', reliquary: '⚱',
 };
 
 /** The intent badge: what this hostile will do next turn, per enemyIntent(). */
@@ -418,6 +425,15 @@ export function drawBoard() {
     });
   }
 
+  // The Aperture's telegraphed beam: the lit lane burns next turn — phase
+  // two opens the fan to the adjacent lanes as well.
+  const beamLanes = new Set();
+  if (G.boss && G.boss.beam) {
+    const bl = G.boss.beam.lane;
+    (G.boss.phase === 2 ? [bl - 1, bl, bl + 1] : [bl])
+      .filter(x => x >= 0 && x < LANES).forEach(x => beamLanes.add(x));
+  }
+
   const board = $('board');
   board.style.gridTemplateColumns = `repeat(${COLS},1fr)`;
   board.innerHTML = '';
@@ -453,6 +469,7 @@ export function drawBoard() {
     // The Brood Mother's telegraphed breaches: marked this turn, erupting next.
     const breachWarn = G.boss && G.boss.marks.some(m => m.l === l && m.c === c);
     if (breachWarn) cls += ' breachwarn';
+    if (beamLanes.has(l)) cls += ' beamwarn';
     cell.className = cls;
 
     let marker = c === COLS - 1 && spawnLanes[l]

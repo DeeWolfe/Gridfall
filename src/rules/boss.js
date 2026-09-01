@@ -57,6 +57,7 @@ export function seedBoss() {
   const cells = [];
   for (let l = d.l; l < d.l + d.h; l++) for (let c = d.c; c < d.c + d.w; c++) cells.push([l, c]);
   G.boss = {k, phase: 1, shield: d.shield || 0, turns: 0, marks: [],
+    beam: null, under: false, charge: 0,
     bodies: [{id: 1, hp: d.hp, max: d.hp, cells, dir: 1}], nextBody: 2};
   G.bossDown = false;
   addBodyProxies(G.boss.bodies[0]);
@@ -233,10 +234,9 @@ function prismShatter(def) {
 
 // --- per-boss turn scripts, run after the horde has acted ---
 
-function gantryTick(def) {
-  const B = G.boss;
-  // Fabrication ramps 1-2-3 and holds — and it does NOT stop in phase two.
-  const count = def.ramp[Math.min(B.turns - 1, def.ramp.length - 1)];
+/** Place `count` of `kind` onto the board, mid-field first — the shared
+ * "the boss brings its own escort" placement every machine uses. */
+function summonAdds(kind, count) {
   let made = 0;
   for (let i = 0; i < count; i++) {
     const l = randInt(LANES);
@@ -248,9 +248,17 @@ function gantryTick(def) {
       break;
     }
     if (at == null) continue;
-    G.enemies.push(mkFoe(def.add, l, at, BEST[def.add].hp));
+    G.enemies.push(mkFoe(kind, l, at, BEST[kind].hp));
     made++;
   }
+  return made;
+}
+
+function gantryTick(def) {
+  const B = G.boss;
+  // Fabrication ramps 1-2-3 and holds — and it does NOT stop in phase two.
+  const count = def.ramp[Math.min(B.turns - 1, def.ramp.length - 1)];
+  const made = summonAdds(def.add, count);
   if (made) clog(`<span class="d">The Gantry</span> fabricates — ${made} ${BEST[def.add].n}${made > 1 ? 's' : ''} walk off the line.`, 'wave');
 
   // Shield down: every covered cell picks its own random friendly and fires.
@@ -352,6 +360,133 @@ function prismTick() {
   if (grew) clog('<span class="d">The fragments grow</span> — crystal knitting back along its planes.', 'info');
 }
 
+// --- The Aperture: a telegraphed lane beam, sweeping in order ---
+function apertureTick(def) {
+  const B = G.boss;
+
+  // Yesterday's marked lane burns first. Phase two opens the fan to three.
+  if (B.beam) {
+    const lanes = B.phase === 2
+      ? [B.beam.lane - 1, B.beam.lane, B.beam.lane + 1].filter(l => l >= 0 && l < LANES)
+      : [B.beam.lane];
+    const caught = G.units.filter(u => lanes.includes(u.lane));
+    caught.forEach(u => dmgUnit(u, def.beamDmg, 'The Aperture'));
+    clog(`<span class="d">The beam fires</span> — lane${lanes.length > 1 ? 's' : ''} ` +
+      `${lanes.map(l => l + 1).join(', ')} burn${lanes.length > 1 ? '' : 's'}` +
+      `${caught.length ? ` — ${caught.length} unit${caught.length > 1 ? 's' : ''} caught in the light` : ''}.`,
+      caught.length ? 'loss' : 'info');
+  }
+
+  // The sweep is mechanical on purpose: one lane over, reversing at the
+  // edges, announced a full turn ahead. Predictable is the counterplay —
+  // the player who reads the light never eats it (unlike the Brood Mother's
+  // random marks, which are about coverage, not reading).
+  const prev = B.beam || {lane: B.bodies[0] ? B.bodies[0].cells[0][0] : 0, dir: 1};
+  let dir = prev.dir;
+  let lane = prev.lane + dir;
+  if (lane < 0 || lane >= LANES) { dir = -dir; lane = prev.lane + dir; }
+  B.beam = {lane, dir};
+  clog(`<span style="color:var(--gold)">The lens turns</span> — lane ${lane + 1} is lit. It burns next turn.`, 'info');
+
+  // The dead city answers it.
+  if (B.turns % def.addEvery === 0) {
+    const made = summonAdds(def.add, 1);
+    if (made) clog(`<span class="d">The Aperture</span> raises the dead — a ${BEST[def.add].n} stands back up.`, 'wave');
+  }
+}
+
+// --- The Envoy: censure, dive, surface with the delegation ---
+function envoyTick(def) {
+  const B = G.boss;
+  const body = B.bodies[0];
+  if (!body) return;
+  const every = B.phase === 2 ? Math.max(2, def.diveEvery - 1) : def.diveEvery;
+
+  if (B.under) {
+    // Surface. Candidate anchors where the footprint fits; it avoids your
+    // units when it can (crushing a fresh deploy with no tell reads as a
+    // cheat), and in phase two it comes up on YOUR side of the board.
+    const spots = [];
+    for (let l = 0; l + def.h <= LANES; l++) for (let c = 0; c + def.w <= COLS; c++) {
+      const cells = [];
+      for (let dl = 0; dl < def.h; dl++) for (let dc = 0; dc < def.w; dc++) cells.push([l + dl, c + dc]);
+      if (cells.some(([cl, cc]) => G.ter[cl][cc] === 'x' || foeAt(cl, cc))) continue;
+      spots.push({cells, c, units: cells.filter(([cl, cc]) => unitAt(cl, cc)).length});
+    }
+    if (!spots.length) return;  // board jammed solid — it stays under a turn
+    const close = B.phase === 2 ? spots.filter(s => s.c <= 2) : spots;
+    const pool = close.length ? close : spots;
+    const clear = Math.min(...pool.map(s => s.units));
+    const pick = shuffle(pool.filter(s => s.units === clear))[0];
+    B.under = false;
+    pick.cells.forEach(([l, c]) => crushCell(l, c, BEST[B.k].n));
+    body.cells = pick.cells;
+    addBodyProxies(body);
+    pick.cells.forEach(([l, c]) => { G.ter[l][c] = 'e'; });
+    clog(`<span class="d">The Envoy surfaces</span> at lane ${pick.cells[0][0] + 1} — the floor is wherever it says it is.`, 'loss');
+    const n = def.escortN + (B.phase === 2 ? 1 : 0);
+    const made = summonAdds(def.escort, n);
+    if (made) clog(`The delegation comes up with it — ${made} ${BEST[def.escort].n}${made > 1 ? 's' : ''}.`, 'wave');
+    return;
+  }
+
+  if (B.turns % every === 0) {
+    // Dive: the proxies leave the board. Nothing can touch it until it
+    // surfaces — the clock keeps running, which is the whole cost.
+    removeBodyProxies(body);
+    B.under = true;
+    clog('<span style="color:var(--violet)">The Envoy dives</span> beneath the wards — untouchable until it surfaces.', 'info');
+    return;
+  }
+
+  // Censure: everything standing adjacent to the floor it holds is struck.
+  const own = new Set(body.cells.map(([l, c]) => l + ',' + c));
+  const adj = new Set();
+  body.cells.forEach(([l, c]) => [[l - 1, c], [l + 1, c], [l, c - 1], [l, c + 1]]
+    .forEach(([al, ac]) => {
+      if (al < 0 || al >= LANES || ac < 0 || ac >= COLS) return;
+      if (!own.has(al + ',' + ac)) adj.add(al + ',' + ac);
+    }));
+  const struck = G.units.filter(u => adj.has(u.lane + ',' + u.col));
+  struck.forEach(u => dmgUnit(u, def.adjDmg, 'The Envoy'));
+  if (struck.length) clog(`<span class="d">The Envoy censures the floor</span> — ${struck.length} unit${struck.length > 1 ? 's' : ''} within arm's reach struck.`, 'loss');
+}
+
+// --- The Reliquary: the ward purge on a countdown, erosion between ---
+function reliquaryTick(def) {
+  const B = G.boss;
+  const every = B.phase === 2 ? Math.max(2, def.chargeEvery - 1) : def.chargeEvery;
+  B.charge++;
+
+  if (B.charge >= every) {
+    B.charge = 0;
+    // The purge: the old friend-or-foe logic survived, inverted — ground
+    // your line HOLDS is the only floor the wards spare.
+    const caught = G.units.filter(u => G.ter[u.lane][u.col] !== 'p');
+    caught.forEach(u => dmgUnit(u, def.purgeDmg, 'Ward purge'));
+    clog(caught.length
+      ? `<span class="d">THE WARDS FIRE</span> — ${caught.length} unit${caught.length > 1 ? 's' : ''} caught off held ground.`
+      : '<span class="g">THE WARDS FIRE</span> — your line stood on held ground. Nothing burns.',
+      caught.length ? 'loss' : 'order');
+    const made = summonAdds(def.add, def.addN || 1);
+    if (made) clog(`${made > 1 ? 'Acolytes answer' : 'An acolyte answers'} the discharge — ${made} ${BEST[def.add].n}${made > 1 ? 's' : ''} walk${made > 1 ? '' : 's'}.`, 'wave');
+    return;
+  }
+
+  // Anoint: unheld, unoccupied claim is unmade tile by tile. Standing a unit
+  // on a converted tile re-claims it next territory flip — the counterplay
+  // is presence, same as the purge's.
+  const n = def.anoint + (B.phase === 2 ? 1 : 0);
+  const cands = [];
+  for (let l = 0; l < LANES; l++) for (let c = 0; c < COLS; c++) {
+    if (G.ter[l][c] === 'p' && !unitAt(l, c)) cands.push([l, c]);
+  }
+  const took = shuffle(cands).slice(0, n);
+  took.forEach(([l, c]) => { G.ter[l][c] = 'e'; });
+  if (took.length) clog(`<span class="d">The Reliquary anoints</span> — ${took.length} tile${took.length > 1 ? 's' : ''} of held ground converted.`, 'loss');
+  clog(`<span style="color:var(--violet)">Ward charge ${B.charge} of ${every}</span> — the purge fires in ${every - B.charge} turn${every - B.charge > 1 ? 's' : ''}. Held ground is safe.`, 'info');
+}
+
 /** The boss's whole turn. Runs after the horde acts, before territory flips. */
 export function bossTick() {
   const B = G.boss;
@@ -361,4 +496,7 @@ export function bossTick() {
   if (B.k === 'gantry') gantryTick(def);
   if (B.k === 'brood') broodTick(def);
   if (B.k === 'prism') prismTick(def);
+  if (B.k === 'aperture') apertureTick(def);
+  if (B.k === 'envoy') envoyTick(def);
+  if (B.k === 'reliquary') reliquaryTick(def);
 }

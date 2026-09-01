@@ -4,9 +4,19 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.10';
+export const VERSION = '2.11';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.11',
+    notes: [
+      'Every operation ends in a Kill Order now. Lumenspire, Crownring and Shallowhelm each got their own machine, their own Central Command briefing before the descent, and their own after-action call — six bosses, six operations, no extraction point left unguarded.',
+      'THE APERTURE holds the Lumenspire — the research division\'s transmission lens with something living fused through it. It marks a lane of the grid a full turn before it burns it, and the sweep is mechanical: one lane over, reversing at the edges. Read the light and you never eat it; at half hull the fan opens to three lanes and reading it stops being optional. The dead of Meridian City walk for it.',
+      'THE ENVOY sits where the Concordat\'s chair sits. Everything within arm\'s reach of the floor it holds is struck; every third cycle it dives beneath the wards — untouchable, while your clock keeps running — and surfaces where it pleases with its burrower delegation. At half hull it stops pretending the Summit Hall matters and starts surfacing on your side of the board.',
+      'THE RELIQUARY is what the cult made of Fortress Shallow Helm\'s ward core. It charges the fortress grid on a countdown you can read, and when the wards fire, everything standing on ground you do not hold burns — the old friend-or-foe logic survived, inverted. Between purges it converts your held ground back, tile by tile. Hold your ground. Literally.',
+      'Each new machine was run through hundreds of simulated Kill Orders and tuned into the same fair-fight band as the first three — and the combat theme already knows what to do with them: every boss opens at full arrangement, in its operation\'s own key.',
+    ],
+  },
   {
     v: '2.10',
     notes: [

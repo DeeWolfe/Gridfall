@@ -506,6 +506,13 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
   animation:breachpulse 2s ease-in-out infinite;z-index:2}
 @keyframes breachpulse{0%,100%{box-shadow:inset 0 0 0 2px var(--mag),0 0 20px rgba(255,77,143,.55)}
   50%{box-shadow:inset 0 0 0 3px var(--mag),0 0 6px rgba(255,77,143,.2)}}
+/* The Aperture's lit lane: a gold glare wash over every cell the beam will
+   burn next turn. Softer than breachwarn on purpose — it covers a whole lane,
+   so a hard outline per cell would read as eight separate alarms. */
+.cell.beamwarn{background-image:linear-gradient(180deg,rgba(255,201,77,.16),rgba(255,201,77,.16));
+  box-shadow:inset 0 2px 0 rgba(255,201,77,.5),inset 0 -2px 0 rgba(255,201,77,.5);
+  animation:beamglare 1.6s ease-in-out infinite}
+@keyframes beamglare{0%,100%{filter:brightness(1)}50%{filter:brightness(1.25)}}
 .cell.strattgt{cursor:pointer;box-shadow:inset 0 0 0 1px rgba(157,107,255,.55)}
 .cell.strattgt:hover{filter:brightness(1.35)}
 .cell.orderdest{box-shadow:inset 0 0 0 2px var(--green)}

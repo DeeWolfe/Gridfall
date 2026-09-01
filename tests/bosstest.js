@@ -43,7 +43,7 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
 // --- the shape of the content ---
 {
   const ks = Object.keys(BOSSDEF);
-  if (ks.length !== 3) F.push(`expected three bosses, found ${ks.length}`);
+  if (ks.length !== 6) F.push(`expected six bosses — one per operation — found ${ks.length}`);
   ks.forEach(k => {
     const d = BOSSDEF[k];
     if (!BEST[k] || BEST[k].t !== 'boss') F.push(`${k}: no boss-tier bestiary entry`);
@@ -247,6 +247,118 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
   console.log(`prism: 25% comes back past shields and can kill; ${d.fragments} fragments grow ${share}->${cap} and stop`);
 }
 
+// --- aperturetest: the beam telegraphs a turn ahead, sweeps in order, fans in phase two ---
+{
+  start('lumenspire');
+  const d = BOSSDEF.aperture;
+  // The first tick only marks — nothing burns without a standing telegraph.
+  A.bossTick();
+  if (!A.G.boss.beam) F.push('aperture never telegraphed a beam');
+  const first = A.G.boss.beam.lane;
+  if (first !== d.l + 1) F.push(`first mark on lane ${first}, wanted the sweep to start at ${d.l + 1}`);
+
+  const lit = spawnUnit('rifle', first, 0, {hp: 10, max: 10, shield: 0});
+  const dark = spawnUnit('wall', (first + 3) % A.LANES, 0, {hp: 12, max: 12, shield: 0});
+  A.bossTick();
+  if (lit.hp !== 10 - d.beamDmg) F.push(`the lit lane took ${10 - lit.hp}, wanted ${d.beamDmg}`);
+  if (dark.hp !== 12) F.push('a lane the beam never marked burned anyway');
+  if (A.G.boss.beam.lane !== first + 1) F.push('the sweep is not one lane over per turn');
+
+  // Ping-pong at the edge: ...3, 4, then back to 3 — never off the board.
+  while (A.G.boss.beam.lane < A.LANES - 1) A.bossTick();
+  A.bossTick();
+  if (A.G.boss.beam.lane !== A.LANES - 2) F.push('the sweep did not reverse at the board edge');
+
+  // Phase two: the fan burns the marked lane AND both neighbours.
+  A.G.units.length = 0;
+  A.G.boss.phase = 2;
+  A.G.boss.beam = {lane: 2, dir: 1};
+  const fan = [1, 2, 3].map(l => spawnUnit('rifle', l, 0, {hp: 10, max: 10, shield: 0}));
+  const spared = spawnUnit('wall', 0, 0, {hp: 12, max: 12, shield: 0});
+  A.bossTick();
+  if (fan.some(u => u.hp !== 10 - d.beamDmg)) F.push('the phase-two fan missed one of its three lanes');
+  if (spared.hp !== 12) F.push('the fan burned a fourth lane');
+
+  // The dead city answers on the cadence, and it answers with husks.
+  start('lumenspire');
+  A.bossTick();
+  A.bossTick();
+  if (!adds().length) F.push('the aperture never raised the dead');
+  if (adds().some(e => e.k !== d.add)) F.push('the aperture raised something other than husks');
+  console.log(`aperture: marked lane burns for ${d.beamDmg} a turn later, ordered sweep, three-lane fan after the flip`);
+}
+
+// --- envoytest: censure by adjacency, the dive is untouchable, the surface brings the delegation ---
+{
+  start('crownring');
+  const d = BOSSDEF.envoy;
+  // Footprint lanes 1-2 x cols 5-6: (1,4) is within arm's reach, (4,0) is not.
+  const near = spawnUnit('rifle', 1, 4, {hp: 10, max: 10, shield: 0});
+  const far = spawnUnit('wall', 4, 0, {hp: 12, max: 12, shield: 0});
+  A.bossTick();                            // turn 1 — in session: the censure
+  if (near.hp !== 10 - d.adjDmg) F.push(`adjacency took ${10 - near.hp}, wanted ${d.adjDmg}`);
+  if (far.hp !== 12) F.push('the censure reached across the board');
+
+  A.bossTick();                            // turn 2 — censure again
+  A.bossTick();                            // turn 3 — the dive
+  if (!A.G.boss.under) F.push('the envoy did not dive on schedule');
+  if (proxies().length) F.push('a submerged envoy still stands on the board');
+  if (A.G.boss.bodies.length !== 1 || A.G.bossDown) F.push('diving unmade the body');
+
+  A.G.units.length = 0;
+  A.bossTick();                            // turn 4 — the surface
+  if (A.G.boss.under) F.push('the envoy stayed under past its turn');
+  if (proxies().length !== d.w * d.h) F.push(`surfaced on ${proxies().length} cells, wanted ${d.w * d.h}`);
+  const escort = adds().filter(e => e.k === d.escort);
+  if (escort.length < d.escortN) F.push(`the delegation numbered ${escort.length}, wanted ${d.escortN}`);
+
+  // Phase two: it surfaces on YOUR side of the board.
+  start('crownring');
+  hit(d.hp / 2 + 1);
+  if (A.G.boss.phase !== 2) F.push('envoy did not flip at half hull');
+  A.G.boss.turns = 1;                      // next tick is even — a phase-two dive turn
+  A.bossTick();
+  if (!A.G.boss.under) F.push('phase two did not shorten the dive cycle');
+  A.bossTick();
+  if (Math.min(...proxies().map(e => e.col)) > 3) F.push('a phase-two surface stayed deep — it should come up close');
+  console.log(`envoy: censure ${d.adjDmg} within arm's reach, untouchable dive every ${d.diveEvery}, delegation of ${d.escortN} on the surface`);
+}
+
+// --- reliquarytest: the purge spares held ground, erosion between charges, it never moves ---
+{
+  start('shallowhelm');
+  const d = BOSSDEF.reliquary;
+  const home = spawnUnit('wall', 0, 0, {hp: 12, max: 12, shield: 0});   // ter 'p'
+  const fwd = spawnUnit('rifle', 4, 4, {hp: 10, max: 10, shield: 0});   // ter 'n'
+  const seat = A.G.boss.bodies[0].cells.map(x => x.join()).join(';');
+
+  const heldTiles = () => A.G.ter.flat().filter(t => t === 'p').length;
+  const before = heldTiles();
+  A.bossTick();                            // charge 1 — anoint only
+  if (home.hp !== 12 || fwd.hp !== 10) F.push('the wards fired before the count was up');
+  if (before - heldTiles() !== d.anoint) F.push(`anoint converted ${before - heldTiles()} tiles, wanted ${d.anoint}`);
+  A.bossTick();                            // charge 2
+  A.bossTick();                            // charge 3
+  A.bossTick();                            // charge 4 — THE PURGE
+  if (fwd.hp !== 10 - d.purgeDmg) F.push(`off held ground took ${10 - fwd.hp}, wanted ${d.purgeDmg}`);
+  if (home.hp !== 12) F.push('a unit standing on held ground burned — the friend-or-foe rule is gone');
+  if (A.G.boss.charge !== 0) F.push('the charge did not reset after firing');
+  if (!adds().some(e => e.k === d.add)) F.push('no acolyte answered the discharge');
+  if (A.G.boss.bodies[0].cells.map(x => x.join()).join(';') !== seat) F.push('the reliquary moved — it is an emplacement');
+
+  // Phase two shortens the cycle: charge 1, 2, fire on 3.
+  start('shallowhelm');
+  hit(d.hp / 2 + 1);
+  if (A.G.boss.phase !== 2) F.push('reliquary did not flip at half hull');
+  const late = spawnUnit('rifle', 4, 4, {hp: 10, max: 10, shield: 0});
+  A.bossTick();
+  A.bossTick();
+  if (late.hp !== 10) F.push('the shortened cycle fired early');
+  A.bossTick();
+  if (late.hp !== 10 - d.purgeDmg) F.push('phase two did not shorten the purge cycle to three');
+  console.log(`reliquary: purge ${d.purgeDmg} spares held ground on a ${d.chargeEvery}-count, anoints ${d.anoint}/turn, static seat`);
+}
+
 // --- the clock: running out of turns is a loss, the kill is the win ---
 {
   start('ironveil');
@@ -278,7 +390,7 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
       if (A.G.turn > A.G.waves + 1) F.push(`${k}: fight ${i} outran the clock (turn ${A.G.turn})`);
     }
   }
-  console.log('resolve: nine bot fights, every one ended inside the clock');
+  console.log(`resolve: ${Object.keys(BOSSDEF).length * 3} bot fights, every one ended inside the clock`);
 }
 
 F.report('operation bosses: footprint, phases, scripts, clock and resolve all hold');
