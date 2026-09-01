@@ -2767,15 +2767,21 @@
     "beats": [
      {
       "say": [
-       "Confirmed shattered, Commander — all four fragments dark. And now that it is, I will tell you what analysis would not put on an open channel.",
-       "It was never inert. Every hit it reflected, it measured. Weapons, output, timing — the glass fields were an instrument, and we were the reading."
+       "Confirmed shattered, Commander — all four fragments dark. Now for the bad news... and this is on a need-to-know basis.",
+       "During combat, we detected high amounts of brain activity. We believe..."
       ],
       "reply": "It was studying our fire."
      },
      {
       "say": [
-       "Studying us. Whatever these things answer to now holds six weeks of data on how the UPE fights — and you have just shown it the one way to lose to us: patience, spread fire, no wasted motion.",
-       "Zanshin Protocol stands. What comes next will have read the manual, Commander. Make sure it still loses."
+       "Studying us. Whatever these things answer to now holds six weeks of data on how the UPE fights. And it's not just your team. As fast as we are able to transmit data and information across the field, they adapt just as fast — if not faster than us."
+      ],
+      "reply": "..."
+     },
+     {
+      "say": [
+       "Commander. I am not authorized to say this, but... we are losing the war. We've lost planets to this... thing. And we don't know enough. I... ahem.",
+       "Zanshin Protocol still stands. One for the many."
       ],
       "reply": "Understood. Out."
      }
