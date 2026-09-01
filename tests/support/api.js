@@ -45,7 +45,7 @@ export {pierceUnit} from '../../src/rules/combat.js';
 export {seedStratagem, stratReady, canPlayStratagem, playStratagem, stratMarkers, resolveStratagem, resolveStratagemEnd, BREACH_HULL} from '../../src/rules/stratagems.js';
 export {laneJammed, laneFloor, laneAhead, geomFor, geomCells, candidatesFor, targetsFor} from '../../src/rules/targeting.js';
 export {dampenIn, dmgEnemy, blast, dmgUnit, fire, healPass, breachAt} from '../../src/rules/combat.js';
-export {useAbility} from '../../src/rules/abilities.js';
+export {useAbility, pierceTargets, doPierce} from '../../src/rules/abilities.js';
 export {moveTargets, doMove, doAttack, doAbility, swapTargets, doSwap} from '../../src/rules/actions.js';
 export {deploy} from '../../src/rules/deploy.js';
 export {drawCard} from '../../src/rules/deck.js';

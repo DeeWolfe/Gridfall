@@ -4,9 +4,19 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.8';
+export const VERSION = '2.9';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.9',
+    notes: [
+      'Proto Frames fight like the prototypes they are. All three now aim in any direction — every weapon pattern strikes behind as readily as ahead, the Beam Rifle and Rail Cannon hunt both ends of the lane — and they step diagonally, a fencer\'s footwork the rest of the roster does not get.',
+      'The Seven Blades carries the Crystal Longsword as standard now: one running thrust, three cells deep, fore or aft. Its old longsword gear slot became the ARM-MOUNTED BLADE — an ability, not a weapon swap. Piercing Thrust: pick an empty cell down the lane and the frame dashes there, running the blade through every hostile it passes. Your own line stops the dash; the horde does not. Anyone who owned the longsword holds the blade already.',
+      'The after-action calls actually play now. The channel was wired to a door nobody used — walking away from your first boss kill through the result card skipped the debrief entirely. Fixed, and verified the long way.',
+      'A Drop Pod on Hell Jumpers crushes what it lands on, as the card always said. Before this, the first pod could come down on a hostile tough enough to survive the impact and simply stand on top of it for the rest of the mission. Checked the books while in there: no, it cannot one-shot the Gantry — a full drop beside a boss is worth about ten points into the field.',
+      'Units whose recharge weapon is cycling grey out on the board, and the Hecate Platform takes manual aim at any hostile on the board (deepest by default) — both from the last patch wave, now with the paperwork.',
+    ],
+  },
   {
     v: '2.8',
     notes: [

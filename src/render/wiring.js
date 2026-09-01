@@ -22,6 +22,7 @@ import {drawAll, drawBoard} from './combat.js';
 import {openPanel, importRecordFlow} from './panels.js';
 import {showPack, setAfterPacks} from './packs.js';
 import {showResult} from './result.js';
+import {playBossDebrief} from './codec.js';
 import {applyUiMode, cycleUiMode, uiPreference, UI_LABELS} from './uimode.js';
 import {enableTape} from '../rules/tape.js';
 import {playTurn, skipReplay} from './playback.js';
@@ -47,9 +48,15 @@ function wireResultButton() {
     const wasEndless = G && G.endless;
     const wasDaily = G && G.daily;
     const cleared = !!(G && G.result && G.result.cleared);
+    // Read before setG(null) tears the mission down: a first boss kill earns
+    // the after-action call, played over the map once any packs are claimed.
+    const bossDown = G && G.type === 'boss' && cleared && G.boss ? G.boss.k : null;
     setG(null);
 
-    const go = () => afterMission(wasEndless, wasGauntlet, wasDaily, cleared);
+    const go = () => {
+      afterMission(wasEndless, wasGauntlet, wasDaily, cleared);
+      if (bossDown) playBossDebrief(bossDown, null);
+    };
     setAfterPacks(go);
     if (!showPack()) go();
   };

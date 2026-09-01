@@ -40,6 +40,10 @@ export const setFoeSel = e => { foeSel = e; };
 export let stratSel = false;
 export const setStratSel = v => { stratSel = !!v; };
 
+/** Unit aiming a cell-targeted ability (Piercing Thrust), or null. */
+export let abAim = null;
+export const setAbAim = u => { abAim = u; };
+
 /** Requisition packs owed to the player, oldest first. */
 export let packQueue = [];
 export const setPackQueue = q => { packQueue = q; };
@@ -64,4 +68,5 @@ export function clearSelection() {
   mover = null;
   foeSel = null;
   stratSel = false;
+  abAim = null;
 }

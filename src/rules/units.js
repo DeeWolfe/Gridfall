@@ -83,7 +83,12 @@ export function mkUnit(cid, l, c) {
     // gear it is chosen at the armoury instead, so the second shot is a
     // property of the unit from the moment it deploys.
     twin: !!(g && g.twin),
-    ab: k.ab || null,
+    // Gear can grant an ability of its own (the Arm-Mounted Blade's thrust);
+    // a card's printed ability wins if it somehow has both.
+    ab: k.ab || (g && g.ab) || null,
+    // Proto Frames fight facing either way and step diagonally — the machine
+    // turns; the grid does not care which way it was parked.
+    omni: !!k.omni,
     // Which Pilot walked in with it — the one that steps back out if the
     // machine is destroyed. Set by deploy(), never by the card data.
     frame: k.chassis === 'proto',

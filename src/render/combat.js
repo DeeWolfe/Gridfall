@@ -13,7 +13,7 @@ import {DOCTRINE} from '../content/doctrines.js';
 import {BOSSDEF} from '../content/bosses.js';
 import {bossHp} from '../rules/boss.js';
 import {TGNAME} from '../content/targeting-names.js';
-import {G, active, sel, mover, foeSel, replaying, stratSel, logOpen, setSel, setMover, setFoeSel, setStratSel, setLogOpen} from '../state/session.js';
+import {G, active, sel, mover, foeSel, replaying, stratSel, logOpen, abAim, setSel, setMover, setFoeSel, setStratSel, setLogOpen, setAbAim} from '../state/session.js';
 import {STRATAGEMS} from '../content/stratagems.js';
 import {stratReady, canPlayStratagem, playStratagem, stratMarkers} from '../rules/stratagems.js';
 import {frameReady} from '../rules/frames.js';
@@ -22,6 +22,7 @@ import {unitAt, foeAt, civAt, held, scorched, validTiles, breachAllowance} from 
 import {geomFor, geomCells, candidatesFor, targetsFor} from '../rules/targeting.js';
 import {buffOf, dmgPreview} from '../rules/units.js';
 import {moveTargets, doMove, doAttack, doAbility, swapTargets, doSwap} from '../rules/actions.js';
+import {pierceTargets, doPierce} from '../rules/abilities.js';
 import {deploy} from '../rules/deploy.js';
 import {endTurn} from '../rules/phases.js';
 import {objBrief, abortMission} from '../rules/mission.js';
@@ -209,7 +210,20 @@ function drawSel() {
         <div class="abline"><b>${u.ab.n}</b> ${u.ab.d}</div>` : ''}`;
 
     const b = el.querySelector('[data-useab]');
-    if (b && !u.cd) b.onclick = () => doAbility(u);
+    if (b && !u.cd) {
+      // A cell-targeted ability (Piercing Thrust) arms an aim mode instead of
+      // resolving on the spot: the board lights the legal cells, the tap on
+      // one of them is the commit, and tapping the button again stands down.
+      b.onclick = u.ab.target === 'cell'
+        ? () => { setAbAim(abAim && abAim.uid === u.uid ? null : u); drawAll(); }
+        : () => doAbility(u);
+    }
+    if (abAim && abAim.uid === u.uid) {
+      const spots = pierceTargets(u).length;
+      el.innerHTML += `<div class="selfire ${spots ? 'live' : 'dead'}">${spots
+        ? `${u.ab.n} armed — tap a lit cell down the lane to dash there.`
+        : `${u.ab.n} — no clear cell to dash to. The path is blocked.`}</div>`;
+    }
     return;
   }
 
@@ -393,6 +407,9 @@ export function drawBoard() {
     influenceCells(mover).forEach(i => influenced.add(i));
   }
 
+  // Piercing Thrust armed: the empty cells the frame may dash to.
+  const pierceCells = new Set(abAim ? pierceTargets(abAim) : []);
+
   // The spawn-marker contract, made visible. Blackout hides it entirely.
   const spawnLanes = {};
   if (G.mod !== 'blackout') {
@@ -417,6 +434,7 @@ export function drawBoard() {
     if (valid.includes(i)) cls += ' valid';
     if (moves.includes(i)) cls += ' movetgt';
     if (swaps.includes(i)) cls += ' swaptgt';
+    if (pierceCells.has(i)) cls += ' piercetgt';
     if (marks.has(i)) cls += ' stratmark';
     if (stratDef && (stratDef.target === 'lane' || stratDef.target === 'column' ||
       (stratDef.target === 'friendly' && unitAt(l, c)))) cls += ' strattgt';
@@ -493,7 +511,16 @@ export function drawBoard() {
     } else {
       const rubble = owner === 'x' ? G.rubble[l + ',' + c] : null;
       cell.innerHTML = marker + (rubble ? `<span class="ttl">${rubble}</span>` : '');
-      if (rubble) {
+      if (pierceCells.has(i)) {
+        cell.classList.add('clickable');
+        cell.onclick = () => {
+          sfx('zap');
+          const u = abAim;
+          setAbAim(null);
+          doPierce(u, l, c);
+          drawAll();
+        };
+      } else if (rubble) {
         cell.classList.add('clickable');
         cell.onclick = () => notify(`${EVENTS.bombard.icon} Bombardment crater`,
           `Hive artillery scarred this ground — impassable to both sides while it holds.<br><br>Clears itself in <b>${rubble}</b> more turn${rubble === 1 ? '' : 's'}.`);

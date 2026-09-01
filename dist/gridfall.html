@@ -484,6 +484,10 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .cell.movetgt:hover{background:#256349}
 .cell.swaptgt{box-shadow:inset 0 0 0 2px var(--cyan),0 0 12px rgba(77,232,255,.4);cursor:pointer}
 .cell.swaptgt:hover{filter:brightness(1.3)}
+/* Piercing Thrust armed: the empty cells the frame may dash to — gold, since
+   the tap is an attack commit, not a reposition. */
+.cell.piercetgt{background:#3a2c12;box-shadow:inset 0 0 0 2px var(--gold),0 0 12px rgba(255,201,77,.35);cursor:pointer}
+.cell.piercetgt:hover{filter:brightness(1.35)}
 /* The armed stratagem's telegraph, and the target picker while choosing. */
 .cell.stratmark{box-shadow:inset 0 0 0 2px var(--violet),0 0 16px rgba(157,107,255,.5);
   animation:stratpulse 1.4s ease-in-out infinite;z-index:2}
@@ -2082,6 +2086,10 @@ const setFoeSel = e => { foeSel = e; };
 let stratSel = false;
 const setStratSel = v => { stratSel = !!v; };
 
+/** Unit aiming a cell-targeted ability (Piercing Thrust), or null. */
+let abAim = null;
+const setAbAim = u => { abAim = u; };
+
 /** Requisition packs owed to the player, oldest first. */
 let packQueue = [];
 const setPackQueue = q => { packQueue = q; };
@@ -2106,6 +2114,7 @@ function clearSelection() {
   mover = null;
   foeSel = null;
   stratSel = false;
+  abAim = null;
 }
 
 /* ==== src/content/cards.js ========================================== */
@@ -2949,7 +2958,8 @@ const POOL = {
     dmg: 3,
     regen: 1,
     blocker: 1,
-    d: "The all-rounder. A regenerating shield and a service blade that cuts everything at contact — all four sides at once. Five prototype weapons re-spec it to whatever the mission is.",
+    d: "The all-rounder. A regenerating shield and a service blade that cuts everything at contact — all four sides at once. Five prototype weapons re-spec it to whatever the mission is, and it fights facing either way.",
+    omni: 1,
   },
   sevenblades: {
     n: "Seven Blades",
@@ -2959,10 +2969,11 @@ const POOL = {
     hp: 18,
     price: 480,
     mob: 1,
-    tg: "vert3",
-    dmg: 5,
+    tg: "ahead3",
+    dmg: 8,
     blocker: 1,
-    d: "The melee frame. One swing of the arm blade takes the column ahead across all three lanes — it does not want range, it wants to be standing where you put it.",
+    d: "The melee frame. A crystal longsword is standard — one running thrust takes everything in the lane, three cells deep, ahead or behind. It moves like a fencer: any direction, diagonals included.",
+    omni: 1,
   },
   heavyarms: {
     n: "Heavy Arms",
@@ -2975,7 +2986,8 @@ const POOL = {
     tg: "ahead3",
     dmg: 4,
     blocker: 1,
-    d: "The artillery frame. Anchored, heaviest hull on the field, and a ballistic gatling that walks fire three cells down the lane.",
+    d: "The artillery frame. Anchored, heaviest hull on the field, and a ballistic gatling that walks fire three cells down the lane — in front or behind. Nothing sneaks past it in either direction.",
+    omni: 1,
   },
 };
 
@@ -3122,14 +3134,19 @@ const GEAR = {
     tg: "sweep",
     dmg: 6,
   },
-  longsword: {
-    n: "Crystal Longsword",
-    cost: 460,
-    d: "Replaces the Seven Blades' arm blade. A running thrust that goes through everything in the lane, three cells deep.",
+  armblade: {
+    n: "Arm-Mounted Blade",
+    cost: 520,
+    d: "The longsword stays in hand — this is the drive behind it. Piercing Thrust: dash to an empty cell down the lane, running the blade through every hostile along the way.",
     frame: "sevenblades",
     role: "offense",
-    tg: "ahead3",
-    dmg: 8,
+    ab: {
+      key: "pierce",
+      target: "cell",
+      n: "Piercing Thrust",
+      cd: 2,
+      d: "Choose an empty cell ahead in the lane. The frame dashes there, dealing 8 to every hostile it passes through. A machine or your own line stops the dash; the horde does not.",
+    },
   },
   lasergat: {
     n: "Laser Gatling",
@@ -3393,7 +3410,9 @@ function gearFits(id, gi) {
 function frameWeapon(id) {
   if (!isProto(id)) return null;
   const g = gearOf(id);
-  return g && g.frame === id ? g : null;
+  // Only gear that IS a weapon replaces the printed one — the Arm-Mounted
+  // Blade grants an ability and leaves the longsword in hand.
+  return g && g.frame === id && g.tg ? g : null;
 }
 
 /** Deploy-point cost including any gear discount. Never below 1. */
@@ -3523,7 +3542,7 @@ const GROUND_FLOOR = 6;
  */
 const HAND_CAP = 6;
 const DECKSIZE = 12;
-const SAVE_VERSION = 6;
+const SAVE_VERSION = 7;
 const STARTER = ["scout", "rifle", "marks", "wall", "medic", "turret", "lancer", "bulwark", "assassin"];
 
 /* ==== src/save/profile.js =========================================== */
@@ -3612,6 +3631,21 @@ function migrate(p) {
     if ((p.unlocks.cards || []).includes('cannon') && !p.unlocks.gear.includes('cannon')) {
       p.unlocks.gear.push('cannon');
     }
+  }
+
+  // v7: the Crystal Longsword became the Seven Blades' standard weapon, and
+  // its gear slot became the Arm-Mounted Blade. Anyone who owned or fitted
+  // the longsword gets the blade — a straight swap, nothing lost.
+  if (p.version < 7) {
+    p.version = 7;
+    p.unlocks.gear = p.unlocks.gear || [];
+    const i = p.unlocks.gear.indexOf('longsword');
+    if (i >= 0) p.unlocks.gear[i] = 'armblade';
+    p.loadout = p.loadout || {};
+    p.loadout.gear = p.loadout.gear || {};
+    Object.keys(p.loadout.gear).forEach(k => {
+      if (p.loadout.gear[k] === 'longsword') p.loadout.gear[k] = 'armblade';
+    });
   }
 
   p.unlocks = p.unlocks || {};
@@ -4666,7 +4700,12 @@ function mkUnit(cid, l, c) {
     // gear it is chosen at the armoury instead, so the second shot is a
     // property of the unit from the moment it deploys.
     twin: !!(g && g.twin),
-    ab: k.ab || null,
+    // Gear can grant an ability of its own (the Arm-Mounted Blade's thrust);
+    // a card's printed ability wins if it somehow has both.
+    ab: k.ab || (g && g.ab) || null,
+    // Proto Frames fight facing either way and step diagonally — the machine
+    // turns; the grid does not care which way it was parked.
+    omni: !!k.omni,
     // Which Pilot walked in with it — the one that steps back out if the
     // machine is destroyed. Set by deploy(), never by the card data.
     frame: k.chassis === 'proto',
@@ -4789,7 +4828,22 @@ function geomFor(u) {
   if (u.cycling > 0) return [];                  // a recharge weapon mid-cycle
   if (u.indirect && laneJammed(u.lane)) return [];
 
-  const base = geomBase(u);
+  let base = geomBase(u);
+  // An omni machine fights facing either way: the seeking weapons search the
+  // lane behind as readily as ahead (both ends become candidates, ahead first
+  // so the default strike is unchanged), and every fixed pattern is mirrored
+  // through the machine's own cell — which geomCells already does, so the
+  // pattern weapons just read their enemies out of their own lit ground.
+  if (u.omni) {
+    if (u.tg === 'first') {
+      base = dedupeFoes(base.concat(laneBehind(u, u.lane).slice(0, 1)));
+    } else if (u.tg === 'furthest') {
+      base = dedupeFoes(base.concat(laneBehind(u, u.lane).slice(-1)));
+    } else if (u.tg !== 'boardFurthest') {
+      const cells = new Set(geomCells(u));
+      base = G.enemies.filter(e => cells.has(e.lane * COLS + e.col));
+    }
+  }
   // Rear Sights (gear) bolts the cell directly behind onto whatever the card
   // already covers, so a forward-facing weapon stops being flankable. Added
   // here rather than inside the switch so it composes with every pattern.
@@ -4798,6 +4852,12 @@ function geomFor(u) {
   if (!behind.length) return base;
   const seen = new Set(base.map(e => e.uid));
   return base.concat(behind.filter(e => !seen.has(e.uid)));
+}
+
+/** Concat without double-counting a body both lists found. */
+function dedupeFoes(list) {
+  const seen = new Set();
+  return list.filter(e => e && !seen.has(e.uid) && seen.add(e.uid));
 }
 
 /** The card's own printed firing pattern, before any gear rider. */
@@ -5011,6 +5071,17 @@ function geomCells(u, at) {
   if (u.rearsight) {
     const back = L * COLS + col - 1;
     if (col - 1 >= 0 && !out.includes(back)) out.push(back);
+  }
+  // An omni machine's pattern is mirrored through its own cell: everything it
+  // reaches ahead it reaches behind. Protos are one cell, so the reflection
+  // is around `col` itself.
+  if (u.omni) {
+    [...out].forEach(i => {
+      const l = Math.floor(i / COLS);
+      const c = i % COLS;
+      add(l, 2 * col - c);
+    });
+    return [...new Set(out)];
   }
   return out;
 }
@@ -9889,9 +9960,55 @@ const ABILITIES = {
 
 function useAbility(u) {
   if (!u.ab || u.cd > 0) return;
+  // A cell-targeted ability (the Arm-Mounted Blade's thrust) never fires from
+  // here — the board resolves it through doPierce once a cell is chosen.
+  if (u.ab.target === 'cell') return;
   u.cd = Math.max(1, (u.ab.cd || 1) - (u.cool ? 1 : 0));
-  const run = ABILITIES[u.id];
+  // Gear-granted abilities dispatch on their own key; a card's printed
+  // ability keeps dispatching on the card id.
+  const run = ABILITIES[u.ab.key || u.id];
   if (run) run(u);
+}
+
+/**
+ * Piercing Thrust (Arm-Mounted Blade): the cells the frame may dash to.
+ *
+ * The walk runs down the lane ahead: hostiles are passed THROUGH — they are
+ * the point — while your own units, civilians, cratered ground and a boss
+ * body all stop the blade. Every empty, reachable cell along the way is a
+ * legal destination; the player picks the one that ends the dash.
+ */
+function pierceTargets(u) {
+  if (!u.ab || u.ab.key !== 'pierce' || u.cd > 0 || u.acted || u.stun) return [];
+  const out = [];
+  for (let c = u.col + 1; c < COLS; c++) {
+    if (G.ter[u.lane][c] === 'x') break;
+    if (unitAt(u.lane, c) || civAt(u.lane, c)) break;
+    const e = foeAt(u.lane, c);
+    if (e) {
+      if (e.boss) break;                 // a machine is a wall, not a body
+      continue;                          // run it through and keep going
+    }
+    out.push(u.lane * COLS + c);
+  }
+  return out;
+}
+
+const PIERCE_DMG = 8;
+
+/** Resolve the thrust: damage everything passed through, land on the cell. */
+function doPierce(u, l, c) {
+  if (!pierceTargets(u).includes(l * COLS + c)) return false;
+  u.cd = Math.max(1, (u.ab.cd || 1) - (u.cool ? 1 : 0));
+  const hit = G.enemies.filter(e => e.lane === u.lane && e.col > u.col && e.col < c);
+  tapeEvent({type: 'clash', lane: u.lane, col: c});
+  hit.forEach(e => dmgEnemy(e, PIERCE_DMG + buffOf(u), 'Piercing Thrust', u.pen, u));
+  u.col = c;
+  u.moved = true;
+  u.acted = true;
+  clog(`<span class="g">Piercing Thrust</span> — ${u.n} dashed to col ${c + 1}, ` +
+    `${hit.length ? `running the blade through ${hit.length} hostile${hit.length > 1 ? 's' : ''}` : 'meeting nothing on the way'}.`, 'order');
+  return true;
 }
 
 /* ==== src/rules/actions.js ========================================== */
@@ -9906,7 +10023,10 @@ function useAbility(u) {
 function moveTargets(u) {
   if (!u.mob || u.stun || u.acted || u.moved) return [];
   const out = [];
-  [[0, 1], [0, -1], [1, 0], [-1, 0]].forEach(([dl, dc]) => {
+  const steps = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+  // An omni machine steps diagonally too — a fencer's footwork, not a tank's.
+  if (u.omni) steps.push([1, 1], [1, -1], [-1, 1], [-1, -1]);
+  steps.forEach(([dl, dc]) => {
     const nl = u.lane + dl;
     const nc = u.col + dc;
     for (let i = 0; i < u.size; i++) if (!cellPassable(nl, nc + i, u.uid)) return;
@@ -10111,6 +10231,21 @@ function claimAhead(u, count, cardName) {
 /** Hell Jumpers: fan the squad out around the chosen cell. */
 function placeSquad(cid, l, c) {
   const k = POOL[cid];
+  // A Drop Pod on a squad card crushes whatever holds the chosen cell, same
+  // as the single-body path below — without this the first pod landed ON TOP
+  // of any hostile tough enough to survive the impact blast, and the two
+  // stood stacked in one cell for the rest of the mission.
+  const pod = gearOf(cid);
+  if (pod && pod.crush) {
+    const e = foeAt(l, c);
+    if (e && !e.boss && BEST[e.k].t !== 'special') {
+      G.enemies = G.enemies.filter(x => x.uid !== e.uid);
+      G.kills++;
+      clog(`<span class="g">${k.n}</span> came down on ${BEST[e.k].n} and crushed it.`, 'kill');
+      if (!active.unlocks.enemies.includes(e.k)) active.unlocks.enemies.push(e.k);
+      G.ter[l][c] = 'p';
+    }
+  }
   const spots = [[l, c]];
   for (let dl = -1; dl <= 1 && spots.length < k.squad; dl++) {
     for (let dc = -1; dc <= 1 && spots.length < k.squad; dc++) {
@@ -12224,7 +12359,20 @@ function drawSel() {
         <div class="abline"><b>${u.ab.n}</b> ${u.ab.d}</div>` : ''}`;
 
     const b = el.querySelector('[data-useab]');
-    if (b && !u.cd) b.onclick = () => doAbility(u);
+    if (b && !u.cd) {
+      // A cell-targeted ability (Piercing Thrust) arms an aim mode instead of
+      // resolving on the spot: the board lights the legal cells, the tap on
+      // one of them is the commit, and tapping the button again stands down.
+      b.onclick = u.ab.target === 'cell'
+        ? () => { setAbAim(abAim && abAim.uid === u.uid ? null : u); drawAll(); }
+        : () => doAbility(u);
+    }
+    if (abAim && abAim.uid === u.uid) {
+      const spots = pierceTargets(u).length;
+      el.innerHTML += `<div class="selfire ${spots ? 'live' : 'dead'}">${spots
+        ? `${u.ab.n} armed — tap a lit cell down the lane to dash there.`
+        : `${u.ab.n} — no clear cell to dash to. The path is blocked.`}</div>`;
+    }
     return;
   }
 
@@ -12408,6 +12556,9 @@ function drawBoard() {
     influenceCells(mover).forEach(i => influenced.add(i));
   }
 
+  // Piercing Thrust armed: the empty cells the frame may dash to.
+  const pierceCells = new Set(abAim ? pierceTargets(abAim) : []);
+
   // The spawn-marker contract, made visible. Blackout hides it entirely.
   const spawnLanes = {};
   if (G.mod !== 'blackout') {
@@ -12432,6 +12583,7 @@ function drawBoard() {
     if (valid.includes(i)) cls += ' valid';
     if (moves.includes(i)) cls += ' movetgt';
     if (swaps.includes(i)) cls += ' swaptgt';
+    if (pierceCells.has(i)) cls += ' piercetgt';
     if (marks.has(i)) cls += ' stratmark';
     if (stratDef && (stratDef.target === 'lane' || stratDef.target === 'column' ||
       (stratDef.target === 'friendly' && unitAt(l, c)))) cls += ' strattgt';
@@ -12508,7 +12660,16 @@ function drawBoard() {
     } else {
       const rubble = owner === 'x' ? G.rubble[l + ',' + c] : null;
       cell.innerHTML = marker + (rubble ? `<span class="ttl">${rubble}</span>` : '');
-      if (rubble) {
+      if (pierceCells.has(i)) {
+        cell.classList.add('clickable');
+        cell.onclick = () => {
+          sfx('zap');
+          const u = abAim;
+          setAbAim(null);
+          doPierce(u, l, c);
+          drawAll();
+        };
+      } else if (rubble) {
         cell.classList.add('clickable');
         cell.onclick = () => notify(`${EVENTS.bombard.icon} Bombardment crater`,
           `Hive artillery scarred this ground — impassable to both sides while it holds.<br><br>Clears itself in <b>${rubble}</b> more turn${rubble === 1 ? '' : 's'}.`);
@@ -14058,9 +14219,19 @@ function render() {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.8';
+const VERSION = '2.9';
 
 const PATCH_NOTES = [
+  {
+    v: '2.9',
+    notes: [
+      'Proto Frames fight like the prototypes they are. All three now aim in any direction — every weapon pattern strikes behind as readily as ahead, the Beam Rifle and Rail Cannon hunt both ends of the lane — and they step diagonally, a fencer\'s footwork the rest of the roster does not get.',
+      'The Seven Blades carries the Crystal Longsword as standard now: one running thrust, three cells deep, fore or aft. Its old longsword gear slot became the ARM-MOUNTED BLADE — an ability, not a weapon swap. Piercing Thrust: pick an empty cell down the lane and the frame dashes there, running the blade through every hostile it passes. Your own line stops the dash; the horde does not. Anyone who owned the longsword holds the blade already.',
+      'The after-action calls actually play now. The channel was wired to a door nobody used — walking away from your first boss kill through the result card skipped the debrief entirely. Fixed, and verified the long way.',
+      'A Drop Pod on Hell Jumpers crushes what it lands on, as the card always said. Before this, the first pod could come down on a hostile tough enough to survive the impact and simply stand on top of it for the rest of the mission. Checked the books while in there: no, it cannot one-shot the Gantry — a full drop beside a boss is worth about ten points into the field.',
+      'Units whose recharge weapon is cycling grey out on the board, and the Hecate Platform takes manual aim at any hostile on the board (deepest by default) — both from the last patch wave, now with the paperwork.',
+    ],
+  },
   {
     v: '2.8',
     notes: [
@@ -14294,9 +14465,15 @@ function wireResultButton() {
     const wasEndless = G && G.endless;
     const wasDaily = G && G.daily;
     const cleared = !!(G && G.result && G.result.cleared);
+    // Read before setG(null) tears the mission down: a first boss kill earns
+    // the after-action call, played over the map once any packs are claimed.
+    const bossDown = G && G.type === 'boss' && cleared && G.boss ? G.boss.k : null;
     setG(null);
 
-    const go = () => afterMission(wasEndless, wasGauntlet, wasDaily, cleared);
+    const go = () => {
+      afterMission(wasEndless, wasGauntlet, wasDaily, cleared);
+      if (bossDown) playBossDebrief(bossDown, null);
+    };
     setAfterPacks(go);
     if (!showPack()) go();
   };

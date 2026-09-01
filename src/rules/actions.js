@@ -17,7 +17,10 @@ import {clog} from './log.js';
 export function moveTargets(u) {
   if (!u.mob || u.stun || u.acted || u.moved) return [];
   const out = [];
-  [[0, 1], [0, -1], [1, 0], [-1, 0]].forEach(([dl, dc]) => {
+  const steps = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+  // An omni machine steps diagonally too — a fencer's footwork, not a tank's.
+  if (u.omni) steps.push([1, 1], [1, -1], [-1, 1], [-1, -1]);
+  steps.forEach(([dl, dc]) => {
     const nl = u.lane + dl;
     const nc = u.col + dc;
     for (let i = 0; i < u.size; i++) if (!cellPassable(nl, nc + i, u.uid)) return;

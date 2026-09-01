@@ -78,7 +78,9 @@ export function gearFits(id, gi) {
 export function frameWeapon(id) {
   if (!isProto(id)) return null;
   const g = gearOf(id);
-  return g && g.frame === id ? g : null;
+  // Only gear that IS a weapon replaces the printed one — the Arm-Mounted
+  // Blade grants an ability and leaves the longsword in hand.
+  return g && g.frame === id && g.tg ? g : null;
 }
 
 /** Deploy-point cost including any gear discount. Never below 1. */

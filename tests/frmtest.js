@@ -40,7 +40,9 @@ const FRAMES = Object.keys(POOL).filter(c => POOL[c].chassis === 'proto');
 // on an immobile machine waits for the fight, reach gear goes and finds it.
 const KITS = {
   whitedevil: ['railcannon', 'napalm'],
-  sevenblades: ['greatsword', 'longsword'],
+  // The Arm-Mounted Blade grants a targeted ability the bot cannot aim, so
+  // the Seven Blades measures with its one weapon kit.
+  sevenblades: ['greatsword'],
   heavyarms: ['lasergat', 'missilegat'],
 };
 

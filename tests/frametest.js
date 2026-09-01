@@ -389,9 +389,74 @@ const fieldFrame = cid => { p.loadout.frame = cid; seedFrame(); };
   });
   if (hit.includes(shoulder.uid)) F.push('the cone is not a cone — it hit beside its own mouth');
   const lit = A.geomCells(u);
-  if (lit.length !== 4) F.push(`the cone lights ${lit.length} cells, expected 4`);
-  console.log('napalm cone:', lit.length, 'cells, widening');
+  // Four cells forward — and the White Devil fights facing either way, so the
+  // same cone is mirrored behind it: eight in all.
+  if (lit.length !== 8) F.push(`the cone lights ${lit.length} cells, expected 4 forward + 4 mirrored`);
+  console.log('napalm cone:', lit.length, 'cells, widening, mirrored aft');
   delete p.loadout.gear.whitedevil;
+}
+
+// --- omni: a Frame fights facing either way and steps diagonally ---
+{
+  start('sevenblades');
+  fieldFrame('sevenblades');
+  const u = A.mkUnit('sevenblades', 2, 3);
+  A.G.units.push(u);
+  if (!u.omni) F.push('sevenblades lost its omni flag in mkUnit');
+  const ahead = spawnFoe('crawler', 2, 5, 30);
+  const behind = spawnFoe('crawler', 2, 1, 30);
+  const hit = A.geomFor(u).map(e => e.uid);
+  if (!hit.includes(ahead.uid)) F.push('the longsword lost its forward thrust');
+  if (!hit.includes(behind.uid)) F.push('an omni frame cannot strike behind itself');
+  const moves = A.moveTargets(u);
+  if (!moves.includes(1 * A.COLS + 2) || !moves.includes(3 * A.COLS + 4)) {
+    F.push('an omni frame cannot step diagonally');
+  }
+  const plain = A.mkUnit('rifle', 0, 1);
+  A.G.units.push(plain);
+  if (A.moveTargets(plain).includes(1 * A.COLS + 2)) F.push('a rifleman learned to step diagonally');
+  console.log('omni: strikes fore and aft, steps on the diagonal');
+}
+
+// --- the Arm-Mounted Blade: a dash, not a weapon swap ---
+{
+  start('sevenblades');
+  p.loadout.gear.sevenblades = 'armblade';
+  const u = A.mkUnit('sevenblades', 1, 1);
+  A.G.units.push(u);
+  if (frameWeapon('sevenblades')) F.push('the armblade replaced the longsword — it must not');
+  if (!u.ab || u.ab.key !== 'pierce') F.push('the armblade granted no thrust ability');
+  if (u.tg !== 'ahead3' || u.dmg !== 8) F.push('the standard longsword is not on the frame');
+
+  const one = spawnFoe('crawler', 1, 2, 30);
+  const two = spawnFoe('crawler', 1, 3, 30);
+  const targets = A.pierceTargets(u);
+  if (!targets.includes(1 * A.COLS + 4)) F.push('the empty cell past two hostiles is not a destination');
+  if (targets.includes(1 * A.COLS + 2)) F.push('an occupied cell offered as a dash destination');
+  // Own line stops the blade: a wall at col 5 caps the dash at col 4.
+  const wall = A.mkUnit('wall', 1, 5);
+  A.G.units.push(wall);
+  if (A.pierceTargets(u).includes(1 * A.COLS + 6)) F.push('the dash passed through your own wall');
+
+  if (!A.doPierce(u, 1, 4)) F.push('a legal thrust refused to resolve');
+  if (one.hp !== 22 || two.hp !== 22) F.push(`the thrust dealt ${30 - one.hp}/${30 - two.hp}, wanted 8 through both`);
+  if (u.col !== 4) F.push('the frame did not land on the chosen cell');
+  if (!u.acted || u.cd < 1) F.push('the thrust spent no action or set no cooldown');
+  if (A.pierceTargets(u).length) F.push('a spent frame still offers dash cells');
+  console.log('piercing thrust: through two, landed deep, action spent, cooling');
+}
+
+// --- v7 migration: the longsword gear becomes the arm-mounted blade ---
+{
+  const old = A.migrate({
+    version: 6, callsign: 'SWORD',
+    unlocks: {cards: ['sevenblades', 'pilot'], gear: ['longsword', 'greatsword']},
+    loadout: {deck: ['pilot'], gear: {sevenblades: 'longsword'}, frame: 'sevenblades'},
+  });
+  if (!old.unlocks.gear.includes('armblade')) F.push('an owned longsword did not become the blade');
+  if (old.unlocks.gear.includes('longsword')) F.push('the retired longsword id survived migration');
+  if (old.loadout.gear.sevenblades !== 'armblade') F.push('a fitted longsword did not become the blade');
+  console.log('v7 migration: longsword owners hold the blade');
 }
 
 F.report('proto frames: one slot, one deployment, a Pilot spent and a Pilot returned');

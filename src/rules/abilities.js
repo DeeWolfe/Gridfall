@@ -7,8 +7,9 @@ import {LANES, COLS} from '../state/constants.js';
 import {G} from '../state/session.js';
 import {buffOf} from './units.js';
 import {dmgEnemy} from './combat.js';
-import {foeAt, unitAt} from './board.js';
+import {foeAt, unitAt, civAt} from './board.js';
 import {clog} from './log.js';
+import {tapeEvent} from './tape.js';
 
 const ABILITIES = {
   // Medic — Triage: patch every adjacent personnel unit instead of the one ahead.
@@ -94,7 +95,53 @@ const ABILITIES = {
 
 export function useAbility(u) {
   if (!u.ab || u.cd > 0) return;
+  // A cell-targeted ability (the Arm-Mounted Blade's thrust) never fires from
+  // here — the board resolves it through doPierce once a cell is chosen.
+  if (u.ab.target === 'cell') return;
   u.cd = Math.max(1, (u.ab.cd || 1) - (u.cool ? 1 : 0));
-  const run = ABILITIES[u.id];
+  // Gear-granted abilities dispatch on their own key; a card's printed
+  // ability keeps dispatching on the card id.
+  const run = ABILITIES[u.ab.key || u.id];
   if (run) run(u);
+}
+
+/**
+ * Piercing Thrust (Arm-Mounted Blade): the cells the frame may dash to.
+ *
+ * The walk runs down the lane ahead: hostiles are passed THROUGH — they are
+ * the point — while your own units, civilians, cratered ground and a boss
+ * body all stop the blade. Every empty, reachable cell along the way is a
+ * legal destination; the player picks the one that ends the dash.
+ */
+export function pierceTargets(u) {
+  if (!u.ab || u.ab.key !== 'pierce' || u.cd > 0 || u.acted || u.stun) return [];
+  const out = [];
+  for (let c = u.col + 1; c < COLS; c++) {
+    if (G.ter[u.lane][c] === 'x') break;
+    if (unitAt(u.lane, c) || civAt(u.lane, c)) break;
+    const e = foeAt(u.lane, c);
+    if (e) {
+      if (e.boss) break;                 // a machine is a wall, not a body
+      continue;                          // run it through and keep going
+    }
+    out.push(u.lane * COLS + c);
+  }
+  return out;
+}
+
+const PIERCE_DMG = 8;
+
+/** Resolve the thrust: damage everything passed through, land on the cell. */
+export function doPierce(u, l, c) {
+  if (!pierceTargets(u).includes(l * COLS + c)) return false;
+  u.cd = Math.max(1, (u.ab.cd || 1) - (u.cool ? 1 : 0));
+  const hit = G.enemies.filter(e => e.lane === u.lane && e.col > u.col && e.col < c);
+  tapeEvent({type: 'clash', lane: u.lane, col: c});
+  hit.forEach(e => dmgEnemy(e, PIERCE_DMG + buffOf(u), 'Piercing Thrust', u.pen, u));
+  u.col = c;
+  u.moved = true;
+  u.acted = true;
+  clog(`<span class="g">Piercing Thrust</span> — ${u.n} dashed to col ${c + 1}, ` +
+    `${hit.length ? `running the blade through ${hit.length} hostile${hit.length > 1 ? 's' : ''}` : 'meeting nothing on the way'}.`, 'order');
+  return true;
 }

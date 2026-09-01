@@ -140,14 +140,19 @@ export const GEAR = {
     tg: "sweep",
     dmg: 6,
   },
-  longsword: {
-    n: "Crystal Longsword",
-    cost: 460,
-    d: "Replaces the Seven Blades' arm blade. A running thrust that goes through everything in the lane, three cells deep.",
+  armblade: {
+    n: "Arm-Mounted Blade",
+    cost: 520,
+    d: "The longsword stays in hand — this is the drive behind it. Piercing Thrust: dash to an empty cell down the lane, running the blade through every hostile along the way.",
     frame: "sevenblades",
     role: "offense",
-    tg: "ahead3",
-    dmg: 8,
+    ab: {
+      key: "pierce",
+      target: "cell",
+      n: "Piercing Thrust",
+      cd: 2,
+      d: "Choose an empty cell ahead in the lane. The frame dashes there, dealing 8 to every hostile it passes through. A machine or your own line stops the dash; the horde does not.",
+    },
   },
   lasergat: {
     n: "Laser Gatling",

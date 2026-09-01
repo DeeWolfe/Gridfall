@@ -94,6 +94,21 @@ export function migrate(p) {
     }
   }
 
+  // v7: the Crystal Longsword became the Seven Blades' standard weapon, and
+  // its gear slot became the Arm-Mounted Blade. Anyone who owned or fitted
+  // the longsword gets the blade — a straight swap, nothing lost.
+  if (p.version < 7) {
+    p.version = 7;
+    p.unlocks.gear = p.unlocks.gear || [];
+    const i = p.unlocks.gear.indexOf('longsword');
+    if (i >= 0) p.unlocks.gear[i] = 'armblade';
+    p.loadout = p.loadout || {};
+    p.loadout.gear = p.loadout.gear || {};
+    Object.keys(p.loadout.gear).forEach(k => {
+      if (p.loadout.gear[k] === 'longsword') p.loadout.gear[k] = 'armblade';
+    });
+  }
+
   p.unlocks = p.unlocks || {};
   p.unlocks.cards = p.unlocks.cards || [...STARTER];
   p.unlocks.enemies = p.unlocks.enemies || [];

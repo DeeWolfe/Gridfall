@@ -838,7 +838,8 @@ export const POOL = {
     dmg: 3,
     regen: 1,
     blocker: 1,
-    d: "The all-rounder. A regenerating shield and a service blade that cuts everything at contact — all four sides at once. Five prototype weapons re-spec it to whatever the mission is.",
+    d: "The all-rounder. A regenerating shield and a service blade that cuts everything at contact — all four sides at once. Five prototype weapons re-spec it to whatever the mission is, and it fights facing either way.",
+    omni: 1,
   },
   sevenblades: {
     n: "Seven Blades",
@@ -848,10 +849,11 @@ export const POOL = {
     hp: 18,
     price: 480,
     mob: 1,
-    tg: "vert3",
-    dmg: 5,
+    tg: "ahead3",
+    dmg: 8,
     blocker: 1,
-    d: "The melee frame. One swing of the arm blade takes the column ahead across all three lanes — it does not want range, it wants to be standing where you put it.",
+    d: "The melee frame. A crystal longsword is standard — one running thrust takes everything in the lane, three cells deep, ahead or behind. It moves like a fencer: any direction, diagonals included.",
+    omni: 1,
   },
   heavyarms: {
     n: "Heavy Arms",
@@ -864,6 +866,7 @@ export const POOL = {
     tg: "ahead3",
     dmg: 4,
     blocker: 1,
-    d: "The artillery frame. Anchored, heaviest hull on the field, and a ballistic gatling that walks fire three cells down the lane.",
+    d: "The artillery frame. Anchored, heaviest hull on the field, and a ballistic gatling that walks fire three cells down the lane — in front or behind. Nothing sneaks past it in either direction.",
+    omni: 1,
   },
 };

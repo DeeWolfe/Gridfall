@@ -98,6 +98,21 @@ function claimAhead(u, count, cardName) {
 /** Hell Jumpers: fan the squad out around the chosen cell. */
 function placeSquad(cid, l, c) {
   const k = POOL[cid];
+  // A Drop Pod on a squad card crushes whatever holds the chosen cell, same
+  // as the single-body path below — without this the first pod landed ON TOP
+  // of any hostile tough enough to survive the impact blast, and the two
+  // stood stacked in one cell for the rest of the mission.
+  const pod = gearOf(cid);
+  if (pod && pod.crush) {
+    const e = foeAt(l, c);
+    if (e && !e.boss && BEST[e.k].t !== 'special') {
+      G.enemies = G.enemies.filter(x => x.uid !== e.uid);
+      G.kills++;
+      clog(`<span class="g">${k.n}</span> came down on ${BEST[e.k].n} and crushed it.`, 'kill');
+      if (!active.unlocks.enemies.includes(e.k)) active.unlocks.enemies.push(e.k);
+      G.ter[l][c] = 'p';
+    }
+  }
   const spots = [[l, c]];
   for (let dl = -1; dl <= 1 && spots.length < k.squad; dl++) {
     for (let dc = -1; dc <= 1 && spots.length < k.squad; dc++) {

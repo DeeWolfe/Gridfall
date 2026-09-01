@@ -3608,6 +3608,41 @@ harder than bots.
 - Boss-kill achievements.
 - Requiem Sage stays shelved with the cards patch's own reasoning.
 
+## v2.9 — Frames move like prototypes; two bugs run to ground
+
+Four asks in one batch, plus a difficulty-tier plan parked behind them.
+
+- **Debrief never fired in real play.** The hook sat in `leaveCombat()`, but
+  the result card's continue button is `$('rok')` in wiring.js — a different
+  door that tears G down (`setG(null)`) before going to the map. The bot-win
+  headless check had called `leaveCombat()` directly and proved the wrong
+  path. Fixed in the rok handler (boss key read before teardown, debrief
+  after packs), and re-verified through the actual button.
+- **The Drop Pod "one-shot"** did not survive measurement: crush is never
+  offered against a boss, and a full Hell Jumpers drop beside the Gantry is
+  worth ~10 points into the field (the pods cannot land inside the
+  footprint, so the impact blasts only clip the near column). No nerf, per
+  the ask's own condition. The real bug found next door: `placeSquad()`
+  skipped the crush code entirely, so a pod aimed at a hostile that survived
+  the impact blast landed stacked ON TOP of it. Crush now applies on the
+  squad path too.
+- **Seven Blades rework** (designer's spec): the Crystal Longsword is the
+  frame's standard weapon (`ahead3`, dmg 8); the gear slot became the
+  Arm-Mounted Blade, which grants the game's first cell-targeted ability —
+  Piercing Thrust: choose an empty cell down the lane, dash there, 8 into
+  everything passed through; own units, craters and boss bodies stop the
+  blade. New machinery: gear-granted abilities (`gear.ab`, dispatch on
+  `ab.key`), an aim mode (`abAim`) with gold `piercetgt` cells, and
+  `frameWeapon()` now requires `tg` so ability-gear does not eat the printed
+  weapon. SAVE_VERSION 7 migrates longsword owners to the blade.
+- **Omni frames**: all three protos aim in any direction — pattern weapons
+  mirror through the machine's own cell (geomCells reflects, geomFor reads
+  enemies out of the lit ground), seeking weapons hunt both ends of the lane
+  (ahead-first, so the default strike is unchanged) — and step diagonally.
+  Balance note: this is a deliberate buff to the class the last measured
+  pass called "a couple points lean"; re-measure with frmtest when the
+  difficulty tiers land.
+
 ## Card backlog — the next pass
 
 Not built. Recorded here so the next card batch starts from a list rather than a

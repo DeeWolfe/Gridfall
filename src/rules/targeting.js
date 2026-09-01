@@ -66,7 +66,22 @@ export function geomFor(u) {
   if (u.cycling > 0) return [];                  // a recharge weapon mid-cycle
   if (u.indirect && laneJammed(u.lane)) return [];
 
-  const base = geomBase(u);
+  let base = geomBase(u);
+  // An omni machine fights facing either way: the seeking weapons search the
+  // lane behind as readily as ahead (both ends become candidates, ahead first
+  // so the default strike is unchanged), and every fixed pattern is mirrored
+  // through the machine's own cell — which geomCells already does, so the
+  // pattern weapons just read their enemies out of their own lit ground.
+  if (u.omni) {
+    if (u.tg === 'first') {
+      base = dedupeFoes(base.concat(laneBehind(u, u.lane).slice(0, 1)));
+    } else if (u.tg === 'furthest') {
+      base = dedupeFoes(base.concat(laneBehind(u, u.lane).slice(-1)));
+    } else if (u.tg !== 'boardFurthest') {
+      const cells = new Set(geomCells(u));
+      base = G.enemies.filter(e => cells.has(e.lane * COLS + e.col));
+    }
+  }
   // Rear Sights (gear) bolts the cell directly behind onto whatever the card
   // already covers, so a forward-facing weapon stops being flankable. Added
   // here rather than inside the switch so it composes with every pattern.
@@ -75,6 +90,12 @@ export function geomFor(u) {
   if (!behind.length) return base;
   const seen = new Set(base.map(e => e.uid));
   return base.concat(behind.filter(e => !seen.has(e.uid)));
+}
+
+/** Concat without double-counting a body both lists found. */
+function dedupeFoes(list) {
+  const seen = new Set();
+  return list.filter(e => e && !seen.has(e.uid) && seen.add(e.uid));
 }
 
 /** The card's own printed firing pattern, before any gear rider. */
@@ -288,6 +309,17 @@ export function geomCells(u, at) {
   if (u.rearsight) {
     const back = L * COLS + col - 1;
     if (col - 1 >= 0 && !out.includes(back)) out.push(back);
+  }
+  // An omni machine's pattern is mirrored through its own cell: everything it
+  // reaches ahead it reaches behind. Protos are one cell, so the reflection
+  // is around `col` itself.
+  if (u.omni) {
+    [...out].forEach(i => {
+      const l = Math.floor(i / COLS);
+      const c = i % COLS;
+      add(l, 2 * col - c);
+    });
+    return [...new Set(out)];
   }
   return out;
 }
