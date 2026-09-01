@@ -153,7 +153,7 @@ export const GEAR = {
   lasergat: {
     n: "Laser Gatling",
     cost: 500,
-    d: "Replaces the Heavy Arms gatling. Both forward diagonals at once, and nothing at all in the centre.",
+    d: "Replaces the Heavy Arms gatling. Both forward diagonals two cells deep, and nothing at all in the centre.",
     frame: "heavyarms",
     role: "offense",
     tg: "wings",
@@ -181,13 +181,13 @@ export const GEAR = {
   beamsaber: {
     n: "Beam Saber",
     cost: 480,
-    d: "Brutal at contact, and it answers anything that strikes the frame.",
+    d: "Brutal at contact, and it answers anything that strikes the frame — hard.",
     frame: "whitedevil",
     role: "offense",
     tg: "adj",
     dmg: 12,
     single: 1,
-    riposte: 3,
+    riposte: 6,
   },
   javelin: {
     n: "Beam Javelin",

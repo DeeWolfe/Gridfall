@@ -32,18 +32,25 @@ const SPINE = ['rifle', 'marks', 'wall', 'medic', 'lancer', 'bulwark',
   'assassin', 'knight', 'samurai', 'archer', 'turret'];
 const FRAMES = Object.keys(POOL).filter(c => POOL[c].chassis === 'proto');
 
-// The weapon each Frame is most itself with. A bare Frame and a kitted one are
-// different cards — a bare White Devil is a 20-hull wall with a 2-damage blade
-// — so both get an arm, or the numbers describe a machine nobody fields.
-const SIGNATURE = {whitedevil: 'beamsaber', sevenblades: 'greatsword', heavyarms: 'lasergat'};
+// The weapons each Frame is most itself with. A bare Frame and a kitted one
+// are different cards — a bare White Devil is a 20-hull wall with a 2-damage
+// blade — so both get arms, or the numbers describe a machine nobody fields.
+// Two kits per Frame: the contact weapon and the reach weapon, because they
+// answered very differently the first time this was measured — adjacency gear
+// on an immobile machine waits for the fight, reach gear goes and finds it.
+const KITS = {
+  whitedevil: ['beamsaber', 'railcannon'],
+  sevenblades: ['greatsword', 'longsword'],
+  heavyarms: ['lasergat', 'missilegat'],
+};
 
 const ARMS = [
   {k: 'control', deck: [...SPINE, 'scout'], frame: null},
   {k: 'pilot', deck: [...SPINE, 'pilot'], frame: null},
   ...FRAMES.map(f => ({k: f, label: POOL[f].n + ' (bare)', deck: [...SPINE, 'pilot'], frame: f})),
-  ...FRAMES.map(f => ({
-    k: f + '+', label: POOL[f].n + ' +wpn', deck: [...SPINE, 'pilot'], frame: f, gear: SIGNATURE[f],
-  })),
+  ...FRAMES.flatMap(f => KITS[f].map(g => ({
+    k: f + '+' + g, label: POOL[f].n.split(' ')[0] + ' +' + g, deck: [...SPINE, 'pilot'], frame: f, gear: g,
+  }))),
 ];
 
 const stat = () => ({w: 0, l: 0, e: 0, framed: 0, turns: 0, kills: 0, lost: 0});

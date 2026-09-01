@@ -221,13 +221,16 @@ const fieldFrame = cid => { p.loadout.frame = cid; seedFrame(); };
   A.G.units.push(u);
   const front = u.col + u.size - 1;
   const centre = spawnFoe('crawler', 2, front + 1);
+  const centreDeep = spawnFoe('crawler', 2, front + 2);
   const up = spawnFoe('crawler', 1, front + 1);
   const down = spawnFoe('crawler', 3, front + 1);
+  const upDeep = spawnFoe('crawler', 1, front + 2);
   const hit = A.geomFor(u).map(e => e.uid);
-  if (hit.includes(centre.uid)) F.push('the Laser Gatling filled in its own gap');
+  if (hit.includes(centre.uid) || hit.includes(centreDeep.uid)) F.push('the Laser Gatling filled in its own gap');
   if (!hit.includes(up.uid) || !hit.includes(down.uid)) F.push('the Laser Gatling missed a diagonal');
+  if (!hit.includes(upDeep.uid)) F.push('the Laser Gatling stops one cell short of its second rank');
   const lit = A.geomCells(u);
-  if (lit.includes(2 * A.COLS + front + 1)) F.push('the board lit the gap the weapon cannot reach');
+  if (lit.includes(2 * A.COLS + front + 1) || lit.includes(2 * A.COLS + front + 2)) F.push('the board lit the gap the weapon cannot reach');
   console.log('laser gatling covers', lit.length, 'cells, centre excluded');
   delete p.loadout.gear.heavyarms;
 }

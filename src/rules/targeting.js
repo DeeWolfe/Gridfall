@@ -138,11 +138,12 @@ function geomBase(u) {
       return G.enemies.filter(e =>
         (e.lane === L && e.col === front + 1) ||
         (Math.abs(e.lane - L) <= 1 && e.col === front + 2));
-    // A Laser Gatling fires past its own centre line: both forward diagonals
-    // and a hole where every other forward weapon in the game puts its shot.
-    // The gap is the card, so nothing here quietly fills it in.
+    // A Laser Gatling fires past its own centre line: both forward diagonals,
+    // two cells deep, and a hole where every other forward weapon in the game
+    // puts its shot. The gap is the card, so nothing here quietly fills it in.
     case 'wings':
-      return G.enemies.filter(e => Math.abs(e.lane - L) === 1 && e.col === front + 1);
+      return G.enemies.filter(e => Math.abs(e.lane - L) === 1 &&
+        (e.col === front + 1 || e.col === front + 2));
     // One swing, the whole area in front: three lanes by two columns.
     case 'sweep':
       return G.enemies.filter(e => Math.abs(e.lane - L) <= 1 &&
@@ -263,6 +264,7 @@ export function geomCells(u, at) {
       break;
     case 'wings':
       add(L - 1, front + 1); add(L + 1, front + 1);
+      add(L - 1, front + 2); add(L + 1, front + 2);
       break;
     case 'sweep':
       for (let l = L - 1; l <= L + 1; l++) for (let d = 1; d <= 2; d++) add(l, front + d);

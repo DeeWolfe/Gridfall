@@ -3107,7 +3107,7 @@ const GEAR = {
   lasergat: {
     n: "Laser Gatling",
     cost: 500,
-    d: "Replaces the Heavy Arms gatling. Both forward diagonals at once, and nothing at all in the centre.",
+    d: "Replaces the Heavy Arms gatling. Both forward diagonals two cells deep, and nothing at all in the centre.",
     frame: "heavyarms",
     role: "offense",
     tg: "wings",
@@ -3135,13 +3135,13 @@ const GEAR = {
   beamsaber: {
     n: "Beam Saber",
     cost: 480,
-    d: "Brutal at contact, and it answers anything that strikes the frame.",
+    d: "Brutal at contact, and it answers anything that strikes the frame — hard.",
     frame: "whitedevil",
     role: "offense",
     tg: "adj",
     dmg: 12,
     single: 1,
-    riposte: 3,
+    riposte: 6,
   },
   javelin: {
     n: "Beam Javelin",
@@ -4958,11 +4958,12 @@ function geomBase(u) {
       return G.enemies.filter(e =>
         (e.lane === L && e.col === front + 1) ||
         (Math.abs(e.lane - L) <= 1 && e.col === front + 2));
-    // A Laser Gatling fires past its own centre line: both forward diagonals
-    // and a hole where every other forward weapon in the game puts its shot.
-    // The gap is the card, so nothing here quietly fills it in.
+    // A Laser Gatling fires past its own centre line: both forward diagonals,
+    // two cells deep, and a hole where every other forward weapon in the game
+    // puts its shot. The gap is the card, so nothing here quietly fills it in.
     case 'wings':
-      return G.enemies.filter(e => Math.abs(e.lane - L) === 1 && e.col === front + 1);
+      return G.enemies.filter(e => Math.abs(e.lane - L) === 1 &&
+        (e.col === front + 1 || e.col === front + 2));
     // One swing, the whole area in front: three lanes by two columns.
     case 'sweep':
       return G.enemies.filter(e => Math.abs(e.lane - L) <= 1 &&
@@ -5083,6 +5084,7 @@ function geomCells(u, at) {
       break;
     case 'wings':
       add(L - 1, front + 1); add(L + 1, front + 1);
+      add(L - 1, front + 2); add(L + 1, front + 2);
       break;
     case 'sweep':
       for (let l = L - 1; l <= L + 1; l++) for (let d = 1; d <= 2; d++) add(l, front + d);
