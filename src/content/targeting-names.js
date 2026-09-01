@@ -18,7 +18,7 @@ export const TGNAME = {
   range3: "Exactly three cells ahead",
   diag: "The four diagonals only",
   range2: "Exactly two cells ahead",
-  boardFurthest: "Furthest hostile on the board",
+  boardFurthest: "Any hostile on the board — defaults to the deepest",
   rear: "Nearest hostile BEHIND it in the lane",
   wings: "Both forward diagonals — nothing in the centre",
   sweep: "Every cell in the two columns directly ahead",

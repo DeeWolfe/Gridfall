@@ -610,7 +610,7 @@
    "dmg": 8,
    "single": 1,
    "recharge": 1,
-   "d": "Reaches any lane on the board. Needs a turn to cycle — it cannot fire twice running."
+   "d": "Reaches any hostile on the board — tap one to pick its target, or it takes the deepest. Needs a turn to cycle after firing."
   },
   "dynamo": {
    "n": "Dynamo",
@@ -2414,7 +2414,7 @@
   "range3": "Exactly three cells ahead",
   "diag": "The four diagonals only",
   "range2": "Exactly two cells ahead",
-  "boardFurthest": "Furthest hostile on the board",
+  "boardFurthest": "Any hostile on the board — defaults to the deepest",
   "rear": "Nearest hostile BEHIND it in the lane",
   "wings": "Both forward diagonals — nothing in the centre",
   "sweep": "Every cell in the two columns directly ahead",

@@ -82,11 +82,12 @@ function geomBase(u) {
   const front = u.col + u.size - 1;
   const L = u.lane;
 
-  // Board-wide targeting: the hostile deepest into any lane, ignoring lanes
-  // and blockers alike. The answer to a Chorus dug in behind the horde.
+  // Board-wide targeting: every hostile on the board is in reach, ignoring
+  // lanes and blockers alike — the answer to a Chorus dug in behind the horde.
+  // Deepest first, so a single-target weapon with no manual lock strikes the
+  // furthest body by default while the player may lock onto ANY of them.
   if (u.tg === 'boardFurthest') {
-    if (!G.enemies.length) return [];
-    return [[...G.enemies].sort((a, b) => b.col - a.col || a.uid - b.uid)[0]];
+    return [...G.enemies].sort((a, b) => b.col - a.col || a.uid - b.uid);
   }
 
   const inLane = laneAhead(u, L);

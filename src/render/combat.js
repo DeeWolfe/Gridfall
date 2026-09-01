@@ -310,7 +310,7 @@ function drawSel() {
 /** Markup for one of your units standing in a cell. */
 function unitMarkup(u, incoming) {
   const kind = u.t === 'special' ? 'p-spec' : u.tech ? 'p-struct' : 'p-unit';
-  return `<div class="ent ${kind}${u.size > 1 ? ' anchor' : ''}${u.stun ? ' stunned' : ''}${u.acted ? ' spent' : ''}${u.controlled ? ' controlled' : ''}" title="${u.controlled ? u.n + ' — mind controlled' : u.n}">
+  return `<div class="ent ${kind}${u.size > 1 ? ' anchor' : ''}${u.stun ? ' stunned' : ''}${u.acted ? ' spent' : ''}${u.cycling > 0 && !u.acted ? ' cooling' : ''}${u.controlled ? ' controlled' : ''}" title="${u.controlled ? u.n + ' — mind controlled' : u.cycling > 0 ? u.n + ' — weapon cycling' : u.n}">
         ${u.controlled ? '<span class="lockpip" style="color:var(--violet)">☍</span>' : ''}
         ${incoming ? `<span class="incdmg">-${incoming}</span>` : ''}
         ${u.tgt ? '<span class="lockpip">⌖</span>' : ''}

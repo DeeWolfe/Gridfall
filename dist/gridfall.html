@@ -546,6 +546,10 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .ord{position:absolute;bottom:0;right:1px;font-size:0.7188rem;font-weight:700}
 .ord.done{color:var(--green)}
 .ent.spent{filter:grayscale(.85) brightness(.55);opacity:.8}
+/* A recharge weapon mid-cycle: the unit cannot fire this turn (it can still
+   move), so it dims like a spent unit — a shade lighter, since it is down to
+   an effect rather than an order, and the ⟳ badge stays legible on top. */
+.ent.cooling{filter:grayscale(.7) brightness(.7);opacity:.9}
 .hintline{font-size:0.7188rem;color:var(--dim);margin-top:7px;letter-spacing:.04em}
 .shield{position:absolute;top:0;left:1px;font-size:0.6562rem;color:var(--cyan)}
 .att{position:absolute;bottom:0;left:1px;font-size:0.6562rem;color:var(--gold)}
@@ -2685,7 +2689,7 @@ const POOL = {
     dmg: 8,
     single: 1,
     recharge: 1,
-    d: "Reaches any lane on the board. Needs a turn to cycle — it cannot fire twice running.",
+    d: "Reaches any hostile on the board — tap one to pick its target, or it takes the deepest. Needs a turn to cycle after firing.",
   },
   dynamo: {
     n: "Dynamo",
@@ -4801,11 +4805,12 @@ function geomBase(u) {
   const front = u.col + u.size - 1;
   const L = u.lane;
 
-  // Board-wide targeting: the hostile deepest into any lane, ignoring lanes
-  // and blockers alike. The answer to a Chorus dug in behind the horde.
+  // Board-wide targeting: every hostile on the board is in reach, ignoring
+  // lanes and blockers alike — the answer to a Chorus dug in behind the horde.
+  // Deepest first, so a single-target weapon with no manual lock strikes the
+  // furthest body by default while the player may lock onto ANY of them.
   if (u.tg === 'boardFurthest') {
-    if (!G.enemies.length) return [];
-    return [[...G.enemies].sort((a, b) => b.col - a.col || a.uid - b.uid)[0]];
+    return [...G.enemies].sort((a, b) => b.col - a.col || a.uid - b.uid);
   }
 
   const inLane = laneAhead(u, L);
@@ -6964,7 +6969,7 @@ const TGNAME = {
   range3: "Exactly three cells ahead",
   diag: "The four diagonals only",
   range2: "Exactly two cells ahead",
-  boardFurthest: "Furthest hostile on the board",
+  boardFurthest: "Any hostile on the board — defaults to the deepest",
   rear: "Nearest hostile BEHIND it in the lane",
   wings: "Both forward diagonals — nothing in the centre",
   sweep: "Every cell in the two columns directly ahead",
@@ -12320,7 +12325,7 @@ function drawSel() {
 /** Markup for one of your units standing in a cell. */
 function unitMarkup(u, incoming) {
   const kind = u.t === 'special' ? 'p-spec' : u.tech ? 'p-struct' : 'p-unit';
-  return `<div class="ent ${kind}${u.size > 1 ? ' anchor' : ''}${u.stun ? ' stunned' : ''}${u.acted ? ' spent' : ''}${u.controlled ? ' controlled' : ''}" title="${u.controlled ? u.n + ' — mind controlled' : u.n}">
+  return `<div class="ent ${kind}${u.size > 1 ? ' anchor' : ''}${u.stun ? ' stunned' : ''}${u.acted ? ' spent' : ''}${u.cycling > 0 && !u.acted ? ' cooling' : ''}${u.controlled ? ' controlled' : ''}" title="${u.controlled ? u.n + ' — mind controlled' : u.cycling > 0 ? u.n + ' — weapon cycling' : u.n}">
         ${u.controlled ? '<span class="lockpip" style="color:var(--violet)">☍</span>' : ''}
         ${incoming ? `<span class="incdmg">-${incoming}</span>` : ''}
         ${u.tgt ? '<span class="lockpip">⌖</span>' : ''}

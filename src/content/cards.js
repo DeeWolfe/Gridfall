@@ -578,7 +578,7 @@ export const POOL = {
     dmg: 8,
     single: 1,
     recharge: 1,
-    d: "Reaches any lane on the board. Needs a turn to cycle — it cannot fire twice running.",
+    d: "Reaches any hostile on the board — tap one to pick its target, or it takes the deepest. Needs a turn to cycle after firing.",
   },
   dynamo: {
     n: "Dynamo",

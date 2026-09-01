@@ -11,14 +11,21 @@ A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0});
   stillAir();
 clearBoard();
 
-// A: targets the highest column anywhere — not its own lane's first hostile
+// A: every hostile on the board is a candidate; the STRIKE defaults to the
+// highest column anywhere — not its own lane's first hostile — and a manual
+// lock may point it at any of them instead.
 {
   const u = spawnUnit('hecate', 0, 1);
-  spawnFoe('crawler', 0, 3, 30);          // nearest, own lane
+  const near = spawnFoe('crawler', 0, 3, 30);   // nearest, own lane
   const deep = spawnFoe('spitter', 4, 7, 30);   // deepest, far lane
   const g = A.geomFor(u);
-  if (g.length !== 1) F.push('expected exactly one target, got ' + g.length);
-  if (g[0].uid !== deep.uid) F.push('did not pick the furthest hostile on the board');
+  if (g.length !== 2) F.push('expected both hostiles as candidates, got ' + g.length);
+  const ts = A.targetsFor(u);
+  if (ts.length !== 1) F.push('expected exactly one strike, got ' + ts.length);
+  if (ts[0].uid !== deep.uid) F.push('did not default to the furthest hostile on the board');
+  u.tgt = near.uid;
+  if (A.targetsFor(u)[0].uid !== near.uid) F.push('a manual lock was not respected board-wide');
+  u.tgt = null;
 }
 
 // B: blockers do not cut the shot
@@ -27,8 +34,8 @@ clearBoard();
   const u = spawnUnit('hecate', 2, 1);
   spawnUnit('wall', 2, 3);                       // own blocker in the lane
   const deep = spawnFoe('hulk', 2, 6, 30);
-  const g = A.geomFor(u);
-  if (!g.length || g[0].uid !== deep.uid) F.push('a blocker cut the board-wide shot');
+  const ts = A.targetsFor(u);
+  if (!ts.length || ts[0].uid !== deep.uid) F.push('a blocker cut the board-wide shot');
 }
 
 // C: firing starts the cycle — no target offered next turn, then ready again

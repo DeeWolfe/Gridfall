@@ -539,6 +539,10 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .ord{position:absolute;bottom:0;right:1px;font-size:0.7188rem;font-weight:700}
 .ord.done{color:var(--green)}
 .ent.spent{filter:grayscale(.85) brightness(.55);opacity:.8}
+/* A recharge weapon mid-cycle: the unit cannot fire this turn (it can still
+   move), so it dims like a spent unit — a shade lighter, since it is down to
+   an effect rather than an order, and the ⟳ badge stays legible on top. */
+.ent.cooling{filter:grayscale(.7) brightness(.7);opacity:.9}
 .hintline{font-size:0.7188rem;color:var(--dim);margin-top:7px;letter-spacing:.04em}
 .shield{position:absolute;top:0;left:1px;font-size:0.6562rem;color:var(--cyan)}
 .att{position:absolute;bottom:0;left:1px;font-size:0.6562rem;color:var(--gold)}

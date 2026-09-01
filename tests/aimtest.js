@@ -51,6 +51,27 @@ if (!foe) {
   if (!A.targetsFor(asn).length) F.push('stale lock did not fall back to auto-target');
 }
 
+// The Hecate Platform: every hostile on the board is a candidate — the player
+// picks any of them — and with no lock it takes the deepest by default.
+{
+  // Alone on the board, so "deepest" has one answer — the live mission's own
+  // stragglers would tie at the edge column and win on age.
+  const held = A.G.enemies;
+  A.G.enemies = [];
+  const hec = spawnUnit('hecate', 2, 0);
+  const near = spawnFoe('crawler', 2, 2, 3);
+  const deep = spawnFoe('hulk', 0, 7, 10);
+  const cs = A.candidatesFor(hec);
+  if (!cs.some(e => e.uid === near.uid) || !cs.some(e => e.uid === deep.uid)) {
+    F.push('hecate does not offer every hostile as a candidate');
+  }
+  if (A.targetsFor(hec)[0].uid !== deep.uid) F.push('hecate default is not the deepest hostile');
+  hec.tgt = near.uid;
+  if (A.targetsFor(hec)[0].uid !== near.uid) F.push('hecate ignored a manual lock');
+  A.G.units.length = A.G.units.length - 1;
+  A.G.enemies = held;
+}
+
 // Multi-target cards expose no choice at all.
 ['lancer', 'mortar', 'samurai', 'railgun'].forEach(id => {
   const u = A.mkUnit(id, 2, 1);
