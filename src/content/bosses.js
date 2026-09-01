@@ -39,6 +39,7 @@ export const BOSSDEF = {
         },
       ],
       close: "Channel closed. Target designate: THE GANTRY. The clock starts on your descent.",
+      go: "Begin descent",
     },
     debrief: {
       freq: "141.83",
@@ -56,6 +57,7 @@ export const BOSSDEF = {
         },
       ],
       close: "Channel closed. ZANSHIN PROTOCOL — active system-wide.",
+      go: "Close channel",
     },
   },
   brood: {
@@ -95,6 +97,7 @@ export const BOSSDEF = {
         },
       ],
       close: "Channel closed. Target designate: THE BROOD MOTHER. The tunnels are waiting.",
+      go: "Begin descent",
     },
     debrief: {
       freq: "141.86",
@@ -112,6 +115,7 @@ export const BOSSDEF = {
         },
       ],
       close: "Channel closed. Sub-crust contacts: zero. For now.",
+      go: "Close channel",
     },
   },
   prism: {
@@ -149,6 +153,7 @@ export const BOSSDEF = {
         },
       ],
       close: "Channel closed. Target designate: THE PRISM. Mind your own fire.",
+      go: "Begin descent",
     },
     debrief: {
       freq: "141.89",
@@ -170,6 +175,7 @@ export const BOSSDEF = {
         },
       ],
       close: "Channel closed. The glass fields are dark. The system is watching back.",
+      go: "Close channel",
     },
   },
 };

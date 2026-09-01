@@ -164,22 +164,11 @@ function codecBeat(n) {
   $('cacts').innerHTML = '';
   codecTypeOut(codecScene.beats[n].say, '', () => {
     $('cstage').textContent = 'awaiting reply';
-    // Mid-call, the reply control is the same silent dots as every other
-    // "ready for the next part" beat — the commander's words appear exactly
-    // once, typed onto the channel after the tap, never printed on the button
-    // first. The FINAL reply is the exception: it is the sign-off, a decision
-    // that ends the call, so it alone wears its words up front.
-    if (n < codecScene.beats.length - 1) {
-      codecWait(() => codecReply(n), codecScene.beats[n].reply, 'reply');
-      return;
-    }
-    const b = document.createElement('button');
-    b.className = 'creply';
-    b.dataset.codec = 'reply';
-    b.textContent = codecScene.beats[n].reply;
-    b.onclick = () => codecReply(n);
-    $('cacts').appendChild(b);
-    try { b.focus(); } catch { /* headless */ }
+    // Every control inside the transmission is the same silent dots — the
+    // commander's words appear exactly once, typed onto the channel after the
+    // tap, never printed on a button first. The one worded button in a call
+    // is the sign-off (codecFinish), because that one is a destination.
+    codecWait(() => codecReply(n), codecScene.beats[n].reply, 'reply');
   });
 }
 
@@ -203,7 +192,18 @@ function codecFinish() {
   $('csaid').className = 'csaid';
   $('csaid').textContent = codecScene.close || 'Channel closed.';
   $('cacts').innerHTML = '';
-  codecWait(closeCodec, 'Open the sector map', 'go');
+  // The call is over — the last control is not "next part of the
+  // conversation", it is a destination, so it wears its words. Every
+  // control INSIDE the transmission stays the wordless dots; this one
+  // says where tapping it takes you. The scene can name the action
+  // (`go`); a launch briefing says "Begin descent", an intro opens a map.
+  const b = document.createElement('button');
+  b.className = 'creply cgo';
+  b.dataset.codec = 'go';
+  b.textContent = codecScene.go || 'Open the sector map';
+  b.onclick = closeCodec;
+  $('cacts').appendChild(b);
+  try { b.focus(); } catch { /* headless */ }
 }
 
 /** Tear the overlay down and hand control back to whoever opened it. */

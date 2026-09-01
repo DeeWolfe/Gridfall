@@ -2596,7 +2596,8 @@
       "reply": "Understood. Out."
      }
     ],
-    "close": "Channel closed. Target designate: THE GANTRY. The clock starts on your descent."
+    "close": "Channel closed. Target designate: THE GANTRY. The clock starts on your descent.",
+    "go": "Begin descent"
    },
    "debrief": {
     "freq": "141.83",
@@ -2622,7 +2623,8 @@
       "reply": "Acknowledged. Zanshin. Out."
      }
     ],
-    "close": "Channel closed. ZANSHIN PROTOCOL — active system-wide."
+    "close": "Channel closed. ZANSHIN PROTOCOL — active system-wide.",
+    "go": "Close channel"
    }
   },
   "brood": {
@@ -2678,7 +2680,8 @@
       "reply": "Understood. Out."
      }
     ],
-    "close": "Channel closed. Target designate: THE BROOD MOTHER. The tunnels are waiting."
+    "close": "Channel closed. Target designate: THE BROOD MOTHER. The tunnels are waiting.",
+    "go": "Begin descent"
    },
    "debrief": {
     "freq": "141.86",
@@ -2705,7 +2708,8 @@
       "reply": "Copy. Out."
      }
     ],
-    "close": "Channel closed. Sub-crust contacts: zero. For now."
+    "close": "Channel closed. Sub-crust contacts: zero. For now.",
+    "go": "Close channel"
    }
   },
   "prism": {
@@ -2754,7 +2758,8 @@
       "reply": "Funny. Almost. Signing out."
      }
     ],
-    "close": "Channel closed. Target designate: THE PRISM. Mind your own fire."
+    "close": "Channel closed. Target designate: THE PRISM. Mind your own fire.",
+    "go": "Begin descent"
    },
    "debrief": {
     "freq": "141.89",
@@ -2786,7 +2791,8 @@
       "reply": "Understood. Out."
      }
     ],
-    "close": "Channel closed. The glass fields are dark. The system is watching back."
+    "close": "Channel closed. The glass fields are dark. The system is watching back.",
+    "go": "Close channel"
    }
   }
  }

@@ -52,17 +52,12 @@ const act = kind => [...get('cacts').children].filter(b => b.dataset.codec === k
 for (let n = 0; n < target.intro.beats.length; n++) {
   const reply = act('reply');
   if (!reply) { F.push(`beat ${n}: no reply button`); break; }
-  // Mid-call replies are the wordless dots — the commander's words appear
-  // once, typed on the channel, never printed on the button first. Only the
-  // final reply (the sign-off decision) wears its words up front.
-  const last = n === target.intro.beats.length - 1;
-  if (last) {
-    if (!reply._text) F.push('the final reply lost its words');
-  } else {
-    if (!reply._cls.has('cmore')) F.push(`beat ${n}: mid-call reply is not the dots`);
-    if (reply._text) F.push(`beat ${n}: mid-call reply shows "${reply._text}" before it is spoken`);
-    if (!reply.getAttribute('aria-label')) F.push(`beat ${n}: wordless reply names nothing for a screen reader`);
-  }
+  // Every reply control is the wordless dots — the commander's words appear
+  // once, typed on the channel, never printed on a button first. The one
+  // worded button in a call is the sign-off, checked below.
+  if (!reply._cls.has('cmore')) F.push(`beat ${n}: reply control is not the dots`);
+  if (reply._text) F.push(`beat ${n}: reply shows "${reply._text}" before it is spoken`);
+  if (!reply.getAttribute('aria-label')) F.push(`beat ${n}: wordless reply names nothing for a screen reader`);
   reply.onclick();
   if (get('cwell').dataset.who !== 'you') F.push(`beat ${n}: reply did not switch the speaker`);
   const more = act('more');
@@ -73,13 +68,12 @@ console.log('beats walked:', target.intro.beats.length);
 
 const go = act('go');
 if (!go) F.push('the call never reached its sign-off');
-// Every control that only means "next part" wears the same cycling dots — the
-// sign-off included. A worded button reads as a decision; these are a beat of
-// silence on an open channel.
+// Every control INSIDE the transmission wears the wordless dots; the sign-off
+// is the one worded button, because it is a destination rather than another
+// beat of the conversation — it says where tapping it takes you.
 else {
-  if (!go._cls.has('cmore')) F.push('the sign-off is not the dots animation');
-  if (go._text) F.push(`the sign-off carries the words "${go._text}"`);
-  if (!go.getAttribute('aria-label')) F.push('the wordless sign-off names no destination');
+  if (!go._text) F.push('the sign-off carries no words — the one button allowed them');
+  if (!go._cls.has('cgo')) F.push('the sign-off is not in the clear-to-go green');
   const more = [...get('cacts').children].filter(x => x.dataset.codec === 'more');
   if (more.some(x => !x._cls.has('cmore'))) F.push('a continue control is not the dots');
 }
