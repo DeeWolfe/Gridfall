@@ -7620,9 +7620,18 @@ function gearRow(id, gi) {
  */
 function frameWeaponBlock(id, mode) {
   const k = POOL[id];
+  // Two different questions: what is FITTED (any Frame gear — the Arm-Mounted
+  // Blade included) versus what WEAPON it carries (only gear with a firing
+  // pattern replaces the printed one). Conflating them once left an ability
+  // drive with no way to be removed at all.
+  const g = gearOf(id);
+  const fitted = g && g.frame === id ? g : null;
   const w = frameWeapon(id);
-  const carried = w ? `${w.n}` : `${k.n} service weapon`;
-  const rules = w ? w.d : `${TGNAME[k.tg] || k.tg} · ${k.dmg} damage. Fit a weapon in Squad to change it.`;
+  const carried = w ? `${w.n}`
+    : fitted ? `${k.n} service weapon + ${fitted.n}`
+      : `${k.n} service weapon`;
+  const rules = fitted ? fitted.d
+    : `${TGNAME[k.tg] || k.tg} · ${k.dmg} damage. Fit a weapon in Squad to change it.`;
 
   // The picker belongs on both surfaces a Frame is reachable from: the deck
   // grid ('gear') and the Frame slot ('proto'). It used to check only the
@@ -7642,7 +7651,7 @@ function frameWeaponBlock(id, mode) {
   const rows = owned.map(gi => gearRow(id, gi)).join('');
   return `<div class="fab"><b>Weapon · ${carried}</b>${rules}
       <div class="glist" style="margin-top:8px">${rows}</div>
-      ${w ? `<button class="mini" data-fitgear="${id}:none" style="color:var(--mag);margin-top:8px">Back to the service weapon</button>` : ''}</div>`;
+      ${fitted ? `<button class="mini" data-fitgear="${id}:none" style="color:var(--mag);margin-top:8px">${w ? 'Back to the service weapon' : `Remove ${fitted.n}`}</button>` : ''}</div>`;
 }
 
 function gearBlock(id, mode) {

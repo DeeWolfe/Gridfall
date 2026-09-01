@@ -496,4 +496,22 @@ const fieldFrame = cid => { p.loadout.frame = cid; seedFrame(); };
   console.log('callsign: set, sanitised, worn on deploy, cleared');
 }
 
+// --- fitted Frame gear can always be removed, ability drives included ---
+{
+  start('sevenblades');
+  p.unlocks.gear = ['armblade', 'greatsword'];
+  const {focusCard} = await import('../src/render/focus.js');
+  const {get} = await import('./support/dom.js');
+  for (const gi of ['armblade', 'greatsword']) {
+    p.loadout.gear.sevenblades = gi;
+    focusCard('sevenblades', 'gear');
+    const html = get('fwrap')._html || '';
+    if (!html.includes('data-fitgear="sevenblades:none"')) {
+      F.push(`${gi} fitted but the focus card offers no way to remove it`);
+    }
+  }
+  delete p.loadout.gear.sevenblades;
+  console.log('frame gear removal: strip control present for weapon and ability drive alike');
+}
+
 F.report('proto frames: one slot, one deployment, a Pilot spent and a Pilot returned');
