@@ -3454,6 +3454,75 @@ Not applied — this is a design the numbers should inform rather than decide.
 Cost is deliberately not on the list: 6 DP is what forces the two-turn window,
 and that window is the class.
 
+## v2.7 — the gear-strengthening pass
+
+The directive after the v2.6 verdict: bare Frames running a little weak is
+acceptable, but the gear has to strengthen them. Three measured rounds, each
+1,380 missions per arm, arms sharing a mission set within a round.
+
+### Round 1 — damage alone (rejected by measurement)
+
+All nine weapons got flat damage buffs (Beam Saber 10→12, Laser Gatling 6→9,
+Missile Gatling 4→6, the rest +1 or +2). The result: nothing moved. Kitted
+arms stayed level with or below bare. The lesson: for the adjacency and
+centre-blind weapons, damage was never the constraint — the weapon rarely had
+a target, so a bigger number just overkilled the few it saw. Geometry is the
+lever, damage is not.
+
+### Round 2 — geometry (half worked)
+
+Laser Gatling wings extended two cells deep on both diagonals (the centre gap
+stays — the gap is the card); Beam Saber riposte 3→6. The harness also grew
+from one kit arm per Frame to two, which put the untested half of the arsenal
+on the board for the first time — and that mattered more than either buff:
+
+    whitedevil+beamsaber      58.1   −0.2 vs bare
+    whitedevil+railcannon     59.4   +1.1
+    sevenblades+greatsword    61.8   +3.2
+    sevenblades+longsword     54.7   −3.9   ← a trap
+    heavyarms+lasergat        59.6   −0.4   (was −3.7 before the deep wings)
+    heavyarms+missilegat      63.6   +3.5   ← best arm on the board
+
+The Longsword was actively harmful: trading the Seven Blades' three-lane
+swing for a single-target poke at range three cost four points. A weapon a
+player buys that makes the machine worse is the one outcome the directive
+cannot tolerate.
+
+### Round 3 — the rework (converged)
+
+Longsword became a lane-pierce — `ahead3`, multi, dmg 8: the greatsword
+answers width, the longsword answers depth. Rail Cannon 10→12. White Devil's
+kit arms rotated to railcannon + napalm so the last unmeasured weapon got its
+numbers:
+
+    control                   61.3
+    pilot                     61.0
+    whitedevil (bare)         59.3      +napalm      64.3  (+4.9)
+    sevenblades (bare)        60.1      +greatsword  63.3  (+3.3)
+    heavyarms (bare)          58.3      +missilegat  64.1  (+5.7)
+    railcannon −0.1 · longsword −0.4 · lasergat +0.0   (washes, not traps)
+
+### The verdict
+
+Every Frame now has at least one weapon that clearly strengthens it, and the
+best kitted arms beat even the no-Frame control deck — the class pays for
+itself when kitted, exactly as directed. The clean split that emerged: **area
+weapons strengthen (+3 to +6), single-target weapons wash (±0.5)**.
+
+The washes are left alone deliberately. The bot's missions are swarm-heavy,
+and a single-target weapon's work is the armoured elite the harness
+undervalues — Rail Cannon ignores armour floors, the saber duels at contact.
+Pushing their damage until they registered against crawler floods would make
+them degenerate in the fight they are actually for. The honest statement is:
+at bot level they are even with bare, and their value is situational in a way
+this harness cannot see. If a future harness rolls elite-heavy mission sets,
+measure them again there before touching the numbers.
+
+(Same standing caveat as every Frame number: the bot plays the Frame line to
+a plan and the control arm greedily. Between-round drift on the shared arms
+— control 61.1–61.6, pilot 57.1–61.0 across rounds — is the size of the
+noise floor; only within-round comparisons are quoted above.)
+
 ## Card backlog — the next pass
 
 Not built. Recorded here so the next card batch starts from a list rather than a

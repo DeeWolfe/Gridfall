@@ -4,9 +4,20 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.6';
+export const VERSION = '2.7';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.7',
+    notes: [
+      'A Frame weapon should be worth its price tag. Every one of the nine got stronger this patch, and each change went through more than four thousand simulated missions before it stayed: bare Frames may run a touch lean, but bolting the kit on now pulls them ahead.',
+      'The area weapons carry the class. Hyper Napalm, the Crystal Greatsword and the Missile Gatling each buy their Frame three to six points of win rate over running it bare — the Missile Gatling arm is now the single best-performing deck in the harness, ahead of decks that skip the Frame line entirely.',
+      'The Crystal Longsword was measured as a trap — a single poke traded away the Seven Blades\' whole three-lane swing — so it is a different weapon now: a running thrust through everything in the lane, three cells deep. The greatsword answers width, the longsword answers depth.',
+      'The Laser Gatling\'s wings run two cells deep on both diagonals now. The hole in the centre stays — the gap is the card — but a machine that cannot move needed more sky to fire into.',
+      'Damage up across the rest of the rack: Beam Rifle 9, Beam Saber 12 with a riposte of 6, Beam Javelin 8, Hyper Napalm 6, Hyper Rail Cannon 12, Greatsword 6, Missile Gatling 6.',
+      'The single-target weapons — saber, rail cannon, longsword before its rework — measure even with a bare Frame against the swarm, and that is by design left alone: their work is the armoured elite the harness undervalues, and pushing their numbers until they showed against crawler floods would break the other fight.',
+    ],
+  },
   {
     v: '2.6',
     notes: [
