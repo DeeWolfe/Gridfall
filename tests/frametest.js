@@ -459,4 +459,41 @@ const fieldFrame = cid => { p.loadout.frame = cid; seedFrame(); };
   console.log('v7 migration: longsword owners hold the blade');
 }
 
+// --- a spent Frame takes the Pilot out of the reserve cycle ---
+{
+  start('sevenblades');
+  A.G.hand = [];
+  A.G.deck = [];
+  A.G.frame = {k: 'sevenblades', played: false};
+  A.drawCard();                                  // cycle with the Frame unflown
+  let cycled = [...A.G.deck, ...A.G.hand];
+  if (!cycled.includes('pilot')) F.push('the Pilot missing from the cycle while the Frame is unflown');
+  A.G.hand = [];
+  A.G.deck = [];
+  A.G.frame.played = true;
+  for (let i = 0; i < 12; i++) A.drawCard();     // cycle again with it spent
+  cycled = [...A.G.deck, ...A.G.hand];
+  if (cycled.includes('pilot')) F.push('a spent Frame line still deals the Pilot back');
+  if (!cycled.length) F.push('the spent-frame cycle dealt nothing at all');
+  console.log('reserve cycle: pilot dealt while the frame waits, retired once it flies');
+}
+
+// --- the Pilot answers to a callsign ---
+{
+  start('whitedevil');
+  A.setPilotName('Heero!!');
+  if (A.active.pilotName !== 'Heero') F.push(`callsign sanitiser kept "${A.active.pilotName}"`);
+  A.setPilotName('<img src=x onerror=1>Heero');
+  if (/[<>"&=]/.test(A.active.pilotName)) F.push('markup characters survived the sanitiser');
+  A.setPilotName('Heero');
+  if (A.cardName('pilot') !== 'Heero') F.push('cardName does not wear the callsign');
+  const u = A.mkUnit('pilot', 2, 0);
+  if (u.n !== 'Heero') F.push('a deployed Pilot does not answer to the callsign');
+  if (A.cardName('rifle') !== 'Rifleman') F.push('the callsign leaked onto another card');
+  A.setPilotName('');
+  if (A.active.pilotName !== null) F.push('an empty callsign did not clear');
+  if (A.cardName('pilot') !== 'Frame Pilot') F.push('clearing the callsign did not restore the print');
+  console.log('callsign: set, sanitised, worn on deploy, cleared');
+}
+
 F.report('proto frames: one slot, one deployment, a Pilot spent and a Pilot returned');

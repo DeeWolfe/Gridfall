@@ -17,7 +17,7 @@ import {G, active, sel, mover, foeSel, replaying, stratSel, logOpen, abAim, setS
 import {STRATAGEMS} from '../content/stratagems.js';
 import {stratReady, canPlayStratagem, playStratagem, stratMarkers} from '../rules/stratagems.js';
 import {frameReady} from '../rules/frames.js';
-import {costOf, gearOf, vetOf, frameWeapon, isProto, leadOf} from '../save/progression.js';
+import {costOf, gearOf, vetOf, frameWeapon, isProto, leadOf, cardName} from '../save/progression.js';
 import {unitAt, foeAt, civAt, held, scorched, validTiles, breachAllowance} from '../rules/board.js';
 import {geomFor, geomCells, candidatesFor, targetsFor} from '../rules/targeting.js';
 import {buffOf, dmgPreview} from '../rules/units.js';
@@ -792,10 +792,10 @@ export function drawHand() {
       ${v.t ? `<div class="hpips">${'◆'.repeat(v.t)}</div>` : ''}
       ${g ? '<div class="hgear" aria-hidden="true">◈</div>' : ''}
       <div class="hart">${artFor(cid, k.t, null, v.t >= 2 ? v.col : null)}</div>
-      <div class="n">${k.n}</div>`;
+      <div class="n">${cardName(cid)}</div>`;
     // Hover carries the rules text, and the gear's too now that the tile does
     // not print it.
-    el.title = k.n + ' — ' + k.d + (g ? `\nGear: ${g.n} — ${g.d}` : '');
+    el.title = cardName(cid) + ' — ' + k.d + (g ? `\nGear: ${g.n} — ${g.d}` : '');
     el.onclick = () => {
       if (unaffordable) return;
       sfx(sel === cid ? 'tap' : 'select');

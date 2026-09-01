@@ -2,7 +2,7 @@
 
 import {POOL} from '../content/cards.js';
 import {G, nextUid} from '../state/session.js';
-import {gearOf, frameWeapon, leadOf} from '../save/progression.js';
+import {gearOf, frameWeapon, leadOf, cardName} from '../save/progression.js';
 import {eventTechBonus} from './events.js';
 
 /** Buffs stack but are capped, so a Scout/Relay/Herald stack cannot run away. */
@@ -31,7 +31,8 @@ export function mkUnit(cid, l, c) {
   return {
     uid: nextUid(),
     id: cid,
-    n: k.n,
+    n: cardName(cid),
+
     t: k.t,
     lane: l,
     col: c,

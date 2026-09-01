@@ -75,6 +75,25 @@ export function gearFits(id, gi) {
  * or damage has to ask this first — hence one accessor rather than the check
  * being rewritten at each call site.
  */
+/**
+ * The name a card wears for THIS commander. One card earns a callsign of its
+ * own: the Frame Pilot — a person, not a machine, and yours to name in Squad.
+ * Stored sanitized (setPilotName), so it is safe to interpolate into markup.
+ */
+export function cardName(id) {
+  const k = POOL[id];
+  if (!k) return id;
+  if (k.pilot && active && active.pilotName) return active.pilotName;
+  return k.n;
+}
+
+/** Trim, strip markup-dangerous characters, cap the length. '' clears it. */
+export function setPilotName(raw) {
+  if (!active) return;
+  const clean = String(raw || '').replace(/[^\w \-'.]/g, '').trim().slice(0, 14);
+  active.pilotName = clean || null;
+}
+
 export function frameWeapon(id) {
   if (!isProto(id)) return null;
   const g = gearOf(id);

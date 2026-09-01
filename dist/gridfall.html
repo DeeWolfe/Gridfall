@@ -413,6 +413,11 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .fab{border-top:1px solid var(--line);padding:11px 16px;font-size:0.75rem;line-height:1.55;color:var(--violet)}
 .fab b{color:var(--gold);display:block;font-size:0.7188rem;letter-spacing:.16em;text-transform:uppercase;margin-bottom:4px}
 .fab .tabs{margin-top:8px}
+/* The Pilot's callsign field, inside the focus card's ability-style block. */
+.pnrow{display:flex;gap:8px;margin-top:8px}
+.pnrow input{flex:1;min-width:0;background:#0b0918;border:1px solid var(--line2);color:var(--txt);
+  font-family:inherit;font-size:0.75rem;padding:7px 10px;border-radius:3px}
+.pnrow input:focus-visible{outline:1px solid var(--violet);outline-offset:1px}
 .tab .ct{color:var(--line2);margin-left:5px;font-size:0.625rem}
 .tab.on .ct{color:var(--zan)}
 .ggroup{display:none}
@@ -3407,6 +3412,25 @@ function gearFits(id, gi) {
  * or damage has to ask this first — hence one accessor rather than the check
  * being rewritten at each call site.
  */
+/**
+ * The name a card wears for THIS commander. One card earns a callsign of its
+ * own: the Frame Pilot — a person, not a machine, and yours to name in Squad.
+ * Stored sanitized (setPilotName), so it is safe to interpolate into markup.
+ */
+function cardName(id) {
+  const k = POOL[id];
+  if (!k) return id;
+  if (k.pilot && active && active.pilotName) return active.pilotName;
+  return k.n;
+}
+
+/** Trim, strip markup-dangerous characters, cap the length. '' clears it. */
+function setPilotName(raw) {
+  if (!active) return;
+  const clean = String(raw || '').replace(/[^\w \-'.]/g, '').trim().slice(0, 14);
+  active.pilotName = clean || null;
+}
+
 function frameWeapon(id) {
   if (!isProto(id)) return null;
   const g = gearOf(id);
@@ -4648,7 +4672,8 @@ function mkUnit(cid, l, c) {
   return {
     uid: nextUid(),
     id: cid,
-    n: k.n,
+    n: cardName(cid),
+
     t: k.t,
     lane: l,
     col: c,
@@ -7674,14 +7699,15 @@ function focusCard(id, mode) {
   const k = POOL[id];
   const g = gearOf(id);
   const v = vetOf(id);
+  $('fwrap').dataset.fmode = mode || '';
   const progress = v.next ? Math.min(100, (v.u - VET[v.t].at) / (v.next - VET[v.t].at) * 100) : 100;
 
   $('fwrap').innerHTML = `<div class="fcard t-${k.t} v${v.t}">
       <div class="fart">${artFor(id, k.t, 118, v.t >= 2 ? v.col : null)}<div class="fcost">${costOf(id)}</div>
         ${v.t ? `<div class="pips big">${'◆'.repeat(v.t)}</div>` : ''}
         ${k.hp ? `<div class="fhp">${k.hp + (g && g.hp ? g.hp : 0)} HULL</div>` : ''}</div>
-      <div class="fname">${k.n}</div>
-      <div class="ftype">${CHASSIS_NAME[k.chassis] || TIERNAME[k.t]}${k.instant ? '' : ' · ' + (k.attach ? 'Attachment'
+      <div class="fname">${cardName(id)}</div>
+      <div class="ftype">${k.pilot && active && active.pilotName ? k.n + ' · ' : ''}${CHASSIS_NAME[k.chassis] || TIERNAME[k.t]}${k.instant ? '' : ' · ' + (k.attach ? 'Attachment'
     : k.mob ? (g && g.servo ? 'Mobile · fires moving' : 'Mobile') : 'Anchored')}${g ? ' · ' + g.n : ''}</div>
       ${cardChips(id)}
       <div class="vetbar"><div class="vlab"><span style="color:${v.col}">${v.n}</span>
@@ -7697,6 +7723,11 @@ function focusCard(id, mode) {
       `<div class="fstat"><span class="k">${a}</span><span class="v">${b}</span></div>`).join('')}</div>` : '';
   })()}
       ${k.ab ? `<div class="fab"><b>Ability · ${k.ab.n}${k.ab.cd ? ` · ${k.ab.cd} turn cooldown` : ''}</b>${k.ab.d}</div>` : ''}
+      ${k.pilot && (mode === 'deck' || mode === 'gear') ? `<div class="fab">
+        <b>Callsign</b>Name your pilot — it is what the field reports will call them.
+        <div class="pnrow"><input id="pnamein" maxlength="14" placeholder="Frame Pilot"
+          value="${active && active.pilotName ? active.pilotName : ''}">
+        <button class="mini" data-pname="1">Set</button></div></div>` : ''}
       ${gearBlock(id, mode)}
     </div><div class="facts">${actionsFor(id, mode)}</div>`;
 
@@ -7854,6 +7885,17 @@ function filterGear() {
 
 function wireFocus() {
   each('data-close', () => closeFocus());
+
+  // The Pilot's callsign: save, then repaint the popup so the new name is on
+  // the card face immediately. An empty field restores "Frame Pilot".
+  each('data-pname', () => {
+    const input = $('fwrap').querySelector('#pnamein');
+    if (!input) return;
+    setPilotName(input.value);
+    commit();
+    const pid = Object.keys(POOL).find(c => POOL[c].pilot);
+    if (pid) focusCard(pid, $('fwrap').dataset.fmode || 'deck');
+  });
 
   each('data-groletab', b => {
     document.querySelectorAll('#fwrap [data-groletab]').forEach(x => x.classList.toggle('on', x === b));
@@ -10136,7 +10178,12 @@ function doAbility(u) {
 function drawCard(force) {
   if (!force && G.hand.length >= HAND_CAP) return false;
   if (!G.deck.length) {
-    const back = active.loadout.deck.filter(c => POOL[c] && !G.hand.includes(c));
+    // Once the mission's Frame has flown, the Pilot's whole job is done — an
+    // unarmed body that cannot hold a cell is a dead draw, so the cycle
+    // leaves it out rather than dealing it back.
+    const spent = G.frame && G.frame.played;
+    const back = active.loadout.deck.filter(c => POOL[c] && !G.hand.includes(c) &&
+      !(spent && POOL[c].pilot));
     if (!back.length) return false;
     G.deck = shuffle([...back]);
     clog('<span class="t">Reserve cycled</span> — fresh requisition available.', 'info');
@@ -12941,10 +12988,10 @@ function drawHand() {
       ${v.t ? `<div class="hpips">${'◆'.repeat(v.t)}</div>` : ''}
       ${g ? '<div class="hgear" aria-hidden="true">◈</div>' : ''}
       <div class="hart">${artFor(cid, k.t, null, v.t >= 2 ? v.col : null)}</div>
-      <div class="n">${k.n}</div>`;
+      <div class="n">${cardName(cid)}</div>`;
     // Hover carries the rules text, and the gear's too now that the tile does
     // not print it.
-    el.title = k.n + ' — ' + k.d + (g ? `\nGear: ${g.n} — ${g.d}` : '');
+    el.title = cardName(cid) + ' — ' + k.d + (g ? `\nGear: ${g.n} — ${g.d}` : '');
     el.onclick = () => {
       if (unaffordable) return;
       sfx(sel === cid ? 'tap' : 'select');
@@ -13068,12 +13115,12 @@ function cardEl(id, mode) {
 
   const v = vetOf(id);
   const hull = k.hp + (g && g.hp ? g.hp : 0);
-  const tip = `${k.n} — ${CHASSIS_NAME[k.chassis] || TIERNAME[k.t]} · ${costOf(id)} DP${k.hp ? ' · ' + hull + ' hull' : ''}\n${k.d}` +
+  const tip = `${cardName(id)} — ${CHASSIS_NAME[k.chassis] || TIERNAME[k.t]} · ${costOf(id)} DP${k.hp ? ' · ' + hull + ' hull' : ''}\n${k.d}` +
     `${g ? '\nGear: ' + g.n + ' — ' + g.d : ''}${v.t ? '\nRank: ' + v.n + ' (' + v.u + ' deployments)' : ''}`;
 
   return `<button class="gcard t-${k.t}${cls} v${v.t}" title="${attr(tip)}" data-focus="${id}" data-mode="${mode}">
     ${cardMark(id, v.t >= 2 ? v.col : null)}
-    <div class="tn">${k.n}</div>
+    <div class="tn">${cardName(id)}</div>
     ${v.t ? `<span class="pips">${'◆'.repeat(v.t)}</span>` : ''}
     ${g ? `<div class="gtag">◈ ${g.n}</div>` : ''}${foot}</button>`;
 }
@@ -14230,6 +14277,8 @@ const PATCH_NOTES = [
       'The after-action calls actually play now. The channel was wired to a door nobody used — walking away from your first boss kill through the result card skipped the debrief entirely. Fixed, and verified the long way.',
       'A Drop Pod on Hell Jumpers crushes what it lands on, as the card always said. Before this, the first pod could come down on a hostile tough enough to survive the impact and simply stand on top of it for the rest of the mission. Checked the books while in there: no, it cannot one-shot the Gantry — a full drop beside a boss is worth about ten points into the field.',
       'Units whose recharge weapon is cycling grey out on the board, and the Hecate Platform takes manual aim at any hostile on the board (deepest by default) — both from the last patch wave, now with the paperwork.',
+      'Once the mission\'s Frame has flown, the Pilot retires from the reserve cycle — an unarmed body with its whole job done was the one truly dead redraw in the game, and the deck no longer deals it back.',
+      'Your pilot answers to a callsign now. Open the Frame Pilot card in Squad and name them — the hand, the board, the deck list and every field report will use it. The one we heard was 行きます.',
     ],
   },
   {

@@ -21,7 +21,12 @@ import {clog} from './log.js';
 export function drawCard(force) {
   if (!force && G.hand.length >= HAND_CAP) return false;
   if (!G.deck.length) {
-    const back = active.loadout.deck.filter(c => POOL[c] && !G.hand.includes(c));
+    // Once the mission's Frame has flown, the Pilot's whole job is done — an
+    // unarmed body that cannot hold a cell is a dead draw, so the cycle
+    // leaves it out rather than dealing it back.
+    const spent = G.frame && G.frame.played;
+    const back = active.loadout.deck.filter(c => POOL[c] && !G.hand.includes(c) &&
+      !(spent && POOL[c].pilot));
     if (!back.length) return false;
     G.deck = shuffle([...back]);
     clog('<span class="t">Reserve cycled</span> — fresh requisition available.', 'info');

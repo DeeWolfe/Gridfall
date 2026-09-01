@@ -15,6 +15,8 @@ export const PATCH_NOTES = [
       'The after-action calls actually play now. The channel was wired to a door nobody used — walking away from your first boss kill through the result card skipped the debrief entirely. Fixed, and verified the long way.',
       'A Drop Pod on Hell Jumpers crushes what it lands on, as the card always said. Before this, the first pod could come down on a hostile tough enough to survive the impact and simply stand on top of it for the rest of the mission. Checked the books while in there: no, it cannot one-shot the Gantry — a full drop beside a boss is worth about ten points into the field.',
       'Units whose recharge weapon is cycling grey out on the board, and the Hecate Platform takes manual aim at any hostile on the board (deepest by default) — both from the last patch wave, now with the paperwork.',
+      'Once the mission\'s Frame has flown, the Pilot retires from the reserve cycle — an unarmed body with its whole job done was the one truly dead redraw in the game, and the deck no longer deals it back.',
+      'Your pilot answers to a callsign now. Open the Frame Pilot card in Squad and name them — the hand, the board, the deck list and every field report will use it. The one we heard was 行きます.',
     ],
   },
   {

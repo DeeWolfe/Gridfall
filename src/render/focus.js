@@ -10,7 +10,7 @@ import {TGNAME} from '../content/targeting-names.js';
 import {TIERNAME, VET} from '../content/ranks.js';
 import {active, setSel, setMover} from '../state/session.js';
 import {commit} from '../save/profile.js';
-import {costOf, gearOf, vetOf, gearFits, frameWeapon, isProto, CHASSIS_NAME, leadUnlocked, leadPrice, leadGateText} from '../save/progression.js';
+import {costOf, gearOf, vetOf, gearFits, frameWeapon, isProto, CHASSIS_NAME, leadUnlocked, leadPrice, leadGateText, cardName, setPilotName} from '../save/progression.js';
 import {$, attr} from './dom.js';
 import {sigil, artFor, portrait, bokehLayer} from './art.js';
 import {notify} from './dialog.js';
@@ -260,14 +260,15 @@ export function focusCard(id, mode) {
   const k = POOL[id];
   const g = gearOf(id);
   const v = vetOf(id);
+  $('fwrap').dataset.fmode = mode || '';
   const progress = v.next ? Math.min(100, (v.u - VET[v.t].at) / (v.next - VET[v.t].at) * 100) : 100;
 
   $('fwrap').innerHTML = `<div class="fcard t-${k.t} v${v.t}">
       <div class="fart">${artFor(id, k.t, 118, v.t >= 2 ? v.col : null)}<div class="fcost">${costOf(id)}</div>
         ${v.t ? `<div class="pips big">${'◆'.repeat(v.t)}</div>` : ''}
         ${k.hp ? `<div class="fhp">${k.hp + (g && g.hp ? g.hp : 0)} HULL</div>` : ''}</div>
-      <div class="fname">${k.n}</div>
-      <div class="ftype">${CHASSIS_NAME[k.chassis] || TIERNAME[k.t]}${k.instant ? '' : ' · ' + (k.attach ? 'Attachment'
+      <div class="fname">${cardName(id)}</div>
+      <div class="ftype">${k.pilot && active && active.pilotName ? k.n + ' · ' : ''}${CHASSIS_NAME[k.chassis] || TIERNAME[k.t]}${k.instant ? '' : ' · ' + (k.attach ? 'Attachment'
     : k.mob ? (g && g.servo ? 'Mobile · fires moving' : 'Mobile') : 'Anchored')}${g ? ' · ' + g.n : ''}</div>
       ${cardChips(id)}
       <div class="vetbar"><div class="vlab"><span style="color:${v.col}">${v.n}</span>
@@ -283,6 +284,11 @@ export function focusCard(id, mode) {
       `<div class="fstat"><span class="k">${a}</span><span class="v">${b}</span></div>`).join('')}</div>` : '';
   })()}
       ${k.ab ? `<div class="fab"><b>Ability · ${k.ab.n}${k.ab.cd ? ` · ${k.ab.cd} turn cooldown` : ''}</b>${k.ab.d}</div>` : ''}
+      ${k.pilot && (mode === 'deck' || mode === 'gear') ? `<div class="fab">
+        <b>Callsign</b>Name your pilot — it is what the field reports will call them.
+        <div class="pnrow"><input id="pnamein" maxlength="14" placeholder="Frame Pilot"
+          value="${active && active.pilotName ? active.pilotName : ''}">
+        <button class="mini" data-pname="1">Set</button></div></div>` : ''}
       ${gearBlock(id, mode)}
     </div><div class="facts">${actionsFor(id, mode)}</div>`;
 
@@ -440,6 +446,17 @@ function filterGear() {
 
 function wireFocus() {
   each('data-close', () => closeFocus());
+
+  // The Pilot's callsign: save, then repaint the popup so the new name is on
+  // the card face immediately. An empty field restores "Frame Pilot".
+  each('data-pname', () => {
+    const input = $('fwrap').querySelector('#pnamein');
+    if (!input) return;
+    setPilotName(input.value);
+    commit();
+    const pid = Object.keys(POOL).find(c => POOL[c].pilot);
+    if (pid) focusCard(pid, $('fwrap').dataset.fmode || 'deck');
+  });
 
   each('data-groletab', b => {
     document.querySelectorAll('#fwrap [data-groletab]').forEach(x => x.classList.toggle('on', x === b));

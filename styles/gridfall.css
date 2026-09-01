@@ -406,6 +406,11 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .fab{border-top:1px solid var(--line);padding:11px 16px;font-size:0.75rem;line-height:1.55;color:var(--violet)}
 .fab b{color:var(--gold);display:block;font-size:0.7188rem;letter-spacing:.16em;text-transform:uppercase;margin-bottom:4px}
 .fab .tabs{margin-top:8px}
+/* The Pilot's callsign field, inside the focus card's ability-style block. */
+.pnrow{display:flex;gap:8px;margin-top:8px}
+.pnrow input{flex:1;min-width:0;background:#0b0918;border:1px solid var(--line2);color:var(--txt);
+  font-family:inherit;font-size:0.75rem;padding:7px 10px;border-radius:3px}
+.pnrow input:focus-visible{outline:1px solid var(--violet);outline-offset:1px}
 .tab .ct{color:var(--line2);margin-left:5px;font-size:0.625rem}
 .tab.on .ct{color:var(--zan)}
 .ggroup{display:none}

@@ -7,7 +7,7 @@ import {DECKSIZE} from '../state/constants.js';
 import {POOL} from '../content/cards.js';
 import {TIERNAME} from '../content/ranks.js';
 import {active} from '../state/session.js';
-import {costOf, gearOf, vetOf, CHASSIS_NAME} from '../save/progression.js';
+import {costOf, gearOf, vetOf, CHASSIS_NAME, cardName} from '../save/progression.js';
 import {cardMark} from './portraits.js';
 import {attr} from './dom.js';
 
@@ -49,12 +49,12 @@ export function cardEl(id, mode) {
 
   const v = vetOf(id);
   const hull = k.hp + (g && g.hp ? g.hp : 0);
-  const tip = `${k.n} — ${CHASSIS_NAME[k.chassis] || TIERNAME[k.t]} · ${costOf(id)} DP${k.hp ? ' · ' + hull + ' hull' : ''}\n${k.d}` +
+  const tip = `${cardName(id)} — ${CHASSIS_NAME[k.chassis] || TIERNAME[k.t]} · ${costOf(id)} DP${k.hp ? ' · ' + hull + ' hull' : ''}\n${k.d}` +
     `${g ? '\nGear: ' + g.n + ' — ' + g.d : ''}${v.t ? '\nRank: ' + v.n + ' (' + v.u + ' deployments)' : ''}`;
 
   return `<button class="gcard t-${k.t}${cls} v${v.t}" title="${attr(tip)}" data-focus="${id}" data-mode="${mode}">
     ${cardMark(id, v.t >= 2 ? v.col : null)}
-    <div class="tn">${k.n}</div>
+    <div class="tn">${cardName(id)}</div>
     ${v.t ? `<span class="pips">${'◆'.repeat(v.t)}</span>` : ''}
     ${g ? `<div class="gtag">◈ ${g.n}</div>` : ''}${foot}</button>`;
 }
