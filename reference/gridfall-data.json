@@ -7,7 +7,7 @@
   "GROUND_FLOOR": 6,
   "HAND_CAP": 6,
   "DECKSIZE": 12,
-  "SAVE_VERSION": 8,
+  "SAVE_VERSION": 9,
   "STARTER": [
    "scout",
    "rifle",
@@ -1416,60 +1416,71 @@
    "d": "Carries no weapon — carries the choir. Knits 2 hull back into the most wounded hostile in its lane every turn, human or hive.",
    "counter": "Silence the warden first, or the congregation never stays down."
   },
-  "immolant": {
-   "n": "The Immolant",
+  "reliquary": {
+   "n": "The Reliquary",
+   "t": "boss",
+   "boss": 1,
+   "hp": 70,
+   "dmg": 0,
+   "threat": 0,
+   "spd": 0,
+   "d": "The fortress ward core, rebuilt by the cult and finished by the hive. On a visible cycle it fires the wards fortress-wide — and everything standing on ground you do not hold burns. Between purges it converts your held ground back, tile by tile, and zealots answer every discharge.",
+   "counter": "Hold your ground, literally: when the purge fires, tiles your line has claimed are the only safe floor. Stand your advance on held tiles before the count hits zero, and burst the core down between cycles."
+  },
+  "pyreguard": {
+   "n": "The Pyreguard",
    "t": "boss",
    "boss": 1,
    "hp": 42,
    "dmg": 0,
    "threat": 0,
    "spd": 0,
-   "d": "A stolen Proto Frame chassis with a cult pilot spliced into it, crowned in fire. It exhales down its own lane every turn — and then it walks, one lane over, like a procession.",
+   "d": "The eastern delegation's ceremonial Frame, hijacked at its post. It exhales down its own lane every turn, then marches one lane over — the parade step it was built for, pointed at you.",
    "counter": "The march is readable: it reverses at the board edges. Never garrison the lane it is entering, and hit it from the lanes it just left."
   },
-  "drowned": {
-   "n": "The Drowned",
+  "rimeguard": {
+   "n": "The Rimeguard",
    "t": "boss",
    "boss": 1,
    "hp": 54,
    "dmg": 0,
    "threat": 0,
    "spd": 0,
-   "d": "A Fallen Frame standing knee-deep in the flooded chapel, cold in a way water is not. Every turn it reaches for whoever has pushed deepest and stops them where they stand — no move, no fire.",
+   "d": "The northern delegation's honor Frame, its coolant systems cranked far past design. Every turn it reaches for whoever has pushed deepest and stops them where they stand — no move, no fire.",
    "counter": "It always takes the deepest soldier. Stagger your advance so the frozen one is never the one you needed, and keep a gun that never leads the line."
   },
-  "conduit": {
-   "n": "The Conduit",
+  "stormguard": {
+   "n": "The Stormguard",
    "t": "boss",
    "boss": 1,
-   "hp": 50,
+   "hp": 56,
    "dmg": 0,
    "threat": 0,
    "spd": 0,
-   "d": "A Fallen Frame wired into the fortress dynamos. It arcs your weapons dead — two guns a turn fall silent while the soldiers holding them stand unharmed.",
+   "d": "The western delegation's parade Frame, wired into the summit's own power ring. It arcs your weapons dead — the soldiers stand unharmed while their guns fall silent.",
    "counter": "It cannot silence everyone at once. Bring more guns than it has lightning, and the arithmetic wins the fight."
   },
-  "ossified": {
-   "n": "The Ossified",
+  "shardguard": {
+   "n": "The Shardguard",
    "t": "boss",
    "boss": 1,
    "hp": 48,
    "dmg": 0,
    "threat": 0,
    "spd": 0,
-   "d": "The chassis at the heart of the southern chapel stopped moving weeks ago; the crystal moves for it. It marks the ground a full turn before an eruption — anywhere on the board.",
+   "d": "The southern delegation's Frame, rooted where the burrowers first came up. It stopped walking weeks ago; the ground moves for it — crystal breaches marked a full turn before they erupt.",
    "counter": "The Brood Mother's rule: a soldier standing on the mark smothers it, and nothing surfaces. Occupation is a choice. It is usually the right one."
   },
-  "communion": {
-   "n": "The Communion",
+  "concord": {
+   "n": "The Concord",
    "t": "boss",
    "boss": 1,
    "hp": 84,
    "dmg": 0,
    "threat": 0,
    "spd": 0,
-   "d": "Four Fallen Frames carried back to the altar and taken in — four pilots, four splices, one body. One hymn per turn, in rotation: the pyre's lane, the brine's cold, the dynamo's arc, the shard's breaches.",
-   "counter": "The rotation is readable and the wards telegraph the next hymn — position for the verse that is coming, not the one that just ended. At half hull it sings two at once."
+   "d": "Four hijacked honor-guard Frames drawn into one mass on the Summit Hall floor — the hive's working copy of the alliance it studied. One motion per turn, in rotation: the pyre's lane, the rime's cold, the storm's arc, the shard's breaches.",
+   "counter": "The rotation is readable and the wards telegraph the next motion — position for the one that is coming, not the one that just ended. At half hull it stops taking turns."
   }
  },
  "leads": {
@@ -2191,12 +2202,24 @@
    "heat": 2,
    "zones": [
     {
-     "l": "THE CONCOURSE",
-     "p": "309,187 257,239 183,239 131,187 131,113 183,61 257,61 309,113"
+     "l": "SUMMIT HALL",
+     "p": "160,110 280,110 300,190 220,230 140,190"
     },
     {
-     "l": "OUTER WARDS",
-     "p": "354,205 275,284 165,284 86,205 86,95 165,16 275,16 354,95"
+     "l": "EAST WING",
+     "p": "285,115 400,95 425,180 305,185"
+    },
+    {
+     "l": "NORTH WING",
+     "p": "160,105 175,30 265,30 280,105"
+    },
+    {
+     "l": "WEST WING",
+     "p": "155,115 20,95 15,180 135,185"
+    },
+    {
+     "l": "SOUTH WING",
+     "p": "150,195 175,275 265,275 290,195"
     }
    ],
    "nodes": [
@@ -2205,60 +2228,109 @@
      "x": 220,
      "y": 150,
      "role": "start",
-     "l": "Summit Hall"
+     "l": "Delegates' Concourse",
+     "lore": "The evacuation route ran through here. Hold it — everything else radiates outward."
     },
     {
      "id": "n2",
-     "x": 170,
-     "y": 100
+     "x": 292,
+     "y": 128,
+     "l": "East Gallery",
+     "lore": "The eastern delegation's wing. Their guard Frame stopped answering its handlers mid-parade."
     },
     {
      "id": "n3",
-     "x": 270,
-     "y": 100
+     "x": 375,
+     "y": 122,
+     "type": "boss",
+     "boss": "pyreguard",
+     "l": "Parade Landing",
+     "lore": "The Pyreguard walks its old route with something else at the controls."
     },
     {
      "id": "n4",
-     "x": 170,
-     "y": 200
+     "x": 220,
+     "y": 88,
+     "l": "North Gallery",
+     "lore": "The northern wing runs cold. The environmental plant reads open to the sky. It is not."
     },
     {
      "id": "n5",
-     "x": 270,
-     "y": 200
+     "x": 220,
+     "y": 36,
+     "type": "boss",
+     "boss": "rimeguard",
+     "l": "Honor Post North",
+     "lore": "The Rimeguard holds its post. The frost on the walls holds with it."
     },
     {
      "id": "n6",
-     "x": 220,
-     "y": 42,
-     "l": "Northgate Delegation",
-     "type": "civilians",
-     "lore": "The faction reps move on foot. Walk them through the ward."
+     "x": 148,
+     "y": 128,
+     "l": "West Gallery",
+     "lore": "The summit's power ring hums through the western wing. The draw has tripled in nine days."
     },
     {
      "id": "n7",
-     "x": 88,
-     "y": 150,
-     "role": "side",
-     "l": "Westgate Vault"
+     "x": 62,
+     "y": 122,
+     "type": "boss",
+     "boss": "stormguard",
+     "l": "Power Ring Vault",
+     "lore": "The Stormguard is wired into the ring itself. The lights dim when it moves."
     },
     {
      "id": "n8",
-     "x": 352,
-     "y": 150,
-     "role": "side",
-     "l": "Eastgate Relay"
+     "x": 220,
+     "y": 210,
+     "l": "South Undercroft",
+     "lore": "Where the burrowers first came up through the foundations. The floor has not stopped moving."
     },
     {
      "id": "n9",
      "x": 220,
-     "y": 258,
-     "role": "final",
-     "l": "Accord Extraction",
+     "y": 262,
+     "type": "boss",
+     "boss": "shardguard",
+     "l": "Broken Foundations",
+     "lore": "The Shardguard rooted itself where the ground first opened. The ground works for it now."
+    },
+    {
+     "id": "n10",
+     "x": 258,
+     "y": 176,
+     "type": "boss",
+     "boss": "envoy",
+     "l": "The Summit Floor",
      "req": [
-      "n6"
+      "n3",
+      "n5",
+      "n7",
+      "n9"
      ],
-     "reqText": "The delegations leave first — clear the Northgate route"
+     "reqText": "The honor guards bar the floor — silence all four wings first",
+     "lore": "The Envoy is still in session. With its guard broken, the floor can finally be taken."
+    },
+    {
+     "id": "n11",
+     "x": 285,
+     "y": 205,
+     "role": "final",
+     "l": "The Concord",
+     "req": [
+      "n10"
+     ],
+     "reqText": "The chamber is not empty — what the Envoy convened is still assembling",
+     "lore": "Four guard chassis, drawn to the floor the Envoy held. Whatever it was building, it is finishing now."
+    },
+    {
+     "id": "n12",
+     "x": 355,
+     "y": 178,
+     "role": "side",
+     "l": "Eastgate Relay",
+     "type": "uplink",
+     "lore": "The summit's uplink to the outer capitals. Optional — the delegations want proof their guards were taken, not turned."
     }
    ],
    "edges": [
@@ -2267,7 +2339,7 @@
      "n2"
     ],
     [
-     "n1",
+     "n2",
      "n3"
     ],
     [
@@ -2275,43 +2347,39 @@
      "n4"
     ],
     [
-     "n1",
+     "n4",
      "n5"
     ],
     [
-     "n2",
+     "n1",
      "n6"
     ],
     [
-     "n3",
-     "n6"
+     "n6",
+     "n7"
+    ],
+    [
+     "n1",
+     "n8"
+    ],
+    [
+     "n8",
+     "n9"
+    ],
+    [
+     "n1",
+     "n10"
+    ],
+    [
+     "n10",
+     "n11"
     ],
     [
      "n2",
-     "n7"
-    ],
-    [
-     "n4",
-     "n7"
-    ],
-    [
-     "n3",
-     "n8"
-    ],
-    [
-     "n5",
-     "n8"
-    ],
-    [
-     "n4",
-     "n9"
-    ],
-    [
-     "n5",
-     "n9"
+     "n12"
     ]
    ],
-   "lore": "Once a year the Concordat factions meet under one roof to keep the alliance stitched together. This year the burrowers came up through the foundations mid-session — past every checkpoint, straight for the Summit Hall. If the delegations die in the wards, the alliance dies with them and the whole region tips. Walk them out. Whatever it costs.",
+   "lore": "Once a year the Concordat factions meet under one roof to keep the alliance stitched together. This year the burrowers came up through the foundations mid-session — and the four ceremonial guard Frames that flank the Summit Hall stopped answering their handlers. The delegations are out; your escort work bought them that. What remains is a summit in session without a single human in the room: four hijacked honor guards holding the wings, and the thing in the chamber that studied it all. Start at the concourse. Take the wings. Then take the floor.",
    "eventBias": "bombard",
    "intro": {
     "freq": "96.40",
@@ -2354,121 +2422,82 @@
    "heat": 3,
    "zones": [
     {
-     "l": "THE NAVE",
-     "p": "160,110 280,110 300,190 220,230 140,190"
+     "l": "THE BAILEY",
+     "p": "20,96 96,52 150,86 158,214 92,252 24,204"
     },
     {
-     "l": "PYRE CHAPEL",
-     "p": "160,105 175,30 265,30 280,105"
+     "l": "LOWER DECKS",
+     "p": "150,86 262,40 388,64 420,150 380,206 236,160 158,110"
     },
     {
-     "l": "BRINE CHAPEL",
-     "p": "285,115 400,95 425,180 305,185"
-    },
-    {
-     "l": "DYNAMO CHAPEL",
-     "p": "155,115 20,95 15,180 135,185"
-    },
-    {
-     "l": "SHARD CHAPEL",
-     "p": "150,195 175,275 265,275 290,195"
+     "l": "ARCHIVE WING",
+     "p": "158,214 236,176 352,204 372,262 240,286 92,252"
     }
    ],
    "nodes": [
     {
      "id": "n1",
-     "x": 220,
-     "y": 150,
+     "x": 62,
+     "y": 110,
      "role": "start",
-     "l": "The Nave",
-     "lore": "The fortress heart. You hold the center; the four chapels sing around you."
+     "l": "Gatehouse"
     },
     {
      "id": "n2",
-     "x": 220,
-     "y": 88,
-     "l": "Processional Stair",
-     "lore": "The cult walked up carrying torches. The scorch marks go one way."
+     "x": 168,
+     "y": 66
     },
     {
      "id": "n3",
-     "x": 220,
-     "y": 38,
-     "type": "boss",
-     "boss": "immolant",
-     "l": "Pyre Chapel",
-     "lore": "The northern chapel burns from the inside. Something in a Frame chassis feeds it."
+     "x": 280,
+     "y": 84,
+     "l": "Power Vault",
+     "type": "crystals",
+     "lore": "Restore the couplings. Hold them while they spin up.",
+     "heat": 1
     },
     {
      "id": "n4",
-     "x": 305,
-     "y": 142,
-     "l": "Flooded Gallery",
-     "lore": "The sea took the eastern decks nine days ago. Nobody pumped it out. Nobody wanted to."
+     "x": 170,
+     "y": 224
     },
     {
      "id": "n5",
-     "x": 390,
-     "y": 138,
-     "type": "boss",
-     "boss": "drowned",
-     "l": "Brine Chapel",
-     "lore": "The eastern chapel is underwater to the knee, and cold in a way water is not."
+     "x": 290,
+     "y": 244,
+     "role": "side",
+     "l": "Records Hall",
+     "type": "uplink",
+     "lore": "The garrison’s last logs. Optional — command pays well for answers."
     },
     {
      "id": "n6",
-     "x": 135,
-     "y": 142,
-     "l": "Dynamo Gallery",
-     "lore": "The generators still turn. The cult rewired where the power goes."
+     "x": 240,
+     "y": 152,
+     "l": "Purge Antechamber",
+     "req": [
+      "n3"
+     ],
+     "reqText": "No power on the deck — restore the Power Vault first"
     },
     {
      "id": "n7",
-     "x": 48,
-     "y": 138,
-     "type": "boss",
-     "boss": "conduit",
-     "l": "Dynamo Chapel",
-     "lore": "The western chapel hums. Every ward circuit in the fortress bends toward it."
+     "x": 356,
+     "y": 158,
+     "l": "Purge Core",
+     "type": "blitz",
+     "lore": "Arm the Purge Protocol and burn out everything it flushes at you."
     },
     {
      "id": "n8",
-     "x": 220,
-     "y": 212,
-     "l": "Ossuary Steps",
-     "lore": "The fortress dead were interred below. The steps down are newly worn."
-    },
-    {
-     "id": "n9",
-     "x": 220,
-     "y": 262,
-     "type": "boss",
-     "boss": "ossified",
-     "l": "Shard Chapel",
-     "lore": "The southern chapel grows. Crystal through bone, floor to vault."
-    },
-    {
-     "id": "n10",
-     "x": 262,
-     "y": 178,
+     "x": 62,
+     "y": 196,
      "role": "final",
-     "l": "The Communion",
+     "l": "Gatehouse Extraction",
      "req": [
-      "n3",
-      "n5",
-      "n7",
-      "n9"
+      "n7"
      ],
-     "reqText": "Four chapels still sing — silence all four, then return to the Nave"
-    },
-    {
-     "id": "n11",
-     "x": 330,
-     "y": 180,
-     "role": "side",
-     "l": "Drowned Archive",
-     "type": "uplink",
-     "lore": "The garrison's last logs, under a meter of seawater. Optional — command pays well for how nine days went unreported."
+     "reqText": "The Purge Protocol isn't armed — fight back to the Purge Core first"
     }
    ],
    "edges": [
@@ -2499,21 +2528,9 @@
     [
      "n1",
      "n8"
-    ],
-    [
-     "n8",
-     "n9"
-    ],
-    [
-     "n1",
-     "n10"
-    ],
-    [
-     "n4",
-     "n11"
     ]
    ],
-   "lore": "Fortress Shallow Helm anchors the whole defensive line — while it holds, the hive breaks against the pass instead of the cities behind it. Nine days ago, a cult that had spent months quietly worshiping the invaders threw the gates open from the inside. They did not let the hive in to destroy the fortress. They let it in to finish something: four stolen Proto Frame chassis, four pilots who volunteered for the splice, four chapels singing around the Nave. Start at the center. Silence the chapels. Then deal with what comes back to the altar when the singing stops.",
+   "lore": "Fortress Shallow Helm anchors the whole defensive line — while it holds, the hive breaks against the pass instead of the cities behind it. Nine days ago, a cult that had spent months quietly worshiping the invaders threw the gates open from the inside, and the wards went dark with them. No distress call went out; there was no one left topside to send one. The congregation still walks the halls — zealots, lectors, choir wardens — with the hive they invited moving among them. Arm the Purge Protocol and scour the fortress clean, then come back out the way you went in.",
    "modBias": "blackout",
    "intro": {
     "freq": "55.13",
@@ -3122,184 +3139,25 @@
     ],
     "close": "Channel closed. The Concordat holds.",
     "go": "Close channel"
-   }
+   },
+   "sub": 1
   },
-  "immolant": {
+  "reliquary": {
    "op": "shallowhelm",
-   "sub": 1,
-   "hp": 42,
-   "w": 2,
-   "h": 1,
-   "l": 2,
-   "c": 5,
-   "turns": 18,
-   "fireDmg": 3,
-   "escort": "zealot",
-   "escEvery": 2,
-   "p1": "Walking the pyre — its lane burns every turn, then it steps",
-   "p2": "Fed — the lane burns hotter, and the congregation answers every turn",
-   "bt": "THE PYRE FEEDS",
-   "bb": "Half the chassis is slag and the pilot inside reads that as kindling. It burns hotter now.",
-   "brief": {
-    "freq": "141.98",
-    "net": "残心ネット",
-    "cap": "Kill Order · Chapel briefing",
-    "from": {
-     "n": "Hikaru",
-     "r": "CC Liaison"
-    },
-    "beats": [
-     {
-      "say": [
-       "The northern chapel, Commander. A stolen Proto Frame chassis with a cult pilot spliced into it — the splice took, and what is left calls itself THE IMMOLANT.",
-       "It exhales down its own lane every turn, then walks one lane over. The walk is a march, not a wander — read where it is going and do not garrison its road."
-      ],
-      "reply": "Silencing it now. Out."
-     }
-    ],
-    "close": "Channel closed. First chapel: THE IMMOLANT. Watch its road.",
-    "go": "Begin descent"
-   }
-  },
-  "drowned": {
-   "op": "shallowhelm",
-   "sub": 1,
-   "hp": 54,
-   "w": 2,
-   "h": 1,
-   "l": 2,
-   "c": 5,
-   "turns": 18,
-   "freezeN": 1,
-   "chillDmg": 3,
-   "escort": "zealot",
-   "escEvery": 2,
-   "p1": "Still water — it stops your deepest soldier cold, every turn",
-   "p2": "Deep water — two frozen a turn",
-   "bt": "THE WATER RISES",
-   "bb": "The chassis stops pretending to breathe. The cold comes off it in sheets now.",
-   "brief": {
-    "freq": "141.98",
-    "net": "残心ネット",
-    "cap": "Kill Order · Chapel briefing",
-    "from": {
-     "n": "Hikaru",
-     "r": "CC Liaison"
-    },
-    "beats": [
-     {
-      "say": [
-       "The eastern chapel is flooded, and the thing standing in the water is why nothing freezes there except what it chooses. Frame chassis, cult pilot, hive splice. Designation: THE DROWNED.",
-       "It reaches for whoever has pushed deepest and stops them cold — frozen soldiers do not move and do not fire. Keep your advance staggered, and keep a gun that never leads the line."
-      ],
-      "reply": "Understood. Out."
-     }
-    ],
-    "close": "Channel closed. Second chapel: THE DROWNED. Stagger your advance.",
-    "go": "Begin descent"
-   }
-  },
-  "conduit": {
-   "op": "shallowhelm",
-   "sub": 1,
-   "hp": 50,
-   "w": 2,
-   "h": 1,
-   "l": 2,
-   "c": 5,
-   "turns": 18,
-   "jamN": 3,
-   "arcDmg": 1,
-   "escort": "lector",
-   "escEvery": 2,
-   "p1": "Grounded — two weapons arced dead each turn, bodies unharmed",
-   "p2": "Overload — three weapons dead a turn, and the arc burns",
-   "bt": "OVERLOAD",
-   "bb": "Half its hull is gone and the wards read that as demand. Every circuit in the fortress feeds it now.",
-   "brief": {
-    "freq": "141.98",
-    "net": "残心ネット",
-    "cap": "Kill Order · Chapel briefing",
-    "from": {
-     "n": "Hikaru",
-     "r": "CC Liaison"
-    },
-    "beats": [
-     {
-      "say": [
-       "The western chapel has the generators, Commander, and the thing wired into them was a Proto Frame before the cult got ambitious. Designation: THE CONDUIT.",
-       "It arcs your weapons dead — the soldier stands, the gun does not fire that turn. It cannot silence everyone at once, so bring more guns than it has lightning."
-      ],
-      "reply": "Bringing all of them. Out."
-     }
-    ],
-    "close": "Channel closed. Third chapel: THE CONDUIT. Redundancy is armor.",
-    "go": "Begin descent"
-   }
-  },
-  "ossified": {
-   "op": "shallowhelm",
-   "sub": 1,
-   "hp": 48,
-   "w": 2,
-   "h": 1,
-   "l": 2,
-   "c": 5,
-   "turns": 18,
-   "markN": 2,
-   "breachDmg": 4,
-   "breachPool": [
-    "zealot",
-    "lector"
-   ],
-   "p1": "Rooted — crystal breaches marked a turn before they erupt",
-   "p2": "Blooming — two breaches marked a turn",
-   "bt": "THE GARDEN BLOOMS",
-   "bb": "Break the chassis and the crystal keeps the shape. It grows faster wounded.",
-   "brief": {
-    "freq": "141.98",
-    "net": "残心ネット",
-    "cap": "Kill Order · Chapel briefing",
-    "from": {
-     "n": "Hikaru",
-     "r": "CC Liaison"
-    },
-    "beats": [
-     {
-      "say": [
-       "The southern chapel grew through the ossuary, Commander. The Frame chassis at its heart stopped moving weeks ago; the crystal moves for it. Designation: THE OSSIFIED.",
-       "It marks the ground a full turn before the crystal erupts — and a soldier standing on the mark smothers it. Same rule as the Brood Mother's breaches: occupation is a choice, and it is usually the right one."
-      ],
-      "reply": "On it. Out."
-     }
-    ],
-    "close": "Channel closed. Fourth chapel: THE OSSIFIED. Stand on the marks.",
-    "go": "Begin descent"
-   }
-  },
-  "communion": {
-   "op": "shallowhelm",
-   "hp": 84,
+   "hp": 70,
    "w": 2,
    "h": 2,
    "l": 1,
    "c": 6,
    "turns": 18,
-   "fireDmg": 4,
-   "freezeN": 2,
-   "jamN": 2,
-   "markN": 2,
-   "breachDmg": 3,
-   "breachPool": [
-    "zealot",
-    "lector"
-   ],
-   "escort": "choirwarden",
-   "escEvery": 2,
-   "p1": "Communion — one hymn per turn: pyre, brine, dynamo, shard, in rotation",
-   "p2": "Full choir — two hymns per turn",
-   "bt": "FULL CHOIR",
-   "bb": "Four pilots, one body, no turns taken. The rotation collapses — it sings two hymns at once now.",
+   "chargeEvery": 4,
+   "purgeDmg": 5,
+   "anoint": 2,
+   "add": "zealot",
+   "p1": "Charging — held ground is safe when the wards fire",
+   "p2": "Cracked — charging faster, converting deeper",
+   "bt": "RELIQUARY CRACKED",
+   "bb": "Half its mass is gone, and the cult's machine reads that as devotion. The purge cycle shortens.",
    "brief": {
     "freq": "141.98",
     "net": "残心ネット",
@@ -3311,27 +3169,27 @@
     "beats": [
      {
       "say": [
-       "Commander... the chapels are silent and the readings from the Nave went wrong the moment the fourth one died.",
-       "The four chassis are moving. Not walking — being carried. The congregation is bringing its dead frames back to the altar, and the altar is taking them in. Whatever the cult was building toward, it is assembling NOW, and it is designating itself. The wards keep logging one word: COMMUNION."
+       "Commander. Purge Protocol is armed, but the fortress heart is not answering ours. The cult welded something into the ward reliquary before the end — and the hive finished the job.",
+       "The wards are firing on their own fortress now. We are designating it: THE RELIQUARY."
       ],
-      "reply": "Four of them in one body."
+      "reply": "The fortress is shooting at itself?"
      },
      {
       "say": [
-       "Four pilots, four splices, one chassis mass. It has everything you already fought: the pyre's lane, the brine's cold, the dynamo's arc, the shard's breaches — one hymn per turn, in rotation, and the rotation is readable. The wards telegraph the next hymn. Use that.",
-       "You have fought every note it can sing, Commander. It has never fought anyone who survived all four."
+       "On a cycle. It charges the ward grid, and when it discharges, everything standing on ground the grid does not read as held burns. The old friend-or-foe logic survived — that is the only mercy in there.",
+       "Hold your ground, Commander. Literally. When the discharge comes, the floor your line has claimed is the only safe floor there is."
       ],
-      "reply": "And when it's done?"
+      "reply": "And between discharges?"
      },
      {
       "say": [
-       "Then Fortress Shallow Helm is ours again, the line holds, and the cult's masterpiece dies unfinished.",
-       "One more kill, Commander. The choir is waiting on your descent."
+       "It unmakes your claim. Tile by tile, it converts held ground back to theirs. And the dead the cult left behind still walk its halls.",
+       "Scour it clean. All of it. Then come back out the way you went in."
       ],
-      "reply": "Ending the song. Out."
+      "reply": "Understood. Out."
      }
     ],
-    "close": "Channel closed. Final target: THE COMMUNION. Read the next hymn.",
+    "close": "Channel closed. Target designate: THE RELIQUARY. Hold your ground when the wards fire.",
     "go": "Begin descent"
    },
    "debrief": {
@@ -3346,19 +3204,259 @@
      {
       "say": [
        "The fortress is dark, Commander. Dark is recoverable — engineering crews descend at first light, and the line holds because Shallow Helm holds.",
-       "Central's first pass on the Communion wreckage confirmed what the chapels only suggested. Four human volunteers. Four willing splices. The cult did not break the wards, Commander — they taught the fortress a new definition of foe, and then they taught themselves to be the hive's."
+       "The reliquary core is on its way to Central for study. Inside the hive growth, the cult's own work is intact. Deliberate. They did not break the wards, Commander. They taught them a new definition of foe."
       ],
       "reply": "People did this. Willingly."
      },
      {
       "say": [
        "Willingly. And Central believes Shallow Helm was not the only chapel. Counter-intelligence has stood up a task group — that is all I am cleared to say on this channel.",
-       "The four families of the pilots will be told they died when the fortress fell. For once, Commander, the kind lie is also the merciful one. You gave the line back its anchor. Get some rest."
+       "You gave the line back its anchor. Get some rest, Commander."
       ],
       "reply": "Zanshin still stands. Out."
      }
     ],
     "close": "Channel closed. Fortress Shallow Helm: reclaimed.",
+    "go": "Close channel"
+   },
+   "addN": 3
+  },
+  "pyreguard": {
+   "op": "crownring",
+   "sub": 1,
+   "hp": 42,
+   "w": 2,
+   "h": 1,
+   "l": 2,
+   "c": 5,
+   "turns": 18,
+   "fireDmg": 3,
+   "escort": "burrower",
+   "escEvery": 2,
+   "p1": "On parade — its lane burns every turn, then it steps",
+   "p2": "Burning through — the lane burns hotter, and escorts answer every turn",
+   "bt": "THE PARADE BURNS",
+   "bb": "Half the chassis is slag and the thing steering it does not care. The step quickens.",
+   "brief": {
+    "freq": "141.95",
+    "net": "残心ネット",
+    "cap": "Kill Order · Honor guard briefing",
+    "from": {
+     "n": "Hikaru",
+     "r": "CC Liaison"
+    },
+    "beats": [
+     {
+      "say": [
+       "The eastern wing, Commander. The delegation's ceremonial Frame — the one that led their parades — is walking its old route with something else at the controls. Designation: THE PYREGUARD.",
+       "It exhales down its own lane every turn, then marches one lane over. The march is ceremony — it does not deviate. Read where it is going and do not garrison its road."
+      ],
+      "reply": "Silencing it. Out."
+     }
+    ],
+    "close": "Channel closed. First guard: THE PYREGUARD. Watch its road.",
+    "go": "Begin descent"
+   }
+  },
+  "rimeguard": {
+   "op": "crownring",
+   "sub": 1,
+   "hp": 54,
+   "w": 2,
+   "h": 1,
+   "l": 2,
+   "c": 5,
+   "turns": 18,
+   "freezeN": 1,
+   "chillDmg": 3,
+   "escort": "burrower",
+   "escEvery": 2,
+   "p1": "Cold standard — it stops your deepest soldier, every turn",
+   "p2": "Deep winter — two frozen a turn",
+   "bt": "THE COLD DEEPENS",
+   "bb": "The chassis vents open. The cold comes off it in sheets now.",
+   "brief": {
+    "freq": "141.95",
+    "net": "残心ネット",
+    "cap": "Kill Order · Honor guard briefing",
+    "from": {
+     "n": "Hikaru",
+     "r": "CC Liaison"
+    },
+    "beats": [
+     {
+      "say": [
+       "The northern wing. The delegation's honor Frame ran escort in polar theatre — the hive has its coolant plant running open. Designation: THE RIMEGUARD.",
+       "It reaches for whoever has pushed deepest and stops them cold — frozen soldiers do not move and do not fire. Stagger your advance, and keep a gun that never leads the line."
+      ],
+      "reply": "Understood. Out."
+     }
+    ],
+    "close": "Channel closed. Second guard: THE RIMEGUARD. Stagger your advance.",
+    "go": "Begin descent"
+   }
+  },
+  "stormguard": {
+   "op": "crownring",
+   "sub": 1,
+   "hp": 56,
+   "w": 2,
+   "h": 1,
+   "l": 2,
+   "c": 5,
+   "turns": 18,
+   "jamN": 3,
+   "arcDmg": 1,
+   "escort": "burrower",
+   "escEvery": 2,
+   "p1": "Grounded — weapons arced dead each turn, bodies unharmed",
+   "p2": "Overload — more guns dead a turn, and the arc burns",
+   "bt": "OVERLOAD",
+   "bb": "Half its hull is gone and the summit's power ring reads that as demand. Every circuit feeds it now.",
+   "brief": {
+    "freq": "141.95",
+    "net": "残心ネット",
+    "cap": "Kill Order · Honor guard briefing",
+    "from": {
+     "n": "Hikaru",
+     "r": "CC Liaison"
+    },
+    "beats": [
+     {
+      "say": [
+       "The western wing has the summit's power ring, Commander, and the delegation Frame wired into it was never meant to draw this much. Designation: THE STORMGUARD.",
+       "It arcs your weapons dead — the soldier stands, the gun does not fire that turn. It cannot silence everyone at once, so bring more guns than it has lightning."
+      ],
+      "reply": "Bringing all of them. Out."
+     }
+    ],
+    "close": "Channel closed. Third guard: THE STORMGUARD. Redundancy is armor.",
+    "go": "Begin descent"
+   }
+  },
+  "shardguard": {
+   "op": "crownring",
+   "sub": 1,
+   "hp": 48,
+   "w": 2,
+   "h": 1,
+   "l": 2,
+   "c": 5,
+   "turns": 18,
+   "markN": 1,
+   "breachDmg": 4,
+   "breachPool": [
+    "crawler",
+    "crawler",
+    "burrower"
+   ],
+   "p1": "Rooted — breaches marked a turn before they erupt",
+   "p2": "Undermined — two breaches marked a turn",
+   "bt": "THE FLOOR GIVES",
+   "bb": "Break the chassis and the ground keeps working. It digs faster wounded.",
+   "brief": {
+    "freq": "141.95",
+    "net": "残心ネット",
+    "cap": "Kill Order · Honor guard briefing",
+    "from": {
+     "n": "Hikaru",
+     "r": "CC Liaison"
+    },
+    "beats": [
+     {
+      "say": [
+       "The southern wing is where the burrowers first came up through the foundations, and the delegation Frame that held that post has been theirs since. Designation: THE SHARDGUARD.",
+       "It marks the ground a full turn before something erupts — and a soldier standing on the mark smothers it. Same rule as the Brood Mother's breaches: occupation is a choice, and it is usually the right one."
+      ],
+      "reply": "On it. Out."
+     }
+    ],
+    "close": "Channel closed. Fourth guard: THE SHARDGUARD. Stand on the marks.",
+    "go": "Begin descent"
+   }
+  },
+  "concord": {
+   "op": "crownring",
+   "hp": 84,
+   "w": 2,
+   "h": 2,
+   "l": 1,
+   "c": 6,
+   "turns": 18,
+   "fireDmg": 4,
+   "freezeN": 2,
+   "jamN": 2,
+   "markN": 2,
+   "breachDmg": 3,
+   "breachPool": [
+    "burrower",
+    "crawler"
+   ],
+   "escort": "burrower",
+   "escEvery": 2,
+   "p1": "In session — one motion per turn: pyre, rime, storm, shard, in rotation",
+   "p2": "Unanimous — two motions per turn",
+   "bt": "UNANIMOUS",
+   "bb": "Four chassis, one body, no debate left in it. It carries two motions at once now.",
+   "brief": {
+    "freq": "141.95",
+    "net": "残心ネット",
+    "cap": "Kill Order · Priority target briefing",
+    "from": {
+     "n": "Hikaru",
+     "r": "CC Liaison"
+    },
+    "beats": [
+     {
+      "say": [
+       "Commander... the Envoy is dead and the readings from the Summit Hall got worse.",
+       "The four guard chassis are moving. Not walking — being drawn. Everything the Envoy studied from that chair is assembling on the floor it held, and the wards keep logging one word for it: CONCORD."
+      ],
+      "reply": "Four of them in one body."
+     },
+     {
+      "say": [
+       "Four hijacked Frames, one mass. It has everything you already fought in the wings: the Pyreguard's lane, the Rimeguard's cold, the Stormguard's arc, the Shardguard's breaches — one motion per turn, in rotation, and the rotation is readable. The wards telegraph the next motion. Use that.",
+       "You have fought every motion it can carry, Commander. It has never fought anyone who survived all four."
+      ],
+      "reply": "And when it's done?"
+     },
+     {
+      "say": [
+       "Then the Summit Hall is ours, the delegations reconvene under their own roof, and the hive's copy of our alliance dies on its floor.",
+       "One more kill, Commander. The chamber is waiting on your descent."
+      ],
+      "reply": "Calling the vote. Out."
+     }
+    ],
+    "close": "Channel closed. Final target: THE CONCORD. Read the next motion.",
+    "go": "Begin descent"
+   },
+   "debrief": {
+    "freq": "141.95",
+    "net": "残心ネット",
+    "cap": "After-action · CC uplink",
+    "from": {
+     "n": "Hikaru",
+     "r": "CC Liaison"
+    },
+    "beats": [
+     {
+      "say": [
+       "The Summit Hall is a ruin twice over, Commander — and it is ours twice over. The delegations reconvene under their own roof next month. That sentence exists because of you.",
+       "Central's first pass on the Concord wreckage settled the argument the Envoy started. It did not fuse those Frames to fight you. It fused them the way the Concordat fuses factions — a body of members, speaking in turns. It was not building a weapon, Commander. It was practicing being an alliance."
+      ],
+      "reply": "First our machines. Then our institutions. Now our politics."
+     },
+     {
+      "say": [
+       "In order, and faster each time. Central's analysts will not say aloud what comes after politics, but the task group studying it has been widened twice this month.",
+       "The alliance holds. The line holds. Whatever is directing these things now knows our unity is a weapon — because it tried to build one. Get some rest, Commander."
+      ],
+      "reply": "One for the many. Out."
+     }
+    ],
+    "close": "Channel closed. The Concordat holds — the copy did not.",
     "go": "Close channel"
    }
   }

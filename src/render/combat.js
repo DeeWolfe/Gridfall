@@ -244,8 +244,10 @@ function drawSel() {
       const cells = G.boss.bodies.reduce((a, b) => a + b.cells.length, 0);
       // Phase two shortens the Envoy's dive cycle.
       const p2cut = n => (G.boss.phase === 2 ? Math.max(2, n - 1) : n);
-      // The Communion's rotation is readable by design — name the next hymn.
-      const hymnNames = ['Pyre', 'Brine', 'Dynamo', 'Shard'];
+      // The Concord's rotation is readable by design — name the next motion.
+      // The Reliquary's purge countdown is just as public.
+      const motionNames = ['Pyre', 'Rime', 'Storm', 'Shard'];
+      const purgeIn = def.chargeEvery ? p2cut(def.chargeEvery) - G.boss.charge : 0;
       el.innerHTML = `<div class="selhead"><b style="color:var(--mag)">${D.n}</b>
           <span class="hpbadge">${bossHp()}/${def.hp}</span></div>
         ${G.boss.shield > 0 ? `<div class="hpbar"><i style="width:${Math.max(0, G.boss.shield / def.shield * 100)}%;background:var(--cyan)"></i></div>` : ''}
@@ -257,8 +259,9 @@ function drawSel() {
           <div><span>Footprint</span><b>${cells} cell${cells === 1 ? '' : 's'}</b></div>
           ${G.boss.beam ? `<div><span>Beam</span><b>lane ${G.boss.beam.lane + 1} next</b></div>` : ''}
           ${def.diveEvery ? `<div><span>Dives</span><b>every ${p2cut(def.diveEvery)} turns</b></div>` : ''}
-          ${G.boss.k === 'communion' ? `<div><span>Next hymn</span><b>${hymnNames[G.boss.hymn]}</b></div>` : ''}
-          ${G.boss.k === 'immolant' ? `<div><span>Walks</span><b>one lane a turn</b></div>` : ''}
+          ${G.boss.k === 'concord' ? `<div><span>Next motion</span><b>${motionNames[G.boss.hymn]}</b></div>` : ''}
+          ${G.boss.k === 'pyreguard' ? `<div><span>Marches</span><b>one lane a turn</b></div>` : ''}
+          ${def.chargeEvery ? `<div><span>Purge</span><b>in ${purgeIn} turn${purgeIn === 1 ? '' : 's'}</b></div>` : ''}
         </div>
         <div class="selfire live">${G.boss.phase === 1 ? def.p1 : def.p2}</div>
         <div class="hintline">${D.d}</div>`;
@@ -350,8 +353,8 @@ const FOE_GLYPH = {
   husk: '◍', screamer: '◉', chorus: '≋', sovereign: '♚', puppeteer: '☍',
   fabricant: '⚙', gantry: '☰', brood: '❉', prism: '◇',
   aperture: '◎', envoy: '♔',
-  zealot: '†', lector: '♰', choirwarden: '♪',
-  immolant: '🜂', drowned: '🜄', conduit: '🜁', ossified: '🜃', communion: '✥',
+  zealot: '†', lector: '♰', choirwarden: '♪', reliquary: '⚱',
+  pyreguard: '🜂', rimeguard: '🜄', stormguard: '🜁', shardguard: '🜃', concord: '✥',
 };
 
 /** The intent badge: what this hostile will do next turn, per enemyIntent(). */

@@ -24,8 +24,8 @@ import {mkFoe} from './spawn.js';
 import {clog} from './log.js';
 import {tapeEvent} from './tape.js';
 
-/** The boss guarding this operation's FINAL node, if it has one. Chapel
- * sub-bosses (def.sub) are placed by their map nodes, never by the final. */
+/** The boss guarding this operation's FINAL node, if it has one. Node-placed
+ * bosses (def.sub — Crownring's guards and the Envoy) never come from here. */
 export const bossForOp = op =>
   Object.keys(BOSSDEF).find(k => BOSSDEF[k].op === op && !BOSSDEF[k].sub) || null;
 
@@ -52,7 +52,7 @@ function setBodyHp(b) {
 }
 
 /** Seed this mission's boss onto the board at mission start — the node's own
- * (a chapel sub-boss) when it names one, the operation's final otherwise. */
+ * when the map names one, the operation's final otherwise. */
 export function seedBoss() {
   const k = G.bossK || bossForOp(G.op);
   if (!k || !BOSSDEF[k]) return;
@@ -279,7 +279,7 @@ function gantryTick(def) {
 
 /** Yesterday's marked breaches erupt. A unit standing on the mark takes the
  * damage INSTEAD of anything surfacing — occupying a breach is a choice. The
- * Brood Mother, the Ossified and the Communion all keep this same contract. */
+ * Brood Mother, the Shardguard and the Concord all keep this same contract. */
 function eruptMarks(def) {
   const B = G.boss;
   const due = B.marks;
@@ -490,79 +490,114 @@ function elemJam(n, arc, who) {
   return take.length;
 }
 
-// --- THE IMMOLANT: exhale down its lane, then walk one lane over ---
-function immolantTick(def) {
+// --- The Reliquary: the ward purge on a countdown, erosion between ---
+function reliquaryTick(def) {
+  const B = G.boss;
+  const every = B.phase === 2 ? Math.max(2, def.chargeEvery - 1) : def.chargeEvery;
+  B.charge++;
+
+  if (B.charge >= every) {
+    B.charge = 0;
+    // The purge: the old friend-or-foe logic survived, inverted — ground
+    // your line HOLDS is the only floor the wards spare.
+    const caught = G.units.filter(u => G.ter[u.lane][u.col] !== 'p');
+    caught.forEach(u => dmgUnit(u, def.purgeDmg, 'Ward purge'));
+    clog(caught.length
+      ? `<span class="d">THE WARDS FIRE</span> — ${caught.length} unit${caught.length > 1 ? 's' : ''} caught off held ground.`
+      : '<span class="g">THE WARDS FIRE</span> — your line stood on held ground. Nothing burns.',
+      caught.length ? 'loss' : 'order');
+    const made = summonAdds(def.add, def.addN || 1);
+    if (made) clog(`${made > 1 ? 'Acolytes answer' : 'An acolyte answers'} the discharge — ${made} ${BEST[def.add].n}${made > 1 ? 's' : ''} walk${made > 1 ? '' : 's'}.`, 'wave');
+    return;
+  }
+
+  // Anoint: unheld, unoccupied claim is unmade tile by tile. Standing a unit
+  // on a converted tile re-claims it next territory flip — the counterplay
+  // is presence, same as the purge's.
+  const n = def.anoint + (B.phase === 2 ? 1 : 0);
+  const cands = [];
+  for (let l = 0; l < LANES; l++) for (let c = 0; c < COLS; c++) {
+    if (G.ter[l][c] === 'p' && !unitAt(l, c)) cands.push([l, c]);
+  }
+  const took = shuffle(cands).slice(0, n);
+  took.forEach(([l, c]) => { G.ter[l][c] = 'e'; });
+  if (took.length) clog(`<span class="d">The Reliquary anoints</span> — ${took.length} tile${took.length > 1 ? 's' : ''} of held ground converted.`, 'loss');
+  clog(`<span style="color:var(--violet)">Ward charge ${B.charge} of ${every}</span> — the purge fires in ${every - B.charge} turn${every - B.charge > 1 ? 's' : ''}. Held ground is safe.`, 'info');
+}
+
+// --- THE PYREGUARD: exhale down its lane, then march one lane over ---
+function pyreguardTick(def) {
   const B = G.boss;
   const body = B.bodies[0];
   if (!body) return;
   const lanes = [...new Set(body.cells.map(([l]) => l))];
-  const n = elemBurn(lanes, def.fireDmg + (B.phase === 2 ? 1 : 0), 'The Immolant');
-  clog(`<span class="d">The Immolant exhales</span> — lane ${lanes[0] + 1} burns${n ? ` — ${n} unit${n > 1 ? 's' : ''} caught` : ''}.`, n ? 'loss' : 'info');
+  const n = elemBurn(lanes, def.fireDmg + (B.phase === 2 ? 1 : 0), 'The Pyreguard');
+  clog(`<span class="d">The Pyreguard exhales</span> — lane ${lanes[0] + 1} burns${n ? ` — ${n} unit${n > 1 ? 's' : ''} caught` : ''}.`, n ? 'loss' : 'info');
   // The march: one lane over, reversing at the edges. Predictable on purpose.
   if (Math.min(...lanes) + body.dir < 0 || Math.max(...lanes) + body.dir >= LANES) body.dir *= -1;
-  moveBody(body, body.cells.map(([l, c]) => [l + body.dir, c]), 'The Immolant');
-  clog(`<span style="color:var(--gold)">The pyre walks</span> — lane ${body.cells[0][0] + 1} burns next.`, 'info');
+  moveBody(body, body.cells.map(([l, c]) => [l + body.dir, c]), 'The Pyreguard');
+  clog(`<span style="color:var(--gold)">The parade steps</span> — lane ${body.cells[0][0] + 1} burns next.`, 'info');
   if (B.phase === 2 || B.turns % def.escEvery === 0) {
-    if (summonAdds(def.escort, 1)) clog(`A ${BEST[def.escort].n} answers the flame.`, 'wave');
+    if (summonAdds(def.escort, 1)) clog(`A ${BEST[def.escort].n} falls in behind it.`, 'wave');
   }
 }
 
-// --- THE DROWNED: stop the deepest soldier cold ---
-function drownedTick(def) {
+// --- THE RIMEGUARD: stop the deepest soldier cold ---
+function rimeguardTick(def) {
   const B = G.boss;
-  elemFreeze(def.freezeN + (B.phase === 2 ? 1 : 0), def.chillDmg, 'The Drowned');
+  elemFreeze(def.freezeN + (B.phase === 2 ? 1 : 0), def.chillDmg, 'The Rimeguard');
   if (B.turns % def.escEvery === 0) {
-    if (summonAdds(def.escort, 1)) clog(`A ${BEST[def.escort].n} wades out of the flood.`, 'wave');
+    if (summonAdds(def.escort, 1)) clog(`A ${BEST[def.escort].n} surfaces in the frost.`, 'wave');
   }
 }
 
-// --- THE CONDUIT: arc weapons dead; overload adds a burn ---
-function conduitTick(def) {
+// --- THE STORMGUARD: arc weapons dead; overload adds a burn ---
+function stormguardTick(def) {
   const B = G.boss;
-  elemJam(def.jamN + (B.phase === 2 ? 1 : 0), B.phase === 2 ? def.arcDmg : 0, 'The Conduit');
+  elemJam(def.jamN + (B.phase === 2 ? 1 : 0), B.phase === 2 ? def.arcDmg : 0, 'The Stormguard');
   if (B.turns % def.escEvery === 0) {
-    if (summonAdds(def.escort, 1)) clog(`A ${BEST[def.escort].n} takes position by the dynamos.`, 'wave');
+    if (summonAdds(def.escort, 1)) clog(`A ${BEST[def.escort].n} takes position by the ring.`, 'wave');
   }
 }
 
-// --- THE OSSIFIED: crystal breaches on the Brood Mother's contract ---
-function ossifiedTick(def) {
+// --- THE SHARDGUARD: breaches on the Brood Mother's contract ---
+function shardguardTick(def) {
   const B = G.boss;
   eruptMarks(def);
   markBreaches(def.markN + (B.phase === 2 ? 1 : 0));
 }
 
-// --- THE COMMUNION: all four, one hymn per turn, in a readable rotation ---
-const HYMNS = ['pyre', 'brine', 'dynamo', 'shard'];
+// --- THE CONCORD: all four guards, one motion per turn, in a readable rotation ---
+const MOTIONS = ['pyre', 'rime', 'storm', 'shard'];
 
-function singHymn(def, h) {
+function carryMotion(def, h) {
   if (h === 'pyre') {
-    // The pyre hymn burns the lane with the most soldiers in it.
+    // The pyre motion burns the lane with the most soldiers in it.
     const counts = {};
     G.units.forEach(u => { counts[u.lane] = (counts[u.lane] || 0) + 1; });
     const lanes = Object.keys(counts).map(Number);
     if (!lanes.length) return;
     const most = Math.max(...lanes.map(l => counts[l]));
     const lane = shuffle(lanes.filter(l => counts[l] === most))[0];
-    const n = elemBurn([lane], def.fireDmg, 'The Communion');
-    clog(`<span class="d">The pyre hymn</span> — lane ${lane + 1} burns, ${n} unit${n > 1 ? 's' : ''} caught.`, 'loss');
+    const n = elemBurn([lane], def.fireDmg, 'The Concord');
+    clog(`<span class="d">The pyre motion</span> — lane ${lane + 1} burns, ${n} unit${n > 1 ? 's' : ''} caught.`, 'loss');
   }
-  if (h === 'brine') elemFreeze(def.freezeN, 0, 'The Communion');
-  if (h === 'dynamo') elemJam(def.jamN, 0, 'The Communion');
+  if (h === 'rime') elemFreeze(def.freezeN, 0, 'The Concord');
+  if (h === 'storm') elemJam(def.jamN, 0, 'The Concord');
   if (h === 'shard') markBreaches(def.markN);
 }
 
-function communionTick(def) {
+function concordTick(def) {
   const B = G.boss;
   eruptMarks(def);
   const sing = B.phase === 2 ? 2 : 1;
   for (let i = 0; i < sing; i++) {
-    singHymn(def, HYMNS[B.hymn]);
-    B.hymn = (B.hymn + 1) % HYMNS.length;
+    carryMotion(def, MOTIONS[B.hymn]);
+    B.hymn = (B.hymn + 1) % MOTIONS.length;
   }
-  clog(`<span style="color:var(--violet)">The choir turns a page</span> — next hymn: ${HYMNS[B.hymn].toUpperCase()}.`, 'info');
+  clog(`<span style="color:var(--violet)">The floor turns</span> — next motion: ${MOTIONS[B.hymn].toUpperCase()}.`, 'info');
   if (B.turns % def.escEvery === 0) {
-    if (summonAdds(def.escort, 1)) clog(`A ${BEST[def.escort].n} joins the choir.`, 'wave');
+    if (summonAdds(def.escort, 1)) clog(`A ${BEST[def.escort].n} is recognized by the chair.`, 'wave');
   }
 }
 
@@ -577,9 +612,10 @@ export function bossTick() {
   if (B.k === 'prism') prismTick(def);
   if (B.k === 'aperture') apertureTick(def);
   if (B.k === 'envoy') envoyTick(def);
-  if (B.k === 'immolant') immolantTick(def);
-  if (B.k === 'drowned') drownedTick(def);
-  if (B.k === 'conduit') conduitTick(def);
-  if (B.k === 'ossified') ossifiedTick(def);
-  if (B.k === 'communion') communionTick(def);
+  if (B.k === 'reliquary') reliquaryTick(def);
+  if (B.k === 'pyreguard') pyreguardTick(def);
+  if (B.k === 'rimeguard') rimeguardTick(def);
+  if (B.k === 'stormguard') stormguardTick(def);
+  if (B.k === 'shardguard') shardguardTick(def);
+  if (B.k === 'concord') concordTick(def);
 }

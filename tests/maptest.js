@@ -116,39 +116,46 @@ for (const opKey of Object.keys(A.OPS)) {
   if (!A.G.over || A.G.result.kind !== 'win') F.push('meeting the blitz quota did not win');
 }
 
-// G: the Crownring gate — no extraction until the Northgate delegation moves
+// G: Crownring — the guards bar the floor, and the floor bars the Concord
 {
   const p = A.blankProfile('CR');
   p.op = 'crownring';
   A.enterProfile(p);
   const run = A.opRun();
-  run.cleared.push('n1', 'n4', 'n5');
-  if (A.nodeState('n9') !== 'locked') F.push('Accord Extraction open with the delegation pinned');
-  if (!A.reqBlocked('n9')) F.push('n9 not reported as gate-blocked');
-  run.cleared.push('n2', 'n6');
-  if (A.nodeState('n9') !== 'open') F.push('n9 still locked after the Northgate route cleared');
+  run.cleared.push('n1');
+  // From the concourse every wing gallery opens — the hub — but not the floor.
+  ['n2', 'n4', 'n6', 'n8'].forEach(id => {
+    if (A.nodeState(id) !== 'open') F.push(`wing ${id} not open from the concourse`);
+  });
+  if (A.nodeState('n10') !== 'locked' || !A.reqBlocked('n10')) F.push('the Summit Floor open with the guards standing');
+  run.cleared.push('n2', 'n3', 'n4', 'n5', 'n6', 'n7');
+  if (A.nodeState('n10') !== 'locked') F.push('the Summit Floor open with one guard standing');
+  run.cleared.push('n8', 'n9');
+  if (A.nodeState('n10') !== 'open') F.push('breaking all four guards did not open the floor');
+  if (A.nodeState('n11') !== 'locked') F.push('the Concord open before the Envoy fell');
+  run.cleared.push('n10');
+  if (A.nodeState('n11') !== 'open') F.push('killing the Envoy did not reveal the Concord');
+  // The wing nodes carry their guards into the rolled run; the floor and the
+  // final carry theirs.
+  [['n3', 'pyreguard'], ['n5', 'rimeguard'], ['n7', 'stormguard'], ['n9', 'shardguard'], ['n10', 'envoy']].forEach(([id, k]) => {
+    if (run.nodes[id].type !== 'boss' || run.nodes[id].boss !== k) F.push(`${id} rolled without its guard (${k})`);
+  });
 }
 
-// H: Shallowhelm — the Communion waits until all four chapels fall silent
+// H: Shallowhelm — the Cleanse needs power, and the way out needs the Cleanse
 {
   const p = A.blankProfile('SH');
   p.op = 'shallowhelm';
   A.enterProfile(p);
   const run = A.opRun();
   run.cleared.push('n1');
-  // From the Nave, every wing opens — that is the hub — but the final does not.
-  ['n2', 'n4', 'n6', 'n8'].forEach(id => {
-    if (A.nodeState(id) !== 'open') F.push(`wing ${id} not open from the Nave`);
-  });
-  if (A.nodeState('n10') !== 'locked' || !A.reqBlocked('n10')) F.push('the Communion open with four chapels singing');
-  run.cleared.push('n2', 'n3', 'n4', 'n5', 'n6', 'n7');
-  if (A.nodeState('n10') !== 'locked') F.push('the Communion open with one chapel still singing');
-  run.cleared.push('n8', 'n9');
-  if (A.nodeState('n10') !== 'open') F.push('silencing all four chapels did not open the Communion');
-  // The chapel nodes carry their bosses into the rolled run.
-  ['n3', 'n5', 'n7', 'n9'].forEach(id => {
-    if (run.nodes[id].type !== 'boss' || !run.nodes[id].boss) F.push(`${id} rolled without its chapel boss`);
-  });
+  if (A.nodeState('n6') !== 'locked' || !A.reqBlocked('n6')) F.push('Cleanse Antechamber open with the power out');
+  if (A.nodeState('n8') !== 'locked' || !A.reqBlocked('n8')) F.push('Gatehouse final open with the Cleanse unarmed');
+  run.cleared.push('n2', 'n3');
+  if (A.nodeState('n6') !== 'open') F.push('restoring power did not open the Antechamber');
+  run.cleared.push('n6', 'n7');
+  if (A.nodeState('n8') !== 'open') F.push('arming the Cleanse did not open the way home');
+  if (run.nodes['n8'].type !== 'boss') F.push('shallowhelm final is not the Reliquary kill order');
 }
 
 // I: heat runs the wave budget over — wave 1 spends exactly its budget

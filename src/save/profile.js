@@ -122,6 +122,22 @@ export function migrate(p) {
     if (p.ops && p.ops.shallowhelm) delete p.ops.shallowhelm;
   }
 
+  // v9: the four-wing pilgrimage moved to Crownring where it always belonged
+  // — the Fallen Frames became the summit's hijacked honor guards, the
+  // Communion became the Concord, and Shallowhelm got its fortress map and
+  // the Reliquary back. Bestiary kills carry across under the new names;
+  // both operations' stored runs reset (their node ids changed meaning).
+  if (p.version < 9) {
+    p.version = 9;
+    const renamed = {immolant: 'pyreguard', drowned: 'rimeguard',
+      conduit: 'stormguard', ossified: 'shardguard', communion: 'concord'};
+    if (p.unlocks && p.unlocks.enemies) {
+      p.unlocks.enemies = [...new Set(p.unlocks.enemies.map(k => renamed[k] || k))];
+    }
+    if (p.ops && p.ops.shallowhelm) delete p.ops.shallowhelm;
+    if (p.ops && p.ops.crownring) delete p.ops.crownring;
+  }
+
   p.unlocks = p.unlocks || {};
   p.unlocks.cards = p.unlocks.cards || [...STARTER];
   p.unlocks.enemies = p.unlocks.enemies || [];

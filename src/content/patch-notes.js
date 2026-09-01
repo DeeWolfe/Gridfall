@@ -4,9 +4,19 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.12';
+export const VERSION = '2.13';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.13',
+    notes: [
+      'The themes found their homes. The four-wing pilgrimage belongs to OPERATION CROWNRING now — the Concordat summit, where it always made sense: start at the Delegates\' Concourse, four wings in four directions, and a gated return to the center. The four Frames are no longer cult splices but HIJACKED HONOR GUARDS — the delegations\' own ceremonial Proto chassis, taken at their posts: the Pyreguard marches and burns, the Rimeguard freezes your deepest, the Stormguard arcs weapons dead, the Shardguard works the foundations.',
+      'Silence all four wings and the Summit Floor opens — the Envoy is still in session, and now nothing bars your way to it. Kill it, and what it convened assembles: THE CONCORD, four guard chassis drawn into one mass, carrying one motion per turn in a readable rotation the wards telegraph. The hive\'s working copy of the alliance itself. At half hull the vote goes unanimous — two motions a turn.',
+      'Fortress Shallow Helm got its own story back: the original fortress map — power the vault, arm the Purge Core, fight back to the Gatehouse — with THE RELIQUARY waiting at the end, and the congregation in the waves the whole way: zealots, lectors, choir wardens, and the hive they invited. The ward purge still spares only ground you hold, and zealot acolytes now answer every discharge.',
+      'Lumenspire keeps what was always its: the fusion. The Aperture is the research division\'s own work — a human spliced with hive DNA, fused through the lens. One theme per operation, where each belongs.',
+      'Every fight re-tuned after the reshuffle — escort species turned out to matter as much as hull — and all seven Crownring and Shallowhelm encounters sit in the fair-fight band. Bestiary kills carry across under the new names.',
+    ],
+  },
   {
     v: '2.12',
     notes: [

@@ -3808,6 +3808,51 @@ one-at-a-time and two-at-a-time); elements = Fire·Frost·Volt·Crystal
 - MY CODEC DRAFTS (user proofreads): 4 chapel briefs, Communion
   brief + debrief, Aperture rewrite. Offer for review.
 
+## v2.13 — the themes reassigned (user correction of v2.12)
+
+User: "the frames ideas was for concordant / the human cultist enemies +
+usual enemies are for the shallow helm / and the human and alien enemy
+fusion is for the research one." So:
+
+- **Crownring = the hub + frames.** Map: n1 Delegates' Concourse
+  (start, center) → four wings (gallery + guard node each): n2/n3
+  Pyreguard, n4/n5 Rimeguard, n6/n7 Stormguard, n8/n9 Shardguard;
+  n10 The Summit Floor = THE ENVOY, `req` all four wings (my call,
+  flagged to the user: keeps the shipped Envoy as the fight the guards
+  were barring — veto welcome); n11 final = THE CONCORD, req n10;
+  n12 Eastgate Relay side uplink. Frame lore = HIJACKED ceremonial
+  guard chassis (machines taken — NO DNA splicing; fusion is
+  Lumenspire's theme only). Concord = the hive's copy of the alliance;
+  debrief escalates the imitation arc (machines → institutions →
+  politics). Rotation labels are "motions" now (Pyre/Rime/Storm/Shard),
+  drawer row "Next motion".
+- **Key renames** (bestiary kills preserved via v9 migration):
+  immolant→pyreguard, drowned→rimeguard, conduit→stormguard,
+  ossified→shardguard, communion→concord. SAVE_VERSION 9 also drops
+  stored shallowhelm AND crownring runs (node ids changed meaning).
+- **Shallowhelm restored**: the original fortress map (Power Vault →
+  Purge Antechamber/Core → Gatehouse chain) with THE RELIQUARY back as
+  its final (v2.11 design: ward purge spares held ground, anoint
+  erosion), acolytes now ZEALOTS (addN 3), and the congregation waves
+  kept (zealot/lector/choirwarden via op.foes). Fortress lore rewritten
+  to fold the cult in without the frames.
+- **Lumenspire untouched** — the Aperture human/DNA fusion from v2.12
+  is exactly where the user wanted it.
+- **Balance after the reshuffle** (escort species mattered as much as
+  hull): pyreguard 53, rimeguard 63, stormguard 47 (hp 56, burrower
+  escort), shardguard 58 (markN back to 1 — the crawler/burrower breach
+  pool is far meaner than the old zealot/lector one; 2 marks = 20%),
+  envoy 50, concord 45, reliquary 53 (hp 70, 3 zealots per discharge;
+  zealot acolytes are much softer than husks — hull had to carry more).
+- Tests: bosstest shape = 6 finals + 5 node-placed (guards + envoy),
+  Summit Floor gating, Concord-after-Envoy; reliquary guards restored;
+  maptest G/H swapped to the new/old maps. Browser-verified all three
+  surfaces (cr-map/cr-pyreguard/cr-concord/sh-reliquary shots; seeds
+  in scratchpad v13profile.json/mkv13seed.mjs).
+- MY CODEC DRAFTS for proofread: 4 guard briefs, Concord brief +
+  debrief (new), Reliquary brief/debrief (restored v2.11 text),
+  Aperture rewrite (v2.12). The Envoy's shipped text still stands.
+
 ## Card backlog — the next pass
 
 Not built. Recorded here so the next card batch starts from a list rather than a

@@ -965,9 +965,25 @@ const FOE_PIX = {
     '..oobbbboo..',
     '............',
   ],
-  // The Fallen Frames: stolen Proto chassis, cult pilots, hive splices.
-  // The Immolant — a frame under a crown of flame.
-  immolant: [
+  // The ward core as the cult remade it: a stepped shrine block, a gold
+  // flame above a burning reliquary window, spread to a fortress footing.
+  reliquary: [
+    '............',
+    '.....gg.....',
+    '....ogxo....',
+    '...obggbo...',
+    '..obbggbbo..',
+    '..obsggsbo..',
+    '..obbbbbbo..',
+    '.oobsbbsboo.',
+    '.obbbbbbbbo.',
+    'oobbbbbbbboo',
+    'oooooooooooo',
+    '............',
+  ],
+  // The hijacked honor guards: the delegations' ceremonial Proto chassis,
+  // taken at their posts. The Pyreguard — a frame under a crown of flame.
+  pyreguard: [
     '..x..gg..x..',
     '...gggggg...',
     '....oooo....',
@@ -981,8 +997,8 @@ const FOE_PIX = {
     '..oo....oo..',
     '............',
   ],
-  // The Drowned — the same chassis, pale-eyed, shedding water it never took on.
-  drowned: [
+  // The Rimeguard — the same chassis, pale-eyed, venting cold it should not hold.
+  rimeguard: [
     '............',
     '....oooo....',
     '...obWWbo...',
@@ -996,8 +1012,8 @@ const FOE_PIX = {
     '..ww....ww..',
     '............',
   ],
-  // The Conduit — arc antlers, sparks off both shoulders.
-  conduit: [
+  // The Stormguard — arc antlers, sparks off both shoulders.
+  stormguard: [
     '.x.o....o.x.',
     '..oo.oo.oo..',
     '...oobboo...',
@@ -1011,8 +1027,8 @@ const FOE_PIX = {
     '..oo....oo..',
     '............',
   ],
-  // The Ossified — the chassis half-swallowed by the crystal it grows.
-  ossified: [
+  // The Shardguard — the chassis half-swallowed by the ground it works.
+  shardguard: [
     '..W...W..W..',
     '.oWo.oWo.Wo.',
     '..obWbbWbo..',
@@ -1026,9 +1042,9 @@ const FOE_PIX = {
     '..oo....oo..',
     '............',
   ],
-  // THE COMMUNION — four chassis in one mass: flame above, water and volt at
-  // the shoulders, crystal at the footing. No face. Four were enough.
-  communion: [
+  // THE CONCORD — four chassis in one mass: flame above, rime and storm at
+  // the shoulders, shard at the footing. No face. Four were enough.
+  concord: [
     '.....gg.....',
     '....obbo....',
     '..ooobboo...',
