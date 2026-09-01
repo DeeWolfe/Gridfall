@@ -36,7 +36,10 @@ for (const opKey of Object.keys(A.OPS)) {
       const finalType = A.bossForOp(opKey) ? 'boss' : 'extract';
       if (n.role === 'final' && nd.type !== finalType) F.push(`${opKey} final rolled ${nd.type}, wanted ${finalType}`);
       if (n.role === 'start' && nd.type !== 'stronghold') F.push(`${opKey} start rolled ${nd.type}`);
-      if (n.role !== 'final' && (nd.type === 'extract' || nd.type === 'boss')) F.push(`${opKey} ${n.id}: ${nd.type} off the final node`);
+      // A boss belongs on the final node — or on a map node that names its
+      // own (Shallowhelm's chapels). Extraction stays final-only.
+      if (n.role !== 'final' && nd.type === 'extract') F.push(`${opKey} ${n.id}: extract off the final node`);
+      if (n.role !== 'final' && nd.type === 'boss' && !n.boss) F.push(`${opKey} ${n.id}: boss off the final node with no chapel key`);
       if (n.type && nd.type !== n.type) F.push(`${opKey} ${n.id}: pinned type ${n.type}, rolled ${nd.type}`);
       if (n.role === 'side') {
         const pool = n.type ? [n.type] : ['crystals', 'specimens', 'uplink', 'blitz'];
@@ -126,19 +129,26 @@ for (const opKey of Object.keys(A.OPS)) {
   if (A.nodeState('n9') !== 'open') F.push('n9 still locked after the Northgate route cleared');
 }
 
-// H: Shallowhelm — the Cleanse needs power, and the way out needs the Cleanse
+// H: Shallowhelm — the Communion waits until all four chapels fall silent
 {
   const p = A.blankProfile('SH');
   p.op = 'shallowhelm';
   A.enterProfile(p);
   const run = A.opRun();
   run.cleared.push('n1');
-  if (A.nodeState('n6') !== 'locked' || !A.reqBlocked('n6')) F.push('Cleanse Antechamber open with the power out');
-  if (A.nodeState('n8') !== 'locked' || !A.reqBlocked('n8')) F.push('Gatehouse Extraction open with the Cleanse unarmed');
-  run.cleared.push('n2', 'n3');
-  if (A.nodeState('n6') !== 'open') F.push('restoring power did not open the Antechamber');
-  run.cleared.push('n6', 'n7');
-  if (A.nodeState('n8') !== 'open') F.push('arming the Cleanse did not open the way home');
+  // From the Nave, every wing opens — that is the hub — but the final does not.
+  ['n2', 'n4', 'n6', 'n8'].forEach(id => {
+    if (A.nodeState(id) !== 'open') F.push(`wing ${id} not open from the Nave`);
+  });
+  if (A.nodeState('n10') !== 'locked' || !A.reqBlocked('n10')) F.push('the Communion open with four chapels singing');
+  run.cleared.push('n2', 'n3', 'n4', 'n5', 'n6', 'n7');
+  if (A.nodeState('n10') !== 'locked') F.push('the Communion open with one chapel still singing');
+  run.cleared.push('n8', 'n9');
+  if (A.nodeState('n10') !== 'open') F.push('silencing all four chapels did not open the Communion');
+  // The chapel nodes carry their bosses into the rolled run.
+  ['n3', 'n5', 'n7', 'n9'].forEach(id => {
+    if (run.nodes[id].type !== 'boss' || !run.nodes[id].boss) F.push(`${id} rolled without its chapel boss`);
+  });
 }
 
 // I: heat runs the wave budget over — wave 1 spends exactly its budget

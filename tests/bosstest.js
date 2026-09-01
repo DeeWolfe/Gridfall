@@ -21,12 +21,13 @@ import {MISSIONS} from '../src/content/missions.js';
 const F = failures();
 
 let p;
-/** Launch the boss mission for `op` on an emptied board with deep pockets. */
-const start = (op) => {
+/** Launch the boss mission for `op` on an emptied board with deep pockets.
+ * `boss` names a chapel sub-boss; omitted, the op's final target seeds. */
+const start = (op, boss) => {
   p = unlockAll(A.blankProfile('BOSS'), ['rifle', 'wall', 'medic', 'marks', 'lancer']);
   p.op = op;
   A.enterProfile(p);
-  A.launchSpec({node: null, op, type: 'boss', mod: 'none', reward: 0});
+  A.launchSpec({node: null, op, type: 'boss', mod: 'none', reward: 0, boss});
   stillAir();
   // Clear everything EXCEPT the boss proxies — clearBoard would delete them.
   A.G.units.length = 0;
@@ -43,16 +44,32 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
 // --- the shape of the content ---
 {
   const ks = Object.keys(BOSSDEF);
-  if (ks.length !== 6) F.push(`expected six bosses — one per operation — found ${ks.length}`);
+  const finals = ks.filter(k => !BOSSDEF[k].sub);
+  const subs = ks.filter(k => BOSSDEF[k].sub);
+  if (finals.length !== 6) F.push(`expected six operation finals, found ${finals.length}`);
+  if (subs.length !== 4) F.push(`expected four chapel sub-bosses, found ${subs.length}`);
+  if (subs.some(k => BOSSDEF[k].op !== 'shallowhelm')) F.push('a chapel sub-boss strayed off shallowhelm');
   ks.forEach(k => {
     const d = BOSSDEF[k];
     if (!BEST[k] || BEST[k].t !== 'boss') F.push(`${k}: no boss-tier bestiary entry`);
     if (!A.OPS[d.op]) F.push(`${k}: guards unknown operation '${d.op}'`);
-    if (A.bossForOp(d.op) !== k) F.push(`${k}: bossForOp does not round-trip`);
+    if (!d.sub && A.bossForOp(d.op) !== k) F.push(`${k}: bossForOp does not round-trip`);
     if (d.hp !== BEST[k].hp) F.push(`${k}: bestiary hull differs from encounter hull`);
     if (!d.bt || !d.bb || !d.p1 || !d.p2) F.push(`${k}: missing phase labels or banner`);
     if (d.l + d.h > A.LANES || d.c + d.w > A.COLS) F.push(`${k}: footprint hangs off the board`);
   });
+  // Every chapel on the map names a real sub-boss, and the final is gated on
+  // all four chapels — the pilgrimage is the operation.
+  const chapels = A.OPS.shallowhelm.nodes.filter(n => n.boss);
+  if (chapels.length !== 4) F.push(`shallowhelm map names ${chapels.length} chapel bosses, wanted 4`);
+  chapels.forEach(n => {
+    if (!BOSSDEF[n.boss] || !BOSSDEF[n.boss].sub) F.push(`${n.id}: names unknown sub-boss '${n.boss}'`);
+    if (n.type !== 'boss') F.push(`${n.id}: chapel node is not pinned to a boss mission`);
+  });
+  const fin = A.OPS.shallowhelm.nodes.find(n => n.role === 'final');
+  if (!fin.req || fin.req.length !== 4 || chapels.some(n => !fin.req.includes(n.id))) {
+    F.push('the Communion is not gated on all four chapels');
+  }
   if (!MISSIONS.boss) F.push('no boss mission type');
   // The encounter is the final node of its operation and nowhere else.
   ['ironveil', 'lumenspire'].forEach(op => {
@@ -324,39 +341,86 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
   console.log(`envoy: censure ${d.adjDmg} within arm's reach, untouchable dive every ${d.diveEvery}, delegation of ${d.escortN} on the surface`);
 }
 
-// --- reliquarytest: the purge spares held ground, erosion between charges, it never moves ---
+// --- the Fallen Frames: each chapel's element behaves, and only that element ---
+{
+  // THE IMMOLANT: its lane burns, then it walks one lane over.
+  start('shallowhelm', 'immolant');
+  const di = BOSSDEF.immolant;
+  const lane0 = A.G.boss.bodies[0].cells[0][0];
+  const inLane = spawnUnit('rifle', lane0, 0, {hp: 10, max: 10, shield: 0});
+  const outLane = spawnUnit('wall', (lane0 + 2) % A.LANES, 0, {hp: 12, max: 12, shield: 0});
+  A.bossTick();
+  if (inLane.hp !== 10 - di.fireDmg) F.push(`the pyre lane took ${10 - inLane.hp}, wanted ${di.fireDmg}`);
+  if (outLane.hp !== 12) F.push('the exhale reached a lane it does not stand in');
+  const lane1 = A.G.boss.bodies[0].cells[0][0];
+  if (Math.abs(lane1 - lane0) !== 1) F.push('the Immolant did not walk one lane');
+
+  // THE DROWNED: the deepest soldier freezes — no move, no fire, one turn.
+  start('shallowhelm', 'drowned');
+  const dd = BOSSDEF.drowned;
+  const deep = spawnUnit('rifle', 0, 4, {hp: 10, max: 10, shield: 0});
+  const shallow = spawnUnit('marks', 4, 0, {hp: 10, max: 10, shield: 0});
+  A.bossTick();
+  if (!deep.stun) F.push('the Drowned did not freeze the deepest soldier');
+  if (shallow.stun) F.push('the Drowned froze the wrong soldier');
+  if (deep.hp !== 10 - dd.chillDmg) F.push(`the chill dealt ${10 - deep.hp}, wanted ${dd.chillDmg}`);
+  if (A.moveTargets(deep).length) F.push('a frozen soldier can still move');
+
+  // THE CONDUIT: weapons arc dead; the soldier stands and can still move.
+  start('shallowhelm', 'conduit');
+  const dc = BOSSDEF.conduit;
+  const guns = [0, 1, 2].map(l => spawnUnit('rifle', l, 0, {hp: 10, max: 10, shield: 0}));
+  A.bossTick();
+  const jammed = guns.filter(u => u.jam);
+  if (jammed.length !== dc.jamN) F.push(`the arc silenced ${jammed.length} guns, wanted ${dc.jamN}`);
+  if (guns.some(u => u.hp !== 10)) F.push('phase-one arc dealt damage');
+  if (jammed.some(u => !A.moveTargets(u).length && !u.stun)) F.push('a jammed soldier lost its legs too');
+
+  // THE OSSIFIED: the Brood Mother's breach contract, crystal edition.
+  start('shallowhelm', 'ossified');
+  const dOss = BOSSDEF.ossified;
+  A.bossTick();
+  if (A.G.boss.marks.length !== dOss.markN) F.push(`ossified marked ${A.G.boss.marks.length}, wanted ${dOss.markN}`);
+  const seat = A.G.boss.bodies[0].cells.map(x => x.join()).join(';');
+  A.bossTick();
+  if (A.G.boss.bodies[0].cells.map(x => x.join()).join(';') !== seat) F.push('the Ossified moved — it is rooted');
+  if (adds().some(e => !dOss.breachPool.includes(e.k))) F.push('a crystal breach surfaced something off the pool');
+  console.log('fallen frames: pyre walks and burns, brine freezes the deepest, dynamo jams guns not legs, shard keeps the breach contract');
+}
+
+// --- THE COMMUNION: one hymn per turn in rotation, two after the flip ---
 {
   start('shallowhelm');
-  const d = BOSSDEF.reliquary;
-  const home = spawnUnit('wall', 0, 0, {hp: 12, max: 12, shield: 0});   // ter 'p'
-  const fwd = spawnUnit('rifle', 4, 4, {hp: 10, max: 10, shield: 0});   // ter 'n'
-  const seat = A.G.boss.bodies[0].cells.map(x => x.join()).join(';');
+  const d = BOSSDEF.communion;
+  if (A.G.boss.k !== 'communion') F.push(`shallowhelm final seeded ${A.G.boss.k}, wanted the Communion`);
+  const squad = [0, 1, 2, 3].map(l => spawnUnit('rifle', l, 3, {hp: 20, max: 20, shield: 0}));
 
-  const heldTiles = () => A.G.ter.flat().filter(t => t === 'p').length;
-  const before = heldTiles();
-  A.bossTick();                            // charge 1 — anoint only
-  if (home.hp !== 12 || fwd.hp !== 10) F.push('the wards fired before the count was up');
-  if (before - heldTiles() !== d.anoint) F.push(`anoint converted ${before - heldTiles()} tiles, wanted ${d.anoint}`);
-  A.bossTick();                            // charge 2
-  A.bossTick();                            // charge 3
-  A.bossTick();                            // charge 4 — THE PURGE
-  if (fwd.hp !== 10 - d.purgeDmg) F.push(`off held ground took ${10 - fwd.hp}, wanted ${d.purgeDmg}`);
-  if (home.hp !== 12) F.push('a unit standing on held ground burned — the friend-or-foe rule is gone');
-  if (A.G.boss.charge !== 0) F.push('the charge did not reset after firing');
-  if (!adds().some(e => e.k === d.add)) F.push('no acolyte answered the discharge');
-  if (A.G.boss.bodies[0].cells.map(x => x.join()).join(';') !== seat) F.push('the reliquary moved — it is an emplacement');
+  A.bossTick();                            // hymn 1: pyre — one lane burns
+  const burned = squad.filter(u => u.hp < 20);
+  if (burned.length !== 1) F.push(`the pyre hymn burned ${burned.length} lanes' worth, wanted 1`);
+  if (burned.length && 20 - burned[0].hp !== d.fireDmg) F.push('pyre hymn damage off');
+  if (A.G.boss.hymn !== 1) F.push('the rotation did not advance to brine');
 
-  // Phase two shortens the cycle: charge 1, 2, fire on 3.
-  start('shallowhelm');
+  A.bossTick();                            // hymn 2: brine — deepest frozen
+  if (squad.filter(u => u.stun).length !== d.freezeN) F.push('the brine hymn froze the wrong number');
+
+  squad.forEach(u => { u.stun = 0; });
+  A.bossTick();                            // hymn 3: dynamo — guns arc dead
+  if (squad.filter(u => u.jam).length !== d.jamN) F.push('the dynamo hymn jammed the wrong number');
+
+  squad.forEach(u => { u.jam = 0; });
+  A.bossTick();                            // hymn 4: shard — breaches marked
+  if (A.G.boss.marks.length !== d.markN) F.push(`the shard hymn marked ${A.G.boss.marks.length}, wanted ${d.markN}`);
+  if (A.G.boss.hymn !== 0) F.push('the rotation did not come back around to the pyre');
+
+  // The flip: two hymns a turn, and the rotation still advances two.
   hit(d.hp / 2 + 1);
-  if (A.G.boss.phase !== 2) F.push('reliquary did not flip at half hull');
-  const late = spawnUnit('rifle', 4, 4, {hp: 10, max: 10, shield: 0});
+  if (A.G.boss.phase !== 2) F.push('the Communion did not flip at half hull');
+  const at = A.G.boss.hymn;
+  A.G.boss.marks = [];
   A.bossTick();
-  A.bossTick();
-  if (late.hp !== 10) F.push('the shortened cycle fired early');
-  A.bossTick();
-  if (late.hp !== 10 - d.purgeDmg) F.push('phase two did not shorten the purge cycle to three');
-  console.log(`reliquary: purge ${d.purgeDmg} spares held ground on a ${d.chargeEvery}-count, anoints ${d.anoint}/turn, static seat`);
+  if (A.G.boss.hymn !== (at + 2) % 4) F.push('full choir did not sing two hymns');
+  console.log(`communion: pyre->brine->dynamo->shard in rotation, two a turn after ${d.bt}`);
 }
 
 // --- the clock: running out of turns is a loss, the kill is the win ---
@@ -384,7 +448,7 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
         ['rifle', 'marks', 'wall', 'medic', 'lancer', 'bulwark', 'assassin', 'knight', 'samurai', 'archer', 'turret', 'scout']);
       q.op = d.op;
       A.enterProfile(q);
-      A.launchSpec({node: null, op: d.op, type: 'boss', mod: 'none', reward: 40});
+      A.launchSpec({node: null, op: d.op, type: 'boss', mod: 'none', reward: 40, boss: d.sub ? k : undefined});
       const r = playOut({advance: true, maxTurns: 40});
       if (!r.over) F.push(`${k}: fight ${i} never resolved`);
       if (A.G.turn > A.G.waves + 1) F.push(`${k}: fight ${i} outran the clock (turn ${A.G.turn})`);

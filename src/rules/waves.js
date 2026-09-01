@@ -14,6 +14,7 @@
 
 import {LANES, COLS} from '../state/constants.js';
 import {BEST} from '../content/hostiles.js';
+import {OPS} from '../content/operations.js';
 import {DOCTRINE} from '../content/doctrines.js';
 import {G} from '../state/session.js';
 import {randInt} from '../state/rng.js';
@@ -42,6 +43,10 @@ export function wave(t) {
   if (t >= 5) pool.push('harrower', 'puppeteer', 'oni');
   if (t >= 6) pool.push('screamer');
   if ((t >= G.waves || (G.endless && t >= 7)) && G.type !== 'extract') pool.push('chorus', 'sovereign');
+  // An operation can flavor its waves (Shallowhelm's congregation): its named
+  // hostiles join the pool from the first wave, weighted by repetition.
+  const flavor = G.op && OPS[G.op] && OPS[G.op].foes;
+  if (flavor) pool.push(...flavor);
   // The wider bestiary dilutes the quota type; three extra entries keep the
   // Acquire Specimens target showing up often enough to be acquirable.
   if (G.type === 'specimens' && G.quotaK) pool.push(G.quotaK, G.quotaK, G.quotaK);

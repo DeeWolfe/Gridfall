@@ -3747,6 +3747,67 @@ mechanic none of the first three uses:
   intercepts launch, fight opens, beamwarn renders, drawer rows correct,
   no page errors (seeds in scratchpad newbossprofile.json + mkbossseed.mjs).
 
+## v2.12 — Shallowhelm becomes the four-chapel pilgrimage
+
+User direction (their words): shallowhelm fights human cultists; player
+starts center with sub-bosses in 4 directions and returns to the center
+for the final; sub-bosses = frames mixed with enemy DNA (their idea,
+confirmed via options); final = the four combine into 1 (chosen over
+one-at-a-time and two-at-a-time); elements = Fire·Frost·Volt·Crystal
+(chosen); the Aperture = a human mixed with enemy DNA.
+
+- **Hub map**: n1 The Nave (start, center) → four wings (approach +
+  chapel each): n2/n3 Pyre, n4/n5 Brine (+n11 Drowned Archive side
+  uplink off n4), n6/n7 Dynamo, n8/n9 Shard; n10 The Communion
+  (role final, `req: [n3,n5,n7,n9]`). Map `req` gating already
+  supported all of it.
+- **Per-node bosses** (new engine capability): map nodes may carry
+  `type:'boss', boss:'<key>'`; genRun copies `boss` onto the run row,
+  launch → launchSpec → `G.bossK`; seedBoss uses `G.bossK ||
+  bossForOp(op)`; map.js briefs the node's boss. BOSSDEF entries with
+  `sub: 1` are excluded from bossForOp (finals stay 6, one per op).
+- **The congregation** (3 human hostiles): zealot (hp4 dmg2 spd2),
+  lector (spitter-pattern hold:4), choirwarden (human mender, mend 2).
+  New waves.js capability: `OPS[op].foes` joins the wave pool from wave
+  1, weighted by repetition — shallowhelm runs
+  `["zealot","zealot","lector","choirwarden"]`.
+- **Fallen Frames** (2×1 chassis, turns 18, `sub:1`): immolant hp42
+  fireDmg3 — burns own lane then marches one lane (reverses at edges),
+  zealot escort; drowned hp54 — freezes the DEEPEST un-frozen unit
+  (u.stun) + chill 3; conduit hp50 — jams 3 guns (new `u.jam` flag:
+  weapon dead one turn, legs fine; arcs 1 dmg only in p2); ossified
+  hp48 — 2 breach marks/turn on the brood contract (shared
+  eruptMarks/markBreaches helpers extracted from broodTick).
+- **THE COMMUNION** hp84 2×2: hymn rotation pyre→brine→dynamo→shard
+  (`G.boss.hymn`, "Next hymn" drawer row + log line each turn); pyre
+  burns the most-manned lane for 4, brine freezes 2 deepest, dynamo
+  jams 2, shard marks 2; choirwarden escort every 2; phase 2 = two
+  hymns per turn. Replaces the Reliquary outright (v2.11's purge design
+  died one patch old — the user's redesign supersedes it).
+- **u.jam engine support**: fire() skips jammed, playerPhase ticks it
+  down, board greys via the cooling class with its own tooltip.
+- **Mend fix**: hostile menders can no longer heal boss proxies (would
+  desync the mirror from the shared pool) — latent since v2.8, matters
+  now that choirwardens stand next to bosses.
+- **SAVE_VERSION 8**: strips `reliquary` from unlocks.enemies and drops
+  any stored shallowhelm run (old node ids meant different things).
+- **Aperture lore rewrite**: human researcher spliced with hive DNA,
+  fused through the lens; brief beat 3 carries the tissue-return
+  reveal, debrief the "we started it" turn. d/counter updated.
+- **Balance** (bot): immolant 55, drowned 58, conduit 55, ossified 43,
+  communion 55 (n=60 finals). Tuning history: all five started 85-100%
+  (control elements don't kill; hull was low); hull+damage rounds got
+  there; NOTE freezeN 2 on the drowned was a massive overshoot (28%) —
+  freeze count is the sharpest lever in the kit.
+- Tests: bosstest shape (6 finals + 4 subs, chapel wiring, final
+  gating), per-frame element guards, communion rotation/flip guards,
+  resolve ×30; maptest hub gating rewrite; codectest allows
+  brief-only subs. Browser-verified: hub map, chapel brief intercept,
+  Immolant walk drawer, gated Communion + Next-hymn row; seeds in
+  scratchpad hubprofile.json/mkhubseed.mjs.
+- MY CODEC DRAFTS (user proofreads): 4 chapel briefs, Communion
+  brief + debrief, Aperture rewrite. Offer for review.
+
 ## Card backlog — the next pass
 
 Not built. Recorded here so the next card batch starts from a list rather than a

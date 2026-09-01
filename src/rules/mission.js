@@ -80,6 +80,9 @@ export function launchSpec(nd) {
 
   setG({
     node: nd.node, op: nd.op || null, type: nd.type, mod: nd.mod, reward: nd.reward,
+    // A map node can name its own boss (Shallowhelm's chapel sub-bosses);
+    // without one, a boss mission falls back to the operation's final target.
+    bossK: nd.boss || null,
     heat: nd.heat || 0, endless: !!nd.endless, gauntlet: !!nd.gauntlet, daily: !!nd.daily,
     waves: nd.endless ? 9999 : m.waves,
     turn: 1, dp: MAXDP, breaches: 0, over: false,
@@ -153,7 +156,7 @@ export function launch(nodeId) {
   if (!active) return false;
   const nd = opRun().nodes[nodeId];
   if (!nd) return false;
-  return launchSpec({node: nodeId, op: active.op, type: nd.type, mod: nd.mod, reward: nd.reward, heat: nd.heat});
+  return launchSpec({node: nodeId, op: active.op, type: nd.type, mod: nd.mod, reward: nd.reward, heat: nd.heat, boss: nd.boss});
 }
 
 /** Onslaught: one board, waves that never stop and scale 1.9x each time. */

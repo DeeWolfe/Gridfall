@@ -109,6 +109,19 @@ export function migrate(p) {
     });
   }
 
+  // v8: Shallowhelm became the four-chapel pilgrimage. The Reliquary no
+  // longer exists as an encounter (the Communion replaced it), so its
+  // bestiary unlock goes, and any run rolled against the OLD map would
+  // reference nodes that no longer mean what they meant — drop it and let
+  // genRun deal a fresh one on the next visit.
+  if (p.version < 8) {
+    p.version = 8;
+    if (p.unlocks && p.unlocks.enemies) {
+      p.unlocks.enemies = p.unlocks.enemies.filter(k => k !== 'reliquary');
+    }
+    if (p.ops && p.ops.shallowhelm) delete p.ops.shallowhelm;
+  }
+
   p.unlocks = p.unlocks || {};
   p.unlocks.cards = p.unlocks.cards || [...STARTER];
   p.unlocks.enemies = p.unlocks.enemies || [];

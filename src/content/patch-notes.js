@@ -4,9 +4,20 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.11';
+export const VERSION = '2.12';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.12',
+    notes: [
+      'Operation Shallowhelm is a pilgrimage now. You start at the Nave — the fortress heart — with four chapel wings singing around you. Each wing ends in a Kill Order against a FALLEN FRAME: a stolen Proto Frame chassis with a cult pilot spliced into it by hive DNA. Silence all four, and something comes back to the altar. The way out is through it.',
+      'THE IMMOLANT walks the pyre: its lane burns every turn, and then it steps one lane over — a procession you can read. THE DROWNED stands in the flooded chapel and stops your deepest soldier cold, no move, no fire. THE CONDUIT arcs your weapons dead while the soldiers holding them stand unharmed — bring more guns than it has lightning. THE OSSIFIED is rooted crystal on the Brood Mother\'s breach contract: stand on the mark and nothing surfaces.',
+      'THE COMMUNION is all four at once. The congregation carries its dead Frames back to the altar and the altar takes them in — four pilots, one body, one hymn per turn in a rotation the wards telegraph: pyre, brine, dynamo, shard. Read the next hymn and position for the verse that is coming. At half hull the choir stops taking turns.',
+      'And Shallowhelm fights like a fallen fortress should: against PEOPLE. Zealots run your lanes, Lectors read fortress rifles down them, Choir Wardens knit the wounded — human cultists in the waves from the first turn, with the hive they invited mixed through. The Reliquary is gone; the cult built something worse.',
+      'Lumenspire\'s Aperture is no longer merely a machine. The tissue return off the lens housing reads human, spliced through with hive DNA — one of the researchers made it out of the dorms. Into the machine. The briefing and the after-action call now carry what that means.',
+      'All five new fights were tuned through hundreds of simulated Kill Orders — the chapels land around a fair fight each, and the Communion sits where an operation finale belongs.',
+    ],
+  },
   {
     v: '2.11',
     notes: [

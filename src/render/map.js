@@ -140,7 +140,7 @@ export function renderMap() {
         // call — the drop itself waits for the channel to close. Every launch
         // after falls straight through: a briefing is a briefing, not a toll.
         if (run.nodes[id].type === 'boss' &&
-          playBossBrief(bossForOp(active.op), () => launch(id))) return;
+          playBossBrief(run.nodes[id].boss || bossForOp(active.op), () => launch(id))) return;
         launch(id);
       };
     }

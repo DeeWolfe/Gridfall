@@ -109,6 +109,9 @@ if (skipped !== 1) F.push(`skip handed off ${skipped} times, expected 1`);
   for (const k of Object.keys(BOSSDEF)) {
     for (const kind of ['brief', 'debrief']) {
       const br = BOSSDEF[k][kind];
+      // Chapel sub-bosses brief short and skip the after-action call — the
+      // operation's lore lands on the Communion's debrief instead.
+      if (!br && kind === 'debrief' && BOSSDEF[k].sub) continue;
       if (!br) { F.push(`${k}: no ${kind}`); continue; }
       if (!Array.isArray(br.beats) || !br.beats.length) F.push(`${k}: ${kind} has no beats`);
       if (!br.from || !br.from.n) F.push(`${k}: ${kind} names no caller`);

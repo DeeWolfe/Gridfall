@@ -36,6 +36,8 @@ export function genRun() {
         : role === 'final' ? (bossForOp(active.op) ? 'boss' : 'extract')
           : role === 'side' ? sidePool[randInt(sidePool.length)]
             : mainPool[randInt(mainPool.length)]),
+      // A chapel node names its own boss; the run row carries it to launch.
+      boss: n.boss || null,
       // An operation can name a signature modifier (Blackmarrow's tunnels
       // collapsing underfoot) — still a roll, just weighted toward the
       // theme instead of drawn flat from the full pool every time.

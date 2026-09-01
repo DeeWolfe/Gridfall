@@ -242,7 +242,9 @@ function ejectPilot(u) {
  * gear damage rides along on top of it — and a Shoulder Cannon fires twice.
  */
 export function fire(u, onPlay) {
-  if (u.tg === 'none' || !u.dmg || u.stun) return;
+  // A jammed weapon (the Conduit's arc, the Communion's dynamo hymn) sits
+  // out the turn — the soldier still moves; only the gun is dead.
+  if (u.tg === 'none' || !u.dmg || u.stun || u.jam) return;
   const k = POOL[u.id];
   const pristine = u.pristine && u.hp >= u.max ? u.pristine : 0;
   const gearBonus = u.dmg - (k.dmg || 0);

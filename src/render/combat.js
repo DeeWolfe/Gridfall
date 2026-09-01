@@ -242,9 +242,10 @@ function drawSel() {
     if (e.boss && G.boss) {
       const def = BOSSDEF[G.boss.k];
       const cells = G.boss.bodies.reduce((a, b) => a + b.cells.length, 0);
-      // Phase two shortens the Envoy's dive and the Reliquary's purge cycle.
+      // Phase two shortens the Envoy's dive cycle.
       const p2cut = n => (G.boss.phase === 2 ? Math.max(2, n - 1) : n);
-      const purgeIn = def.chargeEvery ? p2cut(def.chargeEvery) - G.boss.charge : 0;
+      // The Communion's rotation is readable by design — name the next hymn.
+      const hymnNames = ['Pyre', 'Brine', 'Dynamo', 'Shard'];
       el.innerHTML = `<div class="selhead"><b style="color:var(--mag)">${D.n}</b>
           <span class="hpbadge">${bossHp()}/${def.hp}</span></div>
         ${G.boss.shield > 0 ? `<div class="hpbar"><i style="width:${Math.max(0, G.boss.shield / def.shield * 100)}%;background:var(--cyan)"></i></div>` : ''}
@@ -256,7 +257,8 @@ function drawSel() {
           <div><span>Footprint</span><b>${cells} cell${cells === 1 ? '' : 's'}</b></div>
           ${G.boss.beam ? `<div><span>Beam</span><b>lane ${G.boss.beam.lane + 1} next</b></div>` : ''}
           ${def.diveEvery ? `<div><span>Dives</span><b>every ${p2cut(def.diveEvery)} turns</b></div>` : ''}
-          ${def.chargeEvery ? `<div><span>Purge</span><b>in ${purgeIn} turn${purgeIn === 1 ? '' : 's'}</b></div>` : ''}
+          ${G.boss.k === 'communion' ? `<div><span>Next hymn</span><b>${hymnNames[G.boss.hymn]}</b></div>` : ''}
+          ${G.boss.k === 'immolant' ? `<div><span>Walks</span><b>one lane a turn</b></div>` : ''}
         </div>
         <div class="selfire live">${G.boss.phase === 1 ? def.p1 : def.p2}</div>
         <div class="hintline">${D.d}</div>`;
@@ -330,7 +332,7 @@ function drawSel() {
 /** Markup for one of your units standing in a cell. */
 function unitMarkup(u, incoming) {
   const kind = u.t === 'special' ? 'p-spec' : u.tech ? 'p-struct' : 'p-unit';
-  return `<div class="ent ${kind}${u.size > 1 ? ' anchor' : ''}${u.stun ? ' stunned' : ''}${u.acted ? ' spent' : ''}${u.cycling > 0 && !u.acted ? ' cooling' : ''}${u.controlled ? ' controlled' : ''}" title="${u.controlled ? u.n + ' — mind controlled' : u.cycling > 0 ? u.n + ' — weapon cycling' : u.n}">
+  return `<div class="ent ${kind}${u.size > 1 ? ' anchor' : ''}${u.stun ? ' stunned' : ''}${u.acted ? ' spent' : ''}${(u.cycling > 0 || u.jam) && !u.acted ? ' cooling' : ''}${u.controlled ? ' controlled' : ''}" title="${u.controlled ? u.n + ' — mind controlled' : u.jam ? u.n + ' — weapon arced dead this turn' : u.cycling > 0 ? u.n + ' — weapon cycling' : u.n}">
         ${u.controlled ? '<span class="lockpip" style="color:var(--violet)">☍</span>' : ''}
         ${incoming ? `<span class="incdmg">-${incoming}</span>` : ''}
         ${u.tgt ? '<span class="lockpip">⌖</span>' : ''}
@@ -347,7 +349,9 @@ const FOE_GLYPH = {
   spore: '✱', jammer: '⌁', pylon: '▣', harrower: '✠', mender: '✚',
   husk: '◍', screamer: '◉', chorus: '≋', sovereign: '♚', puppeteer: '☍',
   fabricant: '⚙', gantry: '☰', brood: '❉', prism: '◇',
-  aperture: '◎', envoy: '♔', reliquary: '⚱',
+  aperture: '◎', envoy: '♔',
+  zealot: '†', lector: '♰', choirwarden: '♪',
+  immolant: '🜂', drowned: '🜄', conduit: '🜁', ossified: '🜃', communion: '✥',
 };
 
 /** The intent badge: what this hostile will do next turn, per enemyIntent(). */

@@ -51,6 +51,7 @@ export function playerPhase() {
     if (u.cd > 0) u.cd--;
     if (u.cycling > 0) u.cycling--;
     if (u.stun > 0) u.stun--;
+    if (u.jam > 0) u.jam--;
     if (u.regenTicks > 0) { u.hp = Math.min(u.max, u.hp + 2); u.regenTicks--; }
     if (nanites) u.hp = Math.min(u.max, u.hp + 1);
     if (fabrication && u.tech) u.hp = Math.min(u.max, u.hp + 1);
@@ -250,8 +251,10 @@ function actHostile(e, chorus) {
   // A Mender spends its turn healing the most wounded hostile in its lane;
   // with nothing to treat, it advances like the rest.
   if (D.mend) {
+    // Boss proxies mirror a shared body pool — healing one directly would
+    // desync the mirror, so the knitting never touches a boss cell.
     const hurt = G.enemies
-      .filter(o => o.uid !== e.uid && o.lane === e.lane && o.hp < BEST[o.k].hp)
+      .filter(o => o.uid !== e.uid && o.lane === e.lane && !o.boss && o.hp < BEST[o.k].hp)
       .sort((a, b) => a.hp / BEST[a.k].hp - b.hp / BEST[b.k].hp)[0];
     if (hurt) {
       hurt.hp = Math.min(BEST[hurt.k].hp, hurt.hp + D.mend);
