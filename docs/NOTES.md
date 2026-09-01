@@ -3368,6 +3368,39 @@ That reading is consistent with the data: the arms that do best are the ones
 that reach across lanes, and the worst is the White Devil bare, whose service
 blade hits one adjacent cell for 2.
 
+### The footprint experiment, and a reversal
+
+"2–4 squares is too big anyway for such a small grid space" — tested before
+deciding, same harness, 1,380 missions per arm per size:
+
+```
+arm                     2 cells   1 cell   change
+no frame at all           61.4%    60.2%    -1.2
+pilot, no frame           58.2%    58.3%    +0.1
+White Devil bare          56.9%    58.0%    +1.2
+Seven Blades bare         59.1%    56.8%    -2.2
+Heavy Arms bare           60.9%    60.2%    -0.7
+White Devil +weapon       59.6%    59.6%    +0.1
+Seven Blades +weapon      64.3%    62.8%    -1.6
+Heavy Arms +weapon        58.0%    59.4%    +1.4
+
+landed on the board:  2 cells 79.1%  →  1 cell 92.6%
+```
+
+Every win-rate change sits under the ±2.6 noise line. The landing rate does
+not: at two cells wide, one mission in five the footprint never finds a legal
+spot around its Pilot and the Frame rots in the tray. At one cell that failure
+mode nearly disappears.
+
+So the v2.4 brief's footprint argument — "more than one cell, or the Frame is
+just a big Rifleman" — is reversed by its own standard: the size was never what
+made the Frame feel big, the weapon arc is, and the two-cell body was measured
+as pure downside. **Proto Frames are one cell now.** The guard in frametest
+flips with it and says why.
+
+(This also quietly simplifies the class: the two-Pilots-in-one-footprint edge
+case and the Cipher-swap-into-a-one-cell-hole case both stop existing.)
+
 ### Levers, if it needs one
 
 Not applied — this is a design the numbers should inform rather than decide.

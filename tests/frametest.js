@@ -57,7 +57,12 @@ const fieldFrame = cid => { p.loadout.frame = cid; seedFrame(); };
   FRAMES.forEach(c => {
     const k = POOL[c];
     if (k.t !== 'special') F.push(`${c} is not Specialist tier`);
-    if ((k.size || 1) < 2) F.push(`${c} occupies one cell — it is a big Rifleman`);
+    // The v2.4 brief argued "more than one cell, or the Frame is just a big
+    // Rifleman" and the first build followed it. Measured, the two-cell body
+    // changed no win rate but cost 13 points of landing rate — one mission in
+    // five, the footprint never found a legal spot around its Pilot. What
+    // makes a Frame feel big is its weapon arc, not its parking space.
+    if ((k.size || 1) !== 1) F.push(`${c} is ${k.size} cells wide — measured as pure downside`);
     // A bare Frame must be playable, never a dead draw.
     if (!k.tg || k.tg === 'none' || !k.dmg) F.push(`${c} has no base weapon`);
     if (!Object.keys(GEAR).some(g => GEAR[g].frame === c)) F.push(`${c} has no weapons`);
@@ -122,7 +127,7 @@ const fieldFrame = cid => { p.loadout.frame = cid; seedFrame(); };
   const fr = A.G.units.find(u => u.id === 'whitedevil');
   if (!fr) F.push('the Frame never landed');
   else {
-    if (fr.size !== 2) F.push('the Frame landed one cell wide');
+    if (fr.size !== 1) F.push(`the Frame landed ${fr.size} cells wide, expected one`);
     if (fr.pilotId !== 'pilot') F.push('the Frame does not remember which Pilot it took aboard');
   }
   if (frameReady()) F.push('the Frame slot stayed open after it was spent');
@@ -227,26 +232,26 @@ const fieldFrame = cid => { p.loadout.frame = cid; seedFrame(); };
   delete p.loadout.gear.heavyarms;
 }
 
-// --- two Pilots in one footprint is refused rather than eating both ---
+// --- with two Pilots down, exactly one is spent, never both ---
 {
   start();
   spawnUnit('pilot', 2, 3);
   spawnUnit('pilot', 2, 4);
-  const tiles = cellsOf(validTiles('whitedevil'));
-  if (tiles.has(2 * A.COLS + 3)) F.push('a Frame offered to land on two Pilots at once');
-  // Landing across just one of them is still fine.
-  if (!tiles.has(2 * A.COLS + 2)) F.push('two Pilots in a row blocked every legal cell');
+  A.deploy('whitedevil', 2, 3);
+  const left = A.G.units.filter(isPilot).length;
+  if (left !== 1) F.push(`deploying over one Pilot consumed ${2 - left} of them`);
 }
 
 // --- a Frame never lands on a hostile, a civilian, or another unit ---
 {
   start();
   spawnUnit('pilot', 2, 3);
-  spawnUnit('wall', 2, 4);
-  spawnFoe('crawler', 1, 4);
+  spawnUnit('wall', 2, 2);
+  spawnFoe('crawler', 3, 3);
   const tiles = cellsOf(validTiles('whitedevil'));
-  if (tiles.has(2 * A.COLS + 3)) F.push('a Frame landed across one of your own units');
-  if (tiles.has(1 * A.COLS + 3)) F.push('a Frame landed across a hostile');
+  if (tiles.has(2 * A.COLS + 2)) F.push('a Frame landed on one of your own units');
+  if (tiles.has(3 * A.COLS + 3)) F.push('a Frame landed on a hostile');
+  if (!tiles.has(2 * A.COLS + 3)) F.push('the Pilot\'s own cell stopped being a landing spot');
 }
 
 // --- swapping a Frame keeps its footprint honest ---
@@ -266,22 +271,13 @@ const fieldFrame = cid => { p.loadout.frame = cid; seedFrame(); };
   cipher.acted = false;
   const at = (l, c) => l * A.COLS + c;
 
-  // Room for both cells of the Frame where the Cipher stands: the trade is on.
   if (!A.swapTargets(cipher).includes(at(fr.lane, fr.col))) {
     F.push('a legal Frame swap was refused');
   }
-  // Block the Frame's second cell and it must be refused.
-  const plug = spawnUnit('wall', 4, 1);
-  if (A.swapTargets(cipher).includes(at(fr.lane, fr.col))) {
-    F.push('a Frame was offered a swap into a one-cell hole');
-  }
-  A.G.units = A.G.units.filter(u => u.uid !== plug.uid);
-
-  // And the swap itself moves the whole machine, pilot and all.
+  // The swap moves the machine, pilot and all.
   A.doSwap(cipher, fr.lane, fr.col);
   if (fr.lane !== 4 || fr.col !== 0) F.push('the Frame did not take the Cipher\'s place');
   if (fr.pilotId !== 'pilot') F.push('the Frame forgot its pilot in the swap');
-  if (A.unitAt(4, 1) !== fr) F.push('the swapped Frame is not covering both of its cells');
 }
 
 // --- the slot: beside the deck, never in it ---
