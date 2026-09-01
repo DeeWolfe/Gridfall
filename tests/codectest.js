@@ -12,7 +12,8 @@ import {get} from './support/dom.js';
 import {failures} from './support/harness.js';
 import {OPS} from '../src/content/operations.js';
 import {BOSSDEF} from '../src/content/bosses.js';
-import {playIntro, introSeen, replayIntros, closeCodec, playBossBrief, briefSeen} from '../src/render/codec.js';
+import {playIntro, introSeen, replayIntros, closeCodec, playBossBrief, briefSeen,
+  playBossDebrief, debriefSeen} from '../src/render/codec.js';
 
 const F = failures();
 const p = A.blankProfile('CODEC');
@@ -97,18 +98,20 @@ else skipGo.onclick();
 console.log('skip still opens the map:', skipped === 1);
 if (skipped !== 1) F.push(`skip handed off ${skipped} times, expected 1`);
 
-// --- the pre-fight boss briefing rides the same chassis, same contract ---
+// --- the pre-fight briefing and after-action debrief: same chassis, same contract ---
 {
   closeCodec();
   for (const k of Object.keys(BOSSDEF)) {
-    const br = BOSSDEF[k].brief;
-    if (!br) { F.push(`${k}: no pre-fight briefing`); continue; }
-    if (!Array.isArray(br.beats) || !br.beats.length) F.push(`${k}: briefing has no beats`);
-    if (!br.from || !br.from.n) F.push(`${k}: briefing names no caller`);
-    (br.beats || []).forEach((b, n) => {
-      if (!Array.isArray(b.say) || !b.say.length) F.push(`${k} beat ${n}: nothing said`);
-      if (!b.reply) F.push(`${k} beat ${n}: no reply for the commander`);
-    });
+    for (const kind of ['brief', 'debrief']) {
+      const br = BOSSDEF[k][kind];
+      if (!br) { F.push(`${k}: no ${kind}`); continue; }
+      if (!Array.isArray(br.beats) || !br.beats.length) F.push(`${k}: ${kind} has no beats`);
+      if (!br.from || !br.from.n) F.push(`${k}: ${kind} names no caller`);
+      (br.beats || []).forEach((b, n) => {
+        if (!Array.isArray(b.say) || !b.say.length) F.push(`${k} ${kind} beat ${n}: nothing said`);
+        if (!b.reply) F.push(`${k} ${kind} beat ${n}: no reply for the commander`);
+      });
+    }
   }
 
   // Walk one through the skip path: the drop must wait for the sign-off and
@@ -131,6 +134,21 @@ if (skipped !== 1) F.push(`skip handed off ${skipped} times, expected 1`);
   if (briefSeen('gantry')) F.push('Settings reset did not clear the briefing flag');
   closeCodec();
   console.log('briefing plays once, replays on request: ok');
+
+  // The after-action call: same walk, same once-per-commander gate.
+  let debriefed = 0;
+  if (!playBossDebrief('gantry', () => debriefed++)) F.push('gantry debrief refused a fresh kill');
+  get('cskip').onclick();
+  const dGo = act('go');
+  if (!dGo) F.push('debrief skip did not reach the sign-off');
+  else dGo.onclick();
+  if (debriefed !== 1) F.push(`debrief handed off ${debriefed} times, expected 1`);
+  if (!debriefSeen('gantry')) F.push('a taken debrief was not recorded as seen');
+  if (playBossDebrief('gantry', () => {})) F.push('the debrief played a second time');
+  replayIntros();
+  if (debriefSeen('gantry')) F.push('Settings reset did not clear the debrief flag');
+  closeCodec();
+  console.log('after-action debrief plays once and hands back:', debriefed === 1);
 }
 
 F.report('codec call: gating, walk-through, boss briefing and handoff all hold');

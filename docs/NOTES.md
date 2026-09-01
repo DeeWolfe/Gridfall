@@ -3577,6 +3577,20 @@ covered cells, thirty points, the Gantry's field gone in a swing.
   scene is data (`BOSSDEF[k].brief`), plays once per commander
   (`settings.briefs`), the launch itself waits for the channel to close, and
   Settings' *Replay intros* clears the flags. codectest guards the contract.
+  The Gantry's briefing was then rewritten to the designer's own draft: the
+  data-gone-wrong open, tech absorption via conveyor lines, and the clock
+  reframed as lore — at eighteen cycles the GANTRY goes fully operational
+  and the loss is bigger than the shipyards.
+- **After-action debriefs** (same request): the first time the commander
+  walks away from each boss kill, the channel opens again over the map —
+  the world-state reveal. Gantry: bio-organic hostiles engaging UPE forces
+  system-wide, absorbing and recreating our tech; *Zanshin Protocol
+  activated across the system* (the title finally cashes in). Brood: the
+  seams run off-world. Prism: the glass fields were an instrument, and it
+  was measuring how the UPE fights. `BOSSDEF[k].debrief`, seen-once via
+  `settings.debriefs`, fired from `leaveCombat()` after the result card,
+  cleared by *Replay intros*. codectest walks the debrief too, and a
+  headless bot-win → leaveCombat run proved the wiring.
 
 ### Numbers at bot level
 

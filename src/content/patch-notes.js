@@ -17,6 +17,7 @@ export const PATCH_NOTES = [
       'THE PRISM has never attacked anything. It reflects a quarter of every hit back up the barrel that fired it, past shields, and it can kill. At half hull it shatters into four fragments that each grow every turn — up to a cap, because a fight you cannot win is a bug wearing a difficulty costume.',
       'Bringing a boss down completes the operation and lands the Specialist requisition pack. First kills enter the Database, bestiary page and all.',
       'Central Command calls before every first Kill Order. Hikaru delivers the full sitrep on the machine you are about to fight — what it is, what it does to your line, and the read Command wants you to hear — before your descent is cleared. The call plays once; Replay intros in Settings brings all three back.',
+      'And Command calls again after. Walk away from your first kill of each boss and the after-action channel opens: what the fight revealed, how far this goes, and what it means for the system. The yards were only the beginning — as of the Gantry\'s destruction, Zanshin Protocol is active system-wide.',
     ],
   },
   {

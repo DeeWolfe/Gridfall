@@ -26,19 +26,36 @@ export const BOSSDEF = {
       from: {n: "Hikaru", r: "CC Liaison"},
       beats: [
         {
-          say: ["Commander. The yards' central fabricator column is live again — and nothing of ours is running it. The hive didn't destroy the line. It climbed inside it.", "Six cells of scaffold and emitters behind a containment field. Designation: THE GANTRY."],
-          reply: "Copy. What is it building?",
+          say: ["Commander. According to the data your team is sending, the yards' central fabricator system is live again. But the data we're seeing is all sorts of wrong.", "Whatever you are facing has taken control of the line. We are designating it: THE GANTRY."],
+          reply: "Understood. So these... creatures we're engaging are produced from it?",
         },
         {
-          say: ["Soldiers. One walked off the line during our first sweep, two during the second, three every pass since. It holds at three — the line has a rhythm, and it does not fight you itself. Yet.", "The field will soak thirty points of fire before it fails. Hear this part clearly: the moment it fails, every emitter on that scaffold comes online at once, and the line keeps running."],
+          say: ["Affirmative. It looks to be absorbing our tech and producing soldiers via conveyor belts.", "The system has a shield in place, and it will need to be taken offline before your team has any chance at the GANTRY itself. Note that once that shield comes down, its auto-defense systems will activate."],
           reply: "So its shield is protecting us.",
         },
         {
-          say: ["Until you choose otherwise, yes. Thin the fabricants and eat the ramp, or break the field and fight everything at once — that call is yours to make, and it is the whole battle.", "One more thing: it is one machine across six cells. Weapons that cover ground land on every cell they touch. You have eighteen turns before we lose the yards for good."],
+          say: ["Until you choose otherwise, yes. Thin the enemy forces, take down the shield, then destroy the fabrication machine. How you approach the battle is at your discretion.", "One more thing. We've received updates that after eighteen cycles of combat, the GANTRY will become fully operational and begin fabrication of their forces in full. If that happens, we lose far more than those shipyards."],
           reply: "Understood. Out.",
         },
       ],
       close: "Channel closed. Target designate: THE GANTRY. The clock starts on your descent.",
+    },
+    debrief: {
+      freq: "141.83",
+      net: "残心ネット",
+      cap: "After-action · CC uplink",
+      from: {n: "Hikaru", r: "CC Liaison"},
+      beats: [
+        {
+          say: ["Good work down there, Commander. While you fought, the picture got wider. According to reports, hostile creatures are engaging UPE forces across the system.", "They seem bio-organic at first glance — but they absorb and recreate their own versions of our tech at alarming speeds. What you destroyed today was one of them learning to build."],
+          reply: "So the yards were a factory for them. How far does this go?",
+        },
+        {
+          say: ["We don't know yet. What we do know is that this can no longer be called an isolated incident.", "As of this transmission, Zanshin Protocol has been activated across the system. Every commander. Every line. No wasted motion."],
+          reply: "Acknowledged. Zanshin. Out.",
+        },
+      ],
+      close: "Channel closed. ZANSHIN PROTOCOL — active system-wide.",
     },
   },
   brood: {
@@ -79,6 +96,23 @@ export const BOSSDEF = {
       ],
       close: "Channel closed. Target designate: THE BROOD MOTHER. Watch the ground under your feet.",
     },
+    debrief: {
+      freq: "141.86",
+      net: "残心ネット",
+      cap: "After-action · CC uplink",
+      from: {n: "Hikaru", r: "CC Liaison"},
+      beats: [
+        {
+          say: ["The tunnels are quiet, Commander. For the first time in months, the seismic net reads nothing at all.", "Analysis of the remains confirms what the yards suggested: the same absorption. It was not digging for ore. It was eating the mining grid — machines, alloys, the tunnels themselves — and making more of itself out of what it took."],
+          reply: "Then the seams it cut...",
+        },
+        {
+          say: ["Run deeper than we have ever mapped, and not all of them start on this world. Evacuation of the outer galleries is underway; UPE engineers are collapsing what we cannot hold.", "Zanshin Protocol remains in effect. Watch the ground, Commander. Everywhere."],
+          reply: "Copy. Out.",
+        },
+      ],
+      close: "Channel closed. Sub-crust contacts: zero. For now.",
+    },
   },
   prism: {
     op: "sunderglass",
@@ -115,6 +149,23 @@ export const BOSSDEF = {
         },
       ],
       close: "Channel closed. Target designate: THE PRISM. Mind your own fire.",
+    },
+    debrief: {
+      freq: "141.89",
+      net: "残心ネット",
+      cap: "After-action · CC uplink",
+      from: {n: "Hikaru", r: "CC Liaison"},
+      beats: [
+        {
+          say: ["Confirmed shattered, Commander — all four fragments dark. And now that it is, I will tell you what analysis would not put on an open channel.", "It was never inert. Every hit it reflected, it measured. Weapons, output, timing — the glass fields were an instrument, and we were the reading."],
+          reply: "It was studying our fire.",
+        },
+        {
+          say: ["Studying us. Whatever these things answer to now holds six weeks of data on how the UPE fights — and you have just shown it the one way to lose to us: patience, spread fire, no wasted motion.", "Zanshin Protocol stands. What comes next will have read the manual, Commander. Make sure it still loses."],
+          reply: "Understood. Out.",
+        },
+      ],
+      close: "Channel closed. The glass fields are dark. The system is watching back.",
     },
   },
 };

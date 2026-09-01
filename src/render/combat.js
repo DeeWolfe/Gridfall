@@ -31,6 +31,7 @@ import {$, show} from './dom.js';
 import {portrait, artFor} from './art.js';
 import {ask, notify} from './dialog.js';
 import {focusCard, focusEnemy, closeFocus} from './focus.js';
+import {playBossDebrief} from './codec.js';
 import {renderMap} from './map.js';
 import {renderModes} from './modes.js';
 import {sfx} from './sound.js';
@@ -41,6 +42,11 @@ const LOG_LINES = 40;
 
 /** Leaving combat: back to the map, or to mode select for endless/gauntlet. */
 export function leaveCombat() {
+  // A first boss kill earns an after-action call — the lore lands as the
+  // commander walks away from the wreck, over the map the win just changed.
+  // Read before abortMission(), which tears the mission state down.
+  const bossDown = G && G.over && G.type === 'boss' && G.result && G.result.cleared && G.boss
+    ? G.boss.k : null;
   const {wasEndless, wasGauntlet, wasDaily} = abortMission();
   $('result').classList.remove('on');
   closeFocus();
@@ -48,6 +54,7 @@ export function leaveCombat() {
   if (wasEndless || wasGauntlet || wasDaily) { show('modes'); renderModes(); return; }
   show('map');
   renderMap();
+  if (bossDown) playBossDebrief(bossDown, null);
 }
 
 /** Abort is irreversible, so it asks first — with the stakes for this mode. */

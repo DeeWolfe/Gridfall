@@ -269,11 +269,41 @@ export function playBossBrief(k, done) {
   return true;
 }
 
+/** True once this commander has taken the after-action call for this boss. */
+export function debriefSeen(k) {
+  return !!(active && active.settings && active.settings.debriefs && active.settings.debriefs[k]);
+}
+
+/**
+ * The after-action call: the lore beat that lands once a boss is down —
+ * what the fight revealed about the world outside the grid. Plays over the
+ * completed map the first time the commander walks away from the kill, once,
+ * on the same chassis as everything else Central Command says.
+ */
+export function playBossDebrief(k, done) {
+  const def = k && BOSSDEF[k];
+  if (!def || !def.debrief || !def.debrief.beats || !def.debrief.beats.length) return false;
+  if (debriefSeen(k)) return false;
+
+  active.settings = active.settings || {};
+  active.settings.debriefs = active.settings.debriefs || {};
+  active.settings.debriefs[k] = true;
+  commit();
+
+  codecScene = def.debrief;
+  codecOp = null;
+  codecDone = done;
+  codecShell();
+  codecBeat(0);
+  return true;
+}
+
 /** Settings hook: clear the seen flags so every call plays again. */
 export function replayIntros() {
   if (!active) return;
   active.settings = active.settings || {};
   active.settings.intros = {};
   active.settings.briefs = {};
+  active.settings.debriefs = {};
   commit();
 }
