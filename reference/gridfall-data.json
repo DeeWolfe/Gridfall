@@ -1059,12 +1059,11 @@
   "longsword": {
    "n": "Crystal Longsword",
    "cost": 460,
-   "d": "Replaces the Seven Blades' arm blade. Reach — it strikes at three cells without ever closing.",
+   "d": "Replaces the Seven Blades' arm blade. A running thrust that goes through everything in the lane, three cells deep.",
    "frame": "sevenblades",
    "role": "offense",
-   "tg": "range3",
-   "dmg": 10,
-   "single": 1
+   "tg": "ahead3",
+   "dmg": 8
   },
   "lasergat": {
    "n": "Laser Gatling",
@@ -1131,7 +1130,7 @@
    "frame": "whitedevil",
    "role": "offense",
    "tg": "furthest",
-   "dmg": 10,
+   "dmg": 12,
    "single": 1,
    "pen": 1
   }

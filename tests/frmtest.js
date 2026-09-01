@@ -39,7 +39,7 @@ const FRAMES = Object.keys(POOL).filter(c => POOL[c].chassis === 'proto');
 // answered very differently the first time this was measured — adjacency gear
 // on an immobile machine waits for the fight, reach gear goes and finds it.
 const KITS = {
-  whitedevil: ['beamsaber', 'railcannon'],
+  whitedevil: ['railcannon', 'napalm'],
   sevenblades: ['greatsword', 'longsword'],
   heavyarms: ['lasergat', 'missilegat'],
 };
