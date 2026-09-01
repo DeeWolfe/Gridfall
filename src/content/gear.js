@@ -138,7 +138,7 @@ export const GEAR = {
     frame: "sevenblades",
     role: "offense",
     tg: "sweep",
-    dmg: 5,
+    dmg: 6,
   },
   longsword: {
     n: "Crystal Longsword",
@@ -147,7 +147,7 @@ export const GEAR = {
     frame: "sevenblades",
     role: "offense",
     tg: "range3",
-    dmg: 8,
+    dmg: 10,
     single: 1,
   },
   lasergat: {
@@ -157,7 +157,7 @@ export const GEAR = {
     frame: "heavyarms",
     role: "offense",
     tg: "wings",
-    dmg: 6,
+    dmg: 9,
   },
   missilegat: {
     n: "Missile Gatling",
@@ -166,7 +166,7 @@ export const GEAR = {
     frame: "heavyarms",
     role: "offense",
     tg: "cross3",
-    dmg: 4,
+    dmg: 6,
   },
   beamrifle: {
     n: "Beam Rifle",
@@ -175,7 +175,7 @@ export const GEAR = {
     frame: "whitedevil",
     role: "offense",
     tg: "first",
-    dmg: 8,
+    dmg: 9,
     single: 1,
   },
   beamsaber: {
@@ -185,7 +185,7 @@ export const GEAR = {
     frame: "whitedevil",
     role: "offense",
     tg: "adj",
-    dmg: 10,
+    dmg: 12,
     single: 1,
     riposte: 3,
   },
@@ -196,7 +196,7 @@ export const GEAR = {
     frame: "whitedevil",
     role: "offense",
     tg: "ahead2",
-    dmg: 7,
+    dmg: 8,
   },
   napalm: {
     n: "Hyper Napalm",
@@ -205,7 +205,7 @@ export const GEAR = {
     frame: "whitedevil",
     role: "offense",
     tg: "cone",
-    dmg: 5,
+    dmg: 6,
     scorch: 1,
   },
   railcannon: {
@@ -215,7 +215,7 @@ export const GEAR = {
     frame: "whitedevil",
     role: "offense",
     tg: "furthest",
-    dmg: 9,
+    dmg: 10,
     single: 1,
     pen: 1,
   },
