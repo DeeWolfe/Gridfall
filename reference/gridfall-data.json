@@ -2733,21 +2733,20 @@
     "beats": [
      {
       "say": [
-       "Commander, this one is unlike anything on the registry. Seventy points of crystal standing in the glass fields, and in six weeks of observation it has attacked nothing. Not once.",
-       "Designation: THE PRISM. The danger is not what it does. It is what it gives back."
+       "Commander, this one is unlike anything on the registry. Seventy points of crystal standing in the glass fields, and in six weeks of observation it has attacked nothing. Well. Technically.",
+       "We're designating this one THE PRISM."
       ],
       "reply": "Explain."
      },
      {
       "say": [
-       "A quarter of everything you put into it comes straight back up the barrel that fired it. Through shields. It has killed before — a survey lance, on their own opening volley.",
-       "Big hits reflect big; small hits reflect nothing worth naming. Spread the work across many barrels, and rotate the wounded out. It will not come to you — it intends to outlast your clock."
+       "A quarter of everything you put into it comes straight back. Big hits reflect big. Small shots send small. We think spreading the damage, and rotating the wounded out, is your best bet."
       ],
       "reply": "Has anyone broken through yet?"
      },
      {
       "say": [
-       "We had a Proto Frame connected to power batteries and hit it with a full blast. We lost the whole contingent of UPE forces as a result.",
+       "Remember that technicality? We had a Proto Frame connected to power batteries and hit it with a full blast. We lost the whole contingent of UPE forces as a result.",
        "But it gave us results. It shatters. Four fragments, separate lanes, each still reflecting — and each growing back every turn. There is a ceiling to the growth, but a slow gun will not beat it there. When it breaks, Central believes killing the pieces fast and all at once will do it.",
        "Watch the reflection, Commander. For once, your face isn't the most dangerous thing here."
       ],
