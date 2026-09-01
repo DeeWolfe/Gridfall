@@ -164,6 +164,15 @@ function codecBeat(n) {
   $('cacts').innerHTML = '';
   codecTypeOut(codecScene.beats[n].say, '', () => {
     $('cstage').textContent = 'awaiting reply';
+    // Mid-call, the reply control is the same silent dots as every other
+    // "ready for the next part" beat — the commander's words appear exactly
+    // once, typed onto the channel after the tap, never printed on the button
+    // first. The FINAL reply is the exception: it is the sign-off, a decision
+    // that ends the call, so it alone wears its words up front.
+    if (n < codecScene.beats.length - 1) {
+      codecWait(() => codecReply(n), codecScene.beats[n].reply, 'reply');
+      return;
+    }
     const b = document.createElement('button');
     b.className = 'creply';
     b.dataset.codec = 'reply';

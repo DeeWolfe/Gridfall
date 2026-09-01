@@ -52,6 +52,17 @@ const act = kind => [...get('cacts').children].filter(b => b.dataset.codec === k
 for (let n = 0; n < target.intro.beats.length; n++) {
   const reply = act('reply');
   if (!reply) { F.push(`beat ${n}: no reply button`); break; }
+  // Mid-call replies are the wordless dots — the commander's words appear
+  // once, typed on the channel, never printed on the button first. Only the
+  // final reply (the sign-off decision) wears its words up front.
+  const last = n === target.intro.beats.length - 1;
+  if (last) {
+    if (!reply._text) F.push('the final reply lost its words');
+  } else {
+    if (!reply._cls.has('cmore')) F.push(`beat ${n}: mid-call reply is not the dots`);
+    if (reply._text) F.push(`beat ${n}: mid-call reply shows "${reply._text}" before it is spoken`);
+    if (!reply.getAttribute('aria-label')) F.push(`beat ${n}: wordless reply names nothing for a screen reader`);
+  }
   reply.onclick();
   if (get('cwell').dataset.who !== 'you') F.push(`beat ${n}: reply did not switch the speaker`);
   const more = act('more');
