@@ -3643,6 +3643,56 @@ Four asks in one batch, plus a difficulty-tier plan parked behind them.
   pass called "a couple points lean"; re-measure with frmtest when the
   difficulty tiers land.
 
+## v2.10 — the combat theme lands (the audio handoff)
+
+The gridfallaudio.zip handoff: a procedural combat soundtrack, zero audio
+assets, everything synthesised at runtime. Integrated into the existing
+music engine rather than bolted on beside it.
+
+- **Two engines, three moods, one graph.** `music.js` keeps the hold
+  "cruise" (92 BPM beat engine, untouched) and replaces the old combat
+  mood with the handoff's 16-step sequencer: `combat` and `boss` share it
+  (`step: true` moods). Everything still routes through the one mBus
+  graph — shared lowpass (LFO nearly stilled for step moods so the build
+  owns the cutoff), hall from a runtime noise impulse, dotted-8th delay
+  run drier.
+- **The theory is data, exported for the guards**: `M_PROG` (Em·G·D·F,
+  roots 40/43/38/41 — the F natural is the borrowed ♭II and the only tone
+  outside E natural minor; never "fix" it to F#), `M_BASS16` (the
+  sixteenth gate, octave jumps on 4/12 once the lead is in), `M_LEAD`
+  (the line per bar; the fourth bar falls a semitone onto E — the hook).
+- **Pressure-driven build** (the brief's own recommended change):
+  `pressureStage(g)` is pure — clock fraction ×2 + horde/6 ×2 + breaches/2
+  + ground lost (15 tiles is the standing start), rounded, clamped 0–5;
+  boss phase two returns 5 outright. At each completed rotation
+  `mRotationGate` moves `mStage` via `buildStep(stage, target, jump)`:
+  one stage per rotation in EITHER direction, jump only for boss p2.
+  Stages gate layers directly: 1 bass16, 2 drums, 3 hats, 4 arp, 5 lead;
+  filter opens 1800 + stage·520 eased over 1.2s.
+- **Boss mood** pins stage 5 and the filter at 4200 from the first bar
+  (wired in `enterCombat`: `G.type === 'boss' ? 'boss' : 'combat'`).
+- **Per-op transpose**, one number each: ironveil 0, blackmarrow −1,
+  sunderglass +3 (all three fixed by the spec), and my picks for the
+  newer theatres — lumenspire +2 (glassy), crownring +1 (ceremonial,
+  slightly wrong), shallowhelm −3 (drowned). Op-less modes play 0.
+- **audiotest.js** ports the handoff's checkable assertions against the
+  real module: progression note-for-note, the single-borrowed-F alarm,
+  the semitone hook, rotation = 8.14s, the transpose table covers every
+  op, pressure reads (quiet 0 / collapse 5 / eases back / p2 pegged),
+  the one-step ramp walk both directions, silent no-op in the stub, and
+  a source check that the scheduler still books ahead of the clock
+  (plus: the shipped dist still contains the F chord). In run-all GUARDS.
+- Browser-verified with an oscillator-type probe: boss node = square arp
+  + kick sines inside the first bar; fresh profile's first node = saw
+  pads + triangle roots only, no drums, for the whole opening. No page
+  errors.
+
+Not taken from the brief: the `audio.*` module surface (setBpm/setStage
+manual overrides — the game has no UI for them and the existing
+mood/toggle contract already covers start/stop/tier); the reference
+file's analyser/viz. The handoff files live outside the repo; the spec's
+numbers now live in the module and its guard.
+
 ## Card backlog — the next pass
 
 Not built. Recorded here so the next card batch starts from a list rather than a

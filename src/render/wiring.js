@@ -214,7 +214,14 @@ export function boot() {
       if (!animate || !frames.length || !$('combat').classList.contains('on')) return false;
       return playTurn(frames, repaint);
     },
-    enterCombat: () => { setMusicMood('combat'); show('combat'); drawAll(); maybeStartTutorial(); },
+    enterCombat: () => {
+      // A boss should not wait to sound like one (AUDIO-BRIEF): full
+      // arrangement from the first bar, no build-in.
+      setMusicMood(G && G.type === 'boss' ? 'boss' : 'combat');
+      show('combat');
+      drawAll();
+      maybeStartTutorial();
+    },
     showResult,
     notify,
     ask,

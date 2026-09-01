@@ -4,9 +4,19 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.9';
+export const VERSION = '2.10';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.10',
+    notes: [
+      'A new combat theme, composed for this game and generated live — no track file, no loop splice, about a page of code. Four bars at 118 BPM in E minor with one deliberately wrong note: the F natural, borrowed from outside the key, is doing all the tension work, and the lead falls a semitone onto home to close every loop.',
+      'The soundtrack is a readout now, not a recording. Combat opens on bare pads and a low root, and the arrangement listens to the fight: the driving bass, the kick and snare, the hats, the arpeggio and the lead each enter as the pressure climbs — how deep into the clock you are, how big the horde on the board is, breaches taken, ground lost. It moves one layer at a time, never lurches, and when you clear the board it thins back out. A fight that eases sounds like it eased.',
+      'Bosses do not build. A Kill Order opens with the full arrangement from the first bar, filter wide open — a boss should not wait to sound like one. Phase two slams any fight to full, whatever the meters say.',
+      'Every operation plays the theme in its own key. Ironveil as written, cold and mechanical; Blackmarrow a semitone down into the dark; Sunderglass a minor third up, bright and brittle; Lumenspire, Crownring and Shallowhelm each get their own cast. Same music, six colours, zero downloads.',
+      'The hold keeps its own cruise — 92 BPM, unhurried — so stepping out of a fight still feels like stepping out of it. The Atmosphere switch in Settings governs all of it, as before.',
+    ],
+  },
   {
     v: '2.9',
     notes: [

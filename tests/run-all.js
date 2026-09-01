@@ -19,7 +19,7 @@ const GUARDS = [
   'stratagemtest', 'passivetest', 'grappletest', 'breachtest', 'flanktest', 'mechtest', 'frametest', 'bosstest', 'foetest', 'eventtest',
   'opentest', 'leadtest', 'packtest', 'maptest', 'cardtest', 'codectest', 'geomtest', 'foeseltest', 'repro',
   'playtest', 'actbar', 'csstest', 'cssdup', 'headtest', 'navtest', 'scaletest',
-  'handtest', 'captest', 'uitest', 'statictest', 'geartest', 'achievetest', 'tapetest', 'tuttest', 'sndtest', 'arttest', 'pixtest', 'buildtest',
+  'handtest', 'captest', 'uitest', 'statictest', 'geartest', 'achievetest', 'tapetest', 'tuttest', 'sndtest', 'audiotest', 'arttest', 'pixtest', 'buildtest',
 ];
 // frmtest is NOT in here on purpose: it plays eight arms over the same mission
 // set and takes about a minute even at its smallest useful size, which is too
