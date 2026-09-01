@@ -3570,6 +3570,13 @@ covered cells, thirty points, the Gantry's field gone in a swing.
 - `bosstest` in the guard suite: footprint/pool/blocking, both flip
   triggers, all three scripts beat by beat, clock loss + kill win, and nine
   bot fights that must resolve inside the clock.
+- **Pre-fight briefings** (added on request, same release): the first launch
+  of each Kill Order opens a codec call — Hikaru's holistic sitrep on the
+  machine, mechanics delivered in fiction ("a soldier standing on a marked
+  cell takes the hit and seals it") — riding the existing op-intro chassis:
+  scene is data (`BOSSDEF[k].brief`), plays once per commander
+  (`settings.briefs`), the launch itself waits for the channel to close, and
+  Settings' *Replay intros* clears the flags. codectest guards the contract.
 
 ### Numbers at bot level
 

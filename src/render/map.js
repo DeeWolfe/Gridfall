@@ -6,10 +6,12 @@ import {MODS} from '../content/modifiers.js';
 import {OPS} from '../content/operations.js';
 import {active, MAPDEF, setMapdef} from '../state/session.js';
 import {opRun, nodeState, reqBlocked, opComplete, genRun} from '../rules/run.js';
+import {bossForOp} from '../rules/boss.js';
 import {launch} from '../rules/mission.js';
 import {commit} from '../save/profile.js';
 import {$} from './dom.js';
 import {ask} from './dialog.js';
+import {playBossBrief} from './codec.js';
 
 const CLEARED = '#5dffa0';
 const DARK = '#2b2558';
@@ -132,7 +134,16 @@ export function renderMap() {
 
   document.querySelectorAll('#mapbody [data-n],#mapbody [data-go]').forEach(el => {
     const id = el.dataset.n || el.dataset.go;
-    if (!complete && nodeState(id) === 'open') el.onclick = () => launch(id);
+    if (!complete && nodeState(id) === 'open') {
+      el.onclick = () => {
+        // The first launch against an operation boss opens with the sitrep
+        // call — the drop itself waits for the channel to close. Every launch
+        // after falls straight through: a briefing is a briefing, not a toll.
+        if (run.nodes[id].type === 'boss' &&
+          playBossBrief(bossForOp(active.op), () => launch(id))) return;
+        launch(id);
+      };
+    }
   });
 
   const replayBtn = $('opreplay');

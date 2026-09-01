@@ -16,6 +16,7 @@ export const PATCH_NOTES = [
       'THE BROOD MOTHER works the field like a seam of ore: drifting across lanes, crushing what it rolls over, lashing whole rows, and marking breach points anywhere on the board a full turn before something surfaces. Stand a soldier on the mark and it takes the hit instead — nothing surfaces. At half hull it splits into three bodies, and all three must die.',
       'THE PRISM has never attacked anything. It reflects a quarter of every hit back up the barrel that fired it, past shields, and it can kill. At half hull it shatters into four fragments that each grow every turn — up to a cap, because a fight you cannot win is a bug wearing a difficulty costume.',
       'Bringing a boss down completes the operation and lands the Specialist requisition pack. First kills enter the Database, bestiary page and all.',
+      'Central Command calls before every first Kill Order. Hikaru delivers the full sitrep on the machine you are about to fight — what it is, what it does to your line, and the read Command wants you to hear — before your descent is cleared. The call plays once; Replay intros in Settings brings all three back.',
     ],
   },
   {

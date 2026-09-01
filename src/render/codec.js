@@ -10,6 +10,7 @@
 // the whole interaction — the player sets the pace of the whole scene.
 
 import {OPS} from '../content/operations.js';
+import {BOSSDEF} from '../content/bosses.js';
 import {active} from '../state/session.js';
 import {commit} from '../save/profile.js';
 import {bokehLayer} from './art.js';
@@ -93,7 +94,7 @@ function codecShell() {
       </div>
       <div class="cfoot">
         <div class="cpips" id="cpips">${pips}</div>
-        <span class="ccap">${codecOp.n}</span>
+        <span class="ccap">${s.cap || (codecOp ? codecOp.n : '')}</span>
         <button class="cskip" id="cskip">Skip transmission</button>
       </div>
     </div>`;
@@ -237,10 +238,42 @@ export function playIntro(k, done) {
   return true;
 }
 
+/** True once this commander has taken the pre-fight call for this boss. */
+export function briefSeen(k) {
+  return !!(active && active.settings && active.settings.briefs && active.settings.briefs[k]);
+}
+
+/**
+ * The pre-fight call: the sitrep that introduces an operation boss, played the
+ * first time the commander launches its Kill Order node. Same chassis as the
+ * operation intro — the scene is data (BOSSDEF[k].brief), it plays once per
+ * commander, and `done` (the launch itself) runs only when the channel closes.
+ * Returns false — having done nothing — when there is no call or it has been
+ * taken, so the caller can fall straight through to the drop.
+ */
+export function playBossBrief(k, done) {
+  const def = k && BOSSDEF[k];
+  if (!def || !def.brief || !def.brief.beats || !def.brief.beats.length) return false;
+  if (briefSeen(k)) return false;
+
+  active.settings = active.settings || {};
+  active.settings.briefs = active.settings.briefs || {};
+  active.settings.briefs[k] = true;
+  commit();
+
+  codecScene = def.brief;
+  codecOp = null;
+  codecDone = done;
+  codecShell();
+  codecBeat(0);
+  return true;
+}
+
 /** Settings hook: clear the seen flags so every call plays again. */
 export function replayIntros() {
   if (!active) return;
   active.settings = active.settings || {};
   active.settings.intros = {};
+  active.settings.briefs = {};
   commit();
 }

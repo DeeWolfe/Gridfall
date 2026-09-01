@@ -4310,6 +4310,27 @@ const BOSSDEF = {
     p2: "Shield down — every emitter firing, assembly continuing",
     bt: "SHIELD COLLAPSE",
     bb: "The containment field fails and the rig is suddenly aware of you. Every emitter it has comes online at once.",
+    brief: {
+      freq: "141.83",
+      net: "残心ネット",
+      cap: "Kill Order · Priority target briefing",
+      from: {n: "Hikaru", r: "CC Liaison"},
+      beats: [
+        {
+          say: ["Commander. The yards' central fabricator column is live again — and nothing of ours is running it. The hive didn't destroy the line. It climbed inside it.", "Six cells of scaffold and emitters behind a containment field. Designation: THE GANTRY."],
+          reply: "Copy. What is it building?",
+        },
+        {
+          say: ["Soldiers. One walked off the line during our first sweep, two during the second, three every pass since. It holds at three — the line has a rhythm, and it does not fight you itself. Yet.", "The field will soak thirty points of fire before it fails. Hear this part clearly: the moment it fails, every emitter on that scaffold comes online at once, and the line keeps running."],
+          reply: "So its shield is protecting us.",
+        },
+        {
+          say: ["Until you choose otherwise, yes. Thin the fabricants and eat the ramp, or break the field and fight everything at once — that call is yours to make, and it is the whole battle.", "One more thing: it is one machine across six cells. Weapons that cover ground land on every cell they touch. You have eighteen turns before we lose the yards for good."],
+          reply: "Understood. Out.",
+        },
+      ],
+      close: "Channel closed. Target designate: THE GANTRY. The clock starts on your descent.",
+    },
   },
   brood: {
     op: "blackmarrow",
@@ -4328,6 +4349,27 @@ const BOSSDEF = {
     p2: "Split — three bodies working separate faces",
     bt: "NEW FACES OPENED",
     bb: "Standard procedure for a collapsed shaft. The body contracts and the work continues elsewhere.",
+    brief: {
+      freq: "141.86",
+      net: "残心ネット",
+      cap: "Kill Order · Priority target briefing",
+      from: {n: "Hikaru", r: "CC Liaison"},
+      beats: [
+        {
+          say: ["Commander. The seismic net has been reading these tunnels wrong for weeks. It was never collapse. Something is working the rock — and it is working toward you.", "Four cells of body. It drifts along the face lane to lane, and every third turn it cuts the seam a column forward, crushing whatever it rolls over. Designation: THE BROOD MOTHER."],
+          reply: "What does it do to my line?",
+        },
+        {
+          say: ["It opens the ground. Breach points, marked anywhere on the board — your half included — one full turn before something claws out of them. A soldier standing on a marked cell takes the hit and seals it. Nothing surfaces.", "The tendrils are another matter. One lash a turn, an entire row at once, and no warning. Plan around the breaches; budget hull for the tendril."],
+          reply: "And when it's wounded?",
+        },
+        {
+          say: ["At half strength it splits. Three bodies, separate lanes, all still working, all still opening ground — and every one of them must die or the tunnels stay live.", "Do not stand in front of it, Commander. Stand on its breaches. Eighteen turns."],
+          reply: "Understood. Out.",
+        },
+      ],
+      close: "Channel closed. Target designate: THE BROOD MOTHER. Watch the ground under your feet.",
+    },
   },
   prism: {
     op: "sunderglass",
@@ -4344,6 +4386,27 @@ const BOSSDEF = {
     p2: "Fractured — four fragments, each growing",
     bt: "FRACTURE",
     bb: "Crystal under sustained stress fails along its planes. You have made three more problems by solving one badly.",
+    brief: {
+      freq: "141.89",
+      net: "残心ネット",
+      cap: "Kill Order · Priority target briefing",
+      from: {n: "Hikaru", r: "CC Liaison"},
+      beats: [
+        {
+          say: ["Commander, this one is unlike anything on the registry. Seventy points of crystal standing in the glass fields, and in six weeks of observation it has attacked nothing. Not once.", "Designation: THE PRISM. The danger is not what it does. It is what it gives back."],
+          reply: "Explain.",
+        },
+        {
+          say: ["A quarter of everything you put into it comes straight back up the barrel that fired it. Through shields. It has killed before — a survey lance, on their own opening volley.", "Big hits reflect big; small hits reflect nothing worth naming. Spread the work across many barrels, and rotate the wounded out. It will not come to you — it intends to outlast your clock."],
+          reply: "And at half strength?",
+        },
+        {
+          say: ["It shatters. Four fragments, separate lanes, each still reflecting — and each growing back every turn. There is a ceiling to the growth, but a slow gun will not beat it there.", "When it breaks, kill the pieces fast and all at once. Eighteen turns, Commander, and the clock is its favourite weapon."],
+          reply: "Copy. Out.",
+        },
+      ],
+      close: "Channel closed. Target designate: THE PRISM. Mind your own fire.",
+    },
   },
 };
 
@@ -9104,146 +9167,6 @@ function renderSlots() {
   }
 }
 
-/* ==== src/render/map.js ============================================= */
-// The operation map: nodes, the edges that gate them, and the briefing list.
-
-const CLEARED = '#5dffa0';
-const DARK = '#2b2558';
-
-function edgesSvg(run, complete) {
-  const node = id => MAPDEF.nodes.find(n => n.id === id);
-  return MAPDEF.edges.map(([a, b]) => {
-    const A = node(a);
-    const B = node(b);
-    const done = complete || (run.cleared.includes(a) && run.cleared.includes(b));
-    const live = !complete && ((run.cleared.includes(a) && nodeState(b) === 'open') ||
-      (run.cleared.includes(b) && nodeState(a) === 'open'));
-    const stroke = done ? CLEARED : live ? MAPDEF.col : DARK;
-    return `<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="${stroke}" stroke-width="${done || live ? 2 : 1.2}" stroke-dasharray="${done || live ? '' : '3 3'}" opacity="${done || live ? 0.9 : 0.5}"/>`;
-  }).join('');
-}
-
-const GOLD = '#ffc94d';
-
-// Once the final node is cleared the run stays on the board as a finished
-// map — every node shown filled and ticked, whatever side objectives were
-// actually collected — rather than snapping back to a fresh roll unasked.
-function nodesSvg(run, complete) {
-  return MAPDEF.nodes.map(n => {
-    const st = complete ? 'clear' : nodeState(n.id);
-    const m = MISSIONS[run.nodes[n.id].type];
-    const gated = !complete && reqBlocked(n.id);
-    // Open nodes get a breathing ring so the eye lands on what is playable.
-    const pulse = st === 'open'
-      ? `<circle cx="${n.x}" cy="${n.y}" r="14" fill="none" stroke="${MAPDEF.col}" stroke-width="1" opacity=".5">
-        <animate attributeName="r" values="11;19;11" dur="2.3s" repeatCount="indefinite"/>
-        <animate attributeName="opacity" values=".6;0;.6" dur="2.3s" repeatCount="indefinite"/></circle>`
-      : '';
-    const tick = st === 'clear'
-      ? `<path d="M${n.x - 4.5},${n.y} l3.4,3.4 l5.6,-6.6" stroke="#0d0b1c" stroke-width="2.2" fill="none"/>`
-      : '';
-    // Role markers: the extraction point wears gold, side objectives a dashed
-    // halo, and a gate held shut shows its bar.
-    const halo = n.role === 'final'
-      ? `<circle cx="${n.x}" cy="${n.y}" r="14.5" fill="none" stroke="${GOLD}" stroke-width="1.4" opacity=".85"/>`
-      : n.role === 'side'
-        ? `<circle cx="${n.x}" cy="${n.y}" r="14" fill="none" stroke="${MAPDEF.col}" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/>`
-        : '';
-    const gate = gated
-      ? `<path d="M${n.x - 4},${n.y - 1} h8 M${n.x},${n.y - 5} v8" stroke="${GOLD}" stroke-width="1.6" transform="rotate(45 ${n.x} ${n.y})"/>`
-      : '';
-    const line1 = (n.l || m.n).toUpperCase();
-    const line2 = n.l ? m.n.toUpperCase() : n.role === 'side' ? 'BONUS' : '';
-    return `<g data-n="${n.id}" style="cursor:${st === 'open' ? 'pointer' : 'default'};opacity:${st === 'locked' && !gated ? 0.45 : 1}">
-      ${pulse}${halo}
-      <circle cx="${n.x}" cy="${n.y}" r="10" fill="${st === 'clear' ? CLEARED : '#0d0b1c'}" stroke="${st === 'clear' ? '#9dffc6' : st === 'open' ? MAPDEF.col : n.role === 'final' ? GOLD : DARK}" stroke-width="2.4"/>
-      ${tick}${gate}
-      <text x="${n.x}" y="${n.y + 23}" fill="${st === 'locked' ? '#4a4477' : '#d3d0ea'}" font-size="9" text-anchor="middle" letter-spacing="1" font-family="ui-monospace,monospace">${line1}</text>
-      ${line2 ? `<text x="${n.x}" y="${n.y + 31}" fill="${n.role === 'side' && !n.l ? GOLD : '#8d86bd'}" font-size="8" text-anchor="middle" letter-spacing="1.2" font-family="ui-monospace,monospace">${line2}</text>` : ''}</g>`;
-  }).join('');
-}
-
-function zonesSvg() {
-  const shapes = MAPDEF.zones
-    .map(z => `<polygon points="${z.p}" fill="#141033" stroke="#3a2f7a" stroke-width="1.2" opacity=".7"/>`).join('');
-  const labels = MAPDEF.zones.map(z => {
-    const coords = z.p.split(' ');
-    const xs = coords.map(q => +q.split(',')[0]);
-    const ys = coords.map(q => +q.split(',')[1]);
-    return `<text x="${Math.min(...xs) + 14}" y="${Math.max(...ys) - 9}" fill="#847cb8" font-size="10" letter-spacing="2.2" font-family="ui-monospace,monospace">${z.l}</text>`;
-  }).join('');
-  return shapes + labels;
-}
-
-function renderMap() {
-  if (!active) return;
-  if (!OPS[active.op]) active.op = 'ironveil';
-  setMapdef(active.op);
-
-  const run = opRun();
-  const complete = opComplete();
-  $('maptitle').textContent = MAPDEF.n;
-
-  const open = complete ? [] : MAPDEF.nodes.filter(n => nodeState(n.id) === 'open');
-  const briefings = complete
-    // The final node is down — the map stays up showing every node secured,
-    // rather than snapping to a fresh roll before the player has seen it.
-    ? `<div class="row" style="flex-direction:column;align-items:flex-start;gap:10px;padding:16px 4px">
-        <span style="color:var(--gold);letter-spacing:1px">作戦完了 · OPERATION COMPLETE</span>
-        <span style="font-size:0.6562rem;color:var(--dim);line-height:1.5">Every node on this map has been secured. Any unclaimed bonus objectives are forfeit — replay to roll a fresh set of missions here.</span>
-        <button class="btn gold" id="opreplay">↺ Replay operation</button>
-      </div>`
-    : open.map(n => {
-      const nd = run.nodes[n.id];
-      const m = MISSIONS[nd.type];
-      const md = MODS[nd.mod];
-      const tag = n.role === 'final'
-        ? ` <span style="color:var(--gold)">· ${nd.type === 'boss' ? 'PRIORITY TARGET' : 'EXTRACTION'} — ends the operation</span>`
-        : n.role === 'side' ? ' <span style="color:var(--gold)">· BONUS OBJECTIVE</span>' : '';
-      return `<div class="row" data-go="${n.id}" style="cursor:pointer">
-        <span><b style="color:var(--zan)">${n.l ? n.l + ' — ' : ''}${m.n}</b>${nd.mod !== 'none' ? ` <span style="color:var(--violet)">· ${md.n}</span>` : ''}${tag}
-        <div style="font-size:0.6562rem;color:var(--dim);margin-top:4px;line-height:1.5">${n.lore ? n.lore + ' ' : ''}${m.d}${md.d ? ' ' + md.d : ''}</div></span>
-        <span class="r hot">${nd.reward} cr ▸</span></div>`;
-    }).join('') || '<div class="row"><span style="color:var(--dim)">Operation complete.</span></div>';
-
-  // Gated nodes the player could otherwise reach: say what is holding them.
-  const gatedRows = complete ? '' : MAPDEF.nodes.filter(n => reqBlocked(n.id)).map(n =>
-    `<div class="row locked"><span><b style="color:var(--gold)">⛒ ${n.l || 'Sealed route'}</b>
-      <div style="font-size:0.6562rem;color:var(--dim);margin-top:4px;line-height:1.5">${n.reqText || 'Requirements not met.'}</div></span></div>`).join('');
-
-  $('mapbody').innerHTML = `<div class="mapwrap"><div><div class="mapsvg">
-    <svg viewBox="0 0 440 300" style="width:100%;display:block">
-      <defs><pattern id="gr" width="8" height="8" patternUnits="userSpaceOnUse">
-        <path d="M8 0H0V8" fill="none" stroke="#181340" stroke-width=".5"/></pattern></defs>
-      <rect width="440" height="300" fill="#080714"/><rect width="440" height="300" fill="url(#gr)"/>
-      ${zonesSvg()}${edgesSvg(run, complete)}${nodesSvg(run, complete)}</svg></div>
-    ${MAPDEF.lore ? `<div class="sect">状況 · Situation report</div>
-      <div class="oplore" style="border-color:${MAPDEF.col}">${MAPDEF.lore}</div>` : ''}</div>
-    <div><div class="sect">${complete ? 'Status' : 'Available — ' + open.length}</div><div class="rows">${briefings}${gatedRows}</div>
-    <div class="sect">Loadout</div><div class="rows">
-      <div class="row"><span>Deck size</span><span class="r${active.loadout.deck.length < 6 ? '' : ' hot'}">${active.loadout.deck.length} cards</span></div>
-      <div class="row"><span>Gear fitted</span><span class="r">${Object.keys(active.loadout.gear).length}</span></div>
-      <div class="row"><span>Deploy points</span><span class="r hot">${MAXDP} per turn</span></div></div>
-    </div></div>`;
-
-  document.querySelectorAll('#mapbody [data-n],#mapbody [data-go]').forEach(el => {
-    const id = el.dataset.n || el.dataset.go;
-    if (!complete && nodeState(id) === 'open') el.onclick = () => launch(id);
-  });
-
-  const replayBtn = $('opreplay');
-  if (replayBtn) {
-    replayBtn.onclick = () => ask('Replay operation',
-      `Roll a fresh set of missions for <b>${MAPDEF.n}</b>?`,
-      ok => {
-        if (!ok) return;
-        genRun();
-        commit();
-        renderMap();
-      }, {ok: 'Replay'});
-  }
-}
-
 /* ==== src/render/codec.js =========================================== */
 // The pre-operation codec call.
 //
@@ -9334,7 +9257,7 @@ function codecShell() {
       </div>
       <div class="cfoot">
         <div class="cpips" id="cpips">${pips}</div>
-        <span class="ccap">${codecOp.n}</span>
+        <span class="ccap">${s.cap || (codecOp ? codecOp.n : '')}</span>
         <button class="cskip" id="cskip">Skip transmission</button>
       </div>
     </div>`;
@@ -9478,12 +9401,193 @@ function playIntro(k, done) {
   return true;
 }
 
+/** True once this commander has taken the pre-fight call for this boss. */
+function briefSeen(k) {
+  return !!(active && active.settings && active.settings.briefs && active.settings.briefs[k]);
+}
+
+/**
+ * The pre-fight call: the sitrep that introduces an operation boss, played the
+ * first time the commander launches its Kill Order node. Same chassis as the
+ * operation intro — the scene is data (BOSSDEF[k].brief), it plays once per
+ * commander, and `done` (the launch itself) runs only when the channel closes.
+ * Returns false — having done nothing — when there is no call or it has been
+ * taken, so the caller can fall straight through to the drop.
+ */
+function playBossBrief(k, done) {
+  const def = k && BOSSDEF[k];
+  if (!def || !def.brief || !def.brief.beats || !def.brief.beats.length) return false;
+  if (briefSeen(k)) return false;
+
+  active.settings = active.settings || {};
+  active.settings.briefs = active.settings.briefs || {};
+  active.settings.briefs[k] = true;
+  commit();
+
+  codecScene = def.brief;
+  codecOp = null;
+  codecDone = done;
+  codecShell();
+  codecBeat(0);
+  return true;
+}
+
 /** Settings hook: clear the seen flags so every call plays again. */
 function replayIntros() {
   if (!active) return;
   active.settings = active.settings || {};
   active.settings.intros = {};
+  active.settings.briefs = {};
   commit();
+}
+
+/* ==== src/render/map.js ============================================= */
+// The operation map: nodes, the edges that gate them, and the briefing list.
+
+const CLEARED = '#5dffa0';
+const DARK = '#2b2558';
+
+function edgesSvg(run, complete) {
+  const node = id => MAPDEF.nodes.find(n => n.id === id);
+  return MAPDEF.edges.map(([a, b]) => {
+    const A = node(a);
+    const B = node(b);
+    const done = complete || (run.cleared.includes(a) && run.cleared.includes(b));
+    const live = !complete && ((run.cleared.includes(a) && nodeState(b) === 'open') ||
+      (run.cleared.includes(b) && nodeState(a) === 'open'));
+    const stroke = done ? CLEARED : live ? MAPDEF.col : DARK;
+    return `<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="${stroke}" stroke-width="${done || live ? 2 : 1.2}" stroke-dasharray="${done || live ? '' : '3 3'}" opacity="${done || live ? 0.9 : 0.5}"/>`;
+  }).join('');
+}
+
+const GOLD = '#ffc94d';
+
+// Once the final node is cleared the run stays on the board as a finished
+// map — every node shown filled and ticked, whatever side objectives were
+// actually collected — rather than snapping back to a fresh roll unasked.
+function nodesSvg(run, complete) {
+  return MAPDEF.nodes.map(n => {
+    const st = complete ? 'clear' : nodeState(n.id);
+    const m = MISSIONS[run.nodes[n.id].type];
+    const gated = !complete && reqBlocked(n.id);
+    // Open nodes get a breathing ring so the eye lands on what is playable.
+    const pulse = st === 'open'
+      ? `<circle cx="${n.x}" cy="${n.y}" r="14" fill="none" stroke="${MAPDEF.col}" stroke-width="1" opacity=".5">
+        <animate attributeName="r" values="11;19;11" dur="2.3s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values=".6;0;.6" dur="2.3s" repeatCount="indefinite"/></circle>`
+      : '';
+    const tick = st === 'clear'
+      ? `<path d="M${n.x - 4.5},${n.y} l3.4,3.4 l5.6,-6.6" stroke="#0d0b1c" stroke-width="2.2" fill="none"/>`
+      : '';
+    // Role markers: the extraction point wears gold, side objectives a dashed
+    // halo, and a gate held shut shows its bar.
+    const halo = n.role === 'final'
+      ? `<circle cx="${n.x}" cy="${n.y}" r="14.5" fill="none" stroke="${GOLD}" stroke-width="1.4" opacity=".85"/>`
+      : n.role === 'side'
+        ? `<circle cx="${n.x}" cy="${n.y}" r="14" fill="none" stroke="${MAPDEF.col}" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/>`
+        : '';
+    const gate = gated
+      ? `<path d="M${n.x - 4},${n.y - 1} h8 M${n.x},${n.y - 5} v8" stroke="${GOLD}" stroke-width="1.6" transform="rotate(45 ${n.x} ${n.y})"/>`
+      : '';
+    const line1 = (n.l || m.n).toUpperCase();
+    const line2 = n.l ? m.n.toUpperCase() : n.role === 'side' ? 'BONUS' : '';
+    return `<g data-n="${n.id}" style="cursor:${st === 'open' ? 'pointer' : 'default'};opacity:${st === 'locked' && !gated ? 0.45 : 1}">
+      ${pulse}${halo}
+      <circle cx="${n.x}" cy="${n.y}" r="10" fill="${st === 'clear' ? CLEARED : '#0d0b1c'}" stroke="${st === 'clear' ? '#9dffc6' : st === 'open' ? MAPDEF.col : n.role === 'final' ? GOLD : DARK}" stroke-width="2.4"/>
+      ${tick}${gate}
+      <text x="${n.x}" y="${n.y + 23}" fill="${st === 'locked' ? '#4a4477' : '#d3d0ea'}" font-size="9" text-anchor="middle" letter-spacing="1" font-family="ui-monospace,monospace">${line1}</text>
+      ${line2 ? `<text x="${n.x}" y="${n.y + 31}" fill="${n.role === 'side' && !n.l ? GOLD : '#8d86bd'}" font-size="8" text-anchor="middle" letter-spacing="1.2" font-family="ui-monospace,monospace">${line2}</text>` : ''}</g>`;
+  }).join('');
+}
+
+function zonesSvg() {
+  const shapes = MAPDEF.zones
+    .map(z => `<polygon points="${z.p}" fill="#141033" stroke="#3a2f7a" stroke-width="1.2" opacity=".7"/>`).join('');
+  const labels = MAPDEF.zones.map(z => {
+    const coords = z.p.split(' ');
+    const xs = coords.map(q => +q.split(',')[0]);
+    const ys = coords.map(q => +q.split(',')[1]);
+    return `<text x="${Math.min(...xs) + 14}" y="${Math.max(...ys) - 9}" fill="#847cb8" font-size="10" letter-spacing="2.2" font-family="ui-monospace,monospace">${z.l}</text>`;
+  }).join('');
+  return shapes + labels;
+}
+
+function renderMap() {
+  if (!active) return;
+  if (!OPS[active.op]) active.op = 'ironveil';
+  setMapdef(active.op);
+
+  const run = opRun();
+  const complete = opComplete();
+  $('maptitle').textContent = MAPDEF.n;
+
+  const open = complete ? [] : MAPDEF.nodes.filter(n => nodeState(n.id) === 'open');
+  const briefings = complete
+    // The final node is down — the map stays up showing every node secured,
+    // rather than snapping to a fresh roll before the player has seen it.
+    ? `<div class="row" style="flex-direction:column;align-items:flex-start;gap:10px;padding:16px 4px">
+        <span style="color:var(--gold);letter-spacing:1px">作戦完了 · OPERATION COMPLETE</span>
+        <span style="font-size:0.6562rem;color:var(--dim);line-height:1.5">Every node on this map has been secured. Any unclaimed bonus objectives are forfeit — replay to roll a fresh set of missions here.</span>
+        <button class="btn gold" id="opreplay">↺ Replay operation</button>
+      </div>`
+    : open.map(n => {
+      const nd = run.nodes[n.id];
+      const m = MISSIONS[nd.type];
+      const md = MODS[nd.mod];
+      const tag = n.role === 'final'
+        ? ` <span style="color:var(--gold)">· ${nd.type === 'boss' ? 'PRIORITY TARGET' : 'EXTRACTION'} — ends the operation</span>`
+        : n.role === 'side' ? ' <span style="color:var(--gold)">· BONUS OBJECTIVE</span>' : '';
+      return `<div class="row" data-go="${n.id}" style="cursor:pointer">
+        <span><b style="color:var(--zan)">${n.l ? n.l + ' — ' : ''}${m.n}</b>${nd.mod !== 'none' ? ` <span style="color:var(--violet)">· ${md.n}</span>` : ''}${tag}
+        <div style="font-size:0.6562rem;color:var(--dim);margin-top:4px;line-height:1.5">${n.lore ? n.lore + ' ' : ''}${m.d}${md.d ? ' ' + md.d : ''}</div></span>
+        <span class="r hot">${nd.reward} cr ▸</span></div>`;
+    }).join('') || '<div class="row"><span style="color:var(--dim)">Operation complete.</span></div>';
+
+  // Gated nodes the player could otherwise reach: say what is holding them.
+  const gatedRows = complete ? '' : MAPDEF.nodes.filter(n => reqBlocked(n.id)).map(n =>
+    `<div class="row locked"><span><b style="color:var(--gold)">⛒ ${n.l || 'Sealed route'}</b>
+      <div style="font-size:0.6562rem;color:var(--dim);margin-top:4px;line-height:1.5">${n.reqText || 'Requirements not met.'}</div></span></div>`).join('');
+
+  $('mapbody').innerHTML = `<div class="mapwrap"><div><div class="mapsvg">
+    <svg viewBox="0 0 440 300" style="width:100%;display:block">
+      <defs><pattern id="gr" width="8" height="8" patternUnits="userSpaceOnUse">
+        <path d="M8 0H0V8" fill="none" stroke="#181340" stroke-width=".5"/></pattern></defs>
+      <rect width="440" height="300" fill="#080714"/><rect width="440" height="300" fill="url(#gr)"/>
+      ${zonesSvg()}${edgesSvg(run, complete)}${nodesSvg(run, complete)}</svg></div>
+    ${MAPDEF.lore ? `<div class="sect">状況 · Situation report</div>
+      <div class="oplore" style="border-color:${MAPDEF.col}">${MAPDEF.lore}</div>` : ''}</div>
+    <div><div class="sect">${complete ? 'Status' : 'Available — ' + open.length}</div><div class="rows">${briefings}${gatedRows}</div>
+    <div class="sect">Loadout</div><div class="rows">
+      <div class="row"><span>Deck size</span><span class="r${active.loadout.deck.length < 6 ? '' : ' hot'}">${active.loadout.deck.length} cards</span></div>
+      <div class="row"><span>Gear fitted</span><span class="r">${Object.keys(active.loadout.gear).length}</span></div>
+      <div class="row"><span>Deploy points</span><span class="r hot">${MAXDP} per turn</span></div></div>
+    </div></div>`;
+
+  document.querySelectorAll('#mapbody [data-n],#mapbody [data-go]').forEach(el => {
+    const id = el.dataset.n || el.dataset.go;
+    if (!complete && nodeState(id) === 'open') {
+      el.onclick = () => {
+        // The first launch against an operation boss opens with the sitrep
+        // call — the drop itself waits for the channel to close. Every launch
+        // after falls straight through: a briefing is a briefing, not a toll.
+        if (run.nodes[id].type === 'boss' &&
+          playBossBrief(bossForOp(active.op), () => launch(id))) return;
+        launch(id);
+      };
+    }
+  });
+
+  const replayBtn = $('opreplay');
+  if (replayBtn) {
+    replayBtn.onclick = () => ask('Replay operation',
+      `Roll a fresh set of missions for <b>${MAPDEF.n}</b>?`,
+      ok => {
+        if (!ok) return;
+        genRun();
+        commit();
+        renderMap();
+      }, {ok: 'Replay'});
+  }
 }
 
 /* ==== src/render/ops.js ============================================= */
@@ -13843,6 +13947,7 @@ const PATCH_NOTES = [
       'THE BROOD MOTHER works the field like a seam of ore: drifting across lanes, crushing what it rolls over, lashing whole rows, and marking breach points anywhere on the board a full turn before something surfaces. Stand a soldier on the mark and it takes the hit instead — nothing surfaces. At half hull it splits into three bodies, and all three must die.',
       'THE PRISM has never attacked anything. It reflects a quarter of every hit back up the barrel that fired it, past shields, and it can kill. At half hull it shatters into four fragments that each grow every turn — up to a cap, because a fight you cannot win is a bug wearing a difficulty costume.',
       'Bringing a boss down completes the operation and lands the Specialist requisition pack. First kills enter the Database, bestiary page and all.',
+      'Central Command calls before every first Kill Order. Hikaru delivers the full sitrep on the machine you are about to fight — what it is, what it does to your line, and the read Command wants you to hear — before your descent is cleared. The call plays once; Replay intros in Settings brings all three back.',
     ],
   },
   {

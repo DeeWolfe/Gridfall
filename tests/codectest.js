@@ -11,7 +11,8 @@ import * as A from './support/api.js';
 import {get} from './support/dom.js';
 import {failures} from './support/harness.js';
 import {OPS} from '../src/content/operations.js';
-import {playIntro, introSeen, replayIntros, closeCodec} from '../src/render/codec.js';
+import {BOSSDEF} from '../src/content/bosses.js';
+import {playIntro, introSeen, replayIntros, closeCodec, playBossBrief, briefSeen} from '../src/render/codec.js';
 
 const F = failures();
 const p = A.blankProfile('CODEC');
@@ -96,4 +97,40 @@ else skipGo.onclick();
 console.log('skip still opens the map:', skipped === 1);
 if (skipped !== 1) F.push(`skip handed off ${skipped} times, expected 1`);
 
-F.report('codec call: gating, walk-through and handoff all hold');
+// --- the pre-fight boss briefing rides the same chassis, same contract ---
+{
+  closeCodec();
+  for (const k of Object.keys(BOSSDEF)) {
+    const br = BOSSDEF[k].brief;
+    if (!br) { F.push(`${k}: no pre-fight briefing`); continue; }
+    if (!Array.isArray(br.beats) || !br.beats.length) F.push(`${k}: briefing has no beats`);
+    if (!br.from || !br.from.n) F.push(`${k}: briefing names no caller`);
+    (br.beats || []).forEach((b, n) => {
+      if (!Array.isArray(b.say) || !b.say.length) F.push(`${k} beat ${n}: nothing said`);
+      if (!b.reply) F.push(`${k} beat ${n}: no reply for the commander`);
+    });
+  }
+
+  // Walk one through the skip path: the drop must wait for the sign-off and
+  // then happen exactly once.
+  let dropped = 0;
+  if (!playBossBrief('gantry', () => dropped++)) F.push('gantry briefing refused a fresh commander');
+  if (!get('codec')._cls.has('on')) F.push('briefing overlay never opened');
+  if (dropped) F.push('the drop launched before the channel closed');
+  get('cskip').onclick();
+  const briefGo = act('go');
+  if (!briefGo) F.push('briefing skip did not reach the sign-off');
+  else briefGo.onclick();
+  if (dropped !== 1) F.push(`briefing handed off ${dropped} times, expected 1`);
+  console.log('boss briefing plays and hands off the drop:', dropped === 1);
+
+  // Once per commander; the same Settings reset that replays intros replays it.
+  if (!briefSeen('gantry')) F.push('a taken briefing was not recorded as seen');
+  if (playBossBrief('gantry', () => {})) F.push('the briefing played a second time');
+  replayIntros();
+  if (briefSeen('gantry')) F.push('Settings reset did not clear the briefing flag');
+  closeCodec();
+  console.log('briefing plays once, replays on request: ok');
+}
+
+F.report('codec call: gating, walk-through, boss briefing and handoff all hold');

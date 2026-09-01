@@ -19,6 +19,27 @@ export const BOSSDEF = {
     p2: "Shield down — every emitter firing, assembly continuing",
     bt: "SHIELD COLLAPSE",
     bb: "The containment field fails and the rig is suddenly aware of you. Every emitter it has comes online at once.",
+    brief: {
+      freq: "141.83",
+      net: "残心ネット",
+      cap: "Kill Order · Priority target briefing",
+      from: {n: "Hikaru", r: "CC Liaison"},
+      beats: [
+        {
+          say: ["Commander. The yards' central fabricator column is live again — and nothing of ours is running it. The hive didn't destroy the line. It climbed inside it.", "Six cells of scaffold and emitters behind a containment field. Designation: THE GANTRY."],
+          reply: "Copy. What is it building?",
+        },
+        {
+          say: ["Soldiers. One walked off the line during our first sweep, two during the second, three every pass since. It holds at three — the line has a rhythm, and it does not fight you itself. Yet.", "The field will soak thirty points of fire before it fails. Hear this part clearly: the moment it fails, every emitter on that scaffold comes online at once, and the line keeps running."],
+          reply: "So its shield is protecting us.",
+        },
+        {
+          say: ["Until you choose otherwise, yes. Thin the fabricants and eat the ramp, or break the field and fight everything at once — that call is yours to make, and it is the whole battle.", "One more thing: it is one machine across six cells. Weapons that cover ground land on every cell they touch. You have eighteen turns before we lose the yards for good."],
+          reply: "Understood. Out.",
+        },
+      ],
+      close: "Channel closed. Target designate: THE GANTRY. The clock starts on your descent.",
+    },
   },
   brood: {
     op: "blackmarrow",
@@ -37,6 +58,27 @@ export const BOSSDEF = {
     p2: "Split — three bodies working separate faces",
     bt: "NEW FACES OPENED",
     bb: "Standard procedure for a collapsed shaft. The body contracts and the work continues elsewhere.",
+    brief: {
+      freq: "141.86",
+      net: "残心ネット",
+      cap: "Kill Order · Priority target briefing",
+      from: {n: "Hikaru", r: "CC Liaison"},
+      beats: [
+        {
+          say: ["Commander. The seismic net has been reading these tunnels wrong for weeks. It was never collapse. Something is working the rock — and it is working toward you.", "Four cells of body. It drifts along the face lane to lane, and every third turn it cuts the seam a column forward, crushing whatever it rolls over. Designation: THE BROOD MOTHER."],
+          reply: "What does it do to my line?",
+        },
+        {
+          say: ["It opens the ground. Breach points, marked anywhere on the board — your half included — one full turn before something claws out of them. A soldier standing on a marked cell takes the hit and seals it. Nothing surfaces.", "The tendrils are another matter. One lash a turn, an entire row at once, and no warning. Plan around the breaches; budget hull for the tendril."],
+          reply: "And when it's wounded?",
+        },
+        {
+          say: ["At half strength it splits. Three bodies, separate lanes, all still working, all still opening ground — and every one of them must die or the tunnels stay live.", "Do not stand in front of it, Commander. Stand on its breaches. Eighteen turns."],
+          reply: "Understood. Out.",
+        },
+      ],
+      close: "Channel closed. Target designate: THE BROOD MOTHER. Watch the ground under your feet.",
+    },
   },
   prism: {
     op: "sunderglass",
@@ -53,5 +95,26 @@ export const BOSSDEF = {
     p2: "Fractured — four fragments, each growing",
     bt: "FRACTURE",
     bb: "Crystal under sustained stress fails along its planes. You have made three more problems by solving one badly.",
+    brief: {
+      freq: "141.89",
+      net: "残心ネット",
+      cap: "Kill Order · Priority target briefing",
+      from: {n: "Hikaru", r: "CC Liaison"},
+      beats: [
+        {
+          say: ["Commander, this one is unlike anything on the registry. Seventy points of crystal standing in the glass fields, and in six weeks of observation it has attacked nothing. Not once.", "Designation: THE PRISM. The danger is not what it does. It is what it gives back."],
+          reply: "Explain.",
+        },
+        {
+          say: ["A quarter of everything you put into it comes straight back up the barrel that fired it. Through shields. It has killed before — a survey lance, on their own opening volley.", "Big hits reflect big; small hits reflect nothing worth naming. Spread the work across many barrels, and rotate the wounded out. It will not come to you — it intends to outlast your clock."],
+          reply: "And at half strength?",
+        },
+        {
+          say: ["It shatters. Four fragments, separate lanes, each still reflecting — and each growing back every turn. There is a ceiling to the growth, but a slow gun will not beat it there.", "When it breaks, kill the pieces fast and all at once. Eighteen turns, Commander, and the clock is its favourite weapon."],
+          reply: "Copy. Out.",
+        },
+      ],
+      close: "Channel closed. Target designate: THE PRISM. Mind your own fire.",
+    },
   },
 };
