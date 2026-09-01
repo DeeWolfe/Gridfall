@@ -2917,12 +2917,11 @@ const POOL = {
     hp: 20,
     price: 470,
     mob: 1,
-    tg: "adj",
-    dmg: 2,
+    tg: "adj4",
+    dmg: 3,
     regen: 1,
     blocker: 1,
-    single: 1,
-    d: "The all-rounder. A regenerating shield, a service blade, and three prototype weapons that between them answer armour, reach and ground denial.",
+    d: "The all-rounder. A regenerating shield and a service blade that cuts everything at contact — all four sides at once. Five prototype weapons re-spec it to whatever the mission is.",
   },
   sevenblades: {
     n: "Seven Blades",
@@ -2932,11 +2931,10 @@ const POOL = {
     hp: 18,
     price: 480,
     mob: 1,
-    tg: "adj",
-    dmg: 6,
+    tg: "vert3",
+    dmg: 5,
     blocker: 1,
-    single: 1,
-    d: "The melee frame. An arm-mounted blade and nothing else — it does not want range, it wants to be standing where you put it.",
+    d: "The melee frame. One swing of the arm blade takes the column ahead across all three lanes — it does not want range, it wants to be standing where you put it.",
   },
   heavyarms: {
     n: "Heavy Arms",
@@ -2946,11 +2944,10 @@ const POOL = {
     hp: 25,
     price: 510,
     mob: 0,
-    tg: "first",
-    dmg: 5,
+    tg: "ahead3",
+    dmg: 4,
     blocker: 1,
-    single: 1,
-    d: "The artillery frame. Anchored, heaviest hull on the field, and a ballistic gatling that does not care what it is pointed at.",
+    d: "The artillery frame. Anchored, heaviest hull on the field, and a ballistic gatling that walks fire three cells down the lane.",
   },
 };
 
@@ -13182,9 +13179,20 @@ function render() {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.5';
+const VERSION = '2.6';
 
 const PATCH_NOTES = [
+  {
+    v: '2.6',
+    notes: [
+      'Proto Frames stand on one square now. Measured first, changed second: the two-cell body altered no win rate anywhere, but it failed to find a legal landing spot around its Pilot in one mission of five. What makes a Frame big is its weapon arc, not its parking space.',
+      'The service weapons got the arcs to prove it. The White Devil\'s blade now cuts every hostile at contact, all four sides at once. Seven Blades takes the column ahead across all three lanes in one swing. Heavy Arms walks gatling fire three cells down its lane. A bare Frame is a Frame, not a big soldier.',
+      'The Frame line has been through roughly ten thousand simulated missions and the verdict is: fair. Committing a deck slot, a Pilot and a whole turn costs about three points of win rate, the machine pays most of it back, and it reaches the board in nineteen missions of twenty. It is not the strongest thing you can do — it is a way of playing.',
+      'The equipped Frame now shows beside the Active deck, the deck bar counts it, and everything you bring that the deck did not deal — the Frame, your lead\'s call — sits apart from the drawn cards in the combat tray.',
+      'Every card is a fireteam, not a soldier. The Squad briefing and the Database now say so.',
+      'The hold ticker knows about the launch bays. 行きます。',
+    ],
+  },
   {
     v: '2.5',
     notes: [

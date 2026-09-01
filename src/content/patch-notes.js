@@ -4,9 +4,20 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.5';
+export const VERSION = '2.6';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.6',
+    notes: [
+      'Proto Frames stand on one square now. Measured first, changed second: the two-cell body altered no win rate anywhere, but it failed to find a legal landing spot around its Pilot in one mission of five. What makes a Frame big is its weapon arc, not its parking space.',
+      'The service weapons got the arcs to prove it. The White Devil\'s blade now cuts every hostile at contact, all four sides at once. Seven Blades takes the column ahead across all three lanes in one swing. Heavy Arms walks gatling fire three cells down its lane. A bare Frame is a Frame, not a big soldier.',
+      'The Frame line has been through roughly ten thousand simulated missions and the verdict is: fair. Committing a deck slot, a Pilot and a whole turn costs about three points of win rate, the machine pays most of it back, and it reaches the board in nineteen missions of twenty. It is not the strongest thing you can do — it is a way of playing.',
+      'The equipped Frame now shows beside the Active deck, the deck bar counts it, and everything you bring that the deck did not deal — the Frame, your lead\'s call — sits apart from the drawn cards in the combat tray.',
+      'Every card is a fireteam, not a soldier. The Squad briefing and the Database now say so.',
+      'The hold ticker knows about the launch bays. 行きます。',
+    ],
+  },
   {
     v: '2.5',
     notes: [

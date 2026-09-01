@@ -3401,6 +3401,44 @@ flips with it and says why.
 (This also quietly simplifies the class: the two-Pilots-in-one-footprint edge
 case and the Cipher-swap-into-a-one-cell-hole case both stop existing.)
 
+### Lever 2, pulled and measured — and the prediction was wrong
+
+The bases went wide: White Devil `adj` 2 → `adj4` 3 (every adjacent hostile at
+once), Seven Blades `adj` 6 → `vert3` 5 (the column ahead across three lanes),
+Heavy Arms `first` 5 single → `ahead3` 4 (fire walked three cells down the
+lane). Same harness, same three-pass protocol, against the one-cell baseline:
+
+```
+arm                      narrow     wide   change  wide vs ctrl
+no frame at all           60.2%    61.2%    +0.9             —
+pilot, no frame           58.3%    59.3%    +1.0          -1.9
+White Devil bare          58.0%    57.8%    -0.3          -3.4
+Seven Blades bare         56.8%    59.4%    +2.6          -1.7
+Heavy Arms bare           60.2%    60.2%    +0.0          -0.9
+White Devil +weapon       59.6%    59.1%    -0.6          -2.1
+Seven Blades +weapon      62.8%    62.6%    -0.1          +1.4
+Heavy Arms +weapon        59.4%    59.5%    +0.1          -1.7
+```
+
+Every change is at or under the noise line. The footprint hypothesis — built on
+the Greatsword arm winning — did not generalise to the service weapons, at
+least not in the bot's hands, and the honest suspect is the bot itself: it
+parks the Pilot in the rearmost cell, so the Frame spends the mission at the
+back where a wide arc reaches nothing until the horde is already on top of it.
+A sweep is worth what your positioning makes it worth, and the bot has none.
+
+The wide bases are KEPT: they cost nothing measurable, they make a bare Frame
+read as a Frame rather than a big soldier, and the first machine a new owner
+fields should not be the dullest version of it. But the claim that they would
+close the gap is withdrawn — that is what the harness is for.
+
+Where this leaves the class: roughly cost-neutral to a couple of points
+negative against a plain deck, at bot level, with the usual floor caveat — the
+bot neither positions nor times the Frame, and both are exactly what a Frame
+rewards. The one lever still standing is the territory one (a Frame that holds
+the ground around it), and it is now the only lever with the evidence pointing
+at it rather than away.
+
 ### Levers, if it needs one
 
 Not applied — this is a design the numbers should inform rather than decide.
