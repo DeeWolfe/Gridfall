@@ -21,6 +21,10 @@ const GUARDS = [
   'playtest', 'actbar', 'csstest', 'cssdup', 'headtest', 'navtest', 'scaletest',
   'handtest', 'captest', 'uitest', 'statictest', 'geartest', 'achievetest', 'tapetest', 'tuttest', 'sndtest', 'arttest', 'pixtest', 'buildtest',
 ];
+// frmtest is NOT in here on purpose: it plays eight arms over the same mission
+// set and takes about a minute even at its smallest useful size, which is too
+// much to pay on every run. Run it by hand when Frames change:
+//   FRM_JSON=1 FRM_RUNS=10 node tests/frmtest.js
 const BALANCE = ['test', 'mtest', 'onstest'];
 
 const args = process.argv.slice(2);

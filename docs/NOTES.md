@@ -3309,6 +3309,80 @@ test the rules, and this was a route that stopped existing.
   class. Frames need either a bot that drafts or a dedicated harness before any
   number about them means anything.
 
+## Proto Frames: the balance check
+
+`tests/frmtest.js`, run by hand rather than on every build. Eight arms over the
+same rolled missions, 1,380 missions each, three independent passes aggregated —
+±2.6 points at 95%, and the per-pass spread is printed so a wide one is visible
+rather than hidden inside an average.
+
+The bot had to be taught the line first, and that is worth being honest about:
+without it a Frame never once reached the board, because the greedy
+"first affordable card in hand" rule spends the turn's points on a Barricade
+every turn and the Frame needs all six. So the Frame arms are played to a plan
+(Pilot down early and rearmost; on a turn the Frame can land, it is the only
+thing that lands) and the control arm is not. Every Frame number below is
+therefore generous.
+
+```
+arm                      win%      n  landed%  vs pilot  vs ctrl   per-pass
+control (no pilot)      61.4%   1380        —     +3.2    +0.0   [58.9, 63.9, 61.3]
+pilot, no frame         58.2%   1380        —     +0.0    -3.2   [58.3, 58.7, 57.6]
+White Devil bare        56.9%   1380    80.0%     -1.3    -4.5   [54.1, 62.8, 53.7]
+Seven Blades bare       59.1%   1380    79.2%     +0.9    -2.3   [56.5, 61.7, 58.9]
+Heavy Arms bare         60.9%   1380    80.6%     +2.8    -0.4   [61.1, 62.6, 59.1]
+White Devil +saber      59.6%   1380    77.8%     +1.4    -1.8   [56.5, 63.7, 58.5]
+Seven Blades +sword     64.3%   1380    77.5%     +6.2    +3.0   [63.7, 65.2, 64.1]
+Heavy Arms +gatling     58.0%   1380    79.2%     -0.1    -3.3   [57.0, 58.3, 58.9]
+```
+
+### What it says
+
+**The setup step costs 3.2 points**, and that number is solid — the pilot arm
+reads 58.3 / 58.7 / 57.6 across three passes. Swapping one real card for a
+Frame Pilot is a genuine price, which is what the design wanted.
+
+**Landing is not the problem.** 77.5–80.6% across every arm and every pass: the
+Frame reaches the board four missions in five. The vulnerable window works as a
+window rather than as a wall.
+
+**The machine does not pay the price back.** Against the control deck — twelve
+cards, no Pilot, no Frame — six of the seven Frame configurations are level or
+worse. Only Seven Blades with the Crystal Greatsword clears it, at +3.0, and it
+is the most consistent arm on the board (63.7 / 65.2 / 64.1).
+
+So the class is **underpowered, not overpowered**, and it is underpowered in a
+legible way: the one weapon that beats a normal deck is the one with the widest
+footprint. `sweep` covers six cells; every other Frame weapon covers between one
+and four.
+
+### Why, most likely
+
+Six deploy points is a whole turn, and a whole turn otherwise buys two or three
+cards — two or three bodies, in two or three lanes. A Frame is one body in one
+lane. Twenty-five hull is excellent attrition and the mission is not decided by
+attrition: you lose by dropping under six held tiles or taking a breach, and one
+very tough unit cannot hold ground it is not standing on.
+
+That reading is consistent with the data: the arms that do best are the ones
+that reach across lanes, and the worst is the White Devil bare, whose service
+blade hits one adjacent cell for 2.
+
+### Levers, if it needs one
+
+Not applied — this is a design the numbers should inform rather than decide.
+
+1. **Make Frames hold ground.** `claim` already exists as a card property. A
+   Frame that claims the tiles around it addresses the actual loss condition
+   rather than adding damage to a unit that already has enough.
+2. **Widen the base weapons.** The bare arms are the weakest; a bare Frame is
+   the one every new owner fields first, and it should not be the worst version.
+3. **More damage.** Simplest, and the least interesting — it makes Frames better
+   at the thing the game does not score.
+
+Cost is deliberately not on the list: 6 DP is what forces the two-turn window,
+and that window is the class.
+
 ## Card backlog — the next pass
 
 Not built. Recorded here so the next card batch starts from a list rather than a
