@@ -886,22 +886,22 @@ const FOE_PIX = {
     '.....oo.....',
     '............',
   ],
-  // The researcher, spliced and fused: a walker with the lens for a head —
-  // gold core, one blinking lime glint. Reads as the array while it is
-  // mounted, and as the creature once it climbs out.
-  aperture: [
-    '....oooo....',
-    '...obssbo...',
-    '..obWggWbo..',
-    '..obWgxWbo..',
-    '...obssbo...',
-    '....obbo....',
-    '..oosbbsoo..',
-    '.ob.obbo.bo.',
-    '.o..obbo..o.',
-    '....obbo....',
-    '...obo.obo..',
-    '...oo...oo..',
+  // SUBJECT ONE: half of it is still a person. The left side reads human —
+  // smooth plate, a pale eye; the right side is hive mass, spined, with the
+  // lime glint of the splice burning where the two halves meet.
+  subject: [
+    '....oooo.x..',
+    '...obbsso...',
+    '...obWsxso..',
+    '...obbsss...',
+    '..oobbssoo..',
+    '.o.obbsss.x.',
+    '....obbsso..',
+    '...obbssso..',
+    '...obbsss...',
+    '...obo.sso..',
+    '...oo...ss..',
+    '............',
   ],
   // A hooded mass seated where the chair sits: dome, two pale eye pips, a
   // lime sigil where a delegate's badge would be, folded flanks at rest.

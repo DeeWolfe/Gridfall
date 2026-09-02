@@ -508,13 +508,6 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
   animation:breachpulse 2s ease-in-out infinite;z-index:2}
 @keyframes breachpulse{0%,100%{box-shadow:inset 0 0 0 2px var(--mag),0 0 20px rgba(255,77,143,.55)}
   50%{box-shadow:inset 0 0 0 3px var(--mag),0 0 6px rgba(255,77,143,.2)}}
-/* The Aperture's lit lane: a gold glare wash over every cell the beam will
-   burn next turn. Softer than breachwarn on purpose — it covers a whole lane,
-   so a hard outline per cell would read as eight separate alarms. */
-.cell.beamwarn{background-image:linear-gradient(180deg,rgba(255,201,77,.16),rgba(255,201,77,.16));
-  box-shadow:inset 0 2px 0 rgba(255,201,77,.5),inset 0 -2px 0 rgba(255,201,77,.5);
-  animation:beamglare 1.6s ease-in-out infinite}
-@keyframes beamglare{0%,100%{filter:brightness(1)}50%{filter:brightness(1.25)}}
 .cell.strattgt{cursor:pointer;box-shadow:inset 0 0 0 1px rgba(157,107,255,.55)}
 .cell.strattgt:hover{filter:brightness(1.35)}
 .cell.orderdest{box-shadow:inset 0 0 0 2px var(--green)}
@@ -3635,7 +3628,7 @@ const GROUND_FLOOR = 6;
  */
 const HAND_CAP = 6;
 const DECKSIZE = 12;
-const SAVE_VERSION = 10;
+const SAVE_VERSION = 11;
 const STARTER = ["scout", "rifle", "marks", "wall", "medic", "turret", "lancer", "bulwark", "assassin"];
 
 /* ==== src/save/profile.js =========================================== */
@@ -3779,6 +3772,15 @@ function migrate(p) {
       p.unlocks.enemies = p.unlocks.enemies.filter(k => k !== 'concord');
     }
     if (p.ops && p.ops.crownring) delete p.ops.crownring;
+  }
+
+  // v11: the Aperture joins the Concord on the shelf — SUBJECT ONE holds
+  // Lumenspire now. The map itself is unchanged, so runs survive.
+  if (p.version < 11) {
+    p.version = 11;
+    if (p.unlocks && p.unlocks.enemies) {
+      p.unlocks.enemies = p.unlocks.enemies.filter(k => k !== 'aperture');
+    }
   }
 
   p.unlocks = p.unlocks || {};
@@ -4076,17 +4078,6 @@ const BEST = {
     d: "A crystalline growth that has never attacked anything. It reflects a quarter of every hit back up the barrel that fired it, and it can wait longer than your clock can.",
     counter: "Small hits reflect small — spread the work. At half hull it shatters into four growing fragments; kill them fast or watch them outgrow your guns.",
   },
-  aperture: {
-    n: "The Aperture",
-    t: "boss",
-    boss: 1,
-    hp: 42,
-    dmg: 0,
-    threat: 0,
-    spd: 0,
-    d: "What is left of a Lumenspire researcher, spliced with hive DNA and fused through the transmission lens — a human nervous system with an array for a body. It marks a lane of the grid and burns it a cycle later. Hurt it enough, and it tears itself out of the lens and hunts.",
-    counter: "While it is in the lens, read the light: the marked lane burns next turn, in an ordered sweep that reverses at the edges. At half hull it leaves the lens, and the fight becomes a hunt — it stalks your nearest soldier and claws the wounded first. Keep arm's reach clear and kill it in the open.",
-  },
   envoy: {
     n: "The Envoy",
     t: "boss",
@@ -4184,6 +4175,17 @@ const BEST = {
     spd: 0,
     d: "The southern delegation's Frame, rooted where the burrowers first came up. It stopped walking weeks ago; the ground moves for it — crystal breaches marked a full turn before they erupt.",
     counter: "The Brood Mother's rule: a soldier standing on the mark smothers it, and nothing surfaces. Occupation is a choice. It is usually the right one.",
+  },
+  subject: {
+    n: "Subject One",
+    t: "boss",
+    boss: 1,
+    hp: 50,
+    dmg: 0,
+    threat: 0,
+    spd: 0,
+    d: "The Lumenspire division's last project — a volunteer researcher spliced with hive DNA. It walks at your line the way something heavy does, strikes everything in arm's reach when it arrives, and the splice holding it together is not stable.",
+    counter: "Keep your soldiers spread while it is whole — it crushes what it walks over and hits everything beside it. When the splice comes apart, choose fast: the human half flees and knits the hive half back together every turn. Stopping the mending means shooting the one that runs — and the hive half gets worse the moment you do.",
   },
 };
 
@@ -4765,64 +4767,6 @@ const BOSSDEF = {
       go: "Close channel",
     },
   },
-  aperture: {
-    op: "lumenspire",
-    hp: 42,
-    w: 1,
-    h: 3,
-    l: 1,
-    c: 6,
-    turns: 18,
-    beamDmg: 4,
-    add: "husk",
-    addEvery: 2,
-    p1: "In the lens — one lane marked, burning next turn",
-    p2: "Unbound — it hunts your nearest soldier, two steps a turn",
-    bt: "IT LEAVES THE LENS",
-    bb: "The lens shatters from the inside. What steps out of the wreckage was a researcher once — and it remembers how to run.",
-    brief: {
-      freq: "141.92",
-      net: "残心ネット",
-      cap: "Kill Order · Priority target briefing",
-      from: {n: "Hikaru", r: "CC Liaison"},
-      beats: [
-        {
-          say: ["Commander. The Lumenspire research division was working on focused-energy transmission when Meridian City fell. The spire is still transmitting — but not to anywhere on our grid.", "Something is using the array as a body. We are designating it: THE APERTURE."],
-          reply: "Using it how?",
-        },
-        {
-          say: ["It burns a full lane of the grid at a time. The one mercy: the targeting is mechanical — it locks its firing line a full cycle before it fires, and it sweeps in order.", "Read the light, Commander. The lane it marks is the lane it burns. Do not be standing in it when it does."],
-          reply: "And the researchers?",
-        },
-        {
-          say: ["The dorms went dark before your descent window opened. I'm sorry, Commander. The families have already been told.", "There is one more thing, and you will not like it. The probes pulled a tissue return off the lens housing. It reads HUMAN — spliced through with hive DNA. One of the researchers made it out of the dorms, Commander. Into the machine."],
-          reply: "...Understood. Out.",
-        },
-      ],
-      close: "Channel closed. Target designate: THE APERTURE. Read the light.",
-      go: "Begin descent",
-    },
-    debrief: {
-      freq: "141.92",
-      net: "残心ネット",
-      cap: "After-action · CC uplink",
-      from: {n: "Hikaru", r: "CC Liaison"},
-      beats: [
-        {
-          say: ["Confirmed kill, Commander. The spire is dark for the first time in six months.", "The lab data fills in the rest. The division's last project was not the lens — it was surviving the lens. Hive DNA spliced into a volunteer, so a human mind could fuse with the array and aim it. The hive did not build the Aperture, Commander. We started it. The hive only finished."],
-          reply: "Does the family get told?",
-        },
-        {
-          say: ["That decision is above both of us, and I am glad of it.", "One loose end: the spire transmitted continuously, right up until your kill — and we cannot find the receiver. Somewhere in the system, something now knows how to build that lens, and what to put inside it. Stay sharp, Commander."],
-          reply: "Acknowledged. Out.",
-        },
-      ],
-      close: "Channel closed. Receiver location: UNKNOWN.",
-      go: "Close channel",
-    },
-    stalkMv: 2,
-    clawDmg: 3,
-  },
   envoy: {
     op: "crownring",
     hp: 38,
@@ -5062,6 +5006,66 @@ const BOSSDEF = {
       ],
       close: "Channel closed. Fourth guard: THE SHARDGUARD. Stand on the marks.",
       go: "Begin descent",
+    },
+  },
+  subject: {
+    op: "lumenspire",
+    hp: 50,
+    w: 2,
+    h: 2,
+    l: 1,
+    c: 5,
+    turns: 18,
+    strikeDmg: 2,
+    huntMv: 2,
+    clawDmg: 3,
+    fleeMv: 2,
+    mendN: 3,
+    add: "husk",
+    addEvery: 3,
+    p1: "Whole — it walks at your line and strikes what it reaches",
+    p2: "Divided — the human half flees and mends; the hive half hunts",
+    bt: "THE SPLICE COMES APART",
+    bb: "Two silhouettes stand up out of one. One of them runs. The other one looks at you.",
+    brief: {
+      freq: "141.92",
+      net: "残心ネット",
+      cap: "Kill Order · Priority target briefing",
+      from: {n: "Hikaru", r: "CC Liaison"},
+      beats: [
+        {
+          say: ["Commander. We have the division's last logs now, and the thing holding the spire is in them. Project designation: SUBJECT ONE. A volunteer — one of their own researchers, spliced with hive DNA. The division was trying to build a human the hive could not read.", "Whatever they made instead is standing in the atrium, and it is neither."],
+          reply: "How does it fight?",
+        },
+        {
+          say: ["It walks at your line — slowly, the way something heavy does — and everything within arm's reach when it arrives goes down. What is left of the staff answer when it screams.", "And Commander... the scans say the splice is not stable. Hurt it enough, and our modeling stops agreeing on what happens next."],
+          reply: "Then I'll find out for you.",
+        },
+        {
+          say: ["One more thing. The volunteer's name is in these logs. I have not read it aloud, and I am not going to.", "Eighteen cycles. Bring it peace, Commander."],
+          reply: "Understood. Out.",
+        },
+      ],
+      close: "Channel closed. Target designate: SUBJECT ONE. The atrium is waiting.",
+      go: "Begin descent",
+    },
+    debrief: {
+      freq: "141.92",
+      net: "残心ネット",
+      cap: "After-action · CC uplink",
+      from: {n: "Hikaru", r: "CC Liaison"},
+      beats: [
+        {
+          say: ["It is done, Commander. Both halves confirmed down.", "The recovery team says the two pieces fell within sight of each other — and the human half was still reaching toward the other when it stopped. I am telling you plainly because you will hear it anyway, and you deserve better than a rumor."],
+          reply: "Did the splice fail, or did it work?",
+        },
+        {
+          say: ["Central's answer: it worked twice. A body the hive could not read — and a body we could not keep. The research is sealed under the same order as Shallow Helm's chapels.", "The volunteer's family will be told they died in the evacuation. One for the many keeps a cost ledger, Commander. Today you carried it. Get some rest."],
+          reply: "Zanshin still stands. Out.",
+        },
+      ],
+      close: "Channel closed. Lumenspire research: SEALED.",
+      go: "Close channel",
     },
   },
 };
@@ -6202,7 +6206,7 @@ function seedBoss() {
   const cells = [];
   for (let l = d.l; l < d.l + d.h; l++) for (let c = d.c; c < d.c + d.w; c++) cells.push([l, c]);
   G.boss = {k, phase: 1, shield: d.shield || 0, turns: 0, marks: [],
-    beam: null, under: false, charge: 0, grace: 0,
+    under: false, charge: 0, grace: 0,
     bodies: [{id: 1, hp: d.hp, max: d.hp, cells, dir: 1}], nextBody: 2};
   G.bossDown = false;
   addBodyProxies(G.boss.bodies[0]);
@@ -6281,7 +6285,7 @@ function phaseFlip() {
   clog(`<span class="d">${def.bt}</span> — ${def.p2}.`, 'loss');
   if (B.k === 'brood') broodSplit(def);
   if (B.k === 'prism') prismShatter(def);
-  if (B.k === 'aperture') apertureUnbind();
+  if (B.k === 'subject') subjectSplit();
   hooks.notify(`⚠ ${def.bt}`, def.bb);
 }
 
@@ -6515,97 +6519,143 @@ function prismTick() {
   if (grew) clog('<span class="d">The fragments grow</span> — crystal knitting back along its planes.', 'info');
 }
 
-// --- The Aperture: a telegraphed lane beam — until it leaves the lens ---
+// --- SUBJECT ONE: whole, it walks at your line; divided, it comes apart ---
 
-/** The flip: the lens shatters and the hybrid inside contracts to one cell.
- * The beam dies with the housing; the fight becomes a hunt next turn. */
-function apertureUnbind() {
-  const B = G.boss;
-  const body = B.bodies[0];
-  if (!body) return;
-  const mid = body.cells[Math.floor(body.cells.length / 2)];
-  removeBodyProxies(body);
-  body.cells = [mid];
-  addBodyProxies(body);
-  B.beam = null;
-  B.grace = 1;
-  clog('<span class="d">The light dies in the housing</span> — something climbs out of the wreck.', 'loss');
-}
-
-/** Unbound: close on the nearest soldier, then claw the weakest in reach. */
-function apertureStalk(def) {
-  const B = G.boss;
-  const body = B.bodies[0];
-  if (!body) return;
-  for (let s = 0; s < def.stalkMv; s++) {
-    const [l, c] = body.cells[0];
-    const tgt = [...G.units].sort((a, b) =>
-      (Math.abs(a.lane - l) + Math.abs(a.col - c)) - (Math.abs(b.lane - l) + Math.abs(b.col - c)) ||
-      a.uid - b.uid)[0];
-    if (!tgt || Math.abs(tgt.lane - l) + Math.abs(tgt.col - c) <= 1) break;
-    const dl = Math.sign(tgt.lane - l);
-    const dc = Math.sign(tgt.col - c);
-    // Close the wider gap first; sidestep along the other axis when blocked.
-    const steps = Math.abs(tgt.col - c) >= Math.abs(tgt.lane - l)
-      ? [[l, c + dc], [l + dl, c]] : [[l + dl, c], [l, c + dc]];
-    const next = steps.find(([nl, nc]) => nl >= 0 && nl < LANES && nc >= 0 && nc < COLS &&
-      G.ter[nl][nc] !== 'x' && !unitAt(nl, nc) && !foeAt(nl, nc) && !civAt(nl, nc));
-    if (!next) break;
-    moveBody(body, [next], BEST[B.k].n);
-  }
+/** One free step for a 1-cell body. `away` flees the nearest soldier;
+ * otherwise the step closes on them, wider axis first. */
+function stepBody(body, away) {
   const [l, c] = body.cells[0];
-  const prey = G.units.filter(u => Math.abs(u.lane - l) + Math.abs(u.col - c) === 1)
-    .sort((a, b) => a.hp - b.hp || a.uid - b.uid)[0];
-  if (prey) {
-    dmgUnit(prey, def.clawDmg, 'The Aperture');
-    clog(`<span class="d">The Aperture</span> claws ${prey.n} — it goes for the wounded first.`, 'loss');
-  } else {
-    clog('<span style="color:var(--violet)">The Aperture stalks</span> — it is closing on your line.', 'info');
+  const near = [...G.units].sort((a, b) =>
+    (Math.abs(a.lane - l) + Math.abs(a.col - c)) - (Math.abs(b.lane - l) + Math.abs(b.col - c)) ||
+    a.uid - b.uid)[0];
+  if (!near) return false;
+  const free = ([nl, nc]) => nl >= 0 && nl < LANES && nc >= 0 && nc < COLS &&
+    G.ter[nl][nc] !== 'x' && !unitAt(nl, nc) && !foeAt(nl, nc) && !civAt(nl, nc);
+  const distTo = ([nl, nc]) => Math.abs(near.lane - nl) + Math.abs(near.col - nc);
+  if (away) {
+    const cand = [[l - 1, c], [l + 1, c], [l, c - 1], [l, c + 1]].filter(free)
+      .sort((a, b) => distTo(b) - distTo(a) || b[1] - a[1] || a[0] - b[0])[0];
+    if (!cand || distTo(cand) <= distTo([l, c])) return false;
+    moveBody(body, [cand], BEST[G.boss.k].n);
+    return true;
   }
+  if (distTo([l, c]) <= 1) return false;
+  const dl = Math.sign(near.lane - l);
+  const dc = Math.sign(near.col - c);
+  const steps = Math.abs(near.col - c) >= Math.abs(near.lane - l)
+    ? [[l, c + dc], [l + dl, c]] : [[l + dl, c], [l, c + dc]];
+  const next = steps.find(free);
+  if (!next) return false;
+  moveBody(body, [next], BEST[G.boss.k].n);
+  return true;
 }
 
-function apertureTick(def) {
+/** The flip: the splice tears in two. The human half bolts for open ground
+ * away from your line; the hive half stands where the body stood. */
+function subjectSplit() {
+  const B = G.boss;
+  const main = B.bodies[0];
+  if (!main) return;
+  const share = Math.max(1, Math.ceil(main.hp / 2));
+  const cells = [...main.cells];
+  removeBodyProxies(main);
+  // The hive half keeps the first cell of the old footprint...
+  main.cells = [cells[0]];
+  main.hp = share;
+  main.max = share;
+  main.role = 'hive';
+  addBodyProxies(main);
+  // ...and the human half surfaces as deep from your line as the board allows.
+  let placed = null;
+  for (let c = COLS - 1; c >= 0 && !placed; c--) {
+    for (let l = 0; l < LANES && !placed; l++) {
+      if (G.ter[l][c] === 'x' || unitAt(l, c) || foeAt(l, c) || civAt(l, c)) continue;
+      placed = [l, c];
+    }
+  }
+  if (!placed) placed = cells[1] || cells[0];
+  const human = {id: B.nextBody++, hp: share, max: share, cells: [placed], dir: 1, role: 'human'};
+  B.bodies.push(human);
+  addBodyProxies(human);
+  G.ter[placed[0]][placed[1]] = 'e';
+  clog('<span class="d">The human half runs</span> — and the hive half watches you instead.', 'loss');
+}
+
+function subjectTick(def) {
   const B = G.boss;
 
-  // Unbound: one scripted human beat right after the flip, then the hunt.
-  if (B.phase === 2) {
-    if (B.grace) {
-      B.grace = 0;
-      clog('<span style="color:var(--gold)">It does not attack.</span> It stands where the lens was and looks at its hands.', 'info');
-      return;
+  if (B.phase === 1) {
+    // Whole: the footprint walks one cell at your line, crushing what it
+    // covers, then strikes everything within arm's reach.
+    const body = B.bodies[0];
+    if (!body) return;
+    const cellsOf = b => b.cells;
+    const near = [...G.units].sort((a, b) => {
+      const da = Math.min(...cellsOf(body).map(([l, c]) => Math.abs(a.lane - l) + Math.abs(a.col - c)));
+      const db = Math.min(...cellsOf(body).map(([l, c]) => Math.abs(b.lane - l) + Math.abs(b.col - c)));
+      return da - db || a.uid - b.uid;
+    })[0];
+    if (near) {
+      const [al, ac] = body.cells[0];
+      const dl = Math.sign(near.lane - al);
+      const dc = Math.sign(near.col - ac);
+      const shifts = Math.abs(near.col - ac) >= Math.abs(near.lane - al)
+        ? [[0, dc], [dl, 0]] : [[dl, 0], [0, dc]];
+      // It walks up TO your line, never over it — the strike is the threat,
+      // not a free crush. Cells it already covers don't block its own shift.
+      const own = new Set(body.cells.map(([l, c]) => l + ',' + c));
+      for (const [sl, sc] of shifts) {
+        if (!sl && !sc) continue;
+        const moved = body.cells.map(([l, c]) => [l + sl, c + sc]);
+        if (moved.some(([l, c]) => l < 0 || l >= LANES || c < 0 || c >= COLS || G.ter[l][c] === 'x' ||
+          (!own.has(l + ',' + c) && (unitAt(l, c) || foeAt(l, c) || civAt(l, c))))) continue;
+        moveBody(body, moved, BEST[B.k].n);
+        clog('<span style="color:var(--violet)">Subject One walks</span> — it is coming to your line.', 'info');
+        break;
+      }
     }
-    apertureStalk(def);
-    if (B.turns % def.addEvery === 0) {
-      const made = summonAdds(def.add, 1);
-      if (made) clog(`It screams — the dead of Meridian answer. A ${BEST[def.add].n} stands back up.`, 'wave');
+    const own = new Set(body.cells.map(([l, c]) => l + ',' + c));
+    const adj = new Set();
+    body.cells.forEach(([l, c]) => [[l - 1, c], [l + 1, c], [l, c - 1], [l, c + 1]]
+      .forEach(([al2, ac2]) => {
+        if (al2 < 0 || al2 >= LANES || ac2 < 0 || ac2 >= COLS) return;
+        if (!own.has(al2 + ',' + ac2)) adj.add(al2 + ',' + ac2);
+      }));
+    const struck = G.units.filter(u => adj.has(u.lane + ',' + u.col));
+    struck.forEach(u => dmgUnit(u, def.strikeDmg, 'Subject One'));
+    if (struck.length) clog(`<span class="d">Subject One strikes</span> — ${struck.length} unit${struck.length > 1 ? 's' : ''} within arm's reach.`, 'loss');
+  } else {
+    const hive = B.bodies.find(b => b.role === 'hive');
+    const human = B.bodies.find(b => b.role === 'human');
+
+    // The human half flees your line — and knits the hive half back together.
+    if (human) {
+      for (let i = 0; i < def.fleeMv; i++) if (!stepBody(human, true)) break;
+      if (hive && hive.hp < hive.max) {
+        hive.hp = Math.min(hive.max, hive.hp + def.mendN);
+        setBodyHp(hive);
+        clog(`<span class="d">The human half will not let it die</span> — ${def.mendN} hull knit back into the hive half.`, 'info');
+      }
     }
-    return;
+
+    // The hive half hunts — harder, once there is no one left to hold it back.
+    if (hive) {
+      const rage = human ? 0 : 1;
+      for (let i = 0; i < def.huntMv + rage; i++) if (!stepBody(hive, false)) break;
+      const [l, c] = hive.cells[0];
+      const prey = G.units.filter(u => Math.abs(u.lane - l) + Math.abs(u.col - c) === 1)
+        .sort((a, b) => a.hp - b.hp || a.uid - b.uid)[0];
+      if (prey) {
+        dmgUnit(prey, def.clawDmg + rage, 'Subject One');
+        clog(`<span class="d">The hive half claws ${prey.n}</span>${rage ? " — there is nothing holding it back now" : ''}.`, 'loss');
+      }
+    }
   }
 
-  // In the lens: yesterday's marked lane burns first.
-  if (B.beam) {
-    const caught = G.units.filter(u => u.lane === B.beam.lane);
-    caught.forEach(u => dmgUnit(u, def.beamDmg, 'The Aperture'));
-    clog(`<span class="d">The beam fires</span> — lane ${B.beam.lane + 1} burns` +
-      `${caught.length ? ` — ${caught.length} unit${caught.length > 1 ? 's' : ''} caught in the light` : ''}.`,
-      caught.length ? 'loss' : 'info');
-  }
-
-  // The sweep is mechanical on purpose: one lane over, reversing at the
-  // edges, announced a full turn ahead. Predictable is the counterplay —
-  // the player who reads the light never eats it (unlike the Brood Mother's
-  // random marks, which are about coverage, not reading).
-  const prev = B.beam || {lane: B.bodies[0] ? B.bodies[0].cells[0][0] : 0, dir: 1};
-  let dir = prev.dir;
-  let lane = prev.lane + dir;
-  if (lane < 0 || lane >= LANES) { dir = -dir; lane = prev.lane + dir; }
-  B.beam = {lane, dir};
-  clog(`<span style="color:var(--gold)">The lens turns</span> — lane ${lane + 1} is lit. It burns next turn.`, 'info');
-
-  // The dead city answers it.
+  // What is left of the staff answer when it screams — in either phase.
   if (B.turns % def.addEvery === 0) {
     const made = summonAdds(def.add, 1);
-    if (made) clog(`<span class="d">The Aperture</span> raises the dead — a ${BEST[def.add].n} stands back up.`, 'wave');
+    if (made) clog(`It screams — a ${BEST[def.add].n} answers.`, 'wave');
   }
 }
 
@@ -6778,8 +6828,8 @@ function bossTick() {
   if (B.k === 'gantry') gantryTick(def);
   if (B.k === 'brood') broodTick(def);
   if (B.k === 'prism') prismTick(def);
-  if (B.k === 'aperture') apertureTick(def);
   if (B.k === 'envoy') envoyTick(def);
+  if (B.k === 'subject') subjectTick(def);
   if (B.k === 'reliquary') reliquaryTick(def);
   if (B.k === 'pyreguard') pyreguardTick(def);
   if (B.k === 'rimeguard') rimeguardTick(def);
@@ -13168,22 +13218,22 @@ const FOE_PIX = {
     '.....oo.....',
     '............',
   ],
-  // The researcher, spliced and fused: a walker with the lens for a head —
-  // gold core, one blinking lime glint. Reads as the array while it is
-  // mounted, and as the creature once it climbs out.
-  aperture: [
-    '....oooo....',
-    '...obssbo...',
-    '..obWggWbo..',
-    '..obWgxWbo..',
-    '...obssbo...',
-    '....obbo....',
-    '..oosbbsoo..',
-    '.ob.obbo.bo.',
-    '.o..obbo..o.',
-    '....obbo....',
-    '...obo.obo..',
-    '...oo...oo..',
+  // SUBJECT ONE: half of it is still a person. The left side reads human —
+  // smooth plate, a pale eye; the right side is hive mass, spined, with the
+  // lime glint of the splice burning where the two halves meet.
+  subject: [
+    '....oooo.x..',
+    '...obbsso...',
+    '...obWsxso..',
+    '...obbsss...',
+    '..oobbssoo..',
+    '.o.obbsss.x.',
+    '....obbsso..',
+    '...obbssso..',
+    '...obbsss...',
+    '...obo.sso..',
+    '...oo...ss..',
+    '............',
   ],
   // A hooded mass seated where the chair sits: dome, two pale eye pips, a
   // lime sigil where a delegate's badge would be, folded flanks at rest.
@@ -13588,8 +13638,6 @@ function drawSel() {
           ${G.boss.shield > 0 ? `<div><span>Field</span><b>${G.boss.shield}</b></div>` : ''}
           <div><span>Bodies</span><b>${G.boss.bodies.length}</b></div>
           <div><span>Footprint</span><b>${cells} cell${cells === 1 ? '' : 's'}</b></div>
-          ${G.boss.beam ? `<div><span>Beam</span><b>lane ${G.boss.beam.lane + 1} next</b></div>` : ''}
-          ${G.boss.k === 'aperture' && G.boss.phase === 2 ? `<div><span>Stalks</span><b>${def.stalkMv} cells a turn</b></div><div><span>Claw</span><b>${def.clawDmg} — wounded first</b></div>` : ''}
           ${def.diveEvery ? `<div><span>Dives</span><b>every ${p2cut(def.diveEvery)} turns</b></div>` : ''}
           ${G.boss.k === 'pyreguard' ? `<div><span>Marches</span><b>one lane a turn</b></div>` : ''}
           ${def.chargeEvery ? `<div><span>Purge</span><b>in ${purgeIn} turn${purgeIn === 1 ? '' : 's'}</b></div>` : ''}
@@ -13683,7 +13731,7 @@ const FOE_GLYPH = {
   spore: '✱', jammer: '⌁', pylon: '▣', harrower: '✠', mender: '✚',
   husk: '◍', screamer: '◉', chorus: '≋', sovereign: '♚', puppeteer: '☍',
   fabricant: '⚙', gantry: '☰', brood: '❉', prism: '◇',
-  aperture: '◎', envoy: '♔',
+  subject: '◐', envoy: '♔',
   zealot: '†', lector: '♰', choirwarden: '♪', reliquary: '⚱',
   pyreguard: '🜂', rimeguard: '🜄', stormguard: '🜁', shardguard: '🜃',
 };
@@ -13763,15 +13811,6 @@ function drawBoard() {
     });
   }
 
-  // The Aperture's telegraphed beam: the lit lane burns next turn — phase
-  // two opens the fan to the adjacent lanes as well.
-  const beamLanes = new Set();
-  if (G.boss && G.boss.beam) {
-    const bl = G.boss.beam.lane;
-    (G.boss.phase === 2 ? [bl - 1, bl, bl + 1] : [bl])
-      .filter(x => x >= 0 && x < LANES).forEach(x => beamLanes.add(x));
-  }
-
   const board = $('board');
   board.style.gridTemplateColumns = `repeat(${COLS},1fr)`;
   board.innerHTML = '';
@@ -13807,7 +13846,6 @@ function drawBoard() {
     // The Brood Mother's telegraphed breaches: marked this turn, erupting next.
     const breachWarn = G.boss && G.boss.marks.some(m => m.l === l && m.c === c);
     if (breachWarn) cls += ' breachwarn';
-    if (beamLanes.has(l)) cls += ' beamwarn';
     cell.className = cls;
 
     let marker = c === COLS - 1 && spawnLanes[l]
@@ -15425,9 +15463,17 @@ function render() {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.15';
+const VERSION = '2.16';
 
 const PATCH_NOTES = [
+  {
+    v: '2.16',
+    notes: [
+      'Lumenspire has a new heart, and it used to be a person. SUBJECT ONE — the research division\'s volunteer, spliced with hive DNA — holds the spire now. Whole, it walks at your line the way something heavy does and strikes everything within arm\'s reach when it arrives, screaming the dead of Meridian up as it comes.',
+      'At half hull, THE SPLICE COMES APART. The human half runs — all the way to the deep board, and every turn it knits the hive half back together. The hive half hunts. You will work out quickly that shooting the one that runs is the efficient play. The game will not pretend otherwise, and neither will the hive half: put the human half down and there is nothing holding it back anymore.',
+      'The Aperture has been decommissioned and its lens crated for study — somewhere, something that was learning from the spire\'s transmissions is still listening, and this is not the last the war has seen of that design.',
+    ],
+  },
   {
     v: '2.15',
     notes: [

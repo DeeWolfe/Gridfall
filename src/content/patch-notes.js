@@ -4,9 +4,17 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.15';
+export const VERSION = '2.16';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.16',
+    notes: [
+      'Lumenspire has a new heart, and it used to be a person. SUBJECT ONE — the research division\'s volunteer, spliced with hive DNA — holds the spire now. Whole, it walks at your line the way something heavy does and strikes everything within arm\'s reach when it arrives, screaming the dead of Meridian up as it comes.',
+      'At half hull, THE SPLICE COMES APART. The human half runs — all the way to the deep board, and every turn it knits the hive half back together. The hive half hunts. You will work out quickly that shooting the one that runs is the efficient play. The game will not pretend otherwise, and neither will the hive half: put the human half down and there is nothing holding it back anymore.',
+      'The Aperture has been decommissioned and its lens crated for study — somewhere, something that was learning from the spire\'s transmissions is still listening, and this is not the last the war has seen of that design.',
+    ],
+  },
   {
     v: '2.15',
     notes: [

@@ -60,7 +60,7 @@ export function seedBoss() {
   const cells = [];
   for (let l = d.l; l < d.l + d.h; l++) for (let c = d.c; c < d.c + d.w; c++) cells.push([l, c]);
   G.boss = {k, phase: 1, shield: d.shield || 0, turns: 0, marks: [],
-    beam: null, under: false, charge: 0, grace: 0,
+    under: false, charge: 0, grace: 0,
     bodies: [{id: 1, hp: d.hp, max: d.hp, cells, dir: 1}], nextBody: 2};
   G.bossDown = false;
   addBodyProxies(G.boss.bodies[0]);
@@ -139,7 +139,7 @@ function phaseFlip() {
   clog(`<span class="d">${def.bt}</span> — ${def.p2}.`, 'loss');
   if (B.k === 'brood') broodSplit(def);
   if (B.k === 'prism') prismShatter(def);
-  if (B.k === 'aperture') apertureUnbind();
+  if (B.k === 'subject') subjectSplit();
   hooks.notify(`⚠ ${def.bt}`, def.bb);
 }
 
@@ -373,97 +373,143 @@ function prismTick() {
   if (grew) clog('<span class="d">The fragments grow</span> — crystal knitting back along its planes.', 'info');
 }
 
-// --- The Aperture: a telegraphed lane beam — until it leaves the lens ---
+// --- SUBJECT ONE: whole, it walks at your line; divided, it comes apart ---
 
-/** The flip: the lens shatters and the hybrid inside contracts to one cell.
- * The beam dies with the housing; the fight becomes a hunt next turn. */
-function apertureUnbind() {
-  const B = G.boss;
-  const body = B.bodies[0];
-  if (!body) return;
-  const mid = body.cells[Math.floor(body.cells.length / 2)];
-  removeBodyProxies(body);
-  body.cells = [mid];
-  addBodyProxies(body);
-  B.beam = null;
-  B.grace = 1;
-  clog('<span class="d">The light dies in the housing</span> — something climbs out of the wreck.', 'loss');
-}
-
-/** Unbound: close on the nearest soldier, then claw the weakest in reach. */
-function apertureStalk(def) {
-  const B = G.boss;
-  const body = B.bodies[0];
-  if (!body) return;
-  for (let s = 0; s < def.stalkMv; s++) {
-    const [l, c] = body.cells[0];
-    const tgt = [...G.units].sort((a, b) =>
-      (Math.abs(a.lane - l) + Math.abs(a.col - c)) - (Math.abs(b.lane - l) + Math.abs(b.col - c)) ||
-      a.uid - b.uid)[0];
-    if (!tgt || Math.abs(tgt.lane - l) + Math.abs(tgt.col - c) <= 1) break;
-    const dl = Math.sign(tgt.lane - l);
-    const dc = Math.sign(tgt.col - c);
-    // Close the wider gap first; sidestep along the other axis when blocked.
-    const steps = Math.abs(tgt.col - c) >= Math.abs(tgt.lane - l)
-      ? [[l, c + dc], [l + dl, c]] : [[l + dl, c], [l, c + dc]];
-    const next = steps.find(([nl, nc]) => nl >= 0 && nl < LANES && nc >= 0 && nc < COLS &&
-      G.ter[nl][nc] !== 'x' && !unitAt(nl, nc) && !foeAt(nl, nc) && !civAt(nl, nc));
-    if (!next) break;
-    moveBody(body, [next], BEST[B.k].n);
-  }
+/** One free step for a 1-cell body. `away` flees the nearest soldier;
+ * otherwise the step closes on them, wider axis first. */
+function stepBody(body, away) {
   const [l, c] = body.cells[0];
-  const prey = G.units.filter(u => Math.abs(u.lane - l) + Math.abs(u.col - c) === 1)
-    .sort((a, b) => a.hp - b.hp || a.uid - b.uid)[0];
-  if (prey) {
-    dmgUnit(prey, def.clawDmg, 'The Aperture');
-    clog(`<span class="d">The Aperture</span> claws ${prey.n} — it goes for the wounded first.`, 'loss');
-  } else {
-    clog('<span style="color:var(--violet)">The Aperture stalks</span> — it is closing on your line.', 'info');
+  const near = [...G.units].sort((a, b) =>
+    (Math.abs(a.lane - l) + Math.abs(a.col - c)) - (Math.abs(b.lane - l) + Math.abs(b.col - c)) ||
+    a.uid - b.uid)[0];
+  if (!near) return false;
+  const free = ([nl, nc]) => nl >= 0 && nl < LANES && nc >= 0 && nc < COLS &&
+    G.ter[nl][nc] !== 'x' && !unitAt(nl, nc) && !foeAt(nl, nc) && !civAt(nl, nc);
+  const distTo = ([nl, nc]) => Math.abs(near.lane - nl) + Math.abs(near.col - nc);
+  if (away) {
+    const cand = [[l - 1, c], [l + 1, c], [l, c - 1], [l, c + 1]].filter(free)
+      .sort((a, b) => distTo(b) - distTo(a) || b[1] - a[1] || a[0] - b[0])[0];
+    if (!cand || distTo(cand) <= distTo([l, c])) return false;
+    moveBody(body, [cand], BEST[G.boss.k].n);
+    return true;
   }
+  if (distTo([l, c]) <= 1) return false;
+  const dl = Math.sign(near.lane - l);
+  const dc = Math.sign(near.col - c);
+  const steps = Math.abs(near.col - c) >= Math.abs(near.lane - l)
+    ? [[l, c + dc], [l + dl, c]] : [[l + dl, c], [l, c + dc]];
+  const next = steps.find(free);
+  if (!next) return false;
+  moveBody(body, [next], BEST[G.boss.k].n);
+  return true;
 }
 
-function apertureTick(def) {
+/** The flip: the splice tears in two. The human half bolts for open ground
+ * away from your line; the hive half stands where the body stood. */
+function subjectSplit() {
+  const B = G.boss;
+  const main = B.bodies[0];
+  if (!main) return;
+  const share = Math.max(1, Math.ceil(main.hp / 2));
+  const cells = [...main.cells];
+  removeBodyProxies(main);
+  // The hive half keeps the first cell of the old footprint...
+  main.cells = [cells[0]];
+  main.hp = share;
+  main.max = share;
+  main.role = 'hive';
+  addBodyProxies(main);
+  // ...and the human half surfaces as deep from your line as the board allows.
+  let placed = null;
+  for (let c = COLS - 1; c >= 0 && !placed; c--) {
+    for (let l = 0; l < LANES && !placed; l++) {
+      if (G.ter[l][c] === 'x' || unitAt(l, c) || foeAt(l, c) || civAt(l, c)) continue;
+      placed = [l, c];
+    }
+  }
+  if (!placed) placed = cells[1] || cells[0];
+  const human = {id: B.nextBody++, hp: share, max: share, cells: [placed], dir: 1, role: 'human'};
+  B.bodies.push(human);
+  addBodyProxies(human);
+  G.ter[placed[0]][placed[1]] = 'e';
+  clog('<span class="d">The human half runs</span> — and the hive half watches you instead.', 'loss');
+}
+
+function subjectTick(def) {
   const B = G.boss;
 
-  // Unbound: one scripted human beat right after the flip, then the hunt.
-  if (B.phase === 2) {
-    if (B.grace) {
-      B.grace = 0;
-      clog('<span style="color:var(--gold)">It does not attack.</span> It stands where the lens was and looks at its hands.', 'info');
-      return;
+  if (B.phase === 1) {
+    // Whole: the footprint walks one cell at your line, crushing what it
+    // covers, then strikes everything within arm's reach.
+    const body = B.bodies[0];
+    if (!body) return;
+    const cellsOf = b => b.cells;
+    const near = [...G.units].sort((a, b) => {
+      const da = Math.min(...cellsOf(body).map(([l, c]) => Math.abs(a.lane - l) + Math.abs(a.col - c)));
+      const db = Math.min(...cellsOf(body).map(([l, c]) => Math.abs(b.lane - l) + Math.abs(b.col - c)));
+      return da - db || a.uid - b.uid;
+    })[0];
+    if (near) {
+      const [al, ac] = body.cells[0];
+      const dl = Math.sign(near.lane - al);
+      const dc = Math.sign(near.col - ac);
+      const shifts = Math.abs(near.col - ac) >= Math.abs(near.lane - al)
+        ? [[0, dc], [dl, 0]] : [[dl, 0], [0, dc]];
+      // It walks up TO your line, never over it — the strike is the threat,
+      // not a free crush. Cells it already covers don't block its own shift.
+      const own = new Set(body.cells.map(([l, c]) => l + ',' + c));
+      for (const [sl, sc] of shifts) {
+        if (!sl && !sc) continue;
+        const moved = body.cells.map(([l, c]) => [l + sl, c + sc]);
+        if (moved.some(([l, c]) => l < 0 || l >= LANES || c < 0 || c >= COLS || G.ter[l][c] === 'x' ||
+          (!own.has(l + ',' + c) && (unitAt(l, c) || foeAt(l, c) || civAt(l, c))))) continue;
+        moveBody(body, moved, BEST[B.k].n);
+        clog('<span style="color:var(--violet)">Subject One walks</span> — it is coming to your line.', 'info');
+        break;
+      }
     }
-    apertureStalk(def);
-    if (B.turns % def.addEvery === 0) {
-      const made = summonAdds(def.add, 1);
-      if (made) clog(`It screams — the dead of Meridian answer. A ${BEST[def.add].n} stands back up.`, 'wave');
+    const own = new Set(body.cells.map(([l, c]) => l + ',' + c));
+    const adj = new Set();
+    body.cells.forEach(([l, c]) => [[l - 1, c], [l + 1, c], [l, c - 1], [l, c + 1]]
+      .forEach(([al2, ac2]) => {
+        if (al2 < 0 || al2 >= LANES || ac2 < 0 || ac2 >= COLS) return;
+        if (!own.has(al2 + ',' + ac2)) adj.add(al2 + ',' + ac2);
+      }));
+    const struck = G.units.filter(u => adj.has(u.lane + ',' + u.col));
+    struck.forEach(u => dmgUnit(u, def.strikeDmg, 'Subject One'));
+    if (struck.length) clog(`<span class="d">Subject One strikes</span> — ${struck.length} unit${struck.length > 1 ? 's' : ''} within arm's reach.`, 'loss');
+  } else {
+    const hive = B.bodies.find(b => b.role === 'hive');
+    const human = B.bodies.find(b => b.role === 'human');
+
+    // The human half flees your line — and knits the hive half back together.
+    if (human) {
+      for (let i = 0; i < def.fleeMv; i++) if (!stepBody(human, true)) break;
+      if (hive && hive.hp < hive.max) {
+        hive.hp = Math.min(hive.max, hive.hp + def.mendN);
+        setBodyHp(hive);
+        clog(`<span class="d">The human half will not let it die</span> — ${def.mendN} hull knit back into the hive half.`, 'info');
+      }
     }
-    return;
+
+    // The hive half hunts — harder, once there is no one left to hold it back.
+    if (hive) {
+      const rage = human ? 0 : 1;
+      for (let i = 0; i < def.huntMv + rage; i++) if (!stepBody(hive, false)) break;
+      const [l, c] = hive.cells[0];
+      const prey = G.units.filter(u => Math.abs(u.lane - l) + Math.abs(u.col - c) === 1)
+        .sort((a, b) => a.hp - b.hp || a.uid - b.uid)[0];
+      if (prey) {
+        dmgUnit(prey, def.clawDmg + rage, 'Subject One');
+        clog(`<span class="d">The hive half claws ${prey.n}</span>${rage ? " — there is nothing holding it back now" : ''}.`, 'loss');
+      }
+    }
   }
 
-  // In the lens: yesterday's marked lane burns first.
-  if (B.beam) {
-    const caught = G.units.filter(u => u.lane === B.beam.lane);
-    caught.forEach(u => dmgUnit(u, def.beamDmg, 'The Aperture'));
-    clog(`<span class="d">The beam fires</span> — lane ${B.beam.lane + 1} burns` +
-      `${caught.length ? ` — ${caught.length} unit${caught.length > 1 ? 's' : ''} caught in the light` : ''}.`,
-      caught.length ? 'loss' : 'info');
-  }
-
-  // The sweep is mechanical on purpose: one lane over, reversing at the
-  // edges, announced a full turn ahead. Predictable is the counterplay —
-  // the player who reads the light never eats it (unlike the Brood Mother's
-  // random marks, which are about coverage, not reading).
-  const prev = B.beam || {lane: B.bodies[0] ? B.bodies[0].cells[0][0] : 0, dir: 1};
-  let dir = prev.dir;
-  let lane = prev.lane + dir;
-  if (lane < 0 || lane >= LANES) { dir = -dir; lane = prev.lane + dir; }
-  B.beam = {lane, dir};
-  clog(`<span style="color:var(--gold)">The lens turns</span> — lane ${lane + 1} is lit. It burns next turn.`, 'info');
-
-  // The dead city answers it.
+  // What is left of the staff answer when it screams — in either phase.
   if (B.turns % def.addEvery === 0) {
     const made = summonAdds(def.add, 1);
-    if (made) clog(`<span class="d">The Aperture</span> raises the dead — a ${BEST[def.add].n} stands back up.`, 'wave');
+    if (made) clog(`It screams — a ${BEST[def.add].n} answers.`, 'wave');
   }
 }
 
@@ -636,8 +682,8 @@ export function bossTick() {
   if (B.k === 'gantry') gantryTick(def);
   if (B.k === 'brood') broodTick(def);
   if (B.k === 'prism') prismTick(def);
-  if (B.k === 'aperture') apertureTick(def);
   if (B.k === 'envoy') envoyTick(def);
+  if (B.k === 'subject') subjectTick(def);
   if (B.k === 'reliquary') reliquaryTick(def);
   if (B.k === 'pyreguard') pyreguardTick(def);
   if (B.k === 'rimeguard') rimeguardTick(def);

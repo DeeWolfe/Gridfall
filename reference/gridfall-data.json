@@ -7,7 +7,7 @@
   "GROUND_FLOOR": 6,
   "HAND_CAP": 6,
   "DECKSIZE": 12,
-  "SAVE_VERSION": 10,
+  "SAVE_VERSION": 11,
   "STARTER": [
    "scout",
    "rifle",
@@ -1362,17 +1362,6 @@
    "d": "A crystalline growth that has never attacked anything. It reflects a quarter of every hit back up the barrel that fired it, and it can wait longer than your clock can.",
    "counter": "Small hits reflect small — spread the work. At half hull it shatters into four growing fragments; kill them fast or watch them outgrow your guns."
   },
-  "aperture": {
-   "n": "The Aperture",
-   "t": "boss",
-   "boss": 1,
-   "hp": 42,
-   "dmg": 0,
-   "threat": 0,
-   "spd": 0,
-   "d": "What is left of a Lumenspire researcher, spliced with hive DNA and fused through the transmission lens — a human nervous system with an array for a body. It marks a lane of the grid and burns it a cycle later. Hurt it enough, and it tears itself out of the lens and hunts.",
-   "counter": "While it is in the lens, read the light: the marked lane burns next turn, in an ordered sweep that reverses at the edges. At half hull it leaves the lens, and the fight becomes a hunt — it stalks your nearest soldier and claws the wounded first. Keep arm's reach clear and kill it in the open."
-  },
   "envoy": {
    "n": "The Envoy",
    "t": "boss",
@@ -1470,6 +1459,17 @@
    "spd": 0,
    "d": "The southern delegation's Frame, rooted where the burrowers first came up. It stopped walking weeks ago; the ground moves for it — crystal breaches marked a full turn before they erupt.",
    "counter": "The Brood Mother's rule: a soldier standing on the mark smothers it, and nothing surfaces. Occupation is a choice. It is usually the right one."
+  },
+  "subject": {
+   "n": "Subject One",
+   "t": "boss",
+   "boss": 1,
+   "hp": 50,
+   "dmg": 0,
+   "threat": 0,
+   "spd": 0,
+   "d": "The Lumenspire division's last project — a volunteer researcher spliced with hive DNA. It walks at your line the way something heavy does, strikes everything in arm's reach when it arrives, and the splice holding it together is not stable.",
+   "counter": "Keep your soldiers spread while it is whole — it crushes what it walks over and hits everything beside it. When the splice comes apart, choose fast: the human half flees and knits the hive half back together every turn. Stopping the mending means shooting the one that runs — and the hive half gets worse the moment you do."
   }
  },
  "leads": {
@@ -2958,85 +2958,6 @@
     "go": "Close channel"
    }
   },
-  "aperture": {
-   "op": "lumenspire",
-   "hp": 42,
-   "w": 1,
-   "h": 3,
-   "l": 1,
-   "c": 6,
-   "turns": 18,
-   "beamDmg": 4,
-   "add": "husk",
-   "addEvery": 2,
-   "p1": "In the lens — one lane marked, burning next turn",
-   "p2": "Unbound — it hunts your nearest soldier, two steps a turn",
-   "bt": "IT LEAVES THE LENS",
-   "bb": "The lens shatters from the inside. What steps out of the wreckage was a researcher once — and it remembers how to run.",
-   "brief": {
-    "freq": "141.92",
-    "net": "残心ネット",
-    "cap": "Kill Order · Priority target briefing",
-    "from": {
-     "n": "Hikaru",
-     "r": "CC Liaison"
-    },
-    "beats": [
-     {
-      "say": [
-       "Commander. The Lumenspire research division was working on focused-energy transmission when Meridian City fell. The spire is still transmitting — but not to anywhere on our grid.",
-       "Something is using the array as a body. We are designating it: THE APERTURE."
-      ],
-      "reply": "Using it how?"
-     },
-     {
-      "say": [
-       "It burns a full lane of the grid at a time. The one mercy: the targeting is mechanical — it locks its firing line a full cycle before it fires, and it sweeps in order.",
-       "Read the light, Commander. The lane it marks is the lane it burns. Do not be standing in it when it does."
-      ],
-      "reply": "And the researchers?"
-     },
-     {
-      "say": [
-       "The dorms went dark before your descent window opened. I'm sorry, Commander. The families have already been told.",
-       "There is one more thing, and you will not like it. The probes pulled a tissue return off the lens housing. It reads HUMAN — spliced through with hive DNA. One of the researchers made it out of the dorms, Commander. Into the machine."
-      ],
-      "reply": "...Understood. Out."
-     }
-    ],
-    "close": "Channel closed. Target designate: THE APERTURE. Read the light.",
-    "go": "Begin descent"
-   },
-   "debrief": {
-    "freq": "141.92",
-    "net": "残心ネット",
-    "cap": "After-action · CC uplink",
-    "from": {
-     "n": "Hikaru",
-     "r": "CC Liaison"
-    },
-    "beats": [
-     {
-      "say": [
-       "Confirmed kill, Commander. The spire is dark for the first time in six months.",
-       "The lab data fills in the rest. The division's last project was not the lens — it was surviving the lens. Hive DNA spliced into a volunteer, so a human mind could fuse with the array and aim it. The hive did not build the Aperture, Commander. We started it. The hive only finished."
-      ],
-      "reply": "Does the family get told?"
-     },
-     {
-      "say": [
-       "That decision is above both of us, and I am glad of it.",
-       "One loose end: the spire transmitted continuously, right up until your kill — and we cannot find the receiver. Somewhere in the system, something now knows how to build that lens, and what to put inside it. Stay sharp, Commander."
-      ],
-      "reply": "Acknowledged. Out."
-     }
-    ],
-    "close": "Channel closed. Receiver location: UNKNOWN.",
-    "go": "Close channel"
-   },
-   "stalkMv": 2,
-   "clawDmg": 3
-  },
   "envoy": {
    "op": "crownring",
    "hp": 38,
@@ -3346,6 +3267,87 @@
     ],
     "close": "Channel closed. Fourth guard: THE SHARDGUARD. Stand on the marks.",
     "go": "Begin descent"
+   }
+  },
+  "subject": {
+   "op": "lumenspire",
+   "hp": 50,
+   "w": 2,
+   "h": 2,
+   "l": 1,
+   "c": 5,
+   "turns": 18,
+   "strikeDmg": 2,
+   "huntMv": 2,
+   "clawDmg": 3,
+   "fleeMv": 2,
+   "mendN": 3,
+   "add": "husk",
+   "addEvery": 3,
+   "p1": "Whole — it walks at your line and strikes what it reaches",
+   "p2": "Divided — the human half flees and mends; the hive half hunts",
+   "bt": "THE SPLICE COMES APART",
+   "bb": "Two silhouettes stand up out of one. One of them runs. The other one looks at you.",
+   "brief": {
+    "freq": "141.92",
+    "net": "残心ネット",
+    "cap": "Kill Order · Priority target briefing",
+    "from": {
+     "n": "Hikaru",
+     "r": "CC Liaison"
+    },
+    "beats": [
+     {
+      "say": [
+       "Commander. We have the division's last logs now, and the thing holding the spire is in them. Project designation: SUBJECT ONE. A volunteer — one of their own researchers, spliced with hive DNA. The division was trying to build a human the hive could not read.",
+       "Whatever they made instead is standing in the atrium, and it is neither."
+      ],
+      "reply": "How does it fight?"
+     },
+     {
+      "say": [
+       "It walks at your line — slowly, the way something heavy does — and everything within arm's reach when it arrives goes down. What is left of the staff answer when it screams.",
+       "And Commander... the scans say the splice is not stable. Hurt it enough, and our modeling stops agreeing on what happens next."
+      ],
+      "reply": "Then I'll find out for you."
+     },
+     {
+      "say": [
+       "One more thing. The volunteer's name is in these logs. I have not read it aloud, and I am not going to.",
+       "Eighteen cycles. Bring it peace, Commander."
+      ],
+      "reply": "Understood. Out."
+     }
+    ],
+    "close": "Channel closed. Target designate: SUBJECT ONE. The atrium is waiting.",
+    "go": "Begin descent"
+   },
+   "debrief": {
+    "freq": "141.92",
+    "net": "残心ネット",
+    "cap": "After-action · CC uplink",
+    "from": {
+     "n": "Hikaru",
+     "r": "CC Liaison"
+    },
+    "beats": [
+     {
+      "say": [
+       "It is done, Commander. Both halves confirmed down.",
+       "The recovery team says the two pieces fell within sight of each other — and the human half was still reaching toward the other when it stopped. I am telling you plainly because you will hear it anyway, and you deserve better than a rumor."
+      ],
+      "reply": "Did the splice fail, or did it work?"
+     },
+     {
+      "say": [
+       "Central's answer: it worked twice. A body the hive could not read — and a body we could not keep. The research is sealed under the same order as Shallow Helm's chapels.",
+       "The volunteer's family will be told they died in the evacuation. One for the many keeps a cost ledger, Commander. Today you carried it. Get some rest."
+      ],
+      "reply": "Zanshin still stands. Out."
+     }
+    ],
+    "close": "Channel closed. Lumenspire research: SEALED.",
+    "go": "Close channel"
    }
   }
  }

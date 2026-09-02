@@ -4011,6 +4011,141 @@ turn, two after the flip). Everything needed to restore it verbatim:
 }
 ```
 
+## v2.16 — SUBJECT ONE takes Lumenspire; THE APERTURE goes on the shelf
+
+User: "shelf aperture and create a new boss based on the human and DNA
+hybrid." Chose "the splice comes apart" from three offered hybrids
+(over copy-your-soldiers and infection designs — both still good seeds).
+
+- **SUBJECT ONE** (key 'subject', hp 50, 2×2, turns 18): the division's
+  volunteer. Whole: walks its footprint one cell toward the nearest
+  soldier each turn (never onto occupied cells — an early cut crushed
+  the adjacent soldier every turn, an unintended instakill; now the
+  strike is the threat) and hits everything orthogonally adjacent for
+  strikeDmg 2; husk scream every addEvery 3.
+- **THE SPLICE COMES APART** (half hull): two 1-cell halves, each with
+  `role` on the body ('human'/'hive'), each ceil(remaining/2) hull. The
+  human half spawns at the deepest free cell and FLEES (fleeMv 2, steps
+  that maximize distance) while mending the hive half mendN 3/turn; the
+  hive half hunts (huntMv 2) and claws the weakest adjacent for
+  clawDmg 3. Kill the human half first and the mending stops — but the
+  hive half enrages: +1 step, +1 claw. Both must die.
+- Engine: shared `stepBody(body, away)` for 1-cell chase/flee steps;
+  `beam`/aperture fields dropped from G.boss seed; beamwarn CSS and
+  board telegraph removed with the Aperture.
+- Balance: 37% at hp 56 (clock losses chasing halves) → hp 50 → 52%
+  at n=60.
+- SAVE_VERSION 11 strips 'aperture' bestiary unlocks; the Lumenspire
+  map is untouched so stored runs survive.
+- Codec brief/debrief drafted in the established voice (the volunteer's
+  unread name; "it worked twice"; research sealed) — user proofreads.
+
+### SHELVED FOR LATER: THE APERTURE — full design archive
+
+The lens boss, fully built and tuned twice (43% as the fan design,
+45% as the leave-the-lens design at n=60). Pulled at the user's request
+in favor of a more creature-forward hybrid; candidate futures: the
+receiver of the spire's transmissions builds another lens somewhere
+else, or an Onslaught spike. Its p1 beam telegraph needs the beamwarn
+CSS + drawBoard lane wash back (removed this patch, trivial); its p2
+stalk logic now exists generically as stepBody(). Restore verbatim
+from:
+
+```json
+{
+ "bossdef": {
+  "op": "lumenspire",
+  "hp": 42,
+  "w": 1,
+  "h": 3,
+  "l": 1,
+  "c": 6,
+  "turns": 18,
+  "beamDmg": 4,
+  "add": "husk",
+  "addEvery": 2,
+  "p1": "In the lens — one lane marked, burning next turn",
+  "p2": "Unbound — it hunts your nearest soldier, two steps a turn",
+  "bt": "IT LEAVES THE LENS",
+  "bb": "The lens shatters from the inside. What steps out of the wreckage was a researcher once — and it remembers how to run.",
+  "brief": {
+   "freq": "141.92",
+   "net": "残心ネット",
+   "cap": "Kill Order · Priority target briefing",
+   "from": {
+    "n": "Hikaru",
+    "r": "CC Liaison"
+   },
+   "beats": [
+    {
+     "say": [
+      "Commander. The Lumenspire research division was working on focused-energy transmission when Meridian City fell. The spire is still transmitting — but not to anywhere on our grid.",
+      "Something is using the array as a body. We are designating it: THE APERTURE."
+     ],
+     "reply": "Using it how?"
+    },
+    {
+     "say": [
+      "It burns a full lane of the grid at a time. The one mercy: the targeting is mechanical — it locks its firing line a full cycle before it fires, and it sweeps in order.",
+      "Read the light, Commander. The lane it marks is the lane it burns. Do not be standing in it when it does."
+     ],
+     "reply": "And the researchers?"
+    },
+    {
+     "say": [
+      "The dorms went dark before your descent window opened. I'm sorry, Commander. The families have already been told.",
+      "There is one more thing, and you will not like it. The probes pulled a tissue return off the lens housing. It reads HUMAN — spliced through with hive DNA. One of the researchers made it out of the dorms, Commander. Into the machine."
+     ],
+     "reply": "...Understood. Out."
+    }
+   ],
+   "close": "Channel closed. Target designate: THE APERTURE. Read the light.",
+   "go": "Begin descent"
+  },
+  "debrief": {
+   "freq": "141.92",
+   "net": "残心ネット",
+   "cap": "After-action · CC uplink",
+   "from": {
+    "n": "Hikaru",
+    "r": "CC Liaison"
+   },
+   "beats": [
+    {
+     "say": [
+      "Confirmed kill, Commander. The spire is dark for the first time in six months.",
+      "The lab data fills in the rest. The division's last project was not the lens — it was surviving the lens. Hive DNA spliced into a volunteer, so a human mind could fuse with the array and aim it. The hive did not build the Aperture, Commander. We started it. The hive only finished."
+     ],
+     "reply": "Does the family get told?"
+    },
+    {
+     "say": [
+      "That decision is above both of us, and I am glad of it.",
+      "One loose end: the spire transmitted continuously, right up until your kill — and we cannot find the receiver. Somewhere in the system, something now knows how to build that lens, and what to put inside it. Stay sharp, Commander."
+     ],
+     "reply": "Acknowledged. Out."
+    }
+   ],
+   "close": "Channel closed. Receiver location: UNKNOWN.",
+   "go": "Close channel"
+  },
+  "stalkMv": 2,
+  "clawDmg": 3
+ },
+ "hostile": {
+  "n": "The Aperture",
+  "t": "boss",
+  "boss": 1,
+  "hp": 42,
+  "dmg": 0,
+  "threat": 0,
+  "spd": 0,
+  "d": "What is left of a Lumenspire researcher, spliced with hive DNA and fused through the transmission lens — a human nervous system with an array for a body. It marks a lane of the grid and burns it a cycle later. Hurt it enough, and it tears itself out of the lens and hunts.",
+  "counter": "While it is in the lens, read the light: the marked lane burns next turn, in an ordered sweep that reverses at the edges. At half hull it leaves the lens, and the fight becomes a hunt — it stalks your nearest soldier and claws the wounded first. Keep arm's reach clear and kill it in the open."
+ }
+}
+```
+
 ## Card backlog — the next pass
 
 Not built. Recorded here so the next card batch starts from a list rather than a

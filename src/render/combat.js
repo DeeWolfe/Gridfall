@@ -255,8 +255,6 @@ function drawSel() {
           ${G.boss.shield > 0 ? `<div><span>Field</span><b>${G.boss.shield}</b></div>` : ''}
           <div><span>Bodies</span><b>${G.boss.bodies.length}</b></div>
           <div><span>Footprint</span><b>${cells} cell${cells === 1 ? '' : 's'}</b></div>
-          ${G.boss.beam ? `<div><span>Beam</span><b>lane ${G.boss.beam.lane + 1} next</b></div>` : ''}
-          ${G.boss.k === 'aperture' && G.boss.phase === 2 ? `<div><span>Stalks</span><b>${def.stalkMv} cells a turn</b></div><div><span>Claw</span><b>${def.clawDmg} — wounded first</b></div>` : ''}
           ${def.diveEvery ? `<div><span>Dives</span><b>every ${p2cut(def.diveEvery)} turns</b></div>` : ''}
           ${G.boss.k === 'pyreguard' ? `<div><span>Marches</span><b>one lane a turn</b></div>` : ''}
           ${def.chargeEvery ? `<div><span>Purge</span><b>in ${purgeIn} turn${purgeIn === 1 ? '' : 's'}</b></div>` : ''}
@@ -350,7 +348,7 @@ const FOE_GLYPH = {
   spore: '✱', jammer: '⌁', pylon: '▣', harrower: '✠', mender: '✚',
   husk: '◍', screamer: '◉', chorus: '≋', sovereign: '♚', puppeteer: '☍',
   fabricant: '⚙', gantry: '☰', brood: '❉', prism: '◇',
-  aperture: '◎', envoy: '♔',
+  subject: '◐', envoy: '♔',
   zealot: '†', lector: '♰', choirwarden: '♪', reliquary: '⚱',
   pyreguard: '🜂', rimeguard: '🜄', stormguard: '🜁', shardguard: '🜃',
 };
@@ -430,15 +428,6 @@ export function drawBoard() {
     });
   }
 
-  // The Aperture's telegraphed beam: the lit lane burns next turn — phase
-  // two opens the fan to the adjacent lanes as well.
-  const beamLanes = new Set();
-  if (G.boss && G.boss.beam) {
-    const bl = G.boss.beam.lane;
-    (G.boss.phase === 2 ? [bl - 1, bl, bl + 1] : [bl])
-      .filter(x => x >= 0 && x < LANES).forEach(x => beamLanes.add(x));
-  }
-
   const board = $('board');
   board.style.gridTemplateColumns = `repeat(${COLS},1fr)`;
   board.innerHTML = '';
@@ -474,7 +463,6 @@ export function drawBoard() {
     // The Brood Mother's telegraphed breaches: marked this turn, erupting next.
     const breachWarn = G.boss && G.boss.marks.some(m => m.l === l && m.c === c);
     if (breachWarn) cls += ' breachwarn';
-    if (beamLanes.has(l)) cls += ' beamwarn';
     cell.className = cls;
 
     let marker = c === COLS - 1 && spawnLanes[l]

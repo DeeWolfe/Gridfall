@@ -149,6 +149,15 @@ export function migrate(p) {
     if (p.ops && p.ops.crownring) delete p.ops.crownring;
   }
 
+  // v11: the Aperture joins the Concord on the shelf — SUBJECT ONE holds
+  // Lumenspire now. The map itself is unchanged, so runs survive.
+  if (p.version < 11) {
+    p.version = 11;
+    if (p.unlocks && p.unlocks.enemies) {
+      p.unlocks.enemies = p.unlocks.enemies.filter(k => k !== 'aperture');
+    }
+  }
+
   p.unlocks = p.unlocks || {};
   p.unlocks.cards = p.unlocks.cards || [...STARTER];
   p.unlocks.enemies = p.unlocks.enemies || [];

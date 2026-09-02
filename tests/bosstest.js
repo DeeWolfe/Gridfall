@@ -265,62 +265,66 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
   console.log(`prism: 25% comes back past shields and can kill; ${d.fragments} fragments grow ${share}->${cap} and stop`);
 }
 
-// --- aperturetest: the beam telegraphs a turn ahead, sweeps in order, fans in phase two ---
+// --- subjecttest: whole it walks and strikes; divided, one flees and mends, one hunts ---
 {
   start('lumenspire');
-  const d = BOSSDEF.aperture;
-  // The first tick only marks — nothing burns without a standing telegraph.
-  A.bossTick();
-  if (!A.G.boss.beam) F.push('aperture never telegraphed a beam');
-  const first = A.G.boss.beam.lane;
-  if (first !== d.l + 1) F.push(`first mark on lane ${first}, wanted the sweep to start at ${d.l + 1}`);
+  const d = BOSSDEF.subject;
+  if (A.G.boss.k !== 'subject') F.push(`lumenspire seeded ${A.G.boss.k}, wanted Subject One`);
 
-  const lit = spawnUnit('rifle', first, 0, {hp: 10, max: 10, shield: 0});
-  const dark = spawnUnit('wall', (first + 3) % A.LANES, 0, {hp: 12, max: 12, shield: 0});
+  // Whole: it closes the gap toward the nearest soldier and strikes adjacency.
+  const far = spawnUnit('rifle', 4, 0, {hp: 20, max: 20, shield: 0});
+  const gap = () => Math.min(...A.G.boss.bodies[0].cells.map(([l, c]) =>
+    Math.abs(far.lane - l) + Math.abs(far.col - c)));
+  const g0 = gap();
   A.bossTick();
-  if (lit.hp !== 10 - d.beamDmg) F.push(`the lit lane took ${10 - lit.hp}, wanted ${d.beamDmg}`);
-  if (dark.hp !== 12) F.push('a lane the beam never marked burned anyway');
-  if (A.G.boss.beam.lane !== first + 1) F.push('the sweep is not one lane over per turn');
+  if (gap() >= g0) F.push('whole, it did not walk toward the nearest soldier');
+  if (proxies().length !== d.w * d.h) F.push('the whole body lost cells while walking');
 
-  // Ping-pong at the edge: ...3, 4, then back to 3 — never off the board.
-  while (A.G.boss.beam.lane < A.LANES - 1) A.bossTick();
-  A.bossTick();
-  if (A.G.boss.beam.lane !== A.LANES - 2) F.push('the sweep did not reverse at the board edge');
-
-  // The flip: the lens shatters, the body contracts to ONE cell, the beam
-  // dies with the housing — and the first unbound turn is the scripted
-  // human beat: it does nothing at all.
   A.G.units.length = 0;
+  const [bl, bc] = A.G.boss.bodies[0].cells[0];
+  const beside = spawnUnit('wall', bl, bc - 1, {hp: 20, max: 20, shield: 0});
+  const away = spawnUnit('marks', (bl + 3) % A.LANES, 0, {hp: 20, max: 20, shield: 0});
+  A.bossTick();
+  if (beside.hp >= 20) F.push('a soldier within arm\'s reach was not struck');
+  if (away.hp !== 20) F.push('the strike reached across the board');
+
+  // The flip: two one-cell halves with roles; the human half runs deep.
+  A.G.units.length = 0;
+  spawnUnit('rifle', 2, 0, {hp: 20, max: 20, shield: 0});
   hit(d.hp / 2 + 1);
-  if (A.G.boss.phase !== 2) F.push('aperture did not flip at half hull');
-  if (proxies().length !== 1) F.push(`unbound aperture stands on ${proxies().length} cells, wanted 1`);
-  if (A.G.boss.beam) F.push('the beam survived the lens');
-  const far = spawnUnit('rifle', 0, 0, {hp: 10, max: 10, shield: 0});
-  A.bossTick();                             // the grace beat
-  if (far.hp !== 10) F.push('it attacked during the grace beat');
-  const seat = () => A.G.boss.bodies[0].cells[0];
-  const dist = () => Math.abs(seat()[0] - far.lane) + Math.abs(seat()[1] - far.col);
-  const d0 = dist();
-  A.bossTick();                             // the hunt begins
-  if (dist() >= d0) F.push('unbound, it did not close on the nearest soldier');
-  if (dist() > Math.max(1, d0 - d.stalkMv)) F.push(`it closed ${d0 - dist()} cells, wanted ${d.stalkMv}`);
+  if (A.G.boss.phase !== 2) F.push('the splice did not come apart at half hull');
+  const human = A.G.boss.bodies.find(b => b.role === 'human');
+  const hive = A.G.boss.bodies.find(b => b.role === 'hive');
+  if (!human || !hive) F.push('the split did not leave a human half and a hive half');
+  if (A.G.boss.bodies.some(b => b.cells.length !== 1)) F.push('a split half kept more than one cell');
 
-  // The claw: adjacent, and it takes the weakest in reach.
+  // The human half flees and mends; the hive half hunts and claws.
+  hive.hp = Math.max(1, hive.hp - 5);
+  const hp0 = hive.hp;
+  const hunterGap = () => {
+    const u = A.G.units[0];
+    const [l, c] = hive.cells[0];
+    return Math.abs(u.lane - l) + Math.abs(u.col - c);
+  };
+  const hg0 = hunterGap();
+  A.bossTick();
+  if (hive.hp !== Math.min(hive.max, hp0 + d.mendN)) F.push('the human half did not mend the hive half');
+  if (hunterGap() >= hg0) F.push('the hive half did not hunt');
+
+  // Kill the human half: the mending stops and the hive half gets worse.
+  const humanProxy = proxies().find(e => e.body === human.id);
+  A.dmgEnemy(humanProxy, 999, 'test', true);
+  if (A.G.bossDown) F.push('one half down counted as the kill');
   A.G.units.length = 0;
-  const [bl, bc] = seat();
-  const tough = spawnUnit('wall', bl, bc - 1, {hp: 12, max: 12, shield: 0});
-  const weak = spawnUnit('rifle', bl - 1 >= 0 ? bl - 1 : bl + 1, bc, {hp: 6, max: 10, shield: 0});
+  const [hl, hc] = hive.cells[0];
+  const prey = spawnUnit('rifle', hl, hc - 1 >= 0 ? hc - 1 : hc + 1, {hp: 20, max: 20, shield: 0});
+  const hurt = hive.hp = Math.max(1, hive.hp - 3);
   A.bossTick();
-  if (weak.hp !== 6 - d.clawDmg) F.push(`the claw dealt ${6 - weak.hp} to the weakest, wanted ${d.clawDmg}`);
-  if (tough.hp !== 12) F.push('the claw hit more than one soldier');
-
-  // The dead city answers on the cadence, and it answers with husks.
-  start('lumenspire');
-  A.bossTick();
-  A.bossTick();
-  if (!adds().length) F.push('the aperture never raised the dead');
-  if (adds().some(e => e.k !== d.add)) F.push('the aperture raised something other than husks');
-  console.log(`aperture: marked lane burns for ${d.beamDmg} a turn later, ordered sweep; at half hull it leaves the lens, stands one grace beat, then hunts and claws the wounded for ${d.clawDmg}`);
+  if (hive.hp !== hurt) F.push('the hive half kept mending with the human half dead');
+  if (20 - prey.hp !== d.clawDmg + 1) F.push(`the enraged claw dealt ${20 - prey.hp}, wanted ${d.clawDmg + 1}`);
+  A.dmgEnemy(proxies().find(e => e.body === hive.id), 999, 'test', true);
+  if (!A.G.bossDown) F.push('both halves dead did not count as the kill');
+  console.log(`subject one: walks and strikes ${d.strikeDmg} whole; split leaves a fleeing mender (+${d.mendN}/turn) and a hunter that claws ${d.clawDmg} (+1 enraged)`);
 }
 
 // --- envoytest: censure by adjacency, the dive is untouchable, the surface brings the delegation ---
