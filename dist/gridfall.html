@@ -4056,7 +4056,7 @@ const BEST = {
     n: "The Gantry",
     t: "boss",
     boss: 1,
-    hp: 40,
+    hp: 30,
     dmg: 0,
     threat: 0,
     spd: 0,
@@ -4067,7 +4067,7 @@ const BEST = {
     n: "The Brood Mother",
     t: "boss",
     boss: 1,
-    hp: 34,
+    hp: 28,
     dmg: 0,
     threat: 0,
     spd: 0,
@@ -4078,7 +4078,7 @@ const BEST = {
     n: "The Prism",
     t: "boss",
     boss: 1,
-    hp: 70,
+    hp: 56,
     dmg: 0,
     threat: 0,
     spd: 0,
@@ -4089,7 +4089,7 @@ const BEST = {
     n: "The Envoy",
     t: "boss",
     boss: 1,
-    hp: 38,
+    hp: 24,
     dmg: 0,
     threat: 0,
     spd: 0,
@@ -4132,7 +4132,7 @@ const BEST = {
     n: "The Reliquary",
     t: "boss",
     boss: 1,
-    hp: 70,
+    hp: 60,
     dmg: 0,
     threat: 0,
     spd: 0,
@@ -4143,7 +4143,7 @@ const BEST = {
     n: "The Pyreguard",
     t: "boss",
     boss: 1,
-    hp: 42,
+    hp: 26,
     dmg: 0,
     threat: 0,
     spd: 0,
@@ -4154,7 +4154,7 @@ const BEST = {
     n: "The Rimeguard",
     t: "boss",
     boss: 1,
-    hp: 54,
+    hp: 42,
     dmg: 0,
     threat: 0,
     spd: 0,
@@ -4165,7 +4165,7 @@ const BEST = {
     n: "The Stormguard",
     t: "boss",
     boss: 1,
-    hp: 56,
+    hp: 38,
     dmg: 0,
     threat: 0,
     spd: 0,
@@ -4176,7 +4176,7 @@ const BEST = {
     n: "The Shardguard",
     t: "boss",
     boss: 1,
-    hp: 48,
+    hp: 36,
     dmg: 0,
     threat: 0,
     spd: 0,
@@ -4187,7 +4187,7 @@ const BEST = {
     n: "Subject One",
     t: "boss",
     boss: 1,
-    hp: 50,
+    hp: 34,
     dmg: 0,
     threat: 0,
     spd: 0,
@@ -4601,8 +4601,8 @@ function predictSpawns() {
 const BOSSDEF = {
   gantry: {
     op: "ironveil",
-    hp: 40,
-    shield: 30,
+    hp: 30,
+    shield: 20,
     w: 3,
     h: 2,
     l: 1,
@@ -4655,10 +4655,11 @@ const BOSSDEF = {
       close: "Channel closed. ZANSHIN PROTOCOL — active system-wide.",
       go: "Close channel",
     },
+    plate: 1,
   },
   brood: {
     op: "blackmarrow",
-    hp: 34,
+    hp: 28,
     w: 2,
     h: 2,
     l: 1,
@@ -4713,10 +4714,11 @@ const BOSSDEF = {
       close: "Channel closed. Sub-crust contacts: zero. For now.",
       go: "Close channel",
     },
+    plate: 1,
   },
   prism: {
     op: "sunderglass",
-    hp: 70,
+    hp: 56,
     w: 2,
     h: 3,
     l: 1,
@@ -4773,10 +4775,11 @@ const BOSSDEF = {
       close: "Channel closed. The glass fields are dark. The system is watching back.",
       go: "Close channel",
     },
+    plate: 0,
   },
   envoy: {
     op: "crownring",
-    hp: 38,
+    hp: 24,
     w: 2,
     h: 2,
     l: 1,
@@ -4830,10 +4833,11 @@ const BOSSDEF = {
       close: "Channel closed. The Concordat holds.",
       go: "Close channel",
     },
+    plate: 1,
   },
   reliquary: {
     op: "shallowhelm",
-    hp: 70,
+    hp: 60,
     w: 2,
     h: 2,
     l: 1,
@@ -4888,11 +4892,12 @@ const BOSSDEF = {
       go: "Close channel",
     },
     addN: 3,
+    plate: 1,
   },
   pyreguard: {
     op: "crownring",
     sub: 1,
-    hp: 42,
+    hp: 26,
     w: 2,
     h: 1,
     l: 2,
@@ -4919,11 +4924,12 @@ const BOSSDEF = {
       close: "Channel closed. First guard: THE PYREGUARD. Watch its road.",
       go: "Begin descent",
     },
+    plate: 1,
   },
   rimeguard: {
     op: "crownring",
     sub: 1,
-    hp: 54,
+    hp: 42,
     w: 2,
     h: 1,
     l: 2,
@@ -4951,11 +4957,12 @@ const BOSSDEF = {
       close: "Channel closed. Second guard: THE RIMEGUARD. Stagger your advance.",
       go: "Begin descent",
     },
+    plate: 1,
   },
   stormguard: {
     op: "crownring",
     sub: 1,
-    hp: 56,
+    hp: 38,
     w: 2,
     h: 1,
     l: 2,
@@ -4983,11 +4990,12 @@ const BOSSDEF = {
       close: "Channel closed. Third guard: THE STORMGUARD. Redundancy is armor.",
       go: "Begin descent",
     },
+    plate: 1,
   },
   shardguard: {
     op: "crownring",
     sub: 1,
-    hp: 48,
+    hp: 36,
     w: 2,
     h: 1,
     l: 2,
@@ -5014,10 +5022,11 @@ const BOSSDEF = {
       close: "Channel closed. Fourth guard: THE SHARDGUARD. Stand on the marks.",
       go: "Begin descent",
     },
+    plate: 1,
   },
   subject: {
     op: "lumenspire",
-    hp: 50,
+    hp: 34,
     w: 2,
     h: 2,
     l: 1,
@@ -5074,6 +5083,7 @@ const BOSSDEF = {
       close: "Channel closed. Lumenspire research: SEALED.",
       go: "Close channel",
     },
+    plate: 1,
   },
 };
 
@@ -6220,6 +6230,7 @@ function seedBoss() {
   cells.forEach(([l, c]) => { G.ter[l][c] = 'e'; });
   clog(`<span class="d">TARGET: ${BEST[k].n.toUpperCase()}</span> — ${d.hp} hull` +
     (d.shield ? ` behind a ${d.shield}-point containment field` : '') +
+    (d.plate ? `, plated — armor shrugs ${d.plate} off every hit` : '') +
     `. ${d.turns} turns on the clock.`, 'loss');
   clog(`<span style="color:var(--violet)">${d.p1}</span>`, 'info');
 }
@@ -6256,6 +6267,12 @@ function dmgBoss(e, d, src, attacker) {
     }
   }
   if (dealt > 0) {
+    // Plating: the hull shrugs a point off EVERY hit (minimum 1 through).
+    // Ten pings from massed small arms lose ten damage; two heavy shells
+    // lose two — the anti-swarm tax that makes big guns and area strikes
+    // the boss answer. The containment field above absorbs cleanly; only
+    // damage that reaches armor is taxed.
+    if (def.plate) dealt = Math.max(1, dealt - def.plate);
     body.hp -= dealt;
     setBodyHp(body);
     tapeEvent({type: 'hit', foe: true, lane: e.lane, col: e.col, amount: dealt, died: body.hp <= 0});
@@ -13645,6 +13662,7 @@ function drawSel() {
           ${G.boss.shield > 0 ? `<div><span>Field</span><b>${G.boss.shield}</b></div>` : ''}
           <div><span>Bodies</span><b>${G.boss.bodies.length}</b></div>
           <div><span>Footprint</span><b>${cells} cell${cells === 1 ? '' : 's'}</b></div>
+          ${def.plate ? `<div><span>Plating</span><b>−${def.plate} per hit</b></div>` : ''}
           ${def.diveEvery ? `<div><span>Dives</span><b>every ${p2cut(def.diveEvery)} turns</b></div>` : ''}
           ${G.boss.k === 'pyreguard' ? `<div><span>Marches</span><b>one lane a turn</b></div>` : ''}
           ${def.chargeEvery ? `<div><span>Purge</span><b>in ${purgeIn} turn${purgeIn === 1 ? '' : 's'}</b></div>` : ''}
@@ -15470,9 +15488,17 @@ function render() {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.16';
+const VERSION = '2.17';
 
 const PATCH_NOTES = [
+  {
+    v: '2.17',
+    notes: [
+      'Bosses are PLATED now. Every hit that reaches a boss\'s hull loses one point of damage — a minimum of one always lands, and the Gantry\'s containment field still absorbs cleanly. Ten pings from massed small arms lose ten damage; two heavy shells lose two. The arithmetic of flooding the board with cheap rifles and out-shooting the hull is over: heavy guns, area strikes and the Proto Frame line are the boss answer they were always meant to be.',
+      'The one exception is honest about itself: THE PRISM is crystal, not armor. It has no plating — it has reflection, and reflection was always its whole argument.',
+      'Every hull was re-sized for the new arithmetic, and every fight re-measured — hundreds of simulated Kill Orders per boss. The whole roster now sits meaningfully harder than before: a boss is a wall you bring the right tools to, not a health bar you rush. The intel drawer shows each machine\'s plating, and the target line announces it on descent.',
+    ],
+  },
   {
     v: '2.16',
     notes: [

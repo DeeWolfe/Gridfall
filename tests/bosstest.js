@@ -100,11 +100,12 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
   if (A.wave(3) === null || Object.keys(A.wave(3)).length) F.push('wave() is not empty mid-clock');
 
   // A 3x3 blast catches six covered cells: six hits into the same pool. The
-  // Gantry's field is 30, so one blast of 5 collapses it exactly — area
-  // weapons being the anti-boss answer is the whole design.
+  // Gantry's field is 20, so a blast of 5 collapses it in four cells and the
+  // last two land on hull through plating (5 - 1 each) — area weapons being
+  // the anti-boss answer is the whole design.
   A.blast(1, 6, 5, 'test');
   if (A.G.boss.shield !== 0) F.push(`blast left the field at ${A.G.boss.shield}, wanted 0`);
-  if (A.bossHp() !== d.hp) F.push('the blast leaked past the field into hull');
+  if (A.bossHp() !== d.hp - 8) F.push(`overkill landed ${d.hp - A.bossHp()} on hull, wanted 8 through plating`);
   if (A.G.boss.phase !== 2) F.push('shield collapse did not flip the phase');
 
   // Instant kills: the drop pod may not crush a boss.
@@ -118,10 +119,10 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
 
 // --- bossphase: exactly one flip, at the right trigger ---
 {
-  start('sunderglass');                    // the Prism: 70 hull, flips at 35
-  hit(34);
+  start('sunderglass');                    // the Prism: 56 hull, unplated (crystal
+  hit(27);                                 // reflects; it does not armor), flips at 28
   if (A.G.boss.phase !== 1) F.push('prism flipped above half hull');
-  hit(2);
+  hit(1);
   if (A.G.boss.phase !== 2) F.push('prism did not flip at half hull');
   const bodies = A.G.boss.bodies.length;
   hit(3);
@@ -246,7 +247,7 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
 
   // Shatter: four fragments in four lanes, growing one a turn to the cap.
   start('sunderglass');
-  hit(36);                                 // 70 -> 34, past half
+  hit(29);                                 // 56 -> 27, past half
   const d = BOSSDEF.prism;
   const share = Math.ceil(d.hp / 5);
   const cap = Math.floor(share * d.growCap);
@@ -444,6 +445,22 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
   A.bossTick();
   if (late.hp !== 10 - d.purgeDmg) F.push('phase two did not shorten the purge cycle to three');
   console.log(`reliquary: purge ${d.purgeDmg} spares held ground on a ${d.chargeEvery}-count, zealot acolytes, static seat`);
+}
+
+// --- plating: every hull hit loses one point, minimum one lands, shields absorb cleanly ---
+{
+  start('blackmarrow');                    // unshielded: hull takes the tax directly
+  const full = A.bossHp();
+  hit(5);
+  if (full - A.bossHp() !== 4) F.push(`a 5 hit landed ${full - A.bossHp()}, wanted 4 through plating`);
+  hit(1);
+  if (full - A.bossHp() !== 5) F.push('a 1 hit did not land its minimum 1');
+
+  start('ironveil');                       // shielded: the field absorbs untaxed
+  hit(5);
+  if (A.G.boss.shield !== BOSSDEF.gantry.shield - 5) F.push('plating taxed the containment field');
+  if (A.bossHp() !== BOSSDEF.gantry.hp) F.push('a shield-absorbed hit leaked into hull');
+  console.log('plating: 5 lands 4, 1 still lands 1, the field absorbs cleanly');
 }
 
 // --- the clock: running out of turns is a loss, the kill is the win ---

@@ -255,6 +255,7 @@ function drawSel() {
           ${G.boss.shield > 0 ? `<div><span>Field</span><b>${G.boss.shield}</b></div>` : ''}
           <div><span>Bodies</span><b>${G.boss.bodies.length}</b></div>
           <div><span>Footprint</span><b>${cells} cell${cells === 1 ? '' : 's'}</b></div>
+          ${def.plate ? `<div><span>Plating</span><b>−${def.plate} per hit</b></div>` : ''}
           ${def.diveEvery ? `<div><span>Dives</span><b>every ${p2cut(def.diveEvery)} turns</b></div>` : ''}
           ${G.boss.k === 'pyreguard' ? `<div><span>Marches</span><b>one lane a turn</b></div>` : ''}
           ${def.chargeEvery ? `<div><span>Purge</span><b>in ${purgeIn} turn${purgeIn === 1 ? '' : 's'}</b></div>` : ''}

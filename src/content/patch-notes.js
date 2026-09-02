@@ -4,9 +4,17 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.16';
+export const VERSION = '2.17';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.17',
+    notes: [
+      'Bosses are PLATED now. Every hit that reaches a boss\'s hull loses one point of damage — a minimum of one always lands, and the Gantry\'s containment field still absorbs cleanly. Ten pings from massed small arms lose ten damage; two heavy shells lose two. The arithmetic of flooding the board with cheap rifles and out-shooting the hull is over: heavy guns, area strikes and the Proto Frame line are the boss answer they were always meant to be.',
+      'The one exception is honest about itself: THE PRISM is crystal, not armor. It has no plating — it has reflection, and reflection was always its whole argument.',
+      'Every hull was re-sized for the new arithmetic, and every fight re-measured — hundreds of simulated Kill Orders per boss. The whole roster now sits meaningfully harder than before: a boss is a wall you bring the right tools to, not a health bar you rush. The intel drawer shows each machine\'s plating, and the target line announces it on descent.',
+    ],
+  },
   {
     v: '2.16',
     notes: [

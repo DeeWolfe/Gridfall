@@ -4146,6 +4146,38 @@ from:
 }
 ```
 
+## v2.17 — boss plating (the anti-swarm tax)
+
+User diagnosis, confirmed by the numbers: boss threat was flat per turn
+while player damage scales linearly with units fielded, so massing
+cheap guns trivialized every boss except the Prism (whose reflect
+scales with throughput — the proof case). Chose plating over raw
+hp/dmg buffs and over scaling retaliation.
+
+- **Mechanic**: `def.plate` (1 on every boss except prism: 0 — crystal
+  reflects, it does not armor). Applied in dmgBoss AFTER shield
+  absorption: `dealt = max(1, dealt - plate)`. Shields absorb untaxed
+  (the field is energy; the plating is under it). Reflect still reads
+  the RAW hit. Min 1 always lands.
+- **Why not the other levers**: raw hull/dmg lengthens fights against
+  the fixed 18-turn clock, which punishes small squads more than the
+  flood; scaling retaliation needs per-boss design + telegraphs (still
+  a good tier idea). Plating is one line and self-explaining.
+- **Re-tune** (bot floods, so bot rates crater hardest — the plating
+  pass deliberately lands the whole roster in a harder 35-48 band vs
+  the old 45-60): hulls cut to re-fit the taxed throughput. Final:
+  gantry 30 hull/shield 20 (38%), brood 28 (38%), prism 56 unplated
+  (42%), subject 34 (43%), envoy 24 (35%), pyreguard 26 (48%),
+  rimeguard 42 (43%), stormguard 38 (48%), shardguard 36 (45%),
+  reliquary 60 (40%). Journey: plating at old hulls gave 0-33% —
+  clock losses everywhere; two cut rounds + the prism/gantry special
+  cases got the band.
+- UI: seed log line "plated — armor shrugs N off every hit"; drawer
+  Plating row. New bosstest plating guard (5 lands 4, 1 lands 1,
+  shield absorbs untaxed); gantry blast + prism flip math re-derived.
+- TIERS NOTE: plate is now a per-boss data knob — Veteran/Zanshin can
+  raise it (plate 2 taxes even area blasts meaningfully).
+
 ## Card backlog — the next pass
 
 Not built. Recorded here so the next card batch starts from a list rather than a

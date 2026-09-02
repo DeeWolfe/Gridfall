@@ -1333,7 +1333,7 @@
    "n": "The Gantry",
    "t": "boss",
    "boss": 1,
-   "hp": 40,
+   "hp": 30,
    "dmg": 0,
    "threat": 0,
    "spd": 0,
@@ -1344,7 +1344,7 @@
    "n": "The Brood Mother",
    "t": "boss",
    "boss": 1,
-   "hp": 34,
+   "hp": 28,
    "dmg": 0,
    "threat": 0,
    "spd": 0,
@@ -1355,7 +1355,7 @@
    "n": "The Prism",
    "t": "boss",
    "boss": 1,
-   "hp": 70,
+   "hp": 56,
    "dmg": 0,
    "threat": 0,
    "spd": 0,
@@ -1366,7 +1366,7 @@
    "n": "The Envoy",
    "t": "boss",
    "boss": 1,
-   "hp": 38,
+   "hp": 24,
    "dmg": 0,
    "threat": 0,
    "spd": 0,
@@ -1409,7 +1409,7 @@
    "n": "The Reliquary",
    "t": "boss",
    "boss": 1,
-   "hp": 70,
+   "hp": 60,
    "dmg": 0,
    "threat": 0,
    "spd": 0,
@@ -1420,7 +1420,7 @@
    "n": "The Pyreguard",
    "t": "boss",
    "boss": 1,
-   "hp": 42,
+   "hp": 26,
    "dmg": 0,
    "threat": 0,
    "spd": 0,
@@ -1431,7 +1431,7 @@
    "n": "The Rimeguard",
    "t": "boss",
    "boss": 1,
-   "hp": 54,
+   "hp": 42,
    "dmg": 0,
    "threat": 0,
    "spd": 0,
@@ -1442,7 +1442,7 @@
    "n": "The Stormguard",
    "t": "boss",
    "boss": 1,
-   "hp": 56,
+   "hp": 38,
    "dmg": 0,
    "threat": 0,
    "spd": 0,
@@ -1453,7 +1453,7 @@
    "n": "The Shardguard",
    "t": "boss",
    "boss": 1,
-   "hp": 48,
+   "hp": 36,
    "dmg": 0,
    "threat": 0,
    "spd": 0,
@@ -1464,7 +1464,7 @@
    "n": "Subject One",
    "t": "boss",
    "boss": 1,
-   "hp": 50,
+   "hp": 34,
    "dmg": 0,
    "threat": 0,
    "spd": 0,
@@ -2710,8 +2710,8 @@
  "bosses": {
   "gantry": {
    "op": "ironveil",
-   "hp": 40,
-   "shield": 30,
+   "hp": 30,
+   "shield": 20,
    "w": 3,
    "h": 2,
    "l": 1,
@@ -2788,11 +2788,12 @@
     ],
     "close": "Channel closed. ZANSHIN PROTOCOL — active system-wide.",
     "go": "Close channel"
-   }
+   },
+   "plate": 1
   },
   "brood": {
    "op": "blackmarrow",
-   "hp": 34,
+   "hp": 28,
    "w": 2,
    "h": 2,
    "l": 1,
@@ -2873,11 +2874,12 @@
     ],
     "close": "Channel closed. Sub-crust contacts: zero. For now.",
     "go": "Close channel"
-   }
+   },
+   "plate": 1
   },
   "prism": {
    "op": "sunderglass",
-   "hp": 70,
+   "hp": 56,
    "w": 2,
    "h": 3,
    "l": 1,
@@ -2956,11 +2958,12 @@
     ],
     "close": "Channel closed. The glass fields are dark. The system is watching back.",
     "go": "Close channel"
-   }
+   },
+   "plate": 0
   },
   "envoy": {
    "op": "crownring",
-   "hp": 38,
+   "hp": 24,
    "w": 2,
    "h": 2,
    "l": 1,
@@ -3034,11 +3037,12 @@
     ],
     "close": "Channel closed. The Concordat holds.",
     "go": "Close channel"
-   }
+   },
+   "plate": 1
   },
   "reliquary": {
    "op": "shallowhelm",
-   "hp": 70,
+   "hp": 60,
    "w": 2,
    "h": 2,
    "l": 1,
@@ -3113,12 +3117,13 @@
     "close": "Channel closed. Fortress Shallow Helm: reclaimed.",
     "go": "Close channel"
    },
-   "addN": 3
+   "addN": 3,
+   "plate": 1
   },
   "pyreguard": {
    "op": "crownring",
    "sub": 1,
-   "hp": 42,
+   "hp": 26,
    "w": 2,
    "h": 1,
    "l": 2,
@@ -3150,12 +3155,13 @@
     ],
     "close": "Channel closed. First guard: THE PYREGUARD. Watch its road.",
     "go": "Begin descent"
-   }
+   },
+   "plate": 1
   },
   "rimeguard": {
    "op": "crownring",
    "sub": 1,
-   "hp": 54,
+   "hp": 42,
    "w": 2,
    "h": 1,
    "l": 2,
@@ -3188,12 +3194,13 @@
     ],
     "close": "Channel closed. Second guard: THE RIMEGUARD. Stagger your advance.",
     "go": "Begin descent"
-   }
+   },
+   "plate": 1
   },
   "stormguard": {
    "op": "crownring",
    "sub": 1,
-   "hp": 56,
+   "hp": 38,
    "w": 2,
    "h": 1,
    "l": 2,
@@ -3226,12 +3233,13 @@
     ],
     "close": "Channel closed. Third guard: THE STORMGUARD. Redundancy is armor.",
     "go": "Begin descent"
-   }
+   },
+   "plate": 1
   },
   "shardguard": {
    "op": "crownring",
    "sub": 1,
-   "hp": 48,
+   "hp": 36,
    "w": 2,
    "h": 1,
    "l": 2,
@@ -3267,11 +3275,12 @@
     ],
     "close": "Channel closed. Fourth guard: THE SHARDGUARD. Stand on the marks.",
     "go": "Begin descent"
-   }
+   },
+   "plate": 1
   },
   "subject": {
    "op": "lumenspire",
-   "hp": 50,
+   "hp": 34,
    "w": 2,
    "h": 2,
    "l": 1,
@@ -3348,7 +3357,8 @@
     ],
     "close": "Channel closed. Lumenspire research: SEALED.",
     "go": "Close channel"
-   }
+   },
+   "plate": 1
   }
  }
 }

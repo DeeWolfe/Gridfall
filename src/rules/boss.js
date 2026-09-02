@@ -67,6 +67,7 @@ export function seedBoss() {
   cells.forEach(([l, c]) => { G.ter[l][c] = 'e'; });
   clog(`<span class="d">TARGET: ${BEST[k].n.toUpperCase()}</span> — ${d.hp} hull` +
     (d.shield ? ` behind a ${d.shield}-point containment field` : '') +
+    (d.plate ? `, plated — armor shrugs ${d.plate} off every hit` : '') +
     `. ${d.turns} turns on the clock.`, 'loss');
   clog(`<span style="color:var(--violet)">${d.p1}</span>`, 'info');
 }
@@ -103,6 +104,12 @@ export function dmgBoss(e, d, src, attacker) {
     }
   }
   if (dealt > 0) {
+    // Plating: the hull shrugs a point off EVERY hit (minimum 1 through).
+    // Ten pings from massed small arms lose ten damage; two heavy shells
+    // lose two — the anti-swarm tax that makes big guns and area strikes
+    // the boss answer. The containment field above absorbs cleanly; only
+    // damage that reaches armor is taxed.
+    if (def.plate) dealt = Math.max(1, dealt - def.plate);
     body.hp -= dealt;
     setBodyHp(body);
     tapeEvent({type: 'hit', foe: true, lane: e.lane, col: e.col, amount: dealt, died: body.hp <= 0});
