@@ -11,7 +11,7 @@ import {MISSIONS} from '../content/missions.js';
 import {MODS} from '../content/modifiers.js';
 import {DOCTRINE} from '../content/doctrines.js';
 import {BOSSDEF} from '../content/bosses.js';
-import {bossHp, PIECE_GLYPH, PIECE_NAME} from '../rules/boss.js';
+import {bossHp, bossWarnCells, PIECE_GLYPH, PIECE_NAME} from '../rules/boss.js';
 import {TGNAME} from '../content/targeting-names.js';
 import {G, active, sel, mover, foeSel, replaying, stratSel, logOpen, abAim, setSel, setMover, setFoeSel, setStratSel, setLogOpen, setAbAim} from '../state/session.js';
 import {STRATAGEMS} from '../content/stratagems.js';
@@ -433,6 +433,9 @@ export function drawBoard() {
   // Piercing Thrust armed: the empty cells the frame may dash to.
   const pierceCells = new Set(abAim ? pierceTargets(abAim) : []);
 
+  // Ground the boss has promised to hit next turn.
+  const bossWarn = new Set(G.boss ? bossWarnCells() : []);
+
   // The spawn-marker contract, made visible. Blackout hides it entirely.
   const spawnLanes = {};
   if (G.mod !== 'blackout') {
@@ -476,6 +479,9 @@ export function drawBoard() {
     // The Brood Mother's telegraphed breaches: marked this turn, erupting next.
     const breachWarn = G.boss && G.boss.marks.some(m => m.l === l && m.c === c);
     if (breachWarn) cls += ' breachwarn';
+    // The boss's promised ground: the tendril's wound-up line, the lance's
+    // aimed squares, the parade's burning lane. Same contract as the marks.
+    if (bossWarn.has(i)) cls += ' bosswarn';
     cell.className = cls;
 
     let marker = c === COLS - 1 && spawnLanes[l]

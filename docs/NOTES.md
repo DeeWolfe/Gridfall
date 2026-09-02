@@ -4390,6 +4390,41 @@ deck has 14 turns of slack. Levers if the user calls it a wall: turns
 26→30, frameHp 12↓, or pawnHp down. Codec brief/debrief still describe
 the dive era — user-owned story text, flagged for their pen.
 
+## v2.23 — boss telegraphs on the board
+
+Bosses now honour the same promise contract as spawns and breaches: a
+threat is pre-rolled a turn ahead and drawn on the grid before it lands.
+
+**The plan.** `G.boss.plan` holds pre-rolled threats. broodTick lands
+`plan.lash` ({axis:'row'|'col', i}) then re-coils over current unit
+lines; prismTick lands `plan.jav` (array of [l,c] squares) then re-aims
+at unit squares. Both damage *whoever stands on the promised ground now*
+— vacate and the blow misses, exactly like a breach mark. Both log the
+wind-up ("The mass coils…", "The lance takes aim…") so the descent log
+carries the promise too.
+
+**bossWarnCells()** returns the promised cells (brood line, prism
+javelin squares, pyreguard's burning lane) and drawBoard paints them
+`.bosswarn` — a quiet striped magenta wash with a slow pulse, one z
+under breach marks so a hot breach still outranks a whole coiled column.
+
+**bossSelThreat(e)** answers foeThreatCells for boss proxies (forecast.js
+routes `e.boss` to it), per role: chess pieces show pieceMoves ground
+(prey = strike, reachable = threat), the king shows his 8-square censure,
+wall shards show the resonance ring in phase 2, the hive half shows storm
+ring or claw ring by phase, the charging human shows every chargeRuns
+path (refactored out of chargeBody so both read the same lines), pyre
+thrones and the pyreguard show their lanes, the reliquary shows the
+ground purge will burn. Selection preview and tick stay mirrored — the
+forecast.js discipline now extends to every boss.
+
+**Tests.** broodtest rewritten for aim-then-land (breach only on turn 1,
+lash on 2, vacate-misses guard), prism javelin test likewise (aim, land,
+square-not-soldier guard), plus preview guards: knight/king moves, human
+charge lines, pyreguard lane. Full suite + 6 randomized boss runs green;
+speed-kill floors unchanged (telegraphs shift *information*, not
+numbers).
+
 ## Card backlog — the next pass
 
 Not built. Recorded here so the next card batch starts from a list rather than a

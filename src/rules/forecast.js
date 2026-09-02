@@ -11,6 +11,7 @@ import {G} from '../state/session.js';
 import {unitAt, foeAt, civAt} from './board.js';
 import {dampenIn} from './combat.js';
 import {eventStrikeMalus} from './events.js';
+import {bossSelThreat} from './boss.js';
 
 /**
  * @returns {{hits: Object<string, number>, atk: Object<string, boolean>}}
@@ -110,6 +111,10 @@ export function enemyIntent(e) {
  * @returns {{strike:number[], threat:number[], infl:number[]}} cell indices
  */
 export function foeThreatCells(e) {
+  // A boss cell threatens what its script says, not what a bestiary damage
+  // number would — the machines answer in boss.js, beside the ticks they
+  // have to stay honest with.
+  if (e.boss) return bossSelThreat(e);
   const D = BEST[e.k];
   const strike = [];
   const threat = [];

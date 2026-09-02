@@ -59,7 +59,7 @@ export function seedBoss() {
   const d = BOSSDEF[k];
   const cells = [];
   for (let l = d.l; l < d.l + d.h; l++) for (let c = d.c; c < d.c + d.w; c++) cells.push([l, c]);
-  G.boss = {k, phase: 1, shield: d.shield || 0, turns: 0, marks: [],
+  G.boss = {k, phase: 1, shield: d.shield || 0, turns: 0, marks: [], plan: {},
     charge: 0, dealt: 0, sealed: false,
     bodies: [{id: 1, hp: d.hp, max: d.hp, cells, dir: 1}], nextBody: 2};
   G.bossDown = false;
@@ -397,23 +397,34 @@ function broodTick(def) {
     }
   });
 
-  // One tendril lash per turn — a whole ROW or a whole COLUMN, its pick, no
-  // warning. The breaches are what you plan around; the tendril is what you
-  // eat, and now no formation axis is safe from it.
+  // The tendril keeps the spawn-marker promise now: the line it will lash is
+  // wound up a full turn ahead (B.plan.lash) and drawn on the board, and the
+  // lash lands on exactly that line whether or not anyone is still standing
+  // in it. Read it, vacate it, or budget hull for it.
+  const lash = B.plan.lash;
+  if (lash) {
+    const hit = lash.axis === 'row'
+      ? G.units.filter(u => u.lane === lash.i)
+      : G.units.filter(u => u.col === lash.i);
+    hit.forEach(u => dmgUnit(u, def.tendrilDmg, 'Tendril lash'));
+    const where = lash.axis === 'row' ? `lane ${lash.i + 1}` : `column ${lash.i + 1}`;
+    clog(`<span class="d">Tendril</span> ${lash.axis === 'row' ? 'lashes' : 'sweeps'} ${where} — ` +
+      (hit.length ? `${hit.length} unit${hit.length > 1 ? 's' : ''} struck.` : 'the line was vacated.'),
+      hit.length ? 'loss' : 'info');
+  }
+  // Wind up the next lash over wherever your line stands NOW.
   if (G.units.length) {
     if (randInt(2) === 0) {
       const armed = [...new Set(G.units.map(u => u.lane))];
-      const l = armed[randInt(armed.length)];
-      const hit = G.units.filter(u => u.lane === l);
-      hit.forEach(u => dmgUnit(u, def.tendrilDmg, 'Tendril lash'));
-      clog(`<span class="d">Tendril</span> lashes lane ${l + 1} — ${hit.length} unit${hit.length > 1 ? 's' : ''} struck.`, 'loss');
+      B.plan.lash = {axis: 'row', i: armed[randInt(armed.length)]};
     } else {
       const armed = [...new Set(G.units.map(u => u.col))];
-      const c = armed[randInt(armed.length)];
-      const hit = G.units.filter(u => u.col === c);
-      hit.forEach(u => dmgUnit(u, def.tendrilDmg, 'Tendril lash'));
-      clog(`<span class="d">Tendril</span> sweeps column ${c + 1} — ${hit.length} unit${hit.length > 1 ? 's' : ''} struck.`, 'loss');
+      B.plan.lash = {axis: 'col', i: armed[randInt(armed.length)]};
     }
+    clog(`<span style="color:var(--violet)">The mass coils</span> — a tendril winds up over ` +
+      `${B.plan.lash.axis === 'row' ? 'lane' : 'column'} ${B.plan.lash.i + 1}. It lands next turn.`, 'info');
+  } else {
+    B.plan.lash = null;
   }
 
   // Tomorrow's breaches, telegraphed now — two per turn once it has split.
@@ -446,13 +457,49 @@ function prismTick(def) {
     });
     if (caught) clog(`<span class="d">The wall shards resonate</span> — ${caught} soldier${caught > 1 ? 's' : ''} caught beside the crystal.`, 'loss');
   }
-  // The lance fires from the deep field: crystal javelins, straight onto the
-  // squares your soldiers hold. Range is not its problem — the walls are yours.
+  // The lance fires from the deep field on the promise contract: it AIMS at
+  // the squares your soldiers hold, the aim is drawn on the board, and next
+  // turn the javelins land on those squares — on whoever is standing there
+  // then. A soldier who moves is missed; a soldier who moves IN is not.
   if (def.javDmg && B.phase === 2 && B.bodies.some(b => b.role === 'lance')) {
-    const struck = shuffle([...G.units]).slice(0, def.javN || 1);
-    struck.forEach(u => dmgUnit(u, def.javDmg, 'Prism javelin'));
-    if (struck.length) clog(`<span class="d">The deep shard fires</span> — crystal javelins into ${struck.length} soldier${struck.length > 1 ? 's' : ''}.`, 'loss');
+    const aimed = B.plan.jav || [];
+    let struck = 0;
+    aimed.forEach(([l, c]) => {
+      const u = unitAt(l, c);
+      if (u) { dmgUnit(u, def.javDmg, 'Prism javelin'); struck++; }
+    });
+    if (aimed.length) {
+      clog(`<span class="d">The deep shard fires</span> — ${aimed.length} javelin${aimed.length > 1 ? 's' : ''} down, ` +
+        (struck ? `${struck} soldier${struck > 1 ? 's' : ''} hit.` : 'the squares were vacated.'), struck ? 'loss' : 'info');
+    }
+    B.plan.jav = shuffle([...G.units]).slice(0, def.javN || 1).map(u => [u.lane, u.col]);
+    if (B.plan.jav.length) clog('<span style="color:var(--violet)">The deep shard tracks</span> — javelins aimed at your squares. Move.', 'info');
+  } else {
+    B.plan.jav = null;
   }
+}
+
+/** Cells the boss has PROMISED to hit next turn — the tendril's wound-up
+ * line, the lance's aimed squares, the lane the parade now stands in. Drawn
+ * on the board like breach marks; same contract, same honesty. */
+export function bossWarnCells() {
+  const B = G.boss;
+  if (!B || G.over) return [];
+  const out = [];
+  const P = B.plan || {};
+  if (B.k === 'brood' && P.lash) {
+    if (P.lash.axis === 'row') for (let c = 0; c < COLS; c++) out.push(P.lash.i * COLS + c);
+    else for (let l = 0; l < LANES; l++) out.push(l * COLS + P.lash.i);
+  }
+  if (B.k === 'prism' && P.jav) P.jav.forEach(([l, c]) => out.push(l * COLS + c));
+  // The Pyreguard exhales at the START of its turn, so wherever the parade
+  // stands right now is exactly the lane that burns next.
+  if (B.k === 'pyreguard' && B.bodies[0]) {
+    [...new Set(B.bodies[0].cells.map(([l]) => l))].forEach(l => {
+      for (let c = 0; c < COLS; c++) out.push(l * COLS + c);
+    });
+  }
+  return out;
 }
 
 // --- SUBJECT ONE: whole, it walks at your line; divided, it comes apart ---
@@ -506,19 +553,26 @@ function stepBody(body, away) {
  * a soldier at the end of the line is the one it hits, the same turn. There
  * is no movement cap — the board is the cap. Returns the soldier it slammed
  * into, or null when the line ended in anything else. */
-function chargeBody(body) {
+function chargeRuns(body) {
   const [l, c] = body.cells[0];
-  const runs = [[-1, 0], [1, 0], [0, -1], [0, 1]].map(([dl, dc]) => {
+  return [[-1, 0], [1, 0], [0, -1], [0, 1]].map(([dl, dc]) => {
     let nl = l, nc = c, run = 0;
+    const path = [];
     for (;;) {
       const tl = nl + dl, tc = nc + dc;
       if (tl < 0 || tl >= LANES || tc < 0 || tc >= COLS || G.ter[tl][tc] === 'x' ||
-        foeAt(tl, tc) || civAt(tl, tc)) return {run, stop: [nl, nc], prey: null};
+        foeAt(tl, tc) || civAt(tl, tc)) return {run, stop: [nl, nc], prey: null, path};
       const u = unitAt(tl, tc);
-      if (u) return {run, stop: [nl, nc], prey: u};
+      if (u) return {run, stop: [nl, nc], prey: u, path};
       nl = tl; nc = tc; run++;
+      path.push([nl, nc]);
     }
   });
+}
+
+function chargeBody(body) {
+  const [l, c] = body.cells[0];
+  const runs = chargeRuns(body);
   // A line that ends in a soldier wins — the nearest one. Otherwise take the
   // slide that leaves it closest to the nearest soldier, lining up next turn.
   const hit = runs.filter(r => r.prey).sort((a, b) => a.run - b.run)[0];
@@ -944,6 +998,87 @@ function shardguardTick(def) {
   const B = G.boss;
   eruptMarks(def);
   markBreaches(def.markN + (B.phase === 2 ? 1 : 0));
+}
+
+/** What a selected boss cell threatens — the machines' answer to
+ * foeThreatCells (forecast.js routes boss proxies here). Keyed off the
+ * body's role where one exists, else the boss's own script. Same contract
+ * as every other mirror in the game: if this drifts from what the tick
+ * actually does, the board lies — keep them together. */
+export function bossSelThreat(e) {
+  const strike = [];
+  const threat = [];
+  const infl = [];
+  const out = {strike, threat, infl};
+  const B = G.boss;
+  if (!B || G.over) return out;
+  const def = BOSSDEF[B.k];
+  const body = B.bodies.find(b => b.id === e.body);
+  if (!body) return out;
+  const idx = (l, c) => l * COLS + c;
+  const ring = (l, c, list) => {
+    for (let dl = -1; dl <= 1; dl++) for (let dc = -1; dc <= 1; dc++) {
+      if (!dl && !dc) continue;
+      const nl = l + dl, nc = c + dc;
+      if (nl >= 0 && nl < LANES && nc >= 0 && nc < COLS) list.push(idx(nl, nc));
+    }
+  };
+  const [l, c] = body.cells[0];
+  const role = body.role;
+
+  // The chess court: tap a piece and it shows its moves, the way a board
+  // game would — strike squares hot, open moves faint.
+  if (['pawn', 'knight', 'bishop', 'queen'].includes(role)) {
+    pieceMoves(body).forEach(m => (m.prey ? strike : threat).push(idx(m.to[0], m.to[1])));
+  } else if (role === 'king') {
+    ring(l, c, strike);                              // the censure, every turn
+  } else if (role === 'wall') {
+    if (B.phase === 2) ring(l, c, threat);           // the resonance hum
+  } else if (role === 'hive') {
+    const solo = !B.bodies.some(b => b.role === 'human');
+    if (solo) {
+      // The storm: everything within aoeR of where it stands.
+      for (let nl = 0; nl < LANES; nl++) for (let nc = 0; nc < COLS; nc++) {
+        if (Math.abs(nl - l) + Math.abs(nc - c) <= def.aoeR && (nl !== l || nc !== c)) threat.push(idx(nl, nc));
+      }
+    } else {
+      ring(l, c, strike);                            // the duet claw's corners
+    }
+  } else if (role === 'human') {
+    // Solo, it charges: the four straight lines it can run, and the soldier
+    // each one currently ends in. In the duet it flees — nothing to draw.
+    if (!B.bodies.some(b => b.role === 'hive')) {
+      chargeRuns(body).forEach(r => {
+        r.path.forEach(([pl, pc]) => threat.push(idx(pl, pc)));
+        if (r.prey) strike.push(idx(r.prey.lane, r.prey.col));
+      });
+    }
+  } else if (role === 'pyre') {
+    for (let nc = 0; nc < COLS; nc++) if (nc !== c) infl.push(idx(l, nc));   // its lane burns on its beat
+  } else if (B.k === 'pyreguard') {
+    // The parade: the lane it stands in burns at the start of its turn.
+    [...new Set(body.cells.map(([bl]) => bl))].forEach(bl => {
+      for (let nc = 0; nc < COLS; nc++) strike.push(idx(bl, nc));
+    });
+  } else if (B.k === 'subject' && B.phase === 1) {
+    // Whole: everything within arm's reach of the footprint.
+    const own = new Set(body.cells.map(([bl, bc]) => bl + ',' + bc));
+    body.cells.forEach(([bl, bc]) => [[bl - 1, bc], [bl + 1, bc], [bl, bc - 1], [bl, bc + 1]]
+      .forEach(([nl, nc]) => {
+        if (nl < 0 || nl >= LANES || nc < 0 || nc >= COLS || own.has(nl + ',' + nc)) return;
+        strike.push(idx(nl, nc));
+      }));
+  } else if (B.k === 'reliquary') {
+    // The purge countdown is public; when it fires NEXT turn, so is the floor
+    // it will burn — everything your line does not hold.
+    const every = B.phase === 2 ? Math.max(2, def.chargeEvery - 1) : def.chargeEvery;
+    if (B.charge + 1 >= every) {
+      for (let nl = 0; nl < LANES; nl++) for (let nc = 0; nc < COLS; nc++) {
+        if (G.ter[nl][nc] !== 'p') threat.push(idx(nl, nc));
+      }
+    }
+  }
+  return out;
 }
 
 /** The boss's whole turn. Runs after the horde acts, before territory flips. */

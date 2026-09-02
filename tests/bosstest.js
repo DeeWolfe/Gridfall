@@ -184,24 +184,36 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
   A.G.boss.marks = [{l: 4, c: 1}, {l: 0, c: 0}];
   const foesBefore = adds().length;
   A.bossTick();
-  // The sitter eats the breach AND — as the only occupied lane — the turn's
-  // tendril lash. Both are the machine working as scripted.
-  const expected = BOSSDEF.brood.breachDmg + BOSSDEF.brood.tendrilDmg;
-  if (sitter.hp !== 30 - expected) F.push(`occupied breach turn dealt ${30 - sitter.hp}, wanted ${expected}`);
+  // Turn one the tendril only WINDS UP — the breach is the only hit, and the
+  // wound-up line is promised on the plan for the board to draw.
+  if (sitter.hp !== 30 - BOSSDEF.brood.breachDmg) F.push(`occupied breach turn dealt ${30 - sitter.hp}, wanted ${BOSSDEF.brood.breachDmg}`);
   if (A.foeAt(4, 1)) F.push('a hostile surfaced under a standing unit');
   const surfaced = adds().length - foesBefore;
   if (surfaced !== 1) F.push(`${surfaced} hostiles surfaced from one empty mark`);
   if (adds().some(e => !BOSSDEF.brood.breachPool.includes(e.k))) F.push('a breach surfaced something off the pool');
   if (A.G.boss.marks.length !== 1) F.push(`phase one marked ${A.G.boss.marks.length} cells, wanted 1`);
+  const plan = A.G.boss.plan.lash;
+  if (!plan) F.push('the tendril did not wind up a line');
+  // Sitter is the only unit, so the wound-up line runs through it either way.
+  if (plan && !(plan.axis === 'row' ? plan.i === sitter.lane : plan.i === sitter.col)) {
+    F.push('the tendril wound up over an empty line');
+  }
+  if (!A.bossWarnCells().length) F.push('the wound-up line is not drawn on the board');
 
-  // The tendril lashes one whole occupied row. Sitter is the only unit left —
-  // its lane is the only candidate, so the lash is deterministic.
+  // The promise is kept: the lash lands on the planned line, on whoever is
+  // standing in it THEN — and a vacated line is a clean miss.
   const hpBefore = sitter.hp;
   A.G.boss.marks = [];
   A.bossTick();
   if (hpBefore - sitter.hp !== BOSSDEF.brood.tendrilDmg) {
     F.push(`tendril dealt ${hpBefore - sitter.hp}, wanted ${BOSSDEF.brood.tendrilDmg}`);
   }
+  // Vacate: aim the plan at a line the sitter is NOT in and nothing lands.
+  A.G.boss.marks = [];
+  A.G.boss.plan.lash = {axis: 'row', i: (sitter.lane + 2) % A.LANES};
+  const hpSafe = sitter.hp;
+  A.bossTick();
+  if (sitter.hp !== hpSafe) F.push('a vacated tendril line still hit someone');
 
   // The seam: every third turn the whole body works a column forward.
   start('blackmarrow');
@@ -283,8 +295,22 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
   }
   const jav1 = spawnUnit('rifle', clearCells[0][0], clearCells[0][1], {hp: 20, max: 20, shield: 0});
   const jav2 = spawnUnit('wall', clearCells[1][0], clearCells[1][1], {hp: 20, max: 20, shield: 0});
-  A.bossTick();
+  A.bossTick();                              // the lance AIMS — nothing lands yet
+  if (jav1.hp !== 20 || jav2.hp !== 20) F.push('a javelin landed on the aiming turn');
+  const aim = A.G.boss.plan.jav || [];
+  const aimedAt = (u) => aim.some(([al, ac]) => al === u.lane && ac === u.col);
+  if (aim.length !== 2 || !aimedAt(jav1) || !aimedAt(jav2)) F.push(`the lance aimed at ${JSON.stringify(aim)} — wanted both soldiers' squares`);
+  if (!A.bossWarnCells().length) F.push('the aimed squares are not drawn on the board');
+  A.bossTick();                              // the volley lands on the promised squares
   if (jav1.hp !== 20 - d.javDmg || jav2.hp !== 20 - d.javDmg) F.push(`the lance javelins missed (${jav1.hp}, ${jav2.hp} — wanted ${20 - d.javDmg} both)`);
+  // The volley hits SQUARES, not the soldiers it was aimed at: aim the plan
+  // at jav2's square and an empty one — jav1, un-aimed, is untouched.
+  A.G.boss.plan.jav = [[jav2.lane, jav2.col], [(jav2.lane + 1) % A.LANES, jav2.col]];
+  const pre1 = jav1.hp;
+  const pre2 = jav2.hp;
+  A.bossTick();
+  if (jav1.hp !== pre1) F.push('a javelin hit a square the lance never aimed at');
+  if (jav2.hp !== pre2 - d.javDmg) F.push(`the aimed square dealt ${pre2 - jav2.hp}, wanted ${d.javDmg}`);
   // Kill the lance: the javelins stop, and the walls still resonate.
   A.G.units.length = 0;
   A.dmgEnemy(proxies().find(e => e.body === lance.id), 999, 'test', true);
@@ -412,6 +438,10 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
   const pre4 = runner.hp;
   A.bossTick();
   if (pre4 - runner.hp !== d.clawDmg + d.snapStep * 2) F.push('the snap did not escalate on the second solo turn');
+  // The charging half shows its run lines when tapped — and the soldier a
+  // line currently ends in is drawn hot.
+  const ht = A.bossSelThreat(proxies().find(e => e.body === human2.id));
+  if (!ht.strike.length) F.push('the charging half shows no strike preview');
   console.log(`subject one: no clock; duet mends ${d.mendN} and claws the corners; solo hive storms+stuns for ${d.clawDmg}; solo human charges the full line, +${d.snapStep}/turn; survivor knits whole after ${d.reviveEvery}`);
 }
 
@@ -429,6 +459,14 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
   const king = A.G.boss.bodies.find(b => b.role === 'king');
   if (king.cells.length !== 1) F.push('the king is not 1x1');
   if (A.G.waves !== d.turns) F.push(`the clock reads ${A.G.waves}, wanted ${d.turns}`);
+
+  // Tap a piece and it shows its moves. The knight can always jump the
+  // screen; the king shows his censure ring and nothing more.
+  const roleProxy = r => proxies().find(e => (A.G.boss.bodies.find(b => b.id === e.body) || {}).role === r);
+  const nt = A.bossSelThreat(roleProxy('knight'));
+  if (!(nt.threat.length + nt.strike.length)) F.push("the knight's selection preview shows no moves");
+  const kt = A.bossSelThreat(roleProxy('king'));
+  if (!kt.strike.length || kt.strike.length > 8) F.push(`the king's censure ring shows ${kt.strike.length} squares`);
 
   // Chess moves ONE piece a turn — and the king holds his square.
   const bait = spawnUnit('rifle', 2, 0, {hp: 30, max: 30, shield: 0});
@@ -528,6 +566,11 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
   if (outLane.hp !== 12) F.push('the exhale reached a lane it does not stand in');
   const lane1 = A.G.boss.bodies[0].cells[0][0];
   if (Math.abs(lane1 - lane0) !== 1) F.push('the Pyreguard did not march one lane');
+  // The parade's next burn is public: the lane it now stands in is drawn as
+  // promised ground, and tapping the machine shows the same lane hot.
+  const warn = A.bossWarnCells();
+  if (!warn.length || warn.some(i => Math.floor(i / A.COLS) !== lane1)) F.push("the parade's next lane is not drawn on the board");
+  if (!A.bossSelThreat(proxies()[0]).strike.length) F.push('the Pyreguard preview shows no burning lane');
 
   // THE RIMEGUARD: the deepest soldier freezes — no move, no fire, one turn.
   start('crownring', 'rimeguard');

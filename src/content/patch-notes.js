@@ -4,9 +4,16 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.22';
+export const VERSION = '2.23';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.23',
+    notes: [
+      'The board stopped lying. Boss threats are now TELEGRAPHED a full turn ahead, painted straight onto the grid the way breach marks always were: the Brood Mother\'s mass visibly coils along the row or column it will lash NEXT turn, and the Prism\'s lance shows you exactly which squares its javelins are falling on before they fall. A telegraphed square is a promise — stand there and it lands, step off and it misses. The machines still hit like finals; now they announce it first.',
+      'Selecting a boss cell finally shows its real intentions instead of a bestiary guess. Tap a pawn and see its diagonal takes, tap the knight and see every jump, tap the king and see all eight censured squares. The charging human half of Subject One draws every line it can charge down; the hive half draws its stormbreak ring; the honor guards, the wall shards and the Reliquary all show the ground their standing effects own. Every threat a boss can make is now ground you can read before you commit a soldier to it.',
+    ],
+  },
   {
     v: '2.22',
     notes: [
