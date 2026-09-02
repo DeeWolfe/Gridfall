@@ -4303,6 +4303,44 @@ containment, scatter placement bands + resonance, subject duet
 (storm+stun, snap escalation, knit-to-full, no-clock), run bulk-zeroed
 via bulkOff()/bulkOn() so mechanic asserts aren't masked by bulkheads.
 
+## v2.21 — Prism lance shard; Subject One charges (user's spec)
+
+Follow-up to the v2.20 redesign, from the user's playtest notes.
+
+**Prism: walls + lance.** `prismShatter` now marks roles: two `wall`
+shards, each placed in a random band — player side `[0,2]` or middle
+`[3,4]` — and one `lance` on the hive side `[5, COLS-1]`. Resonance
+(Chebyshev-1 burn, `fragDmg`) is walls-only. The lance fires `javN`(2)
+crystal javelins a turn for `javDmg`(2) at random soldier squares
+ANYWHERE on the board — the walls are literally what it hides behind.
+Kill the lance body and the javelins stop; the shared-hull kill path
+through any shard still stands. Data adds `javDmg`/`javN`; `p2` text
+updated (it still said "four fragments" from the pre-scatter era).
+
+**Subject One: the charge.** The solo human half no longer walks with
+a capped `min(6, huntMv+snap)` move — `chargeBody()` picks one of the
+four straight lines, slides until a wall/terrain/body ends the run,
+and if a soldier ended it, that soldier is hit the SAME turn for
+`clawDmg + snapStep*snap`. A line ending in a soldier always wins
+(nearest first); with no soldier in line it takes the slide that best
+closes on the nearest one, lining up next turn. **Diagonal whiff
+fixed** on the hive half: the duet claw is now Chebyshev-1, so a hive
+half penned in by bodies still claws the soldier on its corner —
+this was the real "moves but doesn't attack" case (Manhattan step +
+orthogonal-only claw left it stalled diagonal to its prey).
+
+Bot band (n=80): prism 3% (up from 0 — javelins don't change the
+bot's blindness to player-half shards; still awaiting the user's
+hands-on verdict), subject 15% (down from 25 — the full-line charge
+and corner claw bite the bot hard; breach losses 33/80). Both fights
+sit below the 8–45 band on bot numbers; the user calibrates by hand.
+
+New/updated bosstest guards: wall/lance roles + placement bands,
+javelins hit soldiers clear of all shards, javelins stop when the
+lance dies while resonance continues, corner-claw (penned hive half
+claws the diagonal soldier), aligned charge crosses the full lane and
+deals escalation-1 damage same turn, escalation-2 on the next.
+
 ## Card backlog — the next pass
 
 Not built. Recorded here so the next card batch starts from a list rather than a

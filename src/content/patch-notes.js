@@ -4,9 +4,16 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.20';
+export const VERSION = '2.21';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.21',
+    notes: [
+      'THE PRISM learned artillery. When it shatters now, two WALL shards dig in between your line and the third — each picking your side of the board or the middle ground — and keep the resonance hum that burns whoever stands beside them. The third shard is a LANCE: it takes the hive\'s side of the field and throws crystal javelins straight onto the squares your soldiers hold, anywhere on the board. The walls are what it hides behind. Go through them, or go around — the hull is still one hull.',
+      'Subject One\'s human half does not run at you anymore — it CHARGES. No movement cap: it picks a straight line and travels flat out until a wall or a soldier stops it, and the soldier that stops it is hit the same turn. Every turn it is alone the hit lands harder. The hive half\'s claw now reaches the corners too — penning it in with bodies no longer buys the diagonal soldier a pass, so move-and-strike is guaranteed, not just likely.',
+    ],
+  },
   {
     v: '2.20',
     notes: [

@@ -4723,7 +4723,7 @@ const BOSSDEF = {
     fragments: 3,
     growCap: 1.25,
     p1: "Inert — reflecting damage taken",
-    p2: "Fractured — four fragments, each growing",
+    p2: "Fractured — two shards wall your ground; the third fires from the deep field",
     bt: "FRACTURE",
     bb: "Crystal under sustained stress fails along its planes. You have made three more problems by solving one badly.",
     brief: {
@@ -4773,6 +4773,8 @@ const BOSSDEF = {
     plate: 0,
     bulk: 10,
     fragDmg: 2,
+    javDmg: 2,
+    javN: 2,
   },
   envoy: {
     op: "crownring",
@@ -6419,8 +6421,9 @@ function prismShatter(def) {
   const cap = Math.max(share, Math.floor(share * def.growCap));
   removeBodyProxies(main);
   B.bodies = [];
-  // Two shards bury themselves in YOUR half of the board; the third lands on
-  // the seam between midfield and the hive's ground. The fight comes to you.
+  // Two WALL shards dig in between your line and the third — each picks your
+  // side of the board or the middle ground at random. The LANCE takes the
+  // hive's side and fires over them: the walls are what it hides behind.
   const spots = [];
   const freeIn = (cMin, cMax) => {
     for (const l of shuffle([...Array(LANES).keys()])) {
@@ -6432,15 +6435,17 @@ function prismShatter(def) {
     }
     return null;
   };
-  for (const [cMin, cMax] of [[0, 2], [0, 2], [4, 6]]) {
+  const wallBand = () => (randInt(2) === 0 ? [0, 2] : [3, 4]);
+  [wallBand(), wallBand(), [5, COLS - 1]].forEach(([cMin, cMax], i) => {
     const at = freeIn(cMin, cMax) || freeIn(0, COLS - 1);
-    if (!at) continue;
+    if (!at) return;
     spots.push(at);
-    const nb = {id: B.nextBody++, hp: share, max: cap, grow: 1, cells: [at], dir: 1};
+    const nb = {id: B.nextBody++, hp: share, max: cap, grow: 1, cells: [at], dir: 1,
+      role: i === 2 ? 'lance' : 'wall'};
     B.bodies.push(nb);
     addBodyProxies(nb);
     G.ter[at[0]][at[1]] = 'e';
-  }
+  });
 }
 
 // --- per-boss turn scripts, run after the horde has acted ---
@@ -6587,11 +6592,12 @@ function prismTick(def) {
     grew = true;
   });
   if (grew) clog('<span class="d">The fragments grow</span> — crystal knitting back along its planes.', 'info');
-  // Each shard hums — and everything standing beside one burns for it.
+  // The wall shards hum — everything standing beside one burns for it.
   if (def.fragDmg && B.phase === 2) {
     let caught = 0;
     G.units.forEach(u => {
       B.bodies.forEach(b => {
+        if (b.role === 'lance') return;
         const [l, c] = b.cells[0];
         if (Math.max(Math.abs(u.lane - l), Math.abs(u.col - c)) === 1) {
           dmgUnit(u, def.fragDmg, 'Prism resonance');
@@ -6599,7 +6605,14 @@ function prismTick(def) {
         }
       });
     });
-    if (caught) clog(`<span class="d">The shards resonate</span> — ${caught} soldier${caught > 1 ? 's' : ''} caught beside the crystal.`, 'loss');
+    if (caught) clog(`<span class="d">The wall shards resonate</span> — ${caught} soldier${caught > 1 ? 's' : ''} caught beside the crystal.`, 'loss');
+  }
+  // The lance fires from the deep field: crystal javelins, straight onto the
+  // squares your soldiers hold. Range is not its problem — the walls are yours.
+  if (def.javDmg && B.phase === 2 && B.bodies.some(b => b.role === 'lance')) {
+    const struck = shuffle([...G.units]).slice(0, def.javN || 1);
+    struck.forEach(u => dmgUnit(u, def.javDmg, 'Prism javelin'));
+    if (struck.length) clog(`<span class="d">The deep shard fires</span> — crystal javelins into ${struck.length} soldier${struck.length > 1 ? 's' : ''}.`, 'loss');
   }
 }
 
@@ -6647,6 +6660,41 @@ function stepBody(body, away) {
   if (!next) return false;
   moveBody(body, [next], BEST[G.boss.k].n);
   return true;
+}
+
+/** The snapped human half does not walk — it CHARGES. It picks a straight
+ * line and travels flat out until a wall, terrain, or a body ends the run;
+ * a soldier at the end of the line is the one it hits, the same turn. There
+ * is no movement cap — the board is the cap. Returns the soldier it slammed
+ * into, or null when the line ended in anything else. */
+function chargeBody(body) {
+  const [l, c] = body.cells[0];
+  const runs = [[-1, 0], [1, 0], [0, -1], [0, 1]].map(([dl, dc]) => {
+    let nl = l, nc = c, run = 0;
+    for (;;) {
+      const tl = nl + dl, tc = nc + dc;
+      if (tl < 0 || tl >= LANES || tc < 0 || tc >= COLS || G.ter[tl][tc] === 'x' ||
+        foeAt(tl, tc) || civAt(tl, tc)) return {run, stop: [nl, nc], prey: null};
+      const u = unitAt(tl, tc);
+      if (u) return {run, stop: [nl, nc], prey: u};
+      nl = tl; nc = tc; run++;
+    }
+  });
+  // A line that ends in a soldier wins — the nearest one. Otherwise take the
+  // slide that leaves it closest to the nearest soldier, lining up next turn.
+  const hit = runs.filter(r => r.prey).sort((a, b) => a.run - b.run)[0];
+  if (hit) {
+    if (hit.run) moveBody(body, [hit.stop], BEST[G.boss.k].n);
+    return hit.prey;
+  }
+  const near = [...G.units].sort((a, b) =>
+    (Math.abs(a.lane - l) + Math.abs(a.col - c)) - (Math.abs(b.lane - l) + Math.abs(b.col - c)) ||
+    a.uid - b.uid)[0];
+  if (!near) return null;
+  const dist = ([nl, nc]) => Math.abs(near.lane - nl) + Math.abs(near.col - nc);
+  const slide = runs.filter(r => r.run).sort((a, b) => dist(a.stop) - dist(b.stop))[0];
+  if (slide && dist(slide.stop) < dist([l, c])) moveBody(body, [slide.stop], BEST[G.boss.k].n);
+  return null;
 }
 
 /** The flip: the splice tears in two. The human half bolts for open ground
@@ -6736,9 +6784,11 @@ function subjectTick(def) {
         setBodyHp(hive);
         clog(`<span class="d">The human half will not let it die</span> — ${def.mendN} hull knit back into the hive half.`, 'info');
       }
+      // Move AND attack, same turn — and the claw reaches the corners too, so
+      // penning it in with bodies no longer buys the diagonal soldier a pass.
       for (let i = 0; i < def.huntMv; i++) if (!stepBody(hive, false)) break;
       const [l, c] = hive.cells[0];
-      const prey = G.units.filter(u => Math.abs(u.lane - l) + Math.abs(u.col - c) === 1)
+      const prey = G.units.filter(u => Math.max(Math.abs(u.lane - l), Math.abs(u.col - c)) === 1)
         .sort((a, b) => a.hp - b.hp || a.uid - b.uid)[0];
       if (prey) {
         dmgUnit(prey, def.clawDmg, 'Subject One');
@@ -6756,20 +6806,17 @@ function subjectTick(def) {
       if (caught.length) clog(`<span class="d">The hive half rages</span> — ${caught.length} soldier${caught.length > 1 ? 's' : ''} battered and STUNNED within its storm.`, 'loss');
       soloBeat(B, def, hive);
     } else if (human && !hive) {
-      // The big form is gone. The human half stops running — and every turn
-      // it is alone it comes faster and hits harder. Kill it quickly.
+      // The big form is gone. The human half stops running — it CHARGES:
+      // a straight line, flat out until a wall or a soldier ends the run, and
+      // the soldier that ends it is hit the same turn. Harder every turn.
       B.snap = (B.snap || 0) + 1;
-      const mv = Math.min(6, def.huntMv + B.snap);
-      for (let i = 0; i < mv; i++) if (!stepBody(human, false)) break;
-      const [l, c] = human.cells[0];
-      const prey = G.units.filter(u => Math.abs(u.lane - l) + Math.abs(u.col - c) === 1)
-        .sort((a, b) => a.hp - b.hp || a.uid - b.uid)[0];
+      const prey = chargeBody(human);
       const dmg = def.clawDmg + def.snapStep * B.snap;
       if (prey) {
         dmgUnit(prey, dmg, 'Subject One');
-        clog(`<span class="d">What is left of the researcher tears into ${prey.n}</span> — ${dmg}, and it is still accelerating.`, 'loss');
+        clog(`<span class="d">What is left of the researcher slams into ${prey.n}</span> — ${dmg}, and it is still accelerating.`, 'loss');
       } else {
-        clog(`<span style="color:var(--violet)">The human half is coming</span> — faster every turn it is alone.`, 'info');
+        clog(`<span style="color:var(--violet)">The human half charges</span> — flat out, harder every turn it is alone.`, 'info');
       }
       soloBeat(B, def, human);
     }
@@ -15600,9 +15647,16 @@ function render() {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.20';
+const VERSION = '2.21';
 
 const PATCH_NOTES = [
+  {
+    v: '2.21',
+    notes: [
+      'THE PRISM learned artillery. When it shatters now, two WALL shards dig in between your line and the third — each picking your side of the board or the middle ground — and keep the resonance hum that burns whoever stands beside them. The third shard is a LANCE: it takes the hive\'s side of the field and throws crystal javelins straight onto the squares your soldiers hold, anywhere on the board. The walls are what it hides behind. Go through them, or go around — the hull is still one hull.',
+      'Subject One\'s human half does not run at you anymore — it CHARGES. No movement cap: it picks a straight line and travels flat out until a wall or a soldier stops it, and the soldier that stops it is hit the same turn. Every turn it is alone the hit lands harder. The hive half\'s claw now reaches the corners too — penning it in with bodies no longer buys the diagonal soldier a pass, so move-and-strike is guaranteed, not just likely.',
+    ],
+  },
   {
     v: '2.20',
     notes: [

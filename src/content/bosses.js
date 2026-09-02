@@ -134,7 +134,7 @@ export const BOSSDEF = {
     fragments: 3,
     growCap: 1.25,
     p1: "Inert — reflecting damage taken",
-    p2: "Fractured — four fragments, each growing",
+    p2: "Fractured — two shards wall your ground; the third fires from the deep field",
     bt: "FRACTURE",
     bb: "Crystal under sustained stress fails along its planes. You have made three more problems by solving one badly.",
     brief: {
@@ -184,6 +184,8 @@ export const BOSSDEF = {
     plate: 0,
     bulk: 10,
     fragDmg: 2,
+    javDmg: 2,
+    javN: 2,
   },
   envoy: {
     op: "crownring",
