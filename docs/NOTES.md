@@ -4425,6 +4425,43 @@ charge lines, pyreguard lane. Full suite + 6 randomized boss runs green;
 speed-kill floors unchanged (telegraphs shift *information*, not
 numbers).
 
+## v2.24 — the board-control card batch
+
+Items 1–4 of the card backlog below, shipped as four tech cards (pool
+66→70). Each rides a rule the game already enforces, so the diffs are
+small and the flags are data:
+
+- **Demo Charge** (`demo`, instant, crater:1 blastDmg:3). validTiles
+  gained a crater branch (any open tile, no bodies, no crystal/uplink);
+  playInstant now takes (l, c) and carves the same permanent 'x' a Hull
+  Breach does, after a 3×3 blast. The horde's own reroute rules do the
+  rest — a crater you place is a lane you steer.
+- **Cryo Projector** (`cryo`, chill:1). `chillFactor(lane)` in combat.js
+  (0.5, non-stacking, beside dampenIn) multiplies the movement DEPOSIT in
+  actHostile — banking preserved, so a chilled Crawler crosses every
+  other turn and a Hulk needs four. Mirrored in enemyIntent and
+  foeThreatCells.
+- **Resonance Lens** (`lens`, lensBoost:2). `lensBonus(u, e)` adds the
+  boost of every lens strictly between shooter and mark in their shared
+  lane, applied per-target in fire(). Not a blocker, so it never cuts
+  the beam it amplifies. supportTargets lights the armed friendlies
+  behind it.
+- **Field Degausser** (`degausser`, degauss:1). One line at the top of
+  laneFloor(): a degausser in the lane returns 0 — innate floors and
+  pylon lanefloors both stripped. influenceCells now washes chill and
+  degauss lanes violet like dampen.
+
+mkUnit carries the three new flags; focus.js gained four stat rows;
+kanji 爆凍凸消 and four pixel tokens (pixtest demands full coverage,
+instants included). New guard `fieldtest` covers all four plus the
+highlight wiring; run-all runs it after flanktest.
+
+Flake fixed while shipping: the gantry ramp guard let fabricants pile up
+across ticks, and summonAdds rolls a random lane per body and fizzles
+when that lane is full — turn 4 could legitimately come up short. The
+loop now clears non-boss enemies before each tick, so the ramp is a
+measurement again.
+
 ## Card backlog — the next pass
 
 Not built. Recorded here so the next card batch starts from a list rather than a

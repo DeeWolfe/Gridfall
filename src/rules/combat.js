@@ -16,6 +16,23 @@ import {tapeEvent} from './tape.js';
 /** Scramblers shave 1 off every hostile attack in their lane. Does not stack. */
 export const dampenIn = l => (G.units.some(o => o.dampen && o.lane === l) ? 1 : 0);
 
+/** A Cryo Projector halves every hostile's advance in its lane. Does not stack. */
+export const chillFactor = l => (G.units.some(o => o.chill && o.lane === l) ? 0.5 : 1);
+
+/**
+ * Resonance Lenses standing strictly between a shooter and its mark, in the
+ * one lane all three share, each add their boost to the hit. Direct fire only
+ * in spirit — but the rule is honest geometry, so an indirect shell that
+ * happens to cross the lens's cell rides the same wave.
+ */
+export function lensBonus(u, e) {
+  if (e.lane !== u.lane) return 0;
+  const front = u.col + u.size - 1;
+  return G.units
+    .filter(o => o.lensBoost && o.lane === u.lane && o.col > front && o.col < e.col)
+    .reduce((s, o) => s + o.lensBoost, 0);
+}
+
 /** Record a first kill so the hostile's Database entry unlocks. */
 function logContact(k) {
   if (active && !active.unlocks.enemies.includes(k)) active.unlocks.enemies.push(k);
@@ -254,7 +271,7 @@ export function fire(u, onPlay) {
   for (let shot = 0; shot < (u.twin ? 2 : 1); shot++) {
     const ts = targetsFor(u);
     if (!ts.length) break;
-    ts.forEach(e => dmgEnemy(e, base, u.n, u.pen, u));
+    ts.forEach(e => dmgEnemy(e, base + lensBonus(u, e), u.n, u.pen, u));
 
     // A recharge weapon spends the next turn cycling. Set to 2 because the
     // end-of-turn reset decrements once immediately after this fires.

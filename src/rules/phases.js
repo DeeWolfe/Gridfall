@@ -15,7 +15,7 @@ import {hooks} from '../state/hooks.js';
 import {randInt} from '../state/rng.js';
 import {leadOf} from '../save/progression.js';
 import {unitAt, foeAt, civAt, held, heldEnemyHalf, crystalsHeld, scorched, breachAllowance, ENDGAME_TURNS} from './board.js';
-import {fire, healPass, dmgUnit, dmgEnemy, breachAt} from './combat.js';
+import {fire, healPass, dmgUnit, dmgEnemy, breachAt, chillFactor} from './combat.js';
 import {eventTick, eventStrikeMalus} from './events.js';
 import {wave, rollDoctrine, predictSpawns, laneScore} from './waves.js';
 import {spawnPhase, mkFoe} from './spawn.js';
@@ -282,8 +282,9 @@ function actHostile(e, chorus) {
   // Fractional speeds bank movement across turns. A sidestep spends one of
   // those steps rather than the whole turn, so a Crawler flows round a crater
   // without losing tempo and a Hulk pays for the detour — which is the
-  // difference between rerouting the horde and stalling it.
-  e.mv = (e.mv || 0) + D.spd;
+  // difference between rerouting the horde and stalling it. A Cryo Projector
+  // halves the deposit, so a chilled Crawler crosses on every other turn.
+  e.mv = (e.mv || 0) + D.spd * chillFactor(e.lane);
   let steps = 0;
   while (e.mv >= 1) { steps++; e.mv--; }
 

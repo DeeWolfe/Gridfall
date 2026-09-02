@@ -30,7 +30,7 @@ const KANJI = {
   turret: '塔', relay: '波', techblade: '刃', pulse: '響',
   scrambler: '乱', battery: '陣', fob: '営', mine: '罠', dynamo: '電',
   rampart: '塞', piercer: '突', suppressor: '抑', reactor: '核', bore: '穿',
-  sapper: '伏', backstop: '堤',
+  sapper: '伏', backstop: '堤', demo: '爆', cryo: '凍', lens: '凸', degausser: '消',
   // specialists
   aegis: '盾', biomed: '命', techmed: '療', dragoon: '竜', railgun: '貫',
   hell: '焔', plasma: '光', exo: '鎧', hecate: '砲', kessen: '斬', ram: '衝',

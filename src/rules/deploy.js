@@ -56,10 +56,17 @@ function homeStrike(k) {
  * instant is a data entry instead of another branch in here. The card is still
  * in hand while these run; consume() clears it afterwards.
  */
-function playInstant(cid) {
+function playInstant(cid, l, c) {
   const k = POOL[cid];
   const done = [];
 
+  // Demo Charge: the blast lands around the chosen tile, then the tile itself
+  // is gone for good — the same 'x' a Hull Breach carves, chosen by you.
+  if (k.crater) {
+    blast(l, c, k.blastDmg || 0, k.n);
+    G.ter[l][c] = 'x';
+    done.push(`lane ${l + 1}, col ${c + 1} cratered — impassable for good`);
+  }
   if (k.gain) { G.dp += k.gain; done.push(`+${k.gain} DP`); }
   if (k.homestrike) done.push(homeStrike(k));
   if (k.draw) {
@@ -144,7 +151,7 @@ export function deploy(cid, l, c) {
 
   // An instant shares consume() with everything else, so it bills its deploy
   // points, logs a promotion and clears the selection by the same path.
-  if (k.instant) { playInstant(cid); return consume(cid); }
+  if (k.instant) { playInstant(cid, l, c); return consume(cid); }
 
   if (k.attach) {
     const u = unitAt(l, c);

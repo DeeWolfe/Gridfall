@@ -828,6 +828,54 @@
    "homestrike": 5,
    "d": "One volley across both home columns, every lane at once. Fired once, then spent."
   },
+  "demo": {
+   "n": "Demo Charge",
+   "t": "tech",
+   "dp": 3,
+   "hp": 0,
+   "price": 210,
+   "tech": 1,
+   "instant": 1,
+   "crater": 1,
+   "blastDmg": 3,
+   "d": "Craters one open tile for good — impassable to both sides — and the blast hits everything around it for 3. Steer the horde into your guns."
+  },
+  "cryo": {
+   "n": "Cryo Projector",
+   "t": "tech",
+   "dp": 2,
+   "hp": 4,
+   "price": 180,
+   "mob": 0,
+   "tg": "none",
+   "tech": 1,
+   "chill": 1,
+   "d": "Every hostile in its lane advances at half speed while it stands. No weapon."
+  },
+  "lens": {
+   "n": "Resonance Lens",
+   "t": "tech",
+   "dp": 2,
+   "hp": 4,
+   "price": 190,
+   "mob": 0,
+   "tg": "none",
+   "tech": 1,
+   "lensBoost": 2,
+   "d": "Friendly fire that passes through its cell lands 2 harder. No weapon of its own."
+  },
+  "degausser": {
+   "n": "Field Degausser",
+   "t": "tech",
+   "dp": 2,
+   "hp": 5,
+   "price": 170,
+   "mob": 0,
+   "tg": "none",
+   "tech": 1,
+   "degauss": 1,
+   "d": "Hostiles in its lane lose their armour — damage floors are stripped while it stands."
+  },
   "ashura": {
    "n": "Ashura Frame",
    "t": "special",

@@ -17,8 +17,10 @@ import {unitAt} from './board.js';
 /** A Jammer anywhere in the lane shuts off all indirect fire in it. */
 export const laneJammed = l => G.enemies.some(e => e.lane === l && BEST[e.k].jam);
 
-/** Armour floor for this hostile: its own, plus any Bulwark Pylon in its lane. */
+/** Armour floor for this hostile: its own, plus any Bulwark Pylon in its lane.
+ * A Field Degausser in the lane strips the lot — innate plate and pylon alike. */
 export function laneFloor(e) {
+  if (G.units.some(o => o.degauss && o.lane === e.lane)) return 0;
   let f = BEST[e.k].floor || 0;
   G.enemies.forEach(o => { if (BEST[o.k].lanefloor && o.lane === e.lane) f += BEST[o.k].lanefloor; });
   return f;

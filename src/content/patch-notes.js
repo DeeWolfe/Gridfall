@@ -4,9 +4,16 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.23';
+export const VERSION = '2.24';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.24',
+    notes: [
+      'Four new cards argue about the GROUND instead of the bodies on it. DEMO CHARGE is an instant that craters any open tile for good — impassable to both sides, 3 blast damage to everything around it — so the crater the horde routes around can now be a crater you chose. CRYO PROJECTOR chills its whole lane: every hostile in it advances at half speed, a Crawler crossing on every other turn and a Hulk taking four turns to find a single step.',
+      'RESONANCE LENS is a conduit — friendly fire that passes through its cell lands 2 harder, so a rifle line firing down a lensed lane hits like a marksman line. FIELD DEGAUSSER strips hostile armour in its lane: innate plating and Bulwark Pylon floors alike stop subtracting while it stands, which turns the cheap massed guns a Hulk used to shrug at back into an answer. All four are in the Quartermaster now; the lane washes and support highlights show exactly who each one is helping.',
+    ],
+  },
   {
     v: '2.23',
     notes: [

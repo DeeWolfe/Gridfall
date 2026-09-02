@@ -16,7 +16,7 @@ const ROOT = join(HERE, '..');
 const GUARDS = [
   'acttest', 'movetest', 'aimtest', 'hltest', 'clashtest', 'spawntest',
   'swaptest', 'pushtest', 'zonetest', 'hecatetest',
-  'stratagemtest', 'passivetest', 'grappletest', 'breachtest', 'flanktest', 'mechtest', 'frametest', 'bosstest', 'foetest', 'eventtest',
+  'stratagemtest', 'passivetest', 'grappletest', 'breachtest', 'flanktest', 'fieldtest', 'mechtest', 'frametest', 'bosstest', 'foetest', 'eventtest',
   'opentest', 'leadtest', 'packtest', 'maptest', 'cardtest', 'codectest', 'geomtest', 'foeseltest', 'repro',
   'playtest', 'actbar', 'csstest', 'cssdup', 'headtest', 'navtest', 'scaletest',
   'handtest', 'captest', 'uitest', 'statictest', 'geartest', 'achievetest', 'tapetest', 'tuttest', 'sndtest', 'audiotest', 'arttest', 'pixtest', 'buildtest',

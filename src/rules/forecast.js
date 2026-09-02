@@ -9,7 +9,7 @@ import {COLS} from '../state/constants.js';
 import {BEST} from '../content/hostiles.js';
 import {G} from '../state/session.js';
 import {unitAt, foeAt, civAt} from './board.js';
-import {dampenIn} from './combat.js';
+import {dampenIn, chillFactor} from './combat.js';
 import {eventStrikeMalus} from './events.js';
 import {bossSelThreat} from './boss.js';
 
@@ -92,7 +92,8 @@ export function enemyIntent(e) {
   const blocked = ahead >= 0 && ((au && !D.tunnel && !au.mine) || civAt(e.lane, ahead));
   const queued = ahead >= 0 && foeAt(e.lane, ahead);
   if (blocked || queued) return D.dmg ? {k: 'strike', dmg} : {k: 'hold'};
-  return {k: 'advance', steps: Math.max(1, Math.floor((e.mv || 0) + D.spd))};
+  // Mirrors actHostile: a Cryo Projector halves this turn's movement deposit.
+  return {k: 'advance', steps: Math.max(1, Math.floor((e.mv || 0) + D.spd * chillFactor(e.lane)))};
 }
 
 /**
@@ -152,7 +153,7 @@ export function foeThreatCells(e) {
   }
 
   // Otherwise it closes. Show the ground it crosses, stopping where it would.
-  const steps = Math.max(1, Math.floor((e.mv || 0) + D.spd));
+  const steps = Math.max(1, Math.floor((e.mv || 0) + D.spd * chillFactor(e.lane)));
   for (let d = 1; d <= steps; d++) {
     const c = e.col - d;
     if (c < 0 || c === hit) break;
@@ -178,6 +179,12 @@ export function supportTargets(u) {
   if (u.techBuff) {
     G.units.forEach(o => { if (o.lane === u.lane && o.col === u.col + u.size && o.tech) add(o); });
   }
+  // A lens helps whoever fires THROUGH it: every armed friendly behind it in lane.
+  if (u.lensBoost) {
+    G.units.forEach(o => {
+      if (o.uid !== u.uid && o.lane === u.lane && o.col < u.col && o.dmg && o.tg !== 'none') add(o);
+    });
+  }
   if (u.sustain) {
     G.units.forEach(o => {
       if (o.uid !== u.uid && Math.abs(o.lane - u.lane) + Math.abs(o.col - u.col) === 1) add(o);
@@ -202,7 +209,7 @@ export function supportTargets(u) {
 /** Cells where this unit suppresses the enemy. Rendered violet. */
 export function influenceCells(u) {
   const out = [];
-  if (u.dampen) for (let c = 0; c < COLS; c++) out.push(u.lane * COLS + c);
+  if (u.dampen || u.chill || u.degauss) for (let c = 0; c < COLS; c++) out.push(u.lane * COLS + c);
   return out;
 }
 
@@ -221,5 +228,8 @@ export function supportLabel(u) {
   }
   if (u.mine) return 'Armed — detonates on the first hostile to enter';
   if (u.dampen) return 'Damping hostile damage in this lane';
+  if (u.chill) return 'Chilling this lane — hostiles advance at half speed';
+  if (u.lensBoost) return `Amplifying friendly fire through this cell (+${u.lensBoost})`;
+  if (u.degauss) return 'Stripping hostile armour in this lane';
   return null;
 }

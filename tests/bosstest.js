@@ -152,11 +152,14 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
 // --- gantrytest: the ramp runs 1-2-3-3, and every cell fires after collapse ---
 {
   start('ironveil');
+  // Each tick counts against a cleared field: summonAdds rolls a random lane
+  // per body and fizzles when that lane is full, so letting fabricants pile up
+  // across ticks makes the turn-4 count a dice roll instead of a ramp.
   const ramp = [];
   for (let t = 0; t < 4; t++) {
-    const before = adds().length;
+    A.G.enemies = A.G.enemies.filter(e => e.boss);
     A.bossTick();
-    ramp.push(adds().length - before);
+    ramp.push(adds().length);
   }
   if (ramp.join(',') !== '1,2,3,3') F.push(`fabrication ramp ran ${ramp.join(',')}, wanted 1,2,3,3`);
   if (adds().some(e => e.k !== 'fabricant')) F.push('the gantry fabricated something else');

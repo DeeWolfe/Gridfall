@@ -98,6 +98,20 @@ export function validTiles(cid) {
   const k = POOL[cid];
   const out = [];
 
+  // A cratering instant aims at the ground itself: any open tile with nothing
+  // standing on it and no objective sunk into it, either side of the line.
+  // The horde routes around what it makes, which is the entire point.
+  if (k.instant && k.crater) {
+    for (let l = 0; l < LANES; l++) for (let c = 0; c < COLS; c++) {
+      if (G.ter[l][c] === 'x') continue;
+      if (unitAt(l, c) || foeAt(l, c) || civAt(l, c)) continue;
+      if (G.crystals.some(x => x.l === l && x.c === c)) continue;
+      if (G.uplinkAt && G.uplinkAt.l === l && G.uplinkAt.c === c) continue;
+      out.push(l * COLS + c);
+    }
+    return out;
+  }
+
   // Instants are consumed where you stand; any held tile will do.
   if (k.instant) {
     for (let l = 0; l < LANES; l++) for (let c = 0; c < COLS; c++) {
