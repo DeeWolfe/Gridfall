@@ -359,7 +359,7 @@ export const OPS = {
       ["n1", "n10"],
       ["n2", "n12"],
     ],
-    lore: "Once a year the Concordat factions meet under one roof to keep the alliance stitched together. This year the burrowers came up through the foundations mid-session — and the four ceremonial guard Frames that flank the Summit Hall stopped answering their handlers. The delegations are out; your escort work bought them that. What remains is a summit in session without a single human in the room: four hijacked honor guards holding the wings, and the thing in the chamber that studied it all, still seated on the floor they were built to protect. Start at the concourse. Take the wings. Then take the floor.",
+    lore: "Once a year the Concordat factions meet under one roof to keep the alliance stitched together. This year, mid-session, something went wrong. City defenses disarmed, and four faction honor guards went non-responsive in their check-ins. Four hijacked ceremonial Proto Frames holding the wings, and the thing in the chamber that studied it all. Start at the concourse. Take the wings. Then take the center.",
     eventBias: "bombard",
     intro: {
       freq: "96.40",
@@ -367,11 +367,11 @@ export const OPS = {
       from: {n: "Hikaru", r: "CC Liaison"},
       beats: [
         {
-          say: ["Commander, this one's live right now. The Concordat summit is in session and the burrowers came up through the foundations mid-meeting — every checkpoint bypassed.", "They're inside the walls, heading for the Summit Hall."],
-          reply: "Copy. What's at stake if we're slow?",
+          say: ["Code red! I repeat, code red! This transmission is going to all available commanders nearby. The Concordat summit is in session and last transmissions are telling us city defenses are down and factional honor guards are non-responsive.", "Ping shows enemy units are swarming and overwhelming local security and defense. The ceremonial Frames the honor guards are piloting are showing odd data..."],
+          reply: "Status on the faction reps?",
         },
         {
-          say: ["Every delegation the alliance runs on is sitting in that hall. If they die in the wards, the alliance goes with them, and the whole region tips.", "This isn't extraction with extra steps, Commander. Walk them out."],
+          say: ["Alliance delegates are still on site. If they die, the alliance goes with them, and the whole region tips.", "This isn't just an extraction, Commander. Walk them out by the hand."],
           reply: "Understood. Whatever it costs.",
         },
         {

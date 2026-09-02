@@ -267,7 +267,7 @@ export const BOSSDEF = {
           reply: "So I hit it while it holds the floor, and brace my line when it dives.",
         },
         {
-          say: ["That is the read. And keep your people out of arm's reach — anything standing beside it when it acts does not stand back up.", "Eighteen cycles. After that the Concordat writes off the hall, and the region tips anyway. Make them count."],
+          say: ["That is the read. And keep your people out of arm's reach — anything standing beside it when it acts does not stand back up.", "As usual, you have eighteen cycles. If that passes, Central will count it a loss and nuke the city. Remember, Commander — faction leads are already at odds with each other. Without this summit, we're looking at total region breakdown."],
           reply: "Understood. Out.",
         },
       ],
@@ -281,11 +281,11 @@ export const BOSSDEF = {
       from: {n: "Hikaru", r: "CC Liaison"},
       beats: [
         {
-          say: ["Kill confirmed. The Summit Hall is a ruin — but it is our ruin again, and the delegations are alive to argue in it.", "Analysis flagged something you should hear directly. The Envoy's positioning, its timing, the way it held the chamber — it was not nesting, Commander. It was imitating the summit it interrupted."],
-          reply: "Imitating. It was practicing being us.",
+          say: ["Kill confirmed. The Summit Hall is a ruin — but it is our ruin again, and the delegations are alive to argue in it.", "Analysis flagged something you should hear directly. The Envoy's positioning, its timing, the way it held the chamber — it was not nesting, Commander. It was imitating the faction and the rest of the UPE with it."],
+          reply: "Imitating and intimidating. It was planning to use this thing to scare and control us.",
         },
         {
-          say: ["First our machines, at the yards. Now our institutions. The scientists argue about what that means. Central does not: whatever directs these things is studying more than our weapons.", "The delegations reconvene next month — in a bunker, under guard. The alliance holds, Commander. That is your doing."],
+          say: ["First our machines, at the yards. Now our institutions. The scientists argue about what that means. Central does not: whatever directs these things is studying more than our weapons.", "The delegations reconvene next month — in a bunker, under heavy guard. The alliance holds and that is your doing. Many thanks, Commander."],
           reply: "One for the many. Out.",
         },
       ],
@@ -374,7 +374,7 @@ export const BOSSDEF = {
       from: {n: "Hikaru", r: "CC Liaison"},
       beats: [
         {
-          say: ["The eastern wing, Commander. The delegation's ceremonial Frame — the one that led their parades — is walking its old route with something else at the controls. Designation: THE PYREGUARD.", "It exhales down its own lane every turn, then marches one lane over. The march is ceremony — it does not deviate. Read where it is going and do not garrison its road."],
+          say: ["The eastern wing, Commander. The delegation's ceremonial Proto Frame — the one that led their parades and protected faction VIPs — is walking its old route with something else at the controls. Designation: THE PYREGUARD.", "It exhales down its own lane every turn, then marches one lane over. The march is ceremony — it does not deviate. Read where it is going and do not garrison its road."],
           reply: "Silencing it. Out.",
         },
       ],
@@ -406,7 +406,7 @@ export const BOSSDEF = {
       from: {n: "Hikaru", r: "CC Liaison"},
       beats: [
         {
-          say: ["The northern wing. The delegation's honor Frame ran escort in polar theatre — the hive has its coolant plant running open. Designation: THE RIMEGUARD.", "It reaches for whoever has pushed deepest and stops them cold — frozen soldiers do not move and do not fire. Stagger your advance, and keep a gun that never leads the line."],
+          say: ["The northern wing. The delegation's honor Frame ran escort in polar theatre — the hive has its coolant plant running open. Designation: THE RIMEGUARD.", "It reaches for whoever has pushed deepest and stops them cold. Frozen soldiers do not move and do not fire. Stagger your advance, and keep your weapons hot."],
           reply: "Understood. Out.",
         },
       ],
@@ -438,7 +438,7 @@ export const BOSSDEF = {
       from: {n: "Hikaru", r: "CC Liaison"},
       beats: [
         {
-          say: ["The western wing has the summit's power ring, Commander, and the delegation Frame wired into it was never meant to draw this much. Designation: THE STORMGUARD.", "It arcs your weapons dead — the soldier stands, the gun does not fire that turn. It cannot silence everyone at once, so bring more guns than it has lightning."],
+          say: ["The western wing has the summit's power ring, Commander, and the delegation Frame wired into it was never meant to draw this much. Designation: THE STORMGUARD.", "It arcs lightning from its weapons — the soldier stands, the gun does not fire that turn. It cannot silence everyone at once, so bring more guns than it has lightning."],
           reply: "Bringing all of them. Out.",
         },
       ],
