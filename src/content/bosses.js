@@ -152,7 +152,7 @@ export const BOSSDEF = {
           reply: "Has anyone broken through yet?",
         },
         {
-          say: ["Remember that technicality? We had a Proto Frame connected to power batteries and hit it with a full blast. We lost the whole contingent of UPE forces as a result.", "But it gave us results. It shatters. Four fragments, separate lanes, each still reflecting — and each growing back every turn. There is a ceiling to the growth, but a slow gun will not beat it there. When it breaks, Central believes killing the pieces fast and all at once will do it.", "Watch the reflection, Commander. For once, your face isn't the most dangerous thing here."],
+          say: ["Remember that technicality? We connected a Proto Frame to power batteries and hit it with a full blast. We lost the whole contingent of UPE forces as a result.", "But it gave us results. It shatters — three shards. Two dig in on your side of the field and hum like a live wire. Don't stand next to them. The third sits back on the hive's side and throws crystal javelins at your people, anywhere on the field.", "They all still reflect, they all grow back every turn, and they all share one life. Kill the pieces fast and it dies. Watch the reflection, Commander. For once, your face isn't the most dangerous thing here."],
           reply: "Funny. Almost. Signing out.",
         },
       ],
@@ -207,15 +207,15 @@ export const BOSSDEF = {
       from: {n: "Hikaru", r: "CC Liaison"},
       beats: [
         {
-          say: ["Commander. The delegations are out — your escort work bought the alliance its lives. But the thing that took the Summit Hall floor is still in session.", "It surfaced mid-evacuation, took position at the head of the chamber, and has not left it since. We are designating it: THE ENVOY."],
-          reply: "In session?",
+          say: ["Commander. The delegations are out — your escort work bought the alliance its lives. A new target has shown itself at the center hall.", "In addition, there's a big number showing up as well. We are designating it: THE ENVOY."],
+          reply: "I bet there's more to it than just this Envoy.",
         },
         {
-          say: ["Watch the footage and you will understand. It sits where the chair sits. It waits. When our recovery teams approached the floor, it went through them — and then returned to its place.", "It moves under the wards, Commander. When it dives, nothing we have can touch it — and it chooses where it comes up. Its burrower escort comes up with it."],
-          reply: "So I hit it while it holds the floor, and brace my line when it dives.",
+          say: ["You bet. According to surveillance, they are lined up like pieces on a board. A line of pawns up front, heavier pieces behind, and it sits on the back rank like a king. One piece moves at a time. We don't know why it plays by rules. Possibly to imitate us in some way.", "Every piece can be killed on its own, and the Envoy itself barely moves. Cut through the formation, or go around it. Either way, take the king."],
+          reply: "Then that's the plan.",
         },
         {
-          say: ["That is the read. And keep your people out of arm's reach — anything standing beside it when it acts does not stand back up.", "As usual, you have eighteen cycles. If that passes, Central will count it a loss and nuke the city. Remember, Commander — faction leads are already at odds with each other. Without this summit, we're looking at total region breakdown."],
+          say: ["One more thing. Security turrets put it down once already — and it stood back up. The feed cut right after, so we don't know what came next.", "The delegations reconvene next month, and they need this floor back to do it. Don't count it dead until everything around it is. Good hunting, Commander."],
           reply: "Understood. Out.",
         },
       ],
@@ -229,11 +229,11 @@ export const BOSSDEF = {
       from: {n: "Hikaru", r: "CC Liaison"},
       beats: [
         {
-          say: ["Kill confirmed. The Summit Hall is a ruin — but it is our ruin again, and the delegations are alive to argue in it.", "Analysis flagged something you should hear directly. The Envoy's positioning, its timing, the way it held the chamber — it was not nesting, Commander. It was imitating the faction and the rest of the UPE with it."],
-          reply: "Imitating and intimidating. It was planning to use this thing to scare and control us.",
+          say: ["Kill confirmed, Commander. The king, and everything it seated around itself — all of it down.", "The recovery teams found the four honor guard chassis moved onto the thrones around the floor. It didn't just take our machines. It was holding court with them."],
+          reply: "It was playing at being us.",
         },
         {
-          say: ["First our machines, at the yards. Now our institutions. The scientists argue about what that means. Central does not: whatever directs these things is studying more than our weapons.", "The delegations reconvene next month — in a bunker, under heavy guard. The alliance holds and that is your doing. Many thanks, Commander."],
+          say: ["That's Central's read too. First our machines at the yards. Now our institutions — a summit, a floor, a game with rules. Whatever directs these things is studying more than our weapons.", "In any case, the delegations reconvene next month — in a bunker, under heavy guard. The alliance holds, and that is your doing. Many thanks, Commander."],
           reply: "One for the many. Out.",
         },
       ],
@@ -504,7 +504,7 @@ export const BOSSDEF = {
           reply: "...Copy. Heading back.",
         },
       ],
-      close: "Channel closed. Lumenspire research: SEALED.",
+      close: "Channel closed. Data secured. Lumenspire goes quiet.",
       go: "Close channel",
     },
     plate: 1,
