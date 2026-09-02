@@ -474,7 +474,7 @@ export const BOSSDEF = {
       from: {n: "Hikaru", r: "CC Liaison"},
       beats: [
         {
-          say: ["Commander. We have the division's last logs now, and the thing holding the spire is in them. Project designation: SUBJECT ONE. A volunteer — one of their own researchers, spliced with hive DNA. The division was trying to build a human the hive could not read.", "Whatever they made instead is standing in the atrium, and it is neither."],
+          say: ["Commander. The division's logs are burned past recovery — fragments, and one project designation repeating through all of them: SUBJECT ONE.", "What we can read says it was one of their own researchers, spliced through with hive DNA. Whatever they were trying to build, the thing standing in the atrium is not what they wrote down."],
           reply: "How does it fight?",
         },
         {
@@ -482,7 +482,7 @@ export const BOSSDEF = {
           reply: "Then I'll find out for you.",
         },
         {
-          say: ["One more thing. The volunteer's name is in these logs. I have not read it aloud, and I am not going to.", "Eighteen cycles. Bring it peace, Commander."],
+          say: ["One more thing. The researcher's name is in these fragments. I have not read it aloud, and I am not going to.", "There is no clock on this one, Commander — it ends when one of you does. Bring it peace."],
           reply: "Understood. Out.",
         },
       ],
