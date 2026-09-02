@@ -229,8 +229,8 @@ export const BEST = {
     dmg: 0,
     threat: 0,
     spd: 0,
-    d: "The thing holding the Summit Hall floor. It strikes everything that stands adjacent, and every few cycles it dives beneath the wards — untouchable — to surface somewhere else with its burrower delegation.",
-    counter: "Hit it hard while it holds the floor; hold your line while it is under. Keep your people out of arm's reach. At half hull it dives faster and surfaces on YOUR side of the board.",
+    d: "The thing holding the Summit Hall floor — a king that fights like one, behind a delegation deployed like a chess set: a pawn screen, a knight, two bishops, a queen. One piece moves every turn, and each moves the way its name says.",
+    counter: "Thin the formation — every piece is killable and the king barely moves. Watch the queen's lines and the knight's jumps; nothing else reaches deep. Take the King and the second session begins: full hull, with the four honor guards seated around him.",
   },
   zealot: {
     n: "Zealot",

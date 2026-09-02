@@ -4,9 +4,16 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.21';
+export const VERSION = '2.22';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.22',
+    notes: [
+      'The Summit Floor is a CHESSBOARD. The Envoy no longer dives — it holds the back rank as a 1×1 KING behind a delegation deployed like a chess set: five pawns screening a knight, two bishops and a queen, every piece individually killable and every piece moving the way its name says. Pawns advance and take diagonally, the knight jumps your wall, the bishops work the diagonals, the queen owns every line she can see. One piece moves per turn — chess rules — and a piece that reaches your soldier hits it the same turn it arrives. The king censures all eight squares around his throne, and only the king carries the bulkhead: the formation dies as fast as you can shoot it.',
+      'Take the King and learn what the summit was hiding: THE SECOND SESSION. The Envoy stands back up at FULL hull, the chess set falls with him — and the four honor guards you beat in the wings take the thrones around the floor. Pyre burns its lane, Rime freezes your deepest, Storm arcs weapons dead, Shard works the foundations — two thrones acting every turn, each on the numbers you already fought it at, each falling silent only when you kill it. The operation is won when the king and all four thrones are down. Twenty-six turns. Both fights. Go.',
+    ],
+  },
   {
     v: '2.21',
     notes: [

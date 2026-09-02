@@ -1370,8 +1370,8 @@
    "dmg": 0,
    "threat": 0,
    "spd": 0,
-   "d": "The thing holding the Summit Hall floor. It strikes everything that stands adjacent, and every few cycles it dives beneath the wards — untouchable — to surface somewhere else with its burrower delegation.",
-   "counter": "Hit it hard while it holds the floor; hold your line while it is under. Keep your people out of arm's reach. At half hull it dives faster and surfaces on YOUR side of the board."
+   "d": "The thing holding the Summit Hall floor — a king that fights like one, behind a delegation deployed like a chess set: a pawn screen, a knight, two bishops, a queen. One piece moves every turn, and each moves the way its name says.",
+   "counter": "Thin the formation — every piece is killable and the king barely moves. Watch the queen's lines and the knight's jumps; nothing else reaches deep. Take the King and the second session begins: full hull, with the four honor guards seated around him."
   },
   "zealot": {
    "n": "Zealot",
@@ -2970,19 +2970,16 @@
   "envoy": {
    "op": "crownring",
    "hp": 24,
-   "w": 2,
-   "h": 2,
-   "l": 1,
-   "c": 5,
-   "turns": 18,
-   "diveEvery": 3,
-   "escort": "burrower",
-   "escortN": 2,
+   "w": 1,
+   "h": 1,
+   "l": 2,
+   "c": 7,
+   "turns": 26,
    "adjDmg": 3,
-   "p1": "In session — holding the floor",
-   "p2": "Protocol abandoned — diving faster, surfacing close",
-   "bt": "RECESS ENDED",
-   "bb": "It stops pretending the Summit Hall matters. The floor is wherever it surfaces — and it is surfacing on yours.",
+   "p1": "First session — the delegation moves one piece a turn",
+   "p2": "Second session — the Envoy stands again, and the honor guards answer",
+   "bt": "THE SECOND SESSION",
+   "bb": "The King falls — and stands back up. The four thrones around the floor were never empty.",
    "brief": {
     "freq": "141.95",
     "net": "残心ネット",
@@ -3045,7 +3042,18 @@
     "go": "Close channel"
    },
    "plate": 1,
-   "bulk": 4
+   "bulk": 4,
+   "kingFlip": 1,
+   "pawnHp": 6,
+   "pawnDmg": 2,
+   "knightHp": 10,
+   "knightDmg": 3,
+   "bishopHp": 10,
+   "bishopDmg": 3,
+   "queenHp": 14,
+   "queenDmg": 5,
+   "frameHp": 12,
+   "frameActs": 2
   },
   "reliquary": {
    "op": "shallowhelm",

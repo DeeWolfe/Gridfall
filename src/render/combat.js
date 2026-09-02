@@ -11,7 +11,7 @@ import {MISSIONS} from '../content/missions.js';
 import {MODS} from '../content/modifiers.js';
 import {DOCTRINE} from '../content/doctrines.js';
 import {BOSSDEF} from '../content/bosses.js';
-import {bossHp} from '../rules/boss.js';
+import {bossHp, PIECE_GLYPH, PIECE_NAME} from '../rules/boss.js';
 import {TGNAME} from '../content/targeting-names.js';
 import {G, active, sel, mover, foeSel, replaying, stratSel, logOpen, abAim, setSel, setMover, setFoeSel, setStratSel, setLogOpen, setAbAim} from '../state/session.js';
 import {STRATAGEMS} from '../content/stratagems.js';
@@ -242,14 +242,17 @@ function drawSel() {
     if (e.boss && G.boss) {
       const def = BOSSDEF[G.boss.k];
       const cells = G.boss.bodies.reduce((a, b) => a + b.cells.length, 0);
-      // Phase two shortens the Envoy's dive cycle.
+      // Phase two shortens the Reliquary's purge cycle; the countdown is
+      // public by design.
       const p2cut = n => (G.boss.phase === 2 ? Math.max(2, n - 1) : n);
-      // The Reliquary's purge countdown is public by design.
       const purgeIn = def.chargeEvery ? p2cut(def.chargeEvery) - G.boss.charge : 0;
+      // The Envoy's bar is the KING's hull — the formation carries its own.
+      const king = def.kingFlip ? G.boss.bodies.find(b => b.role === 'king') : null;
+      const hull = king ? king.hp : bossHp();
       el.innerHTML = `<div class="selhead"><b style="color:var(--mag)">${D.n}</b>
-          <span class="hpbadge">${bossHp()}/${def.hp}</span></div>
+          <span class="hpbadge">${hull}/${def.hp}</span></div>
         ${G.boss.shield > 0 ? `<div class="hpbar"><i style="width:${Math.max(0, G.boss.shield / def.shield * 100)}%;background:var(--cyan)"></i></div>` : ''}
-        <div class="hpbar"><i style="width:${Math.max(0, bossHp() / def.hp * 100)}%;background:var(--mag)"></i></div>
+        <div class="hpbar"><i style="width:${Math.min(100, Math.max(0, hull / def.hp * 100))}%;background:var(--mag)"></i></div>
         <div class="selgrid">
           <div><span>Phase</span><b>${G.boss.phase} of 2</b></div>
           ${G.boss.shield > 0 ? `<div><span>Field</span><b>${G.boss.shield}</b></div>` : ''}
@@ -258,7 +261,8 @@ function drawSel() {
           ${def.plate ? `<div><span>Plating</span><b>−${def.plate} per hit</b></div>` : ''}
           ${def.bulk ? `<div><span>Bulkhead</span><b>max ${def.bulk} hull/turn${G.boss.dealt >= def.bulk ? ' — SEALED' : ''}</b></div>` : ''}
           ${G.boss.k === 'subject' && G.boss.phase === 2 && G.boss.bodies.length === 1 && def.reviveEvery ? `<div><span>Knits whole</span><b>in ${def.reviveEvery - (G.boss.solo || 0)} turn${def.reviveEvery - (G.boss.solo || 0) === 1 ? '' : 's'}</b></div>` : ''}
-          ${def.diveEvery ? `<div><span>Dives</span><b>every ${p2cut(def.diveEvery)} turns</b></div>` : ''}
+          ${def.kingFlip && G.boss.phase === 1 ? `<div><span>Formation</span><b>${G.boss.bodies.length - 1} piece${G.boss.bodies.length - 1 === 1 ? '' : 's'} standing</b></div>` : ''}
+          ${def.kingFlip && G.boss.phase === 2 ? `<div><span>Thrones</span><b>${G.boss.bodies.length - (king ? 1 : 0)} of 4 answering</b></div>` : ''}
           ${G.boss.k === 'pyreguard' ? `<div><span>Marches</span><b>one lane a turn</b></div>` : ''}
           ${def.chargeEvery ? `<div><span>Purge</span><b>in ${purgeIn} turn${purgeIn === 1 ? '' : 's'}</b></div>` : ''}
         </div>
@@ -375,12 +379,18 @@ function foeMarkup(e, locked) {
   const denom = e.bmax || D.hp;
   const shieldPip = e.boss && G.boss && G.boss.shield > 0
     ? `<span class="shield">◈${G.boss.shield}</span>` : '';
-  return `<div class="ent ${kind}${e.stun ? ' stunned' : ''}" title="${D.n}">
+  // A body with a chess-court role reads as its piece, not as another copy of
+  // the boss sprite; roles outside PIECE_GLYPH (wall, hive…) keep the sprite.
+  const role = e.boss && G.boss ? (G.boss.bodies.find(b => b.id === e.body) || {}).role : null;
+  const face = role && PIECE_GLYPH[role] && role !== 'king'
+    ? `<div class="nm"><span class="fglyph">${PIECE_GLYPH[role]}</span>${PIECE_NAME[role]}</div>`
+    : foeSprite(e.k, e.uid) || `<div class="nm"><span class="fglyph">${FOE_GLYPH[e.k] || '▪'}</span>${D.n.split(' ')[0]}</div>`;
+  return `<div class="ent ${kind}${e.stun ? ' stunned' : ''}" title="${role && PIECE_NAME[role] ? `${D.n} — ${PIECE_NAME[role]}` : D.n}">
         ${e.boss ? '' : intentBadge(e)}
         ${locked ? '<span class="lockpip">⌖</span>' : ''}
         ${shieldPip}
         <span class="minihp foe"><i style="width:${Math.max(0, e.hp / denom * 100)}%"></i></span>
-        ${foeSprite(e.k, e.uid) || `<div class="nm"><span class="fglyph">${FOE_GLYPH[e.k] || '▪'}</span>${D.n.split(' ')[0]}</div>`}
+        ${face}
         <div class="hp">${e.hp}</div></div>`;
 }
 

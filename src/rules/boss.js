@@ -60,7 +60,7 @@ export function seedBoss() {
   const cells = [];
   for (let l = d.l; l < d.l + d.h; l++) for (let c = d.c; c < d.c + d.w; c++) cells.push([l, c]);
   G.boss = {k, phase: 1, shield: d.shield || 0, turns: 0, marks: [],
-    under: false, charge: 0, grace: 0, dealt: 0, sealed: false,
+    charge: 0, dealt: 0, sealed: false,
     bodies: [{id: 1, hp: d.hp, max: d.hp, cells, dir: 1}], nextBody: 2};
   G.bossDown = false;
   // Each machine sets its own clock. turns: 0 means NO clock — the mission
@@ -74,6 +74,7 @@ export function seedBoss() {
     (d.bulk ? `. Bulkhead: it cannot lose more than ${d.bulk} hull in one turn` : '') +
     (d.turns ? `. ${d.turns} turns on the clock.` : '. No clock — it ends when one of you does.'), 'loss');
   clog(`<span style="color:var(--violet)">${d.p1}</span>`, 'info');
+  if (k === 'envoy') envoyFormation(d);
 }
 
 /**
@@ -119,7 +120,9 @@ export function dmgBoss(e, d, src, attacker) {
     // the ceiling and the rest of the volley glances off until next turn,
     // so every boss fight has a guaranteed minimum length; decks that
     // never reach the ceiling never feel it.
-    if (def.bulk) {
+    // Only the Envoy's KING is bulkheaded — his pieces and thrones are fair
+    // game for a full volley, or thinning the formation would take all day.
+    if (def.bulk && (B.k !== 'envoy' || body.role === 'king')) {
       const room = Math.max(0, def.bulk - (B.dealt || 0));
       if (dealt > room) {
         dealt = room;
@@ -137,6 +140,13 @@ export function dmgBoss(e, d, src, attacker) {
   }
 
   if (body.hp <= 0) {
+    // The Envoy's first death is not the end of the session: the king stands
+    // back up at full hull and the honor guards answer — the phase flip here
+    // is on the KING'S death, never on a hull fraction.
+    if (B.k === 'envoy' && B.phase === 1 && body.role === 'king') {
+      phaseFlip();
+      return;
+    }
     removeBodyProxies(body);
     B.bodies = B.bodies.filter(b => b !== body);
     G.kills++;
@@ -152,7 +162,7 @@ export function dmgBoss(e, d, src, attacker) {
 
   // Half hull is the default flip. A shielded boss flips on collapse instead —
   // that is the Gantry, and the shield is protecting the player from phase two.
-  if (B.phase === 1 && !def.shield && bossHp() <= def.hp / 2) phaseFlip();
+  if (B.phase === 1 && !def.shield && !def.kingFlip && bossHp() <= def.hp / 2) phaseFlip();
 }
 
 /** The one irreversible transition. Loud on purpose — a boss that quietly
@@ -168,6 +178,7 @@ function phaseFlip() {
   if (B.k === 'brood') broodSplit(def);
   if (B.k === 'prism') prismShatter(def);
   if (B.k === 'subject') subjectSplit();
+  if (B.k === 'envoy') envoySecondSession();
   hooks.notify(`⚠ ${def.bt}`, def.bb);
 }
 
@@ -657,61 +668,179 @@ function subjectTick(def) {
   }
 }
 
-// --- The Envoy: censure, dive, surface with the delegation ---
+// --- The Envoy: the summit is a chessboard — one piece moves a turn ---
+
+/** Glyph and name per body role, shared with the renderer so a piece reads
+ * as a piece on the board, not as five copies of the Envoy. */
+export const PIECE_GLYPH = {pawn: '♟', knight: '♞', bishop: '♝', queen: '♛', king: '♚',
+  pyre: '🜂', rime: '🜄', storm: '🜁', shard: '🜃'};
+export const PIECE_NAME = {pawn: 'Pawn', knight: 'Knight', bishop: 'Bishop', queen: 'Queen', king: 'King',
+  pyre: 'Pyre', rime: 'Rime', storm: 'Storm', shard: 'Shard'};
+
+/** Nearest free cell to (l, c) a 1-cell body can stand in — same-spot first,
+ * then rings outward along the axes. */
+function pieceSpot(l, c) {
+  for (let d = 0; d < COLS; d++) {
+    for (const [tl, tc] of d === 0 ? [[l, c]] : [[l, c - d], [l - d, c], [l + d, c], [l, c + d]]) {
+      if (tl < 0 || tl >= LANES || tc < 0 || tc >= COLS) continue;
+      if (G.ter[tl][tc] === 'x' || unitAt(tl, tc) || foeAt(tl, tc) || civAt(tl, tc)) continue;
+      return [tl, tc];
+    }
+  }
+  return null;
+}
+
+/** The first session deploys as a chess set. The board is five lanes, so the
+ * back rank is a COLUMN — knight, bishop, KING, queen, bishop — with a pawn
+ * screen one column forward. Every piece is a body of the same machine,
+ * individually killable; only the king is bulkheaded. */
+function envoyFormation(def) {
+  const B = G.boss;
+  const back = COLS - 1, front = COLS - 2;
+  B.bodies[0].role = 'king';
+  [['knight', 0, back], ['bishop', 1, back], ['queen', 3, back], ['bishop', 4, back],
+    ['pawn', 0, front], ['pawn', 1, front], ['pawn', 2, front], ['pawn', 3, front], ['pawn', 4, front],
+  ].forEach(([role, l, c]) => {
+    const at = pieceSpot(l, c);
+    if (!at) return;
+    const hp = def[role + 'Hp'];
+    const nb = {id: B.nextBody++, hp, max: hp, cells: [at], dir: 1, role};
+    B.bodies.push(nb);
+    addBodyProxies(nb);
+    G.ter[at[0]][at[1]] = 'e';
+  });
+  clog('<span style="color:var(--violet)">The delegation takes the floor</span> — a pawn screen, a knight, two bishops, a queen. The Envoy holds the back rank.', 'info');
+}
+
+/** Every legal move for one piece, chess rules on a 5×8 grid. A move onto a
+ * soldier's square is a strike; sliding pieces stop on the square before a
+ * surviving target (`stop`), and take the square itself only on a kill. */
+function pieceMoves(body) {
+  const [l, c] = body.cells[0];
+  const out = [];
+  const openAt = (tl, tc) => tl >= 0 && tl < LANES && tc >= 0 && tc < COLS &&
+    G.ter[tl][tc] !== 'x' && !foeAt(tl, tc) && !civAt(tl, tc);
+  if (body.role === 'pawn') {
+    // Forward is toward YOUR line; the strike is diagonal, never straight.
+    if (openAt(l, c - 1) && !unitAt(l, c - 1)) out.push({body, to: [l, c - 1], stop: [l, c - 1], prey: null});
+    [[l - 1, c - 1], [l + 1, c - 1]].forEach(([tl, tc]) => {
+      const u = openAt(tl, tc) ? unitAt(tl, tc) : null;
+      if (u) out.push({body, to: [tl, tc], stop: [l, c], prey: u});
+    });
+  } else if (body.role === 'knight') {
+    [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]].forEach(([dl, dc]) => {
+      const tl = l + dl, tc = c + dc;
+      if (!openAt(tl, tc)) return;
+      out.push({body, to: [tl, tc], stop: [l, c], prey: unitAt(tl, tc) || null});
+    });
+  } else {
+    const rays = body.role === 'bishop' ? [[-1, -1], [-1, 1], [1, -1], [1, 1]]
+      : [[-1, -1], [-1, 1], [1, -1], [1, 1], [-1, 0], [1, 0], [0, -1], [0, 1]];
+    rays.forEach(([dl, dc]) => {
+      let prev = [l, c];
+      for (let s = 1; s < COLS; s++) {
+        const tl = l + dl * s, tc = c + dc * s;
+        if (!openAt(tl, tc)) break;
+        const u = unitAt(tl, tc);
+        if (u) { out.push({body, to: [tl, tc], stop: prev, prey: u}); break; }
+        out.push({body, to: [tl, tc], stop: [tl, tc], prey: null});
+        prev = [tl, tc];
+      }
+    });
+  }
+  return out;
+}
+
+/** One move per turn, like the game it is imitating. A strike outranks any
+ * advance and the hardest hitter takes it; otherwise the formation closes on
+ * your line, minor pieces first so the queen is not spent as a scout. */
+function envoyMove(def) {
+  const B = G.boss;
+  const moves = B.bodies.filter(b => b.role && b.role !== 'king').flatMap(pieceMoves);
+  if (!moves.length) return;
+  const dmgOf = b => def[b.role + 'Dmg'] || 0;
+  const gapTo = ([l, c]) => G.units.length
+    ? Math.min(...G.units.map(u => Math.abs(u.lane - l) + Math.abs(u.col - c))) : COLS + LANES;
+  moves.forEach(m => {
+    m.score = m.prey ? 1000 + dmgOf(m.body) * 10 - m.prey.hp * 0.01
+      : 100 - gapTo(m.to) - (m.body.role === 'queen' ? 2 : 0);
+  });
+  const m = shuffle(moves).sort((a, b) => b.score - a.score)[0];
+  const [bl, bc] = m.body.cells[0];
+  if (m.prey) {
+    const dmg = dmgOf(m.body);
+    dmgUnit(m.prey, dmg, 'The delegation');
+    const died = !G.units.some(u => u.uid === m.prey.uid);
+    const dest = died ? m.to : m.stop;
+    if (dest[0] !== bl || dest[1] !== bc) moveBody(m.body, [dest], BEST[B.k].n);
+    clog(`<span class="d">${PIECE_GLYPH[m.body.role]} The ${m.body.role} takes ${m.prey.n}</span> — ${dmg}${died ? ', and the square' : ''}.`, 'loss');
+  } else {
+    moveBody(m.body, [m.to], BEST[B.k].n);
+    clog(`<span style="color:var(--violet)">${PIECE_GLYPH[m.body.role]} The ${m.body.role} moves</span> — lane ${m.to[0] + 1}.`, 'info');
+  }
+}
+
+/** The king holds his square and censures the floor around it — all eight
+ * squares, the way a king threatens. */
+function kingCensure(def) {
+  const king = G.boss.bodies.find(b => b.role === 'king');
+  if (!king) return;
+  const [l, c] = king.cells[0];
+  const struck = G.units.filter(u => Math.max(Math.abs(u.lane - l), Math.abs(u.col - c)) === 1);
+  struck.forEach(u => dmgUnit(u, def.adjDmg, 'The Envoy'));
+  if (struck.length) clog(`<span class="d">♚ The Envoy censures the floor</span> — ${struck.length} unit${struck.length > 1 ? 's' : ''} beside the throne struck.`, 'loss');
+}
+
+/** The flip: the king's first death. The formation falls with him, he stands
+ * back up at FULL hull — and the four honor guards beaten in the wings take
+ * the thrones around him, each running its own element until it dies. */
+function envoySecondSession() {
+  const B = G.boss;
+  const def = BOSSDEF[B.k];
+  const king = B.bodies.find(b => b.role === 'king');
+  if (!king) return;
+  B.bodies.filter(b => b !== king).forEach(removeBodyProxies);
+  B.bodies = [king];
+  king.hp = king.max;
+  setBodyHp(king);
+  const [kl, kc] = king.cells[0];
+  [['pyre', kl - 2, kc - 1], ['rime', kl - 1, kc - 1], ['storm', kl + 1, kc - 1], ['shard', kl + 2, kc - 1]]
+    .forEach(([role, l, c]) => {
+      const at = pieceSpot(Math.max(0, Math.min(LANES - 1, l)), Math.max(0, Math.min(COLS - 1, c)));
+      if (!at) return;
+      const nb = {id: B.nextBody++, hp: def.frameHp, max: def.frameHp, cells: [at], dir: 1, role};
+      B.bodies.push(nb);
+      addBodyProxies(nb);
+      G.ter[at[0]][at[1]] = 'e';
+    });
+  B.frameIx = 0;
+  clog('<span class="d">The Envoy stands back up</span> — full hull. The delegation is done pretending.', 'loss');
+  clog('<span class="d">The four honor guards take the thrones</span> — Pyre, Rime, Storm, Shard, seated around the floor.', 'loss');
+}
+
+/** One throne acts: each guard keeps the element it fought with in the wings,
+ * on the wing fight's own numbers. Kill a throne and its element goes quiet. */
+function frameAct(f) {
+  if (f.role === 'pyre') {
+    const lane = f.cells[0][0];
+    const n = elemBurn([lane], BOSSDEF.pyreguard.fireDmg, 'The Pyre throne');
+    clog(`<span class="d">🜂 The Pyre throne exhales</span> — lane ${lane + 1} burns${n ? `, ${n} caught` : ''}.`, n ? 'loss' : 'info');
+  }
+  if (f.role === 'rime') elemFreeze(BOSSDEF.rimeguard.freezeN, BOSSDEF.rimeguard.chillDmg, 'The Rime throne');
+  if (f.role === 'storm') elemJam(BOSSDEF.stormguard.jamN, BOSSDEF.stormguard.arcDmg, 'The Storm throne');
+  if (f.role === 'shard') { eruptMarks(BOSSDEF.shardguard); markBreaches(BOSSDEF.shardguard.markN); }
+}
+
 function envoyTick(def) {
   const B = G.boss;
-  const body = B.bodies[0];
-  if (!body) return;
-  const every = B.phase === 2 ? Math.max(2, def.diveEvery - 1) : def.diveEvery;
-
-  if (B.under) {
-    // Surface. Candidate anchors where the footprint fits; it avoids your
-    // units when it can (crushing a fresh deploy with no tell reads as a
-    // cheat), and in phase two it comes up on YOUR side of the board.
-    const spots = [];
-    for (let l = 0; l + def.h <= LANES; l++) for (let c = 0; c + def.w <= COLS; c++) {
-      const cells = [];
-      for (let dl = 0; dl < def.h; dl++) for (let dc = 0; dc < def.w; dc++) cells.push([l + dl, c + dc]);
-      if (cells.some(([cl, cc]) => G.ter[cl][cc] === 'x' || foeAt(cl, cc))) continue;
-      spots.push({cells, c, units: cells.filter(([cl, cc]) => unitAt(cl, cc)).length});
-    }
-    if (!spots.length) return;  // board jammed solid — it stays under a turn
-    const close = B.phase === 2 ? spots.filter(s => s.c <= 2) : spots;
-    const pool = close.length ? close : spots;
-    const clear = Math.min(...pool.map(s => s.units));
-    const pick = shuffle(pool.filter(s => s.units === clear))[0];
-    B.under = false;
-    pick.cells.forEach(([l, c]) => crushCell(l, c, BEST[B.k].n));
-    body.cells = pick.cells;
-    addBodyProxies(body);
-    pick.cells.forEach(([l, c]) => { G.ter[l][c] = 'e'; });
-    clog(`<span class="d">The Envoy surfaces</span> at lane ${pick.cells[0][0] + 1} — the floor is wherever it says it is.`, 'loss');
-    const n = def.escortN + (B.phase === 2 ? 1 : 0);
-    const made = summonAdds(def.escort, n);
-    if (made) clog(`The delegation comes up with it — ${made} ${BEST[def.escort].n}${made > 1 ? 's' : ''}.`, 'wave');
-    return;
-  }
-
-  if (B.turns % every === 0) {
-    // Dive: the proxies leave the board. Nothing can touch it until it
-    // surfaces — the clock keeps running, which is the whole cost.
-    removeBodyProxies(body);
-    B.under = true;
-    clog('<span style="color:var(--violet)">The Envoy dives</span> beneath the wards — untouchable until it surfaces.', 'info');
-    return;
-  }
-
-  // Censure: everything standing adjacent to the floor it holds is struck.
-  const own = new Set(body.cells.map(([l, c]) => l + ',' + c));
-  const adj = new Set();
-  body.cells.forEach(([l, c]) => [[l - 1, c], [l + 1, c], [l, c - 1], [l, c + 1]]
-    .forEach(([al, ac]) => {
-      if (al < 0 || al >= LANES || ac < 0 || ac >= COLS) return;
-      if (!own.has(al + ',' + ac)) adj.add(al + ',' + ac);
-    }));
-  const struck = G.units.filter(u => adj.has(u.lane + ',' + u.col));
-  struck.forEach(u => dmgUnit(u, def.adjDmg, 'The Envoy'));
-  if (struck.length) clog(`<span class="d">The Envoy censures the floor</span> — ${struck.length} unit${struck.length > 1 ? 's' : ''} within arm's reach struck.`, 'loss');
+  kingCensure(def);
+  if (B.phase === 1) { envoyMove(def); return; }
+  // Second session: the surviving thrones act in rotation, two a turn.
+  const frames = B.bodies.filter(b => ['pyre', 'rime', 'storm', 'shard'].includes(b.role));
+  if (!frames.length) return;
+  const acts = Math.min(def.frameActs || 2, frames.length);
+  for (let i = 0; i < acts; i++) frameAct(frames[(B.frameIx + i) % frames.length]);
+  B.frameIx = ((B.frameIx || 0) + acts) % frames.length;
 }
 
 // --- the four elements of the Shallowhelm chapels, shared with the final ---

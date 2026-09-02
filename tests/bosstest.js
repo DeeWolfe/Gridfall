@@ -415,40 +415,104 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
   console.log(`subject one: no clock; duet mends ${d.mendN} and claws the corners; solo hive storms+stuns for ${d.clawDmg}; solo human charges the full line, +${d.snapStep}/turn; survivor knits whole after ${d.reviveEvery}`);
 }
 
-// --- envoytest: censure by adjacency, the dive is untouchable, the surface brings the delegation ---
+// --- envoytest: the summit is a chessboard — the court, one move a turn, the second session ---
 {
   start('crownring', 'envoy');
   const d = BOSSDEF.envoy;
-  // Footprint lanes 1-2 x cols 5-6: (1,4) is within arm's reach, (4,0) is not.
-  const near = spawnUnit('rifle', 1, 4, {hp: 10, max: 10, shield: 0});
-  const far = spawnUnit('wall', 4, 0, {hp: 12, max: 12, shield: 0});
-  A.bossTick();                            // turn 1 — in session: the censure
-  if (near.hp !== 10 - d.adjDmg) F.push(`adjacency took ${10 - near.hp}, wanted ${d.adjDmg}`);
-  if (far.hp !== 12) F.push('the censure reached across the board');
+  const roles = () => A.G.boss.bodies.map(b => b.role);
+  const count = r => roles().filter(x => x === r).length;
+  // The court: king + pawn screen + knight, two bishops, a queen — back two columns.
+  if (A.G.boss.bodies.length !== 10) F.push(`the court seeded ${A.G.boss.bodies.length} bodies, wanted 10`);
+  if (count('king') !== 1 || count('pawn') !== 5 || count('bishop') !== 2 || count('knight') !== 1 || count('queen') !== 1)
+    F.push(`the court roster is wrong (${roles().join(', ')})`);
+  if (A.G.boss.bodies.some(b => b.cells[0][1] < A.COLS - 2)) F.push('a piece seeded off the back two columns');
+  const king = A.G.boss.bodies.find(b => b.role === 'king');
+  if (king.cells.length !== 1) F.push('the king is not 1x1');
+  if (A.G.waves !== d.turns) F.push(`the clock reads ${A.G.waves}, wanted ${d.turns}`);
 
-  A.bossTick();                            // turn 2 — censure again
-  A.bossTick();                            // turn 3 — the dive
-  if (!A.G.boss.under) F.push('the envoy did not dive on schedule');
-  if (proxies().length) F.push('a submerged envoy still stands on the board');
-  if (A.G.boss.bodies.length !== 1 || A.G.bossDown) F.push('diving unmade the body');
+  // Chess moves ONE piece a turn — and the king holds his square.
+  const bait = spawnUnit('rifle', 2, 0, {hp: 30, max: 30, shield: 0});
+  const cellsById = () => Object.fromEntries(A.G.boss.bodies.map(b => [b.id, b.cells[0].join(',')]));
+  const c0 = cellsById();
+  A.bossTick();
+  const c1 = cellsById();
+  const moved = Object.keys(c1).filter(id => c0[id] !== c1[id]);
+  if (moved.length !== 1) F.push(`${moved.length} pieces moved in one turn — chess moves one`);
+  if (c0[king.id] !== c1[king.id]) F.push('the king left his square');
+  if (bait.hp !== 30) F.push('something struck across the board on the first move');
 
+  // The pawn takes diagonally, never straight — reduce the court to prove it.
   A.G.units.length = 0;
-  A.bossTick();                            // turn 4 — the surface
-  if (A.G.boss.under) F.push('the envoy stayed under past its turn');
-  if (proxies().length !== d.w * d.h) F.push(`surfaced on ${proxies().length} cells, wanted ${d.w * d.h}`);
-  const escort = adds().filter(e => e.k === d.escort);
-  if (escort.length < d.escortN) F.push(`the delegation numbered ${escort.length}, wanted ${d.escortN}`);
+  A.G.enemies = A.G.enemies.filter(e => e.boss);
+  A.G.boss.bodies.filter(b => !['king', 'pawn'].includes(b.role))
+    .forEach(b => A.dmgEnemy(proxies().find(e => e.body === b.id), 999, 'test', true));
+  while (count('pawn') > 1) {
+    const p1 = A.G.boss.bodies.find(b => b.role === 'pawn');
+    A.dmgEnemy(proxies().find(e => e.body === p1.id), 999, 'test', true);
+  }
+  const pawn = A.G.boss.bodies.find(b => b.role === 'pawn');
+  const [pl, pc] = pawn.cells[0];
+  const dlp = pl > 0 ? -1 : 1;
+  const diag = spawnUnit('rifle', pl + dlp, pc - 1, {hp: 20, max: 20, shield: 0});
+  const ahead = spawnUnit('wall', pl, pc - 1, {hp: 20, max: 20, shield: 0});
+  A.bossTick();
+  if (diag.hp !== 20 - d.pawnDmg) F.push(`the pawn strike dealt ${20 - diag.hp}, wanted ${d.pawnDmg} on the diagonal`);
+  if (ahead.hp !== 20) F.push('a pawn struck straight ahead — pawns take diagonally');
 
-  // Phase two: it surfaces on YOUR side of the board.
+  // The queen slides her whole line and strikes the SAME turn.
   start('crownring', 'envoy');
-  hit(d.hp / 2 + 1);
-  if (A.G.boss.phase !== 2) F.push('envoy did not flip at half hull');
-  A.G.boss.turns = 1;                      // next tick is even — a phase-two dive turn
+  [...A.G.boss.bodies].filter(b => !['king', 'queen'].includes(b.role))
+    .forEach(b => A.dmgEnemy(proxies().find(e => e.body === b.id), 999, 'test', true));
+  const queen = A.G.boss.bodies.find(b => b.role === 'queen');
+  const [ql, qc] = queen.cells[0];
+  for (let c = 0; c < A.COLS; c++) if (c !== qc && A.G.ter[ql][c] === 'x') A.G.ter[ql][c] = '';
+  const mark = spawnUnit('rifle', ql, 0, {hp: 40, max: 40, shield: 0});
   A.bossTick();
-  if (!A.G.boss.under) F.push('phase two did not shorten the dive cycle');
+  if (mark.hp !== 40 - d.queenDmg) F.push(`the queen's strike dealt ${40 - mark.hp}, wanted ${d.queenDmg}`);
+  if (Math.abs(queen.cells[0][0] - mark.lane) + Math.abs(queen.cells[0][1] - mark.col) !== 1)
+    F.push('the queen did not slide the line to her target');
+
+  // The knight jumps the screen — the pawns between are not his problem.
+  start('crownring', 'envoy');
+  const knight = A.G.boss.bodies.find(b => b.role === 'knight');
+  const [nl2, nc2] = knight.cells[0];
+  const lt = [[nl2 + 2, nc2 - 1], [nl2 - 2, nc2 - 1], [nl2 + 1, nc2 - 2], [nl2 - 1, nc2 - 2]]
+    .find(([tl, tc]) => tl >= 0 && tl < A.LANES && tc >= 0 && tc < A.COLS &&
+      A.G.ter[tl][tc] !== 'x' && !A.G.enemies.some(e => e.lane === tl && e.col === tc));
+  const jumper = spawnUnit('rifle', lt[0], lt[1], {hp: 20, max: 20, shield: 0});
   A.bossTick();
-  if (Math.min(...proxies().map(e => e.col)) > 3) F.push('a phase-two surface stayed deep — it should come up close');
-  console.log(`envoy: censure ${d.adjDmg} within arm's reach, untouchable dive every ${d.diveEvery}, delegation of ${d.escortN} on the surface`);
+  if (jumper.hp !== 20 - d.knightDmg) F.push(`the knight's jump dealt ${20 - jumper.hp}, wanted ${d.knightDmg}`);
+
+  // The second session: the king's first death is not the end — full hull,
+  // four thrones, and the chess set is done.
+  start('crownring', 'envoy');
+  const king2 = A.G.boss.bodies.find(b => b.role === 'king');
+  hit(999);                                // proxies()[0] is the king
+  if (A.G.bossDown) F.push('the king\'s first death ended the fight');
+  if (A.G.boss.phase !== 2) F.push('the king\'s death did not open the second session');
+  if (king2.hp !== king2.max) F.push(`the king stood back up at ${king2.hp}/${king2.max} — wanted full hull`);
+  const thrones = A.G.boss.bodies.filter(b => ['pyre', 'rime', 'storm', 'shard'].includes(b.role));
+  if (thrones.length !== 4) F.push(`${thrones.length} thrones answered, wanted 4`);
+  if (A.G.boss.bodies.some(b => ['pawn', 'knight', 'bishop', 'queen'].includes(b.role)))
+    F.push('a chess piece survived into the second session');
+  if (thrones.some(t => t.hp !== d.frameHp)) F.push('a throne seeded off its hull');
+
+  // The thrones act in rotation, each its wing's element: rime freezes, storm jams.
+  const vict = spawnUnit('rifle', 0, 0, {hp: 40, max: 40, shield: 0});
+  A.bossTick();                            // pyre + rime
+  if (!vict.stun) F.push('the Rime throne did not freeze anyone');
+  A.bossTick();                            // storm + shard
+  if (!vict.jam) F.push('the Storm throne did not arc a weapon dead');
+
+  // The fight ends only when the king AND every throne are down.
+  A.dmgEnemy(proxies().find(e => e.body === king2.id), 999, 'test', true);
+  if (A.G.bossDown) F.push('the second king death ended it with thrones still answering');
+  thrones.forEach(t => {
+    const tp = proxies().find(e => e.body === t.id);
+    if (tp) A.dmgEnemy(tp, 999, 'test', true);
+  });
+  if (!A.G.bossDown) F.push('king and all four thrones down did not end the fight');
+  console.log(`envoy: a court of 10 on the back ranks, one chess move a turn, king-death second session with 4 thrones at ${d.frameHp}`);
 }
 
 // --- the hijacked honor guards: each wing's element behaves, and only that element ---

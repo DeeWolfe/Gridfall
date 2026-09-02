@@ -4341,6 +4341,55 @@ lance dies while resonance continues, corner-claw (penned hive half
 claws the diagonal soldier), aligned charge crosses the full lane and
 deals escalation-1 damage same turn, escalation-2 on the next.
 
+## v2.22 — the Envoy chess court (user's concept change)
+
+The dive/surface Envoy is GONE, replaced wholesale per the user's spec:
+"prepopulate the map with enemy units based on a chess board... envoy 1x1
+and act as king piece... phase two is against envoy full health again with
+the 4 frames fought against previously."
+
+**The court.** `envoyFormation` (called from seedBoss) deploys the back
+two columns: back rank col 7 = knight/bishop/KING(l2)/queen/bishop, pawn
+screen col 6. All are bodies of the one boss with `role` set; `pieceSpot`
+finds the nearest free cell when a map blocks a seat. Per-piece data:
+pawnHp6/pawnDmg2, knightHp10/3, bishopHp10/3, queenHp14/5. King keeps
+adjDmg 3 as an 8-square (Chebyshev) censure every turn.
+
+**Chess movement.** `pieceMoves` implements real rules on 5×8: pawns
+advance toward the player and take diagonally only; knight L-jumps over
+anything; bishop diagonal rays; queen all eight rays; sliding pieces stop
+on the square before a surviving target and take the square on a kill.
+`envoyMove` plays ONE move per boss turn: a strike outranks any advance
+(hardest hitter takes it), otherwise the move that best closes on the
+nearest soldier, queen deprioritized as a scout.
+
+**Engine hooks.** `def.kingFlip` exempts the envoy from the generic
+half-hull phase flip; the flip fires in dmgBoss when the KING body dies
+in phase 1 (`envoySecondSession`: pieces removed, king restored to FULL
+hull, four throne bodies pyre/rime/storm/shard at frameHp 12 seeded
+around him). Only the king is bulkheaded (bulk 4) — pieces and thrones
+take full volleys, or thinning the formation would take all day. Phase 2:
+two thrones act per turn in rotation (`frameAct`), each reusing its wing
+fight's own numbers via the shared elemental helpers (elemBurn/
+elemFreeze/elemJam/eruptMarks+markBreaches). Win = king AND all four
+thrones down (engine default: bodies empty). Clock 26.
+
+**Renderer.** Drawer hull bar/badge shows the KING's pool for kingFlip
+bosses (formation carries its own); Formation/Thrones rows replace the
+dead Dives row; board tiles render role'd bodies as piece glyphs
+♟♞♝♛ / 🜂🜄🜁🜃 with names, king keeps the Envoy sprite. Roles outside
+the map (prism wall/lance, subject hive/human) keep their sprites.
+
+**Code check done with it:** dead `under`/`grace` fields removed from
+the G.boss initializer (dive-era state; grace was orphaned even before),
+old envoyTick dive/surface/escort code deleted, `diveEvery/escort/
+escortN` dropped from data, bestiary d/counter rewritten, dive drawer
+row removed. Bot band: envoy 1% (n=80, 79 clock) — the bot cannot
+finish two boss fights in 26 turns; speed-kill floor is 12, so a burst
+deck has 14 turns of slack. Levers if the user calls it a wall: turns
+26→30, frameHp 12↓, or pawnHp down. Codec brief/debrief still describe
+the dive era — user-owned story text, flagged for their pen.
+
 ## Card backlog — the next pass
 
 Not built. Recorded here so the next card batch starts from a list rather than a
