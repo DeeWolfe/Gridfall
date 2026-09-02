@@ -1366,12 +1366,12 @@
    "n": "The Aperture",
    "t": "boss",
    "boss": 1,
-   "hp": 52,
+   "hp": 42,
    "dmg": 0,
    "threat": 0,
    "spd": 0,
-   "d": "What is left of a Lumenspire researcher, spliced with hive DNA and fused through the transmission lens — a human nervous system with an array for a body. It marks a lane of the grid, and one cycle later that lane burns.",
-   "counter": "The sweep is mechanical because the body is: one lane over, reversing at the edges, announced a full cycle ahead. Read the light, step out of it, and punish the lanes it is not watching. At half hull the fan opens to three lanes."
+   "d": "What is left of a Lumenspire researcher, spliced with hive DNA and fused through the transmission lens — a human nervous system with an array for a body. It marks a lane of the grid and burns it a cycle later. Hurt it enough, and it tears itself out of the lens and hunts.",
+   "counter": "While it is in the lens, read the light: the marked lane burns next turn, in an ordered sweep that reverses at the edges. At half hull it leaves the lens, and the fight becomes a hunt — it stalks your nearest soldier and claws the wounded first. Keep arm's reach clear and kill it in the open."
   },
   "envoy": {
    "n": "The Envoy",
@@ -2988,7 +2988,7 @@
   },
   "aperture": {
    "op": "lumenspire",
-   "hp": 52,
+   "hp": 42,
    "w": 1,
    "h": 3,
    "l": 1,
@@ -2997,10 +2997,10 @@
    "beamDmg": 4,
    "add": "husk",
    "addEvery": 2,
-   "p1": "Focusing — one lane marked, burning next turn",
-   "p2": "Wide open — the fan burns three lanes",
-   "bt": "APERTURE WIDE",
-   "bb": "The lens stops choosing. Whatever held it to one lane at a time has burned away, and the fan opens.",
+   "p1": "In the lens — one lane marked, burning next turn",
+   "p2": "Unbound — it hunts your nearest soldier, two steps a turn",
+   "bt": "IT LEAVES THE LENS",
+   "bb": "The lens shatters from the inside. What steps out of the wreckage was a researcher once — and it remembers how to run.",
    "brief": {
     "freq": "141.92",
     "net": "残心ネット",
@@ -3061,7 +3061,9 @@
     ],
     "close": "Channel closed. Receiver location: UNKNOWN.",
     "go": "Close channel"
-   }
+   },
+   "stalkMv": 2,
+   "clawDmg": 3
   },
   "envoy": {
    "op": "crownring",

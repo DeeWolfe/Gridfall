@@ -180,7 +180,7 @@ export const BOSSDEF = {
   },
   aperture: {
     op: "lumenspire",
-    hp: 52,
+    hp: 42,
     w: 1,
     h: 3,
     l: 1,
@@ -189,10 +189,10 @@ export const BOSSDEF = {
     beamDmg: 4,
     add: "husk",
     addEvery: 2,
-    p1: "Focusing — one lane marked, burning next turn",
-    p2: "Wide open — the fan burns three lanes",
-    bt: "APERTURE WIDE",
-    bb: "The lens stops choosing. Whatever held it to one lane at a time has burned away, and the fan opens.",
+    p1: "In the lens — one lane marked, burning next turn",
+    p2: "Unbound — it hunts your nearest soldier, two steps a turn",
+    bt: "IT LEAVES THE LENS",
+    bb: "The lens shatters from the inside. What steps out of the wreckage was a researcher once — and it remembers how to run.",
     brief: {
       freq: "141.92",
       net: "残心ネット",
@@ -233,6 +233,8 @@ export const BOSSDEF = {
       close: "Channel closed. Receiver location: UNKNOWN.",
       go: "Close channel",
     },
+    stalkMv: 2,
+    clawDmg: 3,
   },
   envoy: {
     op: "crownring",

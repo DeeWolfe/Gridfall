@@ -4081,12 +4081,12 @@ const BEST = {
     n: "The Aperture",
     t: "boss",
     boss: 1,
-    hp: 52,
+    hp: 42,
     dmg: 0,
     threat: 0,
     spd: 0,
-    d: "What is left of a Lumenspire researcher, spliced with hive DNA and fused through the transmission lens — a human nervous system with an array for a body. It marks a lane of the grid, and one cycle later that lane burns.",
-    counter: "The sweep is mechanical because the body is: one lane over, reversing at the edges, announced a full cycle ahead. Read the light, step out of it, and punish the lanes it is not watching. At half hull the fan opens to three lanes.",
+    d: "What is left of a Lumenspire researcher, spliced with hive DNA and fused through the transmission lens — a human nervous system with an array for a body. It marks a lane of the grid and burns it a cycle later. Hurt it enough, and it tears itself out of the lens and hunts.",
+    counter: "While it is in the lens, read the light: the marked lane burns next turn, in an ordered sweep that reverses at the edges. At half hull it leaves the lens, and the fight becomes a hunt — it stalks your nearest soldier and claws the wounded first. Keep arm's reach clear and kill it in the open.",
   },
   envoy: {
     n: "The Envoy",
@@ -4779,7 +4779,7 @@ const BOSSDEF = {
   },
   aperture: {
     op: "lumenspire",
-    hp: 52,
+    hp: 42,
     w: 1,
     h: 3,
     l: 1,
@@ -4788,10 +4788,10 @@ const BOSSDEF = {
     beamDmg: 4,
     add: "husk",
     addEvery: 2,
-    p1: "Focusing — one lane marked, burning next turn",
-    p2: "Wide open — the fan burns three lanes",
-    bt: "APERTURE WIDE",
-    bb: "The lens stops choosing. Whatever held it to one lane at a time has burned away, and the fan opens.",
+    p1: "In the lens — one lane marked, burning next turn",
+    p2: "Unbound — it hunts your nearest soldier, two steps a turn",
+    bt: "IT LEAVES THE LENS",
+    bb: "The lens shatters from the inside. What steps out of the wreckage was a researcher once — and it remembers how to run.",
     brief: {
       freq: "141.92",
       net: "残心ネット",
@@ -4832,6 +4832,8 @@ const BOSSDEF = {
       close: "Channel closed. Receiver location: UNKNOWN.",
       go: "Close channel",
     },
+    stalkMv: 2,
+    clawDmg: 3,
   },
   envoy: {
     op: "crownring",
@@ -6274,7 +6276,7 @@ function seedBoss() {
   const cells = [];
   for (let l = d.l; l < d.l + d.h; l++) for (let c = d.c; c < d.c + d.w; c++) cells.push([l, c]);
   G.boss = {k, phase: 1, shield: d.shield || 0, turns: 0, marks: [],
-    beam: null, under: false, charge: 0, hymn: 0,
+    beam: null, under: false, charge: 0, hymn: 0, grace: 0,
     bodies: [{id: 1, hp: d.hp, max: d.hp, cells, dir: 1}], nextBody: 2};
   G.bossDown = false;
   addBodyProxies(G.boss.bodies[0]);
@@ -6353,6 +6355,7 @@ function phaseFlip() {
   clog(`<span class="d">${def.bt}</span> — ${def.p2}.`, 'loss');
   if (B.k === 'brood') broodSplit(def);
   if (B.k === 'prism') prismShatter(def);
+  if (B.k === 'aperture') apertureUnbind();
   hooks.notify(`⚠ ${def.bt}`, def.bb);
 }
 
@@ -6586,19 +6589,78 @@ function prismTick() {
   if (grew) clog('<span class="d">The fragments grow</span> — crystal knitting back along its planes.', 'info');
 }
 
-// --- The Aperture: a telegraphed lane beam, sweeping in order ---
+// --- The Aperture: a telegraphed lane beam — until it leaves the lens ---
+
+/** The flip: the lens shatters and the hybrid inside contracts to one cell.
+ * The beam dies with the housing; the fight becomes a hunt next turn. */
+function apertureUnbind() {
+  const B = G.boss;
+  const body = B.bodies[0];
+  if (!body) return;
+  const mid = body.cells[Math.floor(body.cells.length / 2)];
+  removeBodyProxies(body);
+  body.cells = [mid];
+  addBodyProxies(body);
+  B.beam = null;
+  B.grace = 1;
+  clog('<span class="d">The light dies in the housing</span> — something climbs out of the wreck.', 'loss');
+}
+
+/** Unbound: close on the nearest soldier, then claw the weakest in reach. */
+function apertureStalk(def) {
+  const B = G.boss;
+  const body = B.bodies[0];
+  if (!body) return;
+  for (let s = 0; s < def.stalkMv; s++) {
+    const [l, c] = body.cells[0];
+    const tgt = [...G.units].sort((a, b) =>
+      (Math.abs(a.lane - l) + Math.abs(a.col - c)) - (Math.abs(b.lane - l) + Math.abs(b.col - c)) ||
+      a.uid - b.uid)[0];
+    if (!tgt || Math.abs(tgt.lane - l) + Math.abs(tgt.col - c) <= 1) break;
+    const dl = Math.sign(tgt.lane - l);
+    const dc = Math.sign(tgt.col - c);
+    // Close the wider gap first; sidestep along the other axis when blocked.
+    const steps = Math.abs(tgt.col - c) >= Math.abs(tgt.lane - l)
+      ? [[l, c + dc], [l + dl, c]] : [[l + dl, c], [l, c + dc]];
+    const next = steps.find(([nl, nc]) => nl >= 0 && nl < LANES && nc >= 0 && nc < COLS &&
+      G.ter[nl][nc] !== 'x' && !unitAt(nl, nc) && !foeAt(nl, nc) && !civAt(nl, nc));
+    if (!next) break;
+    moveBody(body, [next], BEST[B.k].n);
+  }
+  const [l, c] = body.cells[0];
+  const prey = G.units.filter(u => Math.abs(u.lane - l) + Math.abs(u.col - c) === 1)
+    .sort((a, b) => a.hp - b.hp || a.uid - b.uid)[0];
+  if (prey) {
+    dmgUnit(prey, def.clawDmg, 'The Aperture');
+    clog(`<span class="d">The Aperture</span> claws ${prey.n} — it goes for the wounded first.`, 'loss');
+  } else {
+    clog('<span style="color:var(--violet)">The Aperture stalks</span> — it is closing on your line.', 'info');
+  }
+}
+
 function apertureTick(def) {
   const B = G.boss;
 
-  // Yesterday's marked lane burns first. Phase two opens the fan to three.
+  // Unbound: one scripted human beat right after the flip, then the hunt.
+  if (B.phase === 2) {
+    if (B.grace) {
+      B.grace = 0;
+      clog('<span style="color:var(--gold)">It does not attack.</span> It stands where the lens was and looks at its hands.', 'info');
+      return;
+    }
+    apertureStalk(def);
+    if (B.turns % def.addEvery === 0) {
+      const made = summonAdds(def.add, 1);
+      if (made) clog(`It screams — the dead of Meridian answer. A ${BEST[def.add].n} stands back up.`, 'wave');
+    }
+    return;
+  }
+
+  // In the lens: yesterday's marked lane burns first.
   if (B.beam) {
-    const lanes = B.phase === 2
-      ? [B.beam.lane - 1, B.beam.lane, B.beam.lane + 1].filter(l => l >= 0 && l < LANES)
-      : [B.beam.lane];
-    const caught = G.units.filter(u => lanes.includes(u.lane));
+    const caught = G.units.filter(u => u.lane === B.beam.lane);
     caught.forEach(u => dmgUnit(u, def.beamDmg, 'The Aperture'));
-    clog(`<span class="d">The beam fires</span> — lane${lanes.length > 1 ? 's' : ''} ` +
-      `${lanes.map(l => l + 1).join(', ')} burn${lanes.length > 1 ? '' : 's'}` +
+    clog(`<span class="d">The beam fires</span> — lane ${B.beam.lane + 1} burns` +
       `${caught.length ? ` — ${caught.length} unit${caught.length > 1 ? 's' : ''} caught in the light` : ''}.`,
       caught.length ? 'loss' : 'info');
   }
@@ -13215,21 +13277,22 @@ const FOE_PIX = {
     '.....oo.....',
     '............',
   ],
-  // The transmission lens with something living behind it: concentric rings,
-  // a gold core, one lime glint that blinks — the eye that marks your lane.
+  // The researcher, spliced and fused: a walker with the lens for a head —
+  // gold core, one blinking lime glint. Reads as the array while it is
+  // mounted, and as the creature once it climbs out.
   aperture: [
-    '.....oo.....',
-    '....obbo....',
+    '....oooo....',
     '...obssbo...',
-    '..obsWWsbo..',
     '..obWggWbo..',
     '..obWgxWbo..',
-    '..obsWWsbo..',
     '...obssbo...',
     '....obbo....',
-    '..oo.oo.oo..',
-    '.oo......oo.',
-    '............',
+    '..oosbbsoo..',
+    '.ob.obbo.bo.',
+    '.o..obbo..o.',
+    '....obbo....',
+    '...obo.obo..',
+    '...oo...oo..',
   ],
   // A hooded mass seated where the chair sits: dome, two pale eye pips, a
   // lime sigil where a delegate's badge would be, folded flanks at rest.
@@ -13653,6 +13716,7 @@ function drawSel() {
           <div><span>Bodies</span><b>${G.boss.bodies.length}</b></div>
           <div><span>Footprint</span><b>${cells} cell${cells === 1 ? '' : 's'}</b></div>
           ${G.boss.beam ? `<div><span>Beam</span><b>lane ${G.boss.beam.lane + 1} next</b></div>` : ''}
+          ${G.boss.k === 'aperture' && G.boss.phase === 2 ? `<div><span>Stalks</span><b>${def.stalkMv} cells a turn</b></div><div><span>Claw</span><b>${def.clawDmg} — wounded first</b></div>` : ''}
           ${def.diveEvery ? `<div><span>Dives</span><b>every ${p2cut(def.diveEvery)} turns</b></div>` : ''}
           ${G.boss.k === 'concord' ? `<div><span>Next motion</span><b>${motionNames[G.boss.hymn]}</b></div>` : ''}
           ${G.boss.k === 'pyreguard' ? `<div><span>Marches</span><b>one lane a turn</b></div>` : ''}
@@ -15489,9 +15553,17 @@ function render() {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.13';
+const VERSION = '2.14';
 
 const PATCH_NOTES = [
+  {
+    v: '2.14',
+    notes: [
+      'The Aperture fights like what it is now. Phase one is still the array — read the light, the marked lane burns a turn later, the sweep reverses at the edges. But at half hull the lens shatters from the inside, and what climbs out of the wreckage was a researcher once.',
+      'Unbound, it is a hunt: one cell of spliced flesh and glass loose on the grid, closing two cells a turn on your nearest soldier and clawing the wounded first. Your area weapons lose their three-cell target the moment it tears free — the fight you finish is not the fight you started.',
+      'It does not attack on the turn it climbs out. It stands where the lens was and looks at its hands. Then it runs.',
+    ],
+  },
   {
     v: '2.13',
     notes: [

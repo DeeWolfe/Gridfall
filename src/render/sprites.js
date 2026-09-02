@@ -886,21 +886,22 @@ const FOE_PIX = {
     '.....oo.....',
     '............',
   ],
-  // The transmission lens with something living behind it: concentric rings,
-  // a gold core, one lime glint that blinks — the eye that marks your lane.
+  // The researcher, spliced and fused: a walker with the lens for a head —
+  // gold core, one blinking lime glint. Reads as the array while it is
+  // mounted, and as the creature once it climbs out.
   aperture: [
-    '.....oo.....',
-    '....obbo....',
+    '....oooo....',
     '...obssbo...',
-    '..obsWWsbo..',
     '..obWggWbo..',
     '..obWgxWbo..',
-    '..obsWWsbo..',
     '...obssbo...',
     '....obbo....',
-    '..oo.oo.oo..',
-    '.oo......oo.',
-    '............',
+    '..oosbbsoo..',
+    '.ob.obbo.bo.',
+    '.o..obbo..o.',
+    '....obbo....',
+    '...obo.obo..',
+    '...oo...oo..',
   ],
   // A hooded mass seated where the chair sits: dome, two pale eye pips, a
   // lime sigil where a delegate's badge would be, folded flanks at rest.

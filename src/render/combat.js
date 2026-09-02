@@ -258,6 +258,7 @@ function drawSel() {
           <div><span>Bodies</span><b>${G.boss.bodies.length}</b></div>
           <div><span>Footprint</span><b>${cells} cell${cells === 1 ? '' : 's'}</b></div>
           ${G.boss.beam ? `<div><span>Beam</span><b>lane ${G.boss.beam.lane + 1} next</b></div>` : ''}
+          ${G.boss.k === 'aperture' && G.boss.phase === 2 ? `<div><span>Stalks</span><b>${def.stalkMv} cells a turn</b></div><div><span>Claw</span><b>${def.clawDmg} — wounded first</b></div>` : ''}
           ${def.diveEvery ? `<div><span>Dives</span><b>every ${p2cut(def.diveEvery)} turns</b></div>` : ''}
           ${G.boss.k === 'concord' ? `<div><span>Next motion</span><b>${motionNames[G.boss.hymn]}</b></div>` : ''}
           ${G.boss.k === 'pyreguard' ? `<div><span>Marches</span><b>one lane a turn</b></div>` : ''}

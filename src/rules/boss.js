@@ -18,7 +18,7 @@ import {BOSSDEF} from '../content/bosses.js';
 import {G, active, nextUid} from '../state/session.js';
 import {randInt, shuffle} from '../state/rng.js';
 import {hooks} from '../state/hooks.js';
-import {unitAt, foeAt} from './board.js';
+import {unitAt, foeAt, civAt} from './board.js';
 import {dmgUnit, pierceUnit} from './combat.js';
 import {mkFoe} from './spawn.js';
 import {clog} from './log.js';
@@ -60,7 +60,7 @@ export function seedBoss() {
   const cells = [];
   for (let l = d.l; l < d.l + d.h; l++) for (let c = d.c; c < d.c + d.w; c++) cells.push([l, c]);
   G.boss = {k, phase: 1, shield: d.shield || 0, turns: 0, marks: [],
-    beam: null, under: false, charge: 0, hymn: 0,
+    beam: null, under: false, charge: 0, hymn: 0, grace: 0,
     bodies: [{id: 1, hp: d.hp, max: d.hp, cells, dir: 1}], nextBody: 2};
   G.bossDown = false;
   addBodyProxies(G.boss.bodies[0]);
@@ -139,6 +139,7 @@ function phaseFlip() {
   clog(`<span class="d">${def.bt}</span> — ${def.p2}.`, 'loss');
   if (B.k === 'brood') broodSplit(def);
   if (B.k === 'prism') prismShatter(def);
+  if (B.k === 'aperture') apertureUnbind();
   hooks.notify(`⚠ ${def.bt}`, def.bb);
 }
 
@@ -372,19 +373,78 @@ function prismTick() {
   if (grew) clog('<span class="d">The fragments grow</span> — crystal knitting back along its planes.', 'info');
 }
 
-// --- The Aperture: a telegraphed lane beam, sweeping in order ---
+// --- The Aperture: a telegraphed lane beam — until it leaves the lens ---
+
+/** The flip: the lens shatters and the hybrid inside contracts to one cell.
+ * The beam dies with the housing; the fight becomes a hunt next turn. */
+function apertureUnbind() {
+  const B = G.boss;
+  const body = B.bodies[0];
+  if (!body) return;
+  const mid = body.cells[Math.floor(body.cells.length / 2)];
+  removeBodyProxies(body);
+  body.cells = [mid];
+  addBodyProxies(body);
+  B.beam = null;
+  B.grace = 1;
+  clog('<span class="d">The light dies in the housing</span> — something climbs out of the wreck.', 'loss');
+}
+
+/** Unbound: close on the nearest soldier, then claw the weakest in reach. */
+function apertureStalk(def) {
+  const B = G.boss;
+  const body = B.bodies[0];
+  if (!body) return;
+  for (let s = 0; s < def.stalkMv; s++) {
+    const [l, c] = body.cells[0];
+    const tgt = [...G.units].sort((a, b) =>
+      (Math.abs(a.lane - l) + Math.abs(a.col - c)) - (Math.abs(b.lane - l) + Math.abs(b.col - c)) ||
+      a.uid - b.uid)[0];
+    if (!tgt || Math.abs(tgt.lane - l) + Math.abs(tgt.col - c) <= 1) break;
+    const dl = Math.sign(tgt.lane - l);
+    const dc = Math.sign(tgt.col - c);
+    // Close the wider gap first; sidestep along the other axis when blocked.
+    const steps = Math.abs(tgt.col - c) >= Math.abs(tgt.lane - l)
+      ? [[l, c + dc], [l + dl, c]] : [[l + dl, c], [l, c + dc]];
+    const next = steps.find(([nl, nc]) => nl >= 0 && nl < LANES && nc >= 0 && nc < COLS &&
+      G.ter[nl][nc] !== 'x' && !unitAt(nl, nc) && !foeAt(nl, nc) && !civAt(nl, nc));
+    if (!next) break;
+    moveBody(body, [next], BEST[B.k].n);
+  }
+  const [l, c] = body.cells[0];
+  const prey = G.units.filter(u => Math.abs(u.lane - l) + Math.abs(u.col - c) === 1)
+    .sort((a, b) => a.hp - b.hp || a.uid - b.uid)[0];
+  if (prey) {
+    dmgUnit(prey, def.clawDmg, 'The Aperture');
+    clog(`<span class="d">The Aperture</span> claws ${prey.n} — it goes for the wounded first.`, 'loss');
+  } else {
+    clog('<span style="color:var(--violet)">The Aperture stalks</span> — it is closing on your line.', 'info');
+  }
+}
+
 function apertureTick(def) {
   const B = G.boss;
 
-  // Yesterday's marked lane burns first. Phase two opens the fan to three.
+  // Unbound: one scripted human beat right after the flip, then the hunt.
+  if (B.phase === 2) {
+    if (B.grace) {
+      B.grace = 0;
+      clog('<span style="color:var(--gold)">It does not attack.</span> It stands where the lens was and looks at its hands.', 'info');
+      return;
+    }
+    apertureStalk(def);
+    if (B.turns % def.addEvery === 0) {
+      const made = summonAdds(def.add, 1);
+      if (made) clog(`It screams — the dead of Meridian answer. A ${BEST[def.add].n} stands back up.`, 'wave');
+    }
+    return;
+  }
+
+  // In the lens: yesterday's marked lane burns first.
   if (B.beam) {
-    const lanes = B.phase === 2
-      ? [B.beam.lane - 1, B.beam.lane, B.beam.lane + 1].filter(l => l >= 0 && l < LANES)
-      : [B.beam.lane];
-    const caught = G.units.filter(u => lanes.includes(u.lane));
+    const caught = G.units.filter(u => u.lane === B.beam.lane);
     caught.forEach(u => dmgUnit(u, def.beamDmg, 'The Aperture'));
-    clog(`<span class="d">The beam fires</span> — lane${lanes.length > 1 ? 's' : ''} ` +
-      `${lanes.map(l => l + 1).join(', ')} burn${lanes.length > 1 ? '' : 's'}` +
+    clog(`<span class="d">The beam fires</span> — lane ${B.beam.lane + 1} burns` +
       `${caught.length ? ` — ${caught.length} unit${caught.length > 1 ? 's' : ''} caught in the light` : ''}.`,
       caught.length ? 'loss' : 'info');
   }

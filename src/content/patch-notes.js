@@ -4,9 +4,17 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.13';
+export const VERSION = '2.14';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.14',
+    notes: [
+      'The Aperture fights like what it is now. Phase one is still the array — read the light, the marked lane burns a turn later, the sweep reverses at the edges. But at half hull the lens shatters from the inside, and what climbs out of the wreckage was a researcher once.',
+      'Unbound, it is a hunt: one cell of spliced flesh and glass loose on the grid, closing two cells a turn on your nearest soldier and clawing the wounded first. Your area weapons lose their three-cell target the moment it tears free — the fight you finish is not the fight you started.',
+      'It does not attack on the turn it climbs out. It stands where the lens was and looks at its hands. Then it runs.',
+    ],
+  },
   {
     v: '2.13',
     notes: [

@@ -3853,6 +3853,35 @@ fusion is for the research one." So:
   debrief (new), Reliquary brief/debrief (restored v2.11 text),
   Aperture rewrite (v2.12). The Envoy's shipped text still stands.
 
+## v2.14 — the Aperture leaves the lens
+
+User: "change the aperture fight to something more human and hive
+creature." Chose "it leaves the lens" from three offered shapes.
+
+- Phase 1 unchanged (beam sweep + husks) except the p2 FAN IS GONE.
+- phaseFlip → apertureUnbind(): body contracts to the middle lens cell
+  (1 proxy), beam nulled, `G.boss.grace = 1`. Freed cells stay 'e' and
+  flip naturally (deliberately no rubble — an 'x' at col 6 could stall
+  enemy lane movement forever).
+- The grace beat: the first unbound tick does nothing — one scripted
+  human moment ("It stands where the lens was and looks at its hands"),
+  deterministic, once.
+- apertureStalk(): up to stalkMv (2) steps toward the nearest unit
+  (closes the wider axis first, sidesteps when blocked, never crushes —
+  steps only into empty cells), then claws ONE adjacent soldier for
+  clawDmg (3), weakest first. Husk scream cadence continues in p2.
+- Drawer: p2 shows Stalks/Claw rows; the Beam row disappears with the
+  beam. New sprite: a walker with the lens for a head, so one map reads
+  as the array mounted and the creature unbound.
+- Balance: rework landed at 30% (the 1-cell unbound body starves area
+  weapons and the clock bites; losses split breach-leak/clock-out).
+  hp 52→42 + clawDmg 4→3 → 45% at n=60. Note for tiers work: a boss
+  that SHRINKS its footprint mid-fight effectively gains armor against
+  area decks — remember this lever.
+- bosstest: fan guards replaced with contract-to-1/grace/closing-
+  distance/claws-weakest-only guards. Bestiary d/counter updated
+  (draft — user proofreads via the script doc).
+
 ## Card backlog — the next pass
 
 Not built. Recorded here so the next card batch starts from a list rather than a

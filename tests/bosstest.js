@@ -289,15 +289,32 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
   A.bossTick();
   if (A.G.boss.beam.lane !== A.LANES - 2) F.push('the sweep did not reverse at the board edge');
 
-  // Phase two: the fan burns the marked lane AND both neighbours.
+  // The flip: the lens shatters, the body contracts to ONE cell, the beam
+  // dies with the housing — and the first unbound turn is the scripted
+  // human beat: it does nothing at all.
   A.G.units.length = 0;
-  A.G.boss.phase = 2;
-  A.G.boss.beam = {lane: 2, dir: 1};
-  const fan = [1, 2, 3].map(l => spawnUnit('rifle', l, 0, {hp: 10, max: 10, shield: 0}));
-  const spared = spawnUnit('wall', 0, 0, {hp: 12, max: 12, shield: 0});
+  hit(d.hp / 2 + 1);
+  if (A.G.boss.phase !== 2) F.push('aperture did not flip at half hull');
+  if (proxies().length !== 1) F.push(`unbound aperture stands on ${proxies().length} cells, wanted 1`);
+  if (A.G.boss.beam) F.push('the beam survived the lens');
+  const far = spawnUnit('rifle', 0, 0, {hp: 10, max: 10, shield: 0});
+  A.bossTick();                             // the grace beat
+  if (far.hp !== 10) F.push('it attacked during the grace beat');
+  const seat = () => A.G.boss.bodies[0].cells[0];
+  const dist = () => Math.abs(seat()[0] - far.lane) + Math.abs(seat()[1] - far.col);
+  const d0 = dist();
+  A.bossTick();                             // the hunt begins
+  if (dist() >= d0) F.push('unbound, it did not close on the nearest soldier');
+  if (dist() > Math.max(1, d0 - d.stalkMv)) F.push(`it closed ${d0 - dist()} cells, wanted ${d.stalkMv}`);
+
+  // The claw: adjacent, and it takes the weakest in reach.
+  A.G.units.length = 0;
+  const [bl, bc] = seat();
+  const tough = spawnUnit('wall', bl, bc - 1, {hp: 12, max: 12, shield: 0});
+  const weak = spawnUnit('rifle', bl - 1 >= 0 ? bl - 1 : bl + 1, bc, {hp: 6, max: 10, shield: 0});
   A.bossTick();
-  if (fan.some(u => u.hp !== 10 - d.beamDmg)) F.push('the phase-two fan missed one of its three lanes');
-  if (spared.hp !== 12) F.push('the fan burned a fourth lane');
+  if (weak.hp !== 6 - d.clawDmg) F.push(`the claw dealt ${6 - weak.hp} to the weakest, wanted ${d.clawDmg}`);
+  if (tough.hp !== 12) F.push('the claw hit more than one soldier');
 
   // The dead city answers on the cadence, and it answers with husks.
   start('lumenspire');
@@ -305,7 +322,7 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
   A.bossTick();
   if (!adds().length) F.push('the aperture never raised the dead');
   if (adds().some(e => e.k !== d.add)) F.push('the aperture raised something other than husks');
-  console.log(`aperture: marked lane burns for ${d.beamDmg} a turn later, ordered sweep, three-lane fan after the flip`);
+  console.log(`aperture: marked lane burns for ${d.beamDmg} a turn later, ordered sweep; at half hull it leaves the lens, stands one grace beat, then hunts and claws the wounded for ${d.clawDmg}`);
 }
 
 // --- envoytest: censure by adjacency, the dive is untouchable, the surface brings the delegation ---
