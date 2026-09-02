@@ -4,9 +4,17 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.18';
+export const VERSION = '2.19';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.19',
+    notes: [
+      'The machines hit back like finals now. Every boss weapon is up roughly half again: the Gantry\'s collapsed-field barrage burns 3 per emitter, the Brood Mother\'s tendril lashes rows for 3 and her eruptions land 5, the Envoy\'s censure strikes for 3, the Reliquary\'s ward purge burns 6 off unheld ground, and Subject One walks in swinging 3 — with a hive-half claw of 4, or 5 once there is nothing holding it back.',
+      'THE PRISM reflects a full 35% of everything you fire into it now. It still has never attacked anything. It has also never needed to.',
+      'The honor guards sharpened with the rest: the Pyreguard\'s lane burns for 4, the Rimeguard\'s grip bites for 4, the Stormguard\'s overload arc doubles, the Shardguard\'s eruptions land 5. With the bulkhead guaranteeing every Kill Order runs six-plus turns, every one of those turns now costs something.',
+    ],
+  },
   {
     v: '2.18',
     notes: [

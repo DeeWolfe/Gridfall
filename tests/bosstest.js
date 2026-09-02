@@ -171,7 +171,8 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
   A.bossTick();
   A.G.enemies = A.G.enemies.filter(e => e.boss);
   const taken = before - walls.reduce((a, u) => a + u.hp, 0);
-  if (taken !== 12) F.push(`phase-two barrage dealt ${taken}, wanted 6 cells x 2`);
+  const want = 6 * BOSSDEF.gantry.cellDmg;
+  if (taken !== want) F.push(`phase-two barrage dealt ${taken}, wanted 6 cells x ${BOSSDEF.gantry.cellDmg}`);
   console.log('gantry: ramp 1-2-3-3, six-cell barrage lands 12 after collapse');
 }
 
@@ -238,13 +239,14 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
 // --- prismtest: reflection scales, pierces shields, kills; growth is capped ---
 {
   start('sunderglass');
+  const r8 = Math.round(8 * BOSSDEF.prism.reflect);
   const shooter = spawnUnit('rifle', 0, 0, {hp: 10, max: 10, shield: 0});
   hit(8, shooter);
-  if (shooter.hp !== 8) F.push(`reflection returned ${10 - shooter.hp} of 8, wanted 2`);
+  if (shooter.hp !== 10 - r8) F.push(`reflection returned ${10 - shooter.hp} of 8, wanted ${r8}`);
 
   const shielded = spawnUnit('wall', 3, 0, {hp: 10, max: 10, shield: 1, regen: false});
   hit(8, shielded);
-  if (shielded.hp !== 8 || shielded.shield !== 1) F.push('reflection was absorbed by a shield');
+  if (shielded.hp !== 10 - r8 || shielded.shield !== 1) F.push('reflection was absorbed by a shield');
 
   const doomed = spawnUnit('rifle', 4, 0, {hp: 1, max: 4, shield: 0, phase: 0});
   const lost = A.G.lost;
@@ -269,8 +271,8 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
   // A fragment still reflects.
   const late = spawnUnit('rifle', 0, 0, {hp: 10, max: 10, shield: 0});
   hit(8, late);
-  if (late.hp !== 8) F.push('a fragment stopped reflecting');
-  console.log(`prism: 25% comes back past shields and can kill; ${d.fragments} fragments grow ${share}->${cap} and stop`);
+  if (late.hp !== 10 - r8) F.push('a fragment stopped reflecting');
+  console.log(`prism: ${Math.round(BOSSDEF.prism.reflect * 100)}% comes back past shields and can kill; ${d.fragments} fragments grow ${share}->${cap} and stop`);
 }
 
 // --- subjecttest: whole it walks and strikes; divided, one flees and mends, one hunts ---

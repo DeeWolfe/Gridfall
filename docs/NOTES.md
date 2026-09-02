@@ -4241,6 +4241,23 @@ burst.
 - Tiers note: `bulk` is per-boss data — tiers can lower it (crueler
   ceiling) alongside plate.
 
+## v2.19 — boss damage +~50% (user order, on top of bulkheads)
+
+gantry cellDmg 2→3 · brood tendril 2→3, breach 4→5 · prism reflect
+.25→.35 · envoy adjDmg 2→3 · reliquary purge 5→6 · subject strike 2→3,
+claw 3→4(+1 enrage) · pyreguard fire 3→4 · rimeguard chill 3→4 ·
+stormguard arc 1→2 · shardguard breach 4→5. Damage assertions in
+bosstest now derive from data (reflect %, barrage cells×cellDmg).
+
+Bot band after the raise: gantry 28, brood 23, prism 23, envoy 40,
+reliquary 38, pyreguard 8(!), rimeguard 28, stormguard 45,
+shardguard 45, subject 18 (n=40). Pyreguard is the outlier — a 4-dmg
+lane burn every turn shreds the bot's packed lanes; a human who reads
+the march eats far less of it, but if the user reports it as a wall,
+fireDmg or hull is the lever. Speed-kill floors unchanged (damage
+does not move them). The user calibrates by hand via the Test Range;
+bot numbers recorded for the tiers work.
+
 ## Card backlog — the next pass
 
 Not built. Recorded here so the next card batch starts from a list rather than a
