@@ -9,7 +9,7 @@
 // Once the cards run out the guaranteed slot degrades to unowned gear, then
 // promotions, then raw credits. The pack NEVER opens empty.
 
-import {DECKSIZE} from '../state/constants.js';
+import {deckCapOf} from '../save/progression.js';
 import {POOL} from '../content/cards.js';
 import {GEAR} from '../content/gear.js';
 import {active, packQueue} from '../state/session.js';
@@ -87,7 +87,7 @@ export function claimPack(pick) {
     // A Proto Frame takes its own slot beside the deck, never one of the
     // twelve — auto-adding one here would silently evict a real card.
     if (POOL[pick.id].chassis !== 'proto'
-      && active.loadout.deck.length < DECKSIZE && !active.loadout.deck.includes(pick.id)) {
+      && active.loadout.deck.length < deckCapOf() && !active.loadout.deck.includes(pick.id)) {
       active.loadout.deck.push(pick.id);
     }
   } else if (pick.kind === 'gear') {

@@ -1105,6 +1105,11 @@ body{font-size:1rem}
 .stratmark-art{font-size:2.4rem;color:var(--violet);text-shadow:0 0 18px rgba(157,107,255,.8);
   animation:tblink 2.2s ease-in-out infinite}
 .leadperk.strat b{color:var(--violet)}
+/* The lead's downside: same voice as the perk, warning ink. */
+.leadperk.down{border-left-color:var(--red)}
+.leadperk.down b{color:var(--red)}
+.fab.down{color:var(--dim)}
+.fab.down b{color:var(--red)}
 .hc.t-tech{border-color:var(--cyan-d)} .hc.t-special{border-color:#9a7420}
 .hc.sel{border-color:var(--green);box-shadow:0 0 16px rgba(93,255,160,.28)}
 .hc.poor{opacity:.3;cursor:not-allowed;filter:none}

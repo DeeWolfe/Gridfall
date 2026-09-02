@@ -25,7 +25,13 @@ export function mkUnit(cid, l, c) {
   const lead = leadOf();
   const hardened = lead.passive && lead.passive.n === 'Hardened Frames' && k.hp ? 1 : 0;
   const fabricated = lead.passive && lead.passive.n === 'Field Fabrication' && k.tech && k.hp ? 2 : 0;
-  const hp = k.hp + (g && g.hp ? g.hp : 0) + hardened + fabricated;
+  // Skunkworks' trade: the machines get the workshop, the infantry gets thin
+  // rations. Floored at 1 so a Scout is fragile rather than stillborn.
+  const thinned = lead.passive && lead.passive.n === 'Field Fabrication'
+    && k.t === 'common' && k.hp ? -2 : 0;
+  // Ironwright hardens the people who matter to her: the ones inside machines.
+  const wright = lead.pilotHull && k.pilot ? lead.pilotHull : 0;
+  const hp = Math.max(1, k.hp + (g && g.hp ? g.hp : 0) + hardened + fabricated + thinned + wright);
   const shield = (k.regen ? 1 : 0) + (g && g.shield ? g.shield : 0);
 
   return {
@@ -100,7 +106,6 @@ export function mkUnit(cid, l, c) {
     att: {},
     acted: false,
     moved: false,
-    repositioned: false,
     dueled: false,
     cd: 0,
     stun: 0,
@@ -137,11 +142,16 @@ export function buffOf(u) {
 export function leadBonus(u) {
   let b = u.dueled ? 4 : 0;
   const lead = leadOf();
+  // Lone Edge cuts both ways now: the duelist alone hits +3, and standing in
+  // formation costs 1 — the lead is a bias to build around, not a bonus.
   if (lead.passive && lead.passive.n === 'Lone Edge') {
     const alone = !G.units.some(o =>
       o.uid !== u.uid && Math.abs(o.lane - u.lane) + Math.abs(o.col - u.col) === 1);
-    if (alone) b += 2;
+    b += alone ? 3 : -1;
   }
+  // Firebrand: everything hits harder. Everything. (The other half of the
+  // trade lives in dmgUnit — her units take +1 too.)
+  if (lead.passive && lead.passive.n === 'Firebrand') b += 1;
   return b;
 }
 

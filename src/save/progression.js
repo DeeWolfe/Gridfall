@@ -6,6 +6,7 @@ import {GEAR} from '../content/gear.js';
 import {LEADS} from '../content/leads.js';
 import {LEADGATES} from '../content/lead-unlocks.js';
 import {RANKS, VET} from '../content/ranks.js';
+import {DECKSIZE} from '../state/constants.js';
 import {active} from '../state/session.js';
 
 export const rankName = r => RANKS[Math.min(r - 1, RANKS.length - 1)];
@@ -110,7 +111,26 @@ export function costOf(id) {
   // Quietstep: anything that lands on hostile ground goes in a point cheaper.
   const infiltrator = leadOf().passive && leadOf().passive.n === 'Quietstep' &&
     (k.drop || k.anyGround || (g && g.crush)) ? 1 : 0;
-  return Math.max(1, k.dp + (g && g.dp ? g.dp : 0) - infiltrator);
+  // Ironwright: the machines — Proto Frames and exo suits alike — run cheaper.
+  const wright = leadOf().frameDiscount && k.chassis ? leadOf().frameDiscount : 0;
+  return Math.max(1, k.dp + (g && g.dp ? g.dp : 0) - infiltrator - wright);
+}
+
+/** Deck ceiling under the active lead — Coronet and Quartermaster run short. */
+export const deckCapOf = () => leadOf().deckCap || DECKSIZE;
+
+/**
+ * The name of the lead's rule refusing this card, or null if it may deploy.
+ * Coldwire fields no Specialists at all; Ironwright fields no Specialist
+ * that is not a machine (a chassis — the Frame line and the exo suits).
+ */
+export function leadBan(id) {
+  const k = POOL[id];
+  if (!k) return null;
+  const lead = leadOf();
+  if (lead.banTier && k.t === lead.banTier) return lead.con.n;
+  if (lead.banNonMachine && k.t === 'special' && !k.chassis) return lead.con.n;
+  return null;
 }
 
 /** The active profile's team lead, defaulting to Ironbrand. */

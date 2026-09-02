@@ -166,9 +166,10 @@ export function blast(l, c, d, src) {
  * into a single point of hull.
  */
 export function dmgUnit(u, d, src, attacker) {
+  // Firebrand's Exposed: her whole line takes +1. Added before the Scrambler's
+  // shave so damping still buys exactly one point back.
+  if (leadOf().con && leadOf().con.n === 'Exposed') d += 1;
   d = Math.max(1, d - dampenIn(u.lane));
-  // Riptide: a unit that repositioned last turn rides the blow, to a floor of 1.
-  if (d > 1 && u.repositioned && leadOf().passive && leadOf().passive.n === 'Riptide') d -= 1;
 
   if (u.riposte && attacker && attacker.hp > 0) {
     dmgEnemy(attacker, u.riposte, u.n + ' riposte', false);

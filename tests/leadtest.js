@@ -19,10 +19,13 @@ const firstNode = () => Object.keys(A.opRun().nodes)[0];
 A.enterProfile(unlockAll(A.blankProfile('LD'), Object.keys(A.POOL).slice(0, 12)));
 
 // --- leads exist, render, and are switchable ---
-if (Object.keys(A.LEADS).length !== 8) F.push('expected 8 team leads');
+if (Object.keys(A.LEADS).length !== 10) F.push('expected 10 team leads');
 Object.keys(A.LEADS).forEach(id => {
   const L = A.LEADS[id];
-  if (!L.passive && !L.stratagem) F.push(id + ' has neither passive nor stratagem');
+  if (!L.passive) F.push(id + ' has no passive');
+  // The archetype contract: every lead except the clean starter trades.
+  if (id !== 'ironbrand' && !L.con) F.push(id + ' carries no downside — only Ironbrand is clean');
+  if (id === 'ironbrand' && L.con) F.push('the starter lead must stay clean');
   const svg = portrait(id);
   if (!svg.startsWith('<svg') || svg.length < 200) F.push(id + ' portrait did not render');
 });
@@ -44,7 +47,7 @@ A.launch(firstNode());
   const u = A.mkUnit('rifle', 2, 1);
   if (u.max !== A.POOL.rifle.hp + 1) F.push(`Ironbrand hull bonus missing (${u.max} vs ${A.POOL.rifle.hp + 1})`);
 }
-A.active.lead = 'wildfire';
+A.active.lead = 'coronet';
 {
   const u = A.mkUnit('rifle', 2, 1);
   if (u.max !== A.POOL.rifle.hp) F.push('hull bonus applied under the wrong lead');
@@ -66,12 +69,18 @@ A.launch(firstNode());
   if (u.hp > u.max) F.push('repair overhealed past max');
 }
 
-// --- Wildfire's call is once per mission, and the badge says so ---
-A.active.lead = 'wildfire';
+// --- Coronet's call is once per mission, and the badge says so ---
+A.active.lead = 'coronet';
+{
+  // His Lean Manifest bites first: the full twelve is refused at the door.
+  if (A.launch(firstNode()) !== false) F.push('Coronet accepted a 12-card deck');
+}
+const fullDeck = [...A.active.loadout.deck];
+A.active.loadout.deck = fullDeck.slice(0, 9);
 A.launch(firstNode());
   stillAir();
 {
-  if (!A.G.strat || A.G.strat.k !== 'requisition') F.push('Wildfire mission did not seed her stratagem');
+  if (!A.G.strat || A.G.strat.k !== 'requisition') F.push('Coronet mission did not seed his stratagem');
   if (A.G.strat.played) F.push('the call should start unspent');
   drawAll();
   const badge = get('leadbadge');

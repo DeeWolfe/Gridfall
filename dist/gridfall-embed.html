@@ -1107,6 +1107,11 @@ body{font-size:1rem}
 .stratmark-art{font-size:2.4rem;color:var(--violet);text-shadow:0 0 18px rgba(157,107,255,.8);
   animation:tblink 2.2s ease-in-out infinite}
 .leadperk.strat b{color:var(--violet)}
+/* The lead's downside: same voice as the perk, warning ink. */
+.leadperk.down{border-left-color:var(--red)}
+.leadperk.down b{color:var(--red)}
+.fab.down{color:var(--dim)}
+.fab.down b{color:var(--red)}
 .hc.t-tech{border-color:var(--cyan-d)} .hc.t-special{border-color:#9a7420}
 .hc.sel{border-color:var(--green);box-shadow:0 0 16px rgba(93,255,160,.28)}
 .hc.poor{opacity:.3;cursor:not-allowed;filter:none}
@@ -3358,29 +3363,36 @@ const LEADS = {
     bio: "Held the Sundering Gate for nine days with a company of forty. Believes armour is a philosophy.",
     passive: {n: "Hardened Frames", d: "Every unit you deploy arrives with +1 hull."},
   },
-  wildfire: {
-    n: "KESTREL",
-    call: "WILDFIRE",
-    role: "Strike Officer",
-    col: "#ff4d8f",
-    bio: "Three commendations, two demotions, one very expensive orbital incident. Fights fast and asks after.",
+  coronet: {
+    n: "TREIZE",
+    call: "CORONET",
+    role: "Commander",
+    col: "#ffc94d",
+    bio: "Runs a war the way old money runs an estate: nothing wasted, nothing hurried, and the ledger always balances in his favour.",
+    passive: {n: "Standing Reserve", d: "+2 deploy points every turn."},
+    con: {n: "Lean Manifest", d: "Your deck may hold only 9 cards."},
+    dpMod: 2,
+    deckCap: 9,
     stratagem: "requisition",
   },
   coldwire: {
     n: "SABLE",
     call: "COLDWIRE",
-    role: "Field Engineer",
-    col: "#ffc94d",
+    role: "Field Medic",
+    col: "#8fd4e6",
     bio: "Speaks to machines more than people. The machines, notably, keep working.",
     passive: {n: "Nanite Weave", d: "All your units repair 1 hull at the end of every turn."},
+    con: {n: "No Requisition", d: "You cannot deploy Specialist cards."},
+    banTier: "special",
   },
   loneedge: {
     n: "GRAHAM",
     call: "LONE EDGE",
     role: "Frontline Duelist",
-    col: "#4de8ff",
+    col: "#4dffd0",
     bio: "Treats every engagement as a private duel. Plunges into the centre of a formation and trusts the squad to keep up or stay clear.",
-    passive: {n: "Lone Edge", d: "A unit with no friendly in an adjacent cell deals +2 damage."},
+    passive: {n: "Lone Edge", d: "A unit with no friendly in an adjacent cell deals +3 damage."},
+    con: {n: "No Formation", d: "A unit with a friendly adjacent deals -1 damage."},
     stratagem: "duel",
   },
   skunkworks: {
@@ -3393,6 +3405,7 @@ const LEADS = {
       n: "Field Fabrication",
       d: "Tech units deploy with +2 hull and repair 1 hull every turn.",
     },
+    con: {n: "Thin Personnel", d: "Common units deploy with -2 hull."},
     stratagem: "refit",
   },
   quietstep: {
@@ -3405,6 +3418,8 @@ const LEADS = {
       n: "Quietstep",
       d: "Cards that deploy on hostile ground cost 1 less deploy point, minimum 1.",
     },
+    con: {n: "No Rear Line", d: "You cannot deploy in the two rearmost columns."},
+    minCol: 2,
     stratagem: "insertion",
   },
   firebrand: {
@@ -3413,7 +3428,8 @@ const LEADS = {
     role: "Saboteur",
     col: "#ff4d8f",
     bio: "Walked away from a military pedigree to fight at the line. Argues with command, never with her squad.",
-    passive: {n: "Firebrand", d: "+2 deploy points on any turn after you lost a unit."},
+    passive: {n: "Firebrand", d: "All your units deal +1 damage."},
+    con: {n: "Exposed", d: "All your units take +1 damage."},
     stratagem: "breach",
   },
   riptide: {
@@ -3422,8 +3438,36 @@ const LEADS = {
     role: "Skirmisher",
     col: "#e07a35",
     bio: "Treats a firefight like a contact sport. No patience for planning, uncanny instinct for where the line is about to break.",
-    passive: {n: "Riptide", d: "Units that repositioned this turn take 1 less damage."},
+    passive: {n: "Riptide", d: "Your units may move and fire in the same turn."},
+    con: {n: "Light Supply", d: "-2 deploy points every turn."},
+    dpMod: -2,
     stratagem: "grapple",
+  },
+  quartermaster: {
+    n: "BRANT",
+    call: "QUARTERMASTER",
+    role: "Logistics Officer",
+    col: "#c9a83c",
+    bio: "Believes every battle is won or lost in the manifest, days before the first shot. Counts cards the way other officers count bodies.",
+    passive: {n: "Forward Supply", d: "Draw one extra card every turn."},
+    con: {n: "Short Manifest", d: "Your deck may hold only 8 cards."},
+    drawBonus: 1,
+    deckCap: 8,
+  },
+  ironwright: {
+    n: "KAEDE",
+    call: "IRONWRIGHT",
+    role: "Frame Commander",
+    col: "#ff9d4d",
+    bio: "Built her first Frame out of two wrecks and a dockyard crane, and has never fully trusted anything with a pulse to hold a line since.",
+    passive: {
+      n: "Ironwright",
+      d: "Frames and exo suits cost 2 less deploy points, and Pilots deploy with +3 hull.",
+    },
+    con: {n: "Machines Only", d: "You cannot deploy Specialist cards that are not machines."},
+    banNonMachine: 1,
+    frameDiscount: 2,
+    pilotHull: 3,
   },
 };
 
@@ -3433,11 +3477,15 @@ const LEADS = {
 // What each unlockable team lead is gated behind.
 
 const LEADGATES = {
-  riptide: {req: "store", price: 380},
+  coldwire: {req: "store", price: 300},
+  firebrand: {req: "store", price: 380},
   loneedge: {req: "store", price: 420},
   skunkworks: {req: "store", price: 420},
   quietstep: {req: "store", price: 450},
-  firebrand: {req: "store", price: 480},
+  quartermaster: {req: "store", price: 480},
+  ironwright: {req: "store", price: 500},
+  coronet: {req: "store", price: 520},
+  riptide: {req: "store", price: 520},
 };
 
 /* ==== src/content/ranks.js ========================================== */
@@ -3460,6 +3508,28 @@ const VET = [
   {n: 'Elite', at: 30, col: '#ffc94d'},
   {n: 'Legend', at: 75, col: '#9d6bff'},
 ];
+
+/* ==== src/state/constants.js ======================================== */
+// GENERATED by tools/gen-content.js from reference/gridfall-data.json.
+// Edit the JSON and re-run `npm run gen:content` — do not edit this file by hand.
+// Board, economy and save constants.
+
+const LANES = 5;
+const COLS = 8;
+const MAXDP = 6;
+const MAXBREACH = 1;
+/** Tiles you must keep. Drop below this and there is no deployment line left. */
+const GROUND_FLOOR = 6;
+/**
+ * Cards the hand holds before the turn draw stops delivering. Set by the
+ * narrowest phone the tray has to fit on one row, not by balance: six tiles
+ * are the most a 360px screen can print with the card names still legible.
+ * Card effects (Recon, Falconer) deliberately ignore it — see drawCard().
+ */
+const HAND_CAP = 6;
+const DECKSIZE = 12;
+const SAVE_VERSION = 12;
+const STARTER = ["scout", "rifle", "marks", "wall", "medic", "turret", "lancer", "bulwark", "assassin"];
 
 /* ==== src/save/progression.js ======================================= */
 // Derived readings of the active profile: what a card costs right now, what
@@ -3567,7 +3637,26 @@ function costOf(id) {
   // Quietstep: anything that lands on hostile ground goes in a point cheaper.
   const infiltrator = leadOf().passive && leadOf().passive.n === 'Quietstep' &&
     (k.drop || k.anyGround || (g && g.crush)) ? 1 : 0;
-  return Math.max(1, k.dp + (g && g.dp ? g.dp : 0) - infiltrator);
+  // Ironwright: the machines — Proto Frames and exo suits alike — run cheaper.
+  const wright = leadOf().frameDiscount && k.chassis ? leadOf().frameDiscount : 0;
+  return Math.max(1, k.dp + (g && g.dp ? g.dp : 0) - infiltrator - wright);
+}
+
+/** Deck ceiling under the active lead — Coronet and Quartermaster run short. */
+const deckCapOf = () => leadOf().deckCap || DECKSIZE;
+
+/**
+ * The name of the lead's rule refusing this card, or null if it may deploy.
+ * Coldwire fields no Specialists at all; Ironwright fields no Specialist
+ * that is not a machine (a chassis — the Frame line and the exo suits).
+ */
+function leadBan(id) {
+  const k = POOL[id];
+  if (!k) return null;
+  const lead = leadOf();
+  if (lead.banTier && k.t === lead.banTier) return lead.con.n;
+  if (lead.banNonMachine && k.t === 'special' && !k.chassis) return lead.con.n;
+  return null;
 }
 
 /** The active profile's team lead, defaulting to Ironbrand. */
@@ -3666,28 +3755,6 @@ const store = {
     }
   },
 };
-
-/* ==== src/state/constants.js ======================================== */
-// GENERATED by tools/gen-content.js from reference/gridfall-data.json.
-// Edit the JSON and re-run `npm run gen:content` — do not edit this file by hand.
-// Board, economy and save constants.
-
-const LANES = 5;
-const COLS = 8;
-const MAXDP = 6;
-const MAXBREACH = 1;
-/** Tiles you must keep. Drop below this and there is no deployment line left. */
-const GROUND_FLOOR = 6;
-/**
- * Cards the hand holds before the turn draw stops delivering. Set by the
- * narrowest phone the tray has to fit on one row, not by balance: six tiles
- * are the most a 360px screen can print with the card names still legible.
- * Card effects (Recon, Falconer) deliberately ignore it — see drawCard().
- */
-const HAND_CAP = 6;
-const DECKSIZE = 12;
-const SAVE_VERSION = 11;
-const STARTER = ["scout", "rifle", "marks", "wall", "medic", "turret", "lancer", "bulwark", "assassin"];
 
 /* ==== src/save/profile.js =========================================== */
 // Profile creation, migration and persistence.
@@ -3839,6 +3906,16 @@ function migrate(p) {
     if (p.unlocks && p.unlocks.enemies) {
       p.unlocks.enemies = p.unlocks.enemies.filter(k => k !== 'aperture');
     }
+  }
+
+  // v12: the pro/con lead roster. Wildfire retired (the fallback below hands
+  // any Wildfire commander to Ironbrand), and Coldwire moved behind the
+  // Quartermaster counter — anyone from the free era keeps her.
+  if (p.version < 12) {
+    p.version = 12;
+    p.unlocks = p.unlocks || {};
+    p.unlocks.leads = p.unlocks.leads || [];
+    if (!p.unlocks.leads.includes('coldwire')) p.unlocks.leads.push('coldwire');
   }
 
   p.unlocks = p.unlocks || {};
@@ -4429,6 +4506,17 @@ const frameCells = (cid, l, c) => {
  */
 function validTiles(cid) {
   const k = POOL[cid];
+  // A lead's ban is absolute: the card is dead in hand, not merely awkward.
+  if (leadBan(cid)) return [];
+  const tiles = rawTiles(cid, k);
+  // Quietstep's No Rear Line: nothing that lands a body may land in the two
+  // rearmost columns. Ground-target instants and attachments are not bodies.
+  const minCol = leadOf().minCol || 0;
+  if (!minCol || k.instant || k.attach) return tiles;
+  return tiles.filter(i => i % COLS >= minCol);
+}
+
+function rawTiles(cid, k) {
   const out = [];
 
   // A cratering instant aims at the ground itself: any open tile with nothing
@@ -5297,7 +5385,13 @@ function mkUnit(cid, l, c) {
   const lead = leadOf();
   const hardened = lead.passive && lead.passive.n === 'Hardened Frames' && k.hp ? 1 : 0;
   const fabricated = lead.passive && lead.passive.n === 'Field Fabrication' && k.tech && k.hp ? 2 : 0;
-  const hp = k.hp + (g && g.hp ? g.hp : 0) + hardened + fabricated;
+  // Skunkworks' trade: the machines get the workshop, the infantry gets thin
+  // rations. Floored at 1 so a Scout is fragile rather than stillborn.
+  const thinned = lead.passive && lead.passive.n === 'Field Fabrication'
+    && k.t === 'common' && k.hp ? -2 : 0;
+  // Ironwright hardens the people who matter to her: the ones inside machines.
+  const wright = lead.pilotHull && k.pilot ? lead.pilotHull : 0;
+  const hp = Math.max(1, k.hp + (g && g.hp ? g.hp : 0) + hardened + fabricated + thinned + wright);
   const shield = (k.regen ? 1 : 0) + (g && g.shield ? g.shield : 0);
 
   return {
@@ -5372,7 +5466,6 @@ function mkUnit(cid, l, c) {
     att: {},
     acted: false,
     moved: false,
-    repositioned: false,
     dueled: false,
     cd: 0,
     stun: 0,
@@ -5409,11 +5502,16 @@ function buffOf(u) {
 function leadBonus(u) {
   let b = u.dueled ? 4 : 0;
   const lead = leadOf();
+  // Lone Edge cuts both ways now: the duelist alone hits +3, and standing in
+  // formation costs 1 — the lead is a bias to build around, not a bonus.
   if (lead.passive && lead.passive.n === 'Lone Edge') {
     const alone = !G.units.some(o =>
       o.uid !== u.uid && Math.abs(o.lane - u.lane) + Math.abs(o.col - u.col) === 1);
-    if (alone) b += 2;
+    b += alone ? 3 : -1;
   }
+  // Firebrand: everything hits harder. Everything. (The other half of the
+  // trade lives in dmgUnit — her units take +1 too.)
+  if (lead.passive && lead.passive.n === 'Firebrand') b += 1;
   return b;
 }
 
@@ -5987,9 +6085,10 @@ function blast(l, c, d, src) {
  * into a single point of hull.
  */
 function dmgUnit(u, d, src, attacker) {
+  // Firebrand's Exposed: her whole line takes +1. Added before the Scrambler's
+  // shave so damping still buys exactly one point back.
+  if (leadOf().con && leadOf().con.n === 'Exposed') d += 1;
   d = Math.max(1, d - dampenIn(u.lane));
-  // Riptide: a unit that repositioned last turn rides the blow, to a floor of 1.
-  if (d > 1 && u.repositioned && leadOf().passive && leadOf().passive.n === 'Riptide') d -= 1;
 
   if (u.riposte && attacker && attacker.hp > 0) {
     dmgEnemy(attacker, u.riposte, u.n + ' riposte', false);
@@ -7604,7 +7703,7 @@ function claimPack(pick) {
     // A Proto Frame takes its own slot beside the deck, never one of the
     // twelve — auto-adding one here would silently evict a real card.
     if (POOL[pick.id].chassis !== 'proto'
-      && active.loadout.deck.length < DECKSIZE && !active.loadout.deck.includes(pick.id)) {
+      && active.loadout.deck.length < deckCapOf() && !active.loadout.deck.includes(pick.id)) {
       active.loadout.deck.push(pick.id);
     }
   } else if (pick.kind === 'gear') {
@@ -7911,6 +8010,13 @@ function launchSpec(nd) {
     hooks.notify('No deck', 'Your deck is empty. Build one in Squad before deploying.');
     return false;
   }
+  // A short-manifest lead (Coronet, Quartermaster) refuses a deck built over
+  // its ceiling — caught here so it fails loudly at the door, not at deploy.
+  if (deck.length > deckCapOf()) {
+    hooks.notify('Deck over limit', `${leadOf().call} fields at most ${deckCapOf()} cards — ` +
+      `your deck holds ${deck.length}. Trim it in Squad or change leads.`);
+    return false;
+  }
 
   setG({
     node: nd.node, op: nd.op || null, type: nd.type, mod: nd.mod, reward: nd.reward,
@@ -7919,7 +8025,7 @@ function launchSpec(nd) {
     bossK: nd.boss || null,
     heat: nd.heat || 0, endless: !!nd.endless, gauntlet: !!nd.gauntlet, daily: !!nd.daily,
     waves: nd.endless ? 9999 : m.waves,
-    turn: 1, dp: MAXDP, breaches: 0, over: false,
+    turn: 1, dp: Math.max(1, MAXDP + (leadOf().dpMod || 0)), breaches: 0, over: false,
     ter: freshTerritory(), scorch: {}, rubble: {}, burrowAt: null,
     deck: shuffle([...deck]), hand: [], units: [], enemies: [],
     logs: [], kills: 0, lost: 0, extra: 0, doctrine: 'probe', leadUsed: false,
@@ -7956,7 +8062,7 @@ function launchSpec(nd) {
     // the wave budget, field events sit the fight out, and the mission wants a
     // point more room per turn than a standard drop (boss-patch economy note).
     G.noEvents = true;
-    G.dp = MAXDP + 1;
+    G.dp = Math.max(1, MAXDP + 1 + (leadOf().dpMod || 0));
     seedBoss();
   }
 
@@ -8961,11 +9067,11 @@ function actionsFor(id, mode) {
   if (mode === 'deck' || mode === 'gear') {
     const toggle = inDeck
       ? `<button class="btn ghost" data-fdeck="${id}">Remove from deck</button>`
-      : active.loadout.deck.length >= DECKSIZE
+      : active.loadout.deck.length >= deckCapOf()
         ? (mode === 'gear' ? '<button class="btn ghost" disabled>Deck full</button>'
           : '<button class="btn ghost" data-close="1">Deck full</button>')
         : `<button class="btn" data-fdeck="${id}">Add to deck</button>`;
-    if (mode === 'deck' && !inDeck && active.loadout.deck.length >= DECKSIZE) return toggle;
+    if (mode === 'deck' && !inDeck && active.loadout.deck.length >= deckCapOf()) return toggle;
     return toggle + close;
   }
   if (mode === 'proto') {
@@ -9281,6 +9387,7 @@ function focusLead(k, ctx) {
       <div class="ftype">${L.role} · ${L.n}</div>
       <div class="ftxt">${L.bio}</div>
       ${L.passive ? `<div class="fab"><b>Passive · ${L.passive.n}</b>${L.passive.d}</div>` : ''}
+      ${L.con ? `<div class="fab down"><b>Cost · ${L.con.n}</b>${L.con.d}</div>` : ''}
       ${def ? `<div class="fab"><b>Stratagem · ${def.n} · ${def.dp} DP</b>${def.d} Once per mission; ${def.now ? 'lands at the end of the turn you call it' : 'resolves at the start of the following turn'}.</div>` : ''}
       <div class="fstats"><div class="fstat"><span class="k">Status</span>
         <span class="v">${assigned ? 'Assigned' : open ? 'On the roster' : leadGateText(k)}</span></div></div>
@@ -9434,7 +9541,7 @@ function wireFocus() {
     const i = deck.indexOf(id);
     if (i >= 0) deck.splice(i, 1);
     else {
-      if (deck.length >= DECKSIZE) return;
+      if (deck.length >= deckCapOf()) return;
       deck.push(id);
     }
     commit();
@@ -10777,6 +10884,7 @@ function leadCardHTML() {
       <div class="leadrole">${L.role} <span>·</span> ${L.n}</div>
       <div class="leadbio">${L.bio}</div>
       ${L.passive ? `<div class="leadperk"><b>Passive · ${L.passive.n}</b>${L.passive.d}</div>` : ''}
+      ${L.con ? `<div class="leadperk down"><b>Cost · ${L.con.n}</b>${L.con.d}</div>` : ''}
       ${def ? `<div class="leadperk strat"><b>Stratagem · ${def.n} · ${def.dp} DP</b>${def.d} Once per mission; ${def.now ? 'lands at the end of the turn you call it' : 'resolves at the start of the following turn'}.</div>` : ''}
     </div></div>`;
 }
@@ -10793,7 +10901,7 @@ function leadTilesHTML(mode, ctx) {
     const o = LEADS[k];
     const open = leadUnlocked(k);
     const def = o.stratagem ? STRATAGEMS[o.stratagem] : null;
-    const perk = [o.passive ? '◈ ' + o.passive.n : '', def ? '⬡ ' + def.n : '']
+    const perk = [o.passive ? '◈ ' + o.passive.n : '', o.con ? '▽ ' + o.con.n : '', def ? '⬡ ' + def.n : '']
       .filter(Boolean).join(' · ');
     const foot = mode === 'shop'
       ? (open ? (LEADGATES[k] ? 'Owned' : 'Standard issue') : leadPrice(k) + ' cr')
@@ -11671,9 +11779,12 @@ function doMove(u, l, c) {
   u.lane = l;
   u.col = c;
   u.moved = true;
-  if (!u.servo) u.acted = true;
-  clog(`${u.n} repositioned${u.servo ? ' — servo legs, it can still fire' : ''}.`, 'order');
-  setMover(u.servo && !u.acted ? u : null);
+  // Riptide's whole passive is Servo Legs for everyone: the move does not
+  // spend the action, so the unit still fires this turn.
+  const skirmish = leadOf().passive && leadOf().passive.n === 'Riptide';
+  if (!u.servo && !skirmish) u.acted = true;
+  clog(`${u.n} repositioned${!u.acted ? ' — it can still fire' : ''}.`, 'order');
+  setMover(!u.acted ? u : null);
   hooks.invalidate();
 }
 
@@ -12004,9 +12115,6 @@ function playerPhase() {
   const fabrication = leadOf().passive && leadOf().passive.n === 'Field Fabrication';
   G.units.forEach(u => {
     u.acted = false;
-    // Riptide reads last turn's repositioning during the coming enemy phase,
-    // so the flag is stashed before the reset clears it.
-    u.repositioned = u.moved;
     u.moved = false;
     u.fresh = false;
     if (u.tgt && !G.enemies.some(e => e.uid === u.tgt)) u.tgt = null;   // stale lock
@@ -12575,7 +12683,6 @@ function endgameCheck() {
 function endTurn() {
   if (!G || G.over || !active || replaying) return;
 
-  const lostBefore = G.lost;     // Firebrand pays out on blood spilt this cycle
   tapeBegin();
   playerPhase();
   enemyPhase();
@@ -12642,7 +12749,9 @@ function endTurn() {
     if (verdict) return finish(verdict.win, verdict.why);
   }
 
-  G.dp = MAXDP + (G.type === 'boss' ? 1 : 0);   // a boss fight runs a point richer
+  // A boss fight runs a point richer; the lead's economy rides on top —
+  // Coronet's Standing Reserve pays +2, Riptide's Light Supply costs 2.
+  G.dp = Math.max(1, MAXDP + (G.type === 'boss' ? 1 : 0) + (leadOf().dpMod || 0));
   // Dynamos hum: +1 DP each, capped at +2 — greed has a ceiling.
   const dynamos = Math.min(2, G.units.filter(u => u.dynamo).length);
   if (dynamos) {
@@ -12653,20 +12762,17 @@ function endTurn() {
   if (G.event === 'bombard') bombardStrike();
   if (G.event === 'research') spawnResearchTeam();
   if (G.event === 'burrow') burrowErupt();
-  if (leadOf().passive && leadOf().passive.n === 'Firebrand' && G.lost > lostBefore) {
-    G.dp += 2;
-    clog('<span class="g">Firebrand</span> — losses answered with +2 deploy points.', 'order');
-  }
   // The turn draw respects the hand cap: a held card is not discarded, it
   // stays on the deck. Said once when it starts happening rather than every
   // turn it keeps happening — the hand's own FULL chip is the standing
   // reminder, so repeating it here would just be filling the log.
   let drawn = 0;
-  for (let i = 0; i < 2; i++) if (drawCard()) drawn++;
-  if (drawn < 2 && !G.capNoted) {
+  const draws = 2 + (leadOf().drawBonus || 0);   // Quartermaster's Forward Supply
+  for (let i = 0; i < draws; i++) if (drawCard()) drawn++;
+  if (drawn < draws && !G.capNoted) {
     clog(`<span class="d">Hand full</span> — requisition is held back until you deploy. Nothing is lost.`, 'info');
   }
-  G.capNoted = drawn < 2;
+  G.capNoted = drawn < draws;
   // The new turn has begun: last turn's call resolves, short effects expire.
   resolveStratagem();
   clearSelection();
@@ -14102,6 +14208,7 @@ function drawLeadBadge() {
   badge.onclick = () => {
     const lines = [];
     if (L.passive) lines.push(`<b>Passive · ${L.passive.n}</b> — ${L.passive.d}`);
+    if (L.con) lines.push(`<b>Cost · ${L.con.n}</b> — ${L.con.d}`);
     if (def) {
       lines.push(`<b>Stratagem · ${def.n}</b> — ${def.d}` +
         (ready ? '<br>Play it from your hand.' : '<br>Already called this mission.'));
@@ -14816,7 +14923,9 @@ function drawHand() {
   G.hand.forEach((cid, index) => {
     const k = POOL[cid];
     const cost = costOf(cid);
-    const unaffordable = cost > G.dp || G.over;
+    // A card the lead refuses is dead in hand, whatever the points say.
+    const banned = leadBan(cid);
+    const unaffordable = cost > G.dp || G.over || !!banned;
     const g = gearOf(cid);
     const v = vetOf(cid);
 
@@ -14838,7 +14947,8 @@ function drawHand() {
       <div class="n">${cardName(cid)}</div>`;
     // Hover carries the rules text, and the gear's too now that the tile does
     // not print it.
-    el.title = cardName(cid) + ' — ' + k.d + (g ? `\nGear: ${g.n} — ${g.d}` : '');
+    el.title = cardName(cid) + ' — ' + k.d + (g ? `\nGear: ${g.n} — ${g.d}` : '')
+      + (banned ? `\n${leadOf().call} will not field this (${banned}).` : '');
     el.onclick = () => {
       if (unaffordable) return;
       sfx(sel === cid ? 'tap' : 'select');
@@ -14953,7 +15063,7 @@ function cardEl(id, mode) {
     cls = fielded ? ' indeck' : owned ? '' : ' cant';
   } else if (mode === 'deck' || mode === 'gear') {
     foot = inDeck ? '<div class="gfoot rem">In deck</div>'
-      : active.loadout.deck.length >= DECKSIZE ? '<div class="gfoot no">Deck full</div>'
+      : active.loadout.deck.length >= deckCapOf() ? '<div class="gfoot no">Deck full</div>'
         : '<div class="gfoot add">Add</div>';
     cls = inDeck ? ' indeck' : '';
   } else {
@@ -15337,14 +15447,27 @@ function squadPanel() {
         ${POOL[fielded].n} cannot deploy without a Frame Pilot in this deck</div>
         <div style="color:var(--dim);font-size:0.6875rem">A Frame lands on a Pilot, never on open ground</div></div>`
     : '';
+  // A deck that breaks the active lead's rules must be obvious HERE, at the
+  // build table — not discovered as a dead card at deploy or a refusal at
+  // the launch door.
+  const over = deck.length > deckCapOf()
+    ? `<div class="bar"><div style="color:var(--red)"><b style="color:var(--red)">⚠</b>
+        ${leadOf().call} fields at most ${deckCapOf()} cards — trim ${deck.length - deckCapOf()} to deploy</div></div>`
+    : '';
+  const banned = deck.filter(c => leadBan(c));
+  const refused = banned.length
+    ? `<div class="bar"><div style="color:var(--red)"><b style="color:var(--red)">⚠</b>
+        ${leadOf().call} will not field ${banned.map(c => POOL[c].n).join(', ')}</div>
+        <div style="color:var(--dim);font-size:0.6875rem">${leadOf().con.n} — these stay dead in hand until you swap them or the lead</div></div>`
+    : '';
   return `<div class="sect">Team lead — answers to you</div>${leadCardHTML()}
    ${leadTilesHTML('squad')}
    <div class="sect">Deck</div>
-   <div class="bar"><div><b>${deck.length}</b> / ${DECKSIZE} in deck ·
+   <div class="bar"><div><b${deck.length > deckCapOf() ? ' style="color:var(--red)"' : ''}>${deck.length}</b> / ${deckCapOf()} in deck ·
        <b style="color:var(--cyan)">${Object.keys(active.loadout.gear).length}</b> geared ·
        <b style="color:var(--violet)">${fielded ? 1 : 0}</b> / 1 Proto Frame</div>
      <div style="color:var(--dim);font-size:0.6875rem">Tap any card to enlarge it — inspect, fit gear, add or remove</div></div>
-   ${orphan}
+   ${orphan}${over}${refused}
    <div class="sect">Active deck</div>
    ${deck.length ? cardGrid(deck, 'gear') : cardGridEmpty('Empty.')}
    ${deckFrame()}
@@ -16113,9 +16236,16 @@ function render() {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.24';
+const VERSION = '2.25';
 
 const PATCH_NOTES = [
+  {
+    v: '2.25',
+    notes: [
+      'THE ROSTER TRADES NOW. Every team lead except Ironbrand carries a real downside beside the perk, so choosing a lead is choosing what your deck is FOR. Firebrand runs a race: everything you field hits +1 and takes +1. Riptide teaches every unit to move and fire in the same turn — and pays a third of your economy for it, every turn. Lone Edge pays +3 to a soldier standing alone and docks 1 from anyone in formation, so Scouts and Relays are dead weight under him and the spread IS the deck. Skunkworks builds her machines +2 tough while your infantry deploys thin. Quietstep works forward only — the two rearmost columns refuse your deployments outright. Coldwire keeps everything knitting and fields no Specialists at all.',
+      'THREE NEW OFFICERS report to the Quartermaster. CORONET banks +2 deploy points every turn and caps your deck at nine cards — fewer, heavier, every slot earning its place — and he carries the Emergency Requisition call. QUARTERMASTER deals you an extra card every turn off a deck of eight, so you see the whole manifest every few turns and filler has nowhere to hide. IRONWRIGHT runs the machine shop: Frames and exo suits cost 2 less, Pilots deploy with +3 hull, and no Specialist made of flesh gets a slot. The Squad screen shows every lead\'s cost in red beside the perk, warns when your deck breaks the assigned lead\'s rules, and a refused card reads as dead in hand rather than failing on the tap. Wildfire has rotated off the roster — her Emergency Requisition flies Coronet\'s colours now.',
+    ],
+  },
   {
     v: '2.24',
     notes: [

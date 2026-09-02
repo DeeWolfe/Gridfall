@@ -73,6 +73,7 @@ export function leadCardHTML() {
       <div class="leadrole">${L.role} <span>·</span> ${L.n}</div>
       <div class="leadbio">${L.bio}</div>
       ${L.passive ? `<div class="leadperk"><b>Passive · ${L.passive.n}</b>${L.passive.d}</div>` : ''}
+      ${L.con ? `<div class="leadperk down"><b>Cost · ${L.con.n}</b>${L.con.d}</div>` : ''}
       ${def ? `<div class="leadperk strat"><b>Stratagem · ${def.n} · ${def.dp} DP</b>${def.d} Once per mission; ${def.now ? 'lands at the end of the turn you call it' : 'resolves at the start of the following turn'}.</div>` : ''}
     </div></div>`;
 }
@@ -89,7 +90,7 @@ export function leadTilesHTML(mode, ctx) {
     const o = LEADS[k];
     const open = leadUnlocked(k);
     const def = o.stratagem ? STRATAGEMS[o.stratagem] : null;
-    const perk = [o.passive ? '◈ ' + o.passive.n : '', def ? '⬡ ' + def.n : '']
+    const perk = [o.passive ? '◈ ' + o.passive.n : '', o.con ? '▽ ' + o.con.n : '', def ? '⬡ ' + def.n : '']
       .filter(Boolean).join(' · ');
     const foot = mode === 'shop'
       ? (open ? (LEADGATES[k] ? 'Owned' : 'Standard issue') : leadPrice(k) + ' cr')

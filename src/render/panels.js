@@ -2,7 +2,6 @@
 // plus Settings. Each is a function returning markup; openPanel() drops it in
 // and re-wires the delegated handlers.
 
-import {DECKSIZE} from '../state/constants.js';
 import {POOL} from '../content/cards.js';
 import {GEAR} from '../content/gear.js';
 import {BEST} from '../content/hostiles.js';
@@ -12,7 +11,7 @@ import {LEADS} from '../content/leads.js';
 import {active, profiles, setActive} from '../state/session.js';
 import {store} from '../save/store.js';
 import {commit, migrate, saveAll} from '../save/profile.js';
-import {rankName, costOf, vetOf, leadUnlocked} from '../save/progression.js';
+import {rankName, costOf, vetOf, leadUnlocked, deckCapOf, leadBan, leadOf} from '../save/progression.js';
 import {genRun} from '../rules/run.js';
 import {purchasePack, PACK_PRICE} from '../rules/packs.js';
 import {$, attr, show, markSwipe} from './dom.js';
@@ -203,14 +202,27 @@ function squadPanel() {
         ${POOL[fielded].n} cannot deploy without a Frame Pilot in this deck</div>
         <div style="color:var(--dim);font-size:0.6875rem">A Frame lands on a Pilot, never on open ground</div></div>`
     : '';
+  // A deck that breaks the active lead's rules must be obvious HERE, at the
+  // build table — not discovered as a dead card at deploy or a refusal at
+  // the launch door.
+  const over = deck.length > deckCapOf()
+    ? `<div class="bar"><div style="color:var(--red)"><b style="color:var(--red)">⚠</b>
+        ${leadOf().call} fields at most ${deckCapOf()} cards — trim ${deck.length - deckCapOf()} to deploy</div></div>`
+    : '';
+  const banned = deck.filter(c => leadBan(c));
+  const refused = banned.length
+    ? `<div class="bar"><div style="color:var(--red)"><b style="color:var(--red)">⚠</b>
+        ${leadOf().call} will not field ${banned.map(c => POOL[c].n).join(', ')}</div>
+        <div style="color:var(--dim);font-size:0.6875rem">${leadOf().con.n} — these stay dead in hand until you swap them or the lead</div></div>`
+    : '';
   return `<div class="sect">Team lead — answers to you</div>${leadCardHTML()}
    ${leadTilesHTML('squad')}
    <div class="sect">Deck</div>
-   <div class="bar"><div><b>${deck.length}</b> / ${DECKSIZE} in deck ·
+   <div class="bar"><div><b${deck.length > deckCapOf() ? ' style="color:var(--red)"' : ''}>${deck.length}</b> / ${deckCapOf()} in deck ·
        <b style="color:var(--cyan)">${Object.keys(active.loadout.gear).length}</b> geared ·
        <b style="color:var(--violet)">${fielded ? 1 : 0}</b> / 1 Proto Frame</div>
      <div style="color:var(--dim);font-size:0.6875rem">Tap any card to enlarge it — inspect, fit gear, add or remove</div></div>
-   ${orphan}
+   ${orphan}${over}${refused}
    <div class="sect">Active deck</div>
    ${deck.length ? cardGrid(deck, 'gear') : cardGridEmpty('Empty.')}
    ${deckFrame()}

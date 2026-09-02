@@ -1,6 +1,5 @@
 // The enlarged card view: full stats, gear fitting, and buy/add actions.
 
-import {DECKSIZE} from '../state/constants.js';
 import {POOL} from '../content/cards.js';
 import {GEAR} from '../content/gear.js';
 import {BEST} from '../content/hostiles.js';
@@ -10,7 +9,7 @@ import {TGNAME} from '../content/targeting-names.js';
 import {TIERNAME, VET} from '../content/ranks.js';
 import {active, setSel, setMover} from '../state/session.js';
 import {commit} from '../save/profile.js';
-import {costOf, gearOf, vetOf, gearFits, frameWeapon, isProto, CHASSIS_NAME, leadUnlocked, leadPrice, leadGateText, cardName, setPilotName} from '../save/progression.js';
+import {costOf, gearOf, vetOf, gearFits, frameWeapon, isProto, CHASSIS_NAME, leadUnlocked, leadPrice, leadGateText, cardName, setPilotName, deckCapOf, leadBan} from '../save/progression.js';
 import {$, attr} from './dom.js';
 import {sigil, artFor, portrait, bokehLayer} from './art.js';
 import {notify} from './dialog.js';
@@ -117,11 +116,11 @@ function actionsFor(id, mode) {
   if (mode === 'deck' || mode === 'gear') {
     const toggle = inDeck
       ? `<button class="btn ghost" data-fdeck="${id}">Remove from deck</button>`
-      : active.loadout.deck.length >= DECKSIZE
+      : active.loadout.deck.length >= deckCapOf()
         ? (mode === 'gear' ? '<button class="btn ghost" disabled>Deck full</button>'
           : '<button class="btn ghost" data-close="1">Deck full</button>')
         : `<button class="btn" data-fdeck="${id}">Add to deck</button>`;
-    if (mode === 'deck' && !inDeck && active.loadout.deck.length >= DECKSIZE) return toggle;
+    if (mode === 'deck' && !inDeck && active.loadout.deck.length >= deckCapOf()) return toggle;
     return toggle + close;
   }
   if (mode === 'proto') {
@@ -437,6 +436,7 @@ export function focusLead(k, ctx) {
       <div class="ftype">${L.role} · ${L.n}</div>
       <div class="ftxt">${L.bio}</div>
       ${L.passive ? `<div class="fab"><b>Passive · ${L.passive.n}</b>${L.passive.d}</div>` : ''}
+      ${L.con ? `<div class="fab down"><b>Cost · ${L.con.n}</b>${L.con.d}</div>` : ''}
       ${def ? `<div class="fab"><b>Stratagem · ${def.n} · ${def.dp} DP</b>${def.d} Once per mission; ${def.now ? 'lands at the end of the turn you call it' : 'resolves at the start of the following turn'}.</div>` : ''}
       <div class="fstats"><div class="fstat"><span class="k">Status</span>
         <span class="v">${assigned ? 'Assigned' : open ? 'On the roster' : leadGateText(k)}</span></div></div>
@@ -590,7 +590,7 @@ function wireFocus() {
     const i = deck.indexOf(id);
     if (i >= 0) deck.splice(i, 1);
     else {
-      if (deck.length >= DECKSIZE) return;
+      if (deck.length >= deckCapOf()) return;
       deck.push(id);
     }
     commit();

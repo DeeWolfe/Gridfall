@@ -4,9 +4,16 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.24';
+export const VERSION = '2.25';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.25',
+    notes: [
+      'THE ROSTER TRADES NOW. Every team lead except Ironbrand carries a real downside beside the perk, so choosing a lead is choosing what your deck is FOR. Firebrand runs a race: everything you field hits +1 and takes +1. Riptide teaches every unit to move and fire in the same turn — and pays a third of your economy for it, every turn. Lone Edge pays +3 to a soldier standing alone and docks 1 from anyone in formation, so Scouts and Relays are dead weight under him and the spread IS the deck. Skunkworks builds her machines +2 tough while your infantry deploys thin. Quietstep works forward only — the two rearmost columns refuse your deployments outright. Coldwire keeps everything knitting and fields no Specialists at all.',
+      'THREE NEW OFFICERS report to the Quartermaster. CORONET banks +2 deploy points every turn and caps your deck at nine cards — fewer, heavier, every slot earning its place — and he carries the Emergency Requisition call. QUARTERMASTER deals you an extra card every turn off a deck of eight, so you see the whole manifest every few turns and filler has nowhere to hide. IRONWRIGHT runs the machine shop: Frames and exo suits cost 2 less, Pilots deploy with +3 hull, and no Specialist made of flesh gets a slot. The Squad screen shows every lead\'s cost in red beside the perk, warns when your deck breaks the assigned lead\'s rules, and a refused card reads as dead in hand rather than failing on the tap. Wildfire has rotated off the roster — her Emergency Requisition flies Coronet\'s colours now.',
+    ],
+  },
   {
     v: '2.24',
     notes: [

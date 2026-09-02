@@ -3,9 +3,13 @@
 // What each unlockable team lead is gated behind.
 
 export const LEADGATES = {
-  riptide: {req: "store", price: 380},
+  coldwire: {req: "store", price: 300},
+  firebrand: {req: "store", price: 380},
   loneedge: {req: "store", price: 420},
   skunkworks: {req: "store", price: 420},
   quietstep: {req: "store", price: 450},
-  firebrand: {req: "store", price: 480},
+  quartermaster: {req: "store", price: 480},
+  ironwright: {req: "store", price: 500},
+  coronet: {req: "store", price: 520},
+  riptide: {req: "store", price: 520},
 };

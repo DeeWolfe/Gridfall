@@ -16,8 +16,8 @@ const start = (lead, deck) => {
 
 // A: seeded by the lead, outside the deck; leads without one seed nothing
 {
-  start('wildfire');
-  if (!A.G.strat || A.G.strat.k !== 'requisition') F.push('no stratagem seeded for Wildfire');
+  start('coronet');
+  if (!A.G.strat || A.G.strat.k !== 'requisition') F.push('no stratagem seeded for Coronet');
   if (A.G.deck.length + A.G.hand.length !== 4) F.push('the call leaked into the deck or hand');
   start('ironbrand');
   if (A.G.strat) F.push('Ironbrand seeded a stratagem he does not carry');
@@ -62,8 +62,8 @@ const start = (lead, deck) => {
   start('loneedge');
   clearBoard();
   const u = spawnUnit('rifle', 2, 1, {dueled: true});
-  // rifle dmg 2, +4 duel, +2 Lone Edge while isolated
-  if (A.dmgPreview(u) !== A.POOL.rifle.dmg + 4 + 2) {
+  // rifle dmg 2, +4 duel, +3 Lone Edge while isolated
+  if (A.dmgPreview(u) !== A.POOL.rifle.dmg + 4 + 3) {
     F.push('duel damage bonus wrong: ' + A.dmgPreview(u));
   }
   A.dmgUnit(u, 5, 'test');
@@ -104,11 +104,12 @@ const start = (lead, deck) => {
 
 // G: Emergency Requisition pays +4 DP on resolution
 {
-  start('wildfire');
+  start('coronet');
   A.playStratagem(null);
   A.G.enemies.length = 0; A.G.predict = []; A.G.held = [];
   A.endTurn();
-  if (A.G.dp !== A.MAXDP + 4) F.push('requisition paid ' + (A.G.dp - A.MAXDP) + ', expected 4');
+  // Coronet's Standing Reserve (+2) refreshes underneath the call's +4.
+  if (A.G.dp !== A.MAXDP + 2 + 4) F.push('requisition paid ' + (A.G.dp - A.MAXDP - 2) + ', expected 4');
 }
 
 F.report('stratagems: all checks pass');

@@ -17,7 +17,7 @@ import {G, active, sel, mover, foeSel, replaying, stratSel, logOpen, abAim, setS
 import {STRATAGEMS} from '../content/stratagems.js';
 import {stratReady, canPlayStratagem, playStratagem, stratMarkers} from '../rules/stratagems.js';
 import {frameReady} from '../rules/frames.js';
-import {costOf, gearOf, vetOf, frameWeapon, isProto, leadOf, cardName} from '../save/progression.js';
+import {costOf, gearOf, vetOf, frameWeapon, isProto, leadOf, leadBan, cardName} from '../save/progression.js';
 import {unitAt, foeAt, civAt, held, scorched, validTiles, breachAllowance} from '../rules/board.js';
 import {geomFor, geomCells, candidatesFor, targetsFor} from '../rules/targeting.js';
 import {buffOf, dmgPreview} from '../rules/units.js';
@@ -88,6 +88,7 @@ function drawLeadBadge() {
   badge.onclick = () => {
     const lines = [];
     if (L.passive) lines.push(`<b>Passive · ${L.passive.n}</b> — ${L.passive.d}`);
+    if (L.con) lines.push(`<b>Cost · ${L.con.n}</b> — ${L.con.d}`);
     if (def) {
       lines.push(`<b>Stratagem · ${def.n}</b> — ${def.d}` +
         (ready ? '<br>Play it from your hand.' : '<br>Already called this mission.'));
@@ -802,7 +803,9 @@ export function drawHand() {
   G.hand.forEach((cid, index) => {
     const k = POOL[cid];
     const cost = costOf(cid);
-    const unaffordable = cost > G.dp || G.over;
+    // A card the lead refuses is dead in hand, whatever the points say.
+    const banned = leadBan(cid);
+    const unaffordable = cost > G.dp || G.over || !!banned;
     const g = gearOf(cid);
     const v = vetOf(cid);
 
@@ -824,7 +827,8 @@ export function drawHand() {
       <div class="n">${cardName(cid)}</div>`;
     // Hover carries the rules text, and the gear's too now that the tile does
     // not print it.
-    el.title = cardName(cid) + ' — ' + k.d + (g ? `\nGear: ${g.n} — ${g.d}` : '');
+    el.title = cardName(cid) + ' — ' + k.d + (g ? `\nGear: ${g.n} — ${g.d}` : '')
+      + (banned ? `\n${leadOf().call} will not field this (${banned}).` : '');
     el.onclick = () => {
       if (unaffordable) return;
       sfx(sel === cid ? 'tap' : 'select');

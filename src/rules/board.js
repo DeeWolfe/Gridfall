@@ -8,7 +8,7 @@ import {LANES, COLS, MAXBREACH} from '../state/constants.js';
 import {POOL} from '../content/cards.js';
 import {BEST} from '../content/hostiles.js';
 import {G} from '../state/session.js';
-import {gearOf, isProto} from '../save/progression.js';
+import {gearOf, isProto, leadOf, leadBan} from '../save/progression.js';
 
 /** Your unit covering this cell — units may be two cells wide. */
 export const unitAt = (l, c) => G.units.find(u => u.lane === l && c >= u.col && c < u.col + u.size);
@@ -96,6 +96,17 @@ export const frameCells = (cid, l, c) => {
  */
 export function validTiles(cid) {
   const k = POOL[cid];
+  // A lead's ban is absolute: the card is dead in hand, not merely awkward.
+  if (leadBan(cid)) return [];
+  const tiles = rawTiles(cid, k);
+  // Quietstep's No Rear Line: nothing that lands a body may land in the two
+  // rearmost columns. Ground-target instants and attachments are not bodies.
+  const minCol = leadOf().minCol || 0;
+  if (!minCol || k.instant || k.attach) return tiles;
+  return tiles.filter(i => i % COLS >= minCol);
+}
+
+function rawTiles(cid, k) {
   const out = [];
 
   // A cratering instant aims at the ground itself: any open tile with nothing

@@ -4462,6 +4462,55 @@ when that lane is full — turn 4 could legitimately come up short. The
 loop now clears non-boss enemies before each tick, so the ramp is a
 measurement again.
 
+## v2.25 — pro/con leads (user's leadsv2 spec)
+
+Implements the uploaded `leadsv2.json` revision: ten leads, every
+non-starter carrying a con, so a lead pick is an archetype pick. The
+spec's own rule — "a downside must be answerable by deckbuilding, never
+by luck" — is now a leadtest guard (only Ironbrand may be clean).
+
+**Adaptations from the spec, flagged for the user:** (1) Frames exist
+here, so Ironwright ships now rather than being held; "machines" =
+anything with a chassis, so the exo suits share her discount and dodge
+her ban. (2) Wildfire (active-only) is cut per the spec's ten; her
+`requisition` stratagem passes to Coronet, whose economy it fits. The
+`p.lead` fallback in migrate() hands Wildfire commanders to Ironbrand.
+(3) The spec's suggested achievement gating is NOT adopted — leads stay
+Quartermaster store goods (the system task #12 built); Coldwire joins
+the counter at 300 cr and migrate() v12 grants her to existing profiles
+from the free era. New-lead bios are my drafts — user's pen may want
+them.
+
+**Mechanics, by knob (all data-driven off the lead object):**
+- `deckCap` (coronet 9, quartermaster 8) → `deckCapOf()` in
+  progression, enforced at launchSpec (loud refusal), Squad bar +
+  warning, focus add-to-deck, card-html foot, pack auto-add.
+- `dpMod` (+2 coronet, −2 riptide) → launchSpec turn-1 dp and endTurn
+  refresh, floored at 1.
+- `drawBonus` (quartermaster) → endTurn draw loop (2+1).
+- `banTier` / `banNonMachine` (coldwire / ironwright) → `leadBan(id)`;
+  validTiles returns [] (dead in hand, greyed with a tooltip), Squad
+  lists refused cards in red.
+- `minCol` (quietstep 2) → validTiles filter on body-landing branches;
+  instants and attachments exempt.
+- `frameDiscount`/`pilotHull` (ironwright) → costOf / mkUnit.
+- Skunkworks con and Firebrand's Exposed key off passive/con names:
+  mkUnit thins commons −2 (floor 1); dmgUnit adds +1 before dampen.
+- Lone Edge ±: leadBonus alone +3 / adjacent −1 (a 1-dmg unit still
+  lands 1 via the dmgEnemy floor — the con can't zero a weapon).
+- Riptide move-and-fire = the servo path generalized in doMove; the old
+  repositioned-damage-reduction passive and its `u.repositioned` state
+  are deleted.
+
+**Probe** (bot, one 8-card deck legal under all ten, n=200/lead):
+ironbrand 73 · coldwire 76 · firebrand 74.5 · quartermaster 74 ·
+ironwright 69 · coronet 66.5 · quietstep 65.5 · loneedge 63.5 ·
+skunkworks 60.5 · riptide 59.5. No trap picks; riptide's floor is the
+bot never repositioning (its pro is invisible to it) and skunkworks' is
+a common-heavy probe deck — both are the trade working, not a hole. The
+spec's watch-items (riptide dominance in HUMAN hands, lone edge making
+support cards genuinely bad) need play, not sims.
+
 ## Card backlog — the next pass
 
 Not built. Recorded here so the next card batch starts from a list rather than a

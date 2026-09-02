@@ -42,9 +42,6 @@ export function playerPhase() {
   const fabrication = leadOf().passive && leadOf().passive.n === 'Field Fabrication';
   G.units.forEach(u => {
     u.acted = false;
-    // Riptide reads last turn's repositioning during the coming enemy phase,
-    // so the flag is stashed before the reset clears it.
-    u.repositioned = u.moved;
     u.moved = false;
     u.fresh = false;
     if (u.tgt && !G.enemies.some(e => e.uid === u.tgt)) u.tgt = null;   // stale lock
@@ -613,7 +610,6 @@ function endgameCheck() {
 export function endTurn() {
   if (!G || G.over || !active || replaying) return;
 
-  const lostBefore = G.lost;     // Firebrand pays out on blood spilt this cycle
   tapeBegin();
   playerPhase();
   enemyPhase();
@@ -680,7 +676,9 @@ export function endTurn() {
     if (verdict) return finish(verdict.win, verdict.why);
   }
 
-  G.dp = MAXDP + (G.type === 'boss' ? 1 : 0);   // a boss fight runs a point richer
+  // A boss fight runs a point richer; the lead's economy rides on top —
+  // Coronet's Standing Reserve pays +2, Riptide's Light Supply costs 2.
+  G.dp = Math.max(1, MAXDP + (G.type === 'boss' ? 1 : 0) + (leadOf().dpMod || 0));
   // Dynamos hum: +1 DP each, capped at +2 — greed has a ceiling.
   const dynamos = Math.min(2, G.units.filter(u => u.dynamo).length);
   if (dynamos) {
@@ -691,20 +689,17 @@ export function endTurn() {
   if (G.event === 'bombard') bombardStrike();
   if (G.event === 'research') spawnResearchTeam();
   if (G.event === 'burrow') burrowErupt();
-  if (leadOf().passive && leadOf().passive.n === 'Firebrand' && G.lost > lostBefore) {
-    G.dp += 2;
-    clog('<span class="g">Firebrand</span> — losses answered with +2 deploy points.', 'order');
-  }
   // The turn draw respects the hand cap: a held card is not discarded, it
   // stays on the deck. Said once when it starts happening rather than every
   // turn it keeps happening — the hand's own FULL chip is the standing
   // reminder, so repeating it here would just be filling the log.
   let drawn = 0;
-  for (let i = 0; i < 2; i++) if (drawCard()) drawn++;
-  if (drawn < 2 && !G.capNoted) {
+  const draws = 2 + (leadOf().drawBonus || 0);   // Quartermaster's Forward Supply
+  for (let i = 0; i < draws; i++) if (drawCard()) drawn++;
+  if (drawn < draws && !G.capNoted) {
     clog(`<span class="d">Hand full</span> — requisition is held back until you deploy. Nothing is lost.`, 'info');
   }
-  G.capNoted = drawn < 2;
+  G.capNoted = drawn < draws;
   // The new turn has begun: last turn's call resolves, short effects expire.
   resolveStratagem();
   clearSelection();

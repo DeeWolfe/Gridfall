@@ -3,11 +3,10 @@
 // ink-seal watermark, plus the tile's action state in the footer. Cost, hull
 // and tier live in the focus view, one tap away (and in the hover tooltip).
 
-import {DECKSIZE} from '../state/constants.js';
 import {POOL} from '../content/cards.js';
 import {TIERNAME} from '../content/ranks.js';
 import {active} from '../state/session.js';
-import {costOf, gearOf, vetOf, CHASSIS_NAME, cardName} from '../save/progression.js';
+import {costOf, gearOf, vetOf, CHASSIS_NAME, cardName, deckCapOf} from '../save/progression.js';
 import {cardMark} from './portraits.js';
 import {attr} from './dom.js';
 
@@ -40,7 +39,7 @@ export function cardEl(id, mode) {
     cls = fielded ? ' indeck' : owned ? '' : ' cant';
   } else if (mode === 'deck' || mode === 'gear') {
     foot = inDeck ? '<div class="gfoot rem">In deck</div>'
-      : active.loadout.deck.length >= DECKSIZE ? '<div class="gfoot no">Deck full</div>'
+      : active.loadout.deck.length >= deckCapOf() ? '<div class="gfoot no">Deck full</div>'
         : '<div class="gfoot add">Add</div>';
     cls = inDeck ? ' indeck' : '';
   } else {

@@ -14,6 +14,7 @@ import {G, active, setG, MAPDEF, clearSelection} from '../state/session.js';
 import {shuffle, randInt, chance} from '../state/rng.js';
 import {hooks} from '../state/hooks.js';
 import {commit} from '../save/profile.js';
+import {deckCapOf, leadOf} from '../save/progression.js';
 import {held, heldEnemyHalf, crystalsHeld, breachAllowance, ENDGAME_TURNS} from './board.js';
 import {wave, rollDoctrine, predictSpawns} from './waves.js';
 import {opRun, genRun, opComplete} from './run.js';
@@ -77,6 +78,13 @@ export function launchSpec(nd) {
     hooks.notify('No deck', 'Your deck is empty. Build one in Squad before deploying.');
     return false;
   }
+  // A short-manifest lead (Coronet, Quartermaster) refuses a deck built over
+  // its ceiling — caught here so it fails loudly at the door, not at deploy.
+  if (deck.length > deckCapOf()) {
+    hooks.notify('Deck over limit', `${leadOf().call} fields at most ${deckCapOf()} cards — ` +
+      `your deck holds ${deck.length}. Trim it in Squad or change leads.`);
+    return false;
+  }
 
   setG({
     node: nd.node, op: nd.op || null, type: nd.type, mod: nd.mod, reward: nd.reward,
@@ -85,7 +93,7 @@ export function launchSpec(nd) {
     bossK: nd.boss || null,
     heat: nd.heat || 0, endless: !!nd.endless, gauntlet: !!nd.gauntlet, daily: !!nd.daily,
     waves: nd.endless ? 9999 : m.waves,
-    turn: 1, dp: MAXDP, breaches: 0, over: false,
+    turn: 1, dp: Math.max(1, MAXDP + (leadOf().dpMod || 0)), breaches: 0, over: false,
     ter: freshTerritory(), scorch: {}, rubble: {}, burrowAt: null,
     deck: shuffle([...deck]), hand: [], units: [], enemies: [],
     logs: [], kills: 0, lost: 0, extra: 0, doctrine: 'probe', leadUsed: false,
@@ -122,7 +130,7 @@ export function launchSpec(nd) {
     // the wave budget, field events sit the fight out, and the mission wants a
     // point more room per turn than a standard drop (boss-patch economy note).
     G.noEvents = true;
-    G.dp = MAXDP + 1;
+    G.dp = Math.max(1, MAXDP + 1 + (leadOf().dpMod || 0));
     seedBoss();
   }
 

@@ -158,6 +158,16 @@ export function migrate(p) {
     }
   }
 
+  // v12: the pro/con lead roster. Wildfire retired (the fallback below hands
+  // any Wildfire commander to Ironbrand), and Coldwire moved behind the
+  // Quartermaster counter — anyone from the free era keeps her.
+  if (p.version < 12) {
+    p.version = 12;
+    p.unlocks = p.unlocks || {};
+    p.unlocks.leads = p.unlocks.leads || [];
+    if (!p.unlocks.leads.includes('coldwire')) p.unlocks.leads.push('coldwire');
+  }
+
   p.unlocks = p.unlocks || {};
   p.unlocks.cards = p.unlocks.cards || [...STARTER];
   p.unlocks.enemies = p.unlocks.enemies || [];
