@@ -63,15 +63,16 @@ export function seedBoss() {
     under: false, charge: 0, grace: 0, dealt: 0, sealed: false,
     bodies: [{id: 1, hp: d.hp, max: d.hp, cells, dir: 1}], nextBody: 2};
   G.bossDown = false;
-  // Each machine sets its own clock — a doubled hull earns a longer siege.
-  if (d.turns) G.waves = d.turns;
+  // Each machine sets its own clock. turns: 0 means NO clock — the mission
+  // runs until the kill or the line breaks (Subject One's duet).
+  G.waves = d.turns || 999;
   addBodyProxies(G.boss.bodies[0]);
   cells.forEach(([l, c]) => { G.ter[l][c] = 'e'; });
   clog(`<span class="d">TARGET: ${BEST[k].n.toUpperCase()}</span> — ${d.hp} hull` +
     (d.shield ? ` behind a ${d.shield}-point containment field` : '') +
     (d.plate ? `, plated — armor shrugs ${d.plate} off every hit` : '') +
     (d.bulk ? `. Bulkhead: it cannot lose more than ${d.bulk} hull in one turn` : '') +
-    `. ${d.turns} turns on the clock.`, 'loss');
+    (d.turns ? `. ${d.turns} turns on the clock.` : '. No clock — it ends when one of you does.'), 'loss');
   clog(`<span style="color:var(--violet)">${d.p1}</span>`, 'info');
 }
 
@@ -237,7 +238,7 @@ function broodSplit(def) {
   }
 }
 
-// --- The Prism: shatter at half hull ---
+// --- The Prism: shatter at half hull — the shards SCATTER, into your half ---
 function prismShatter(def) {
   const B = G.boss;
   const main = B.bodies[0];
@@ -246,20 +247,29 @@ function prismShatter(def) {
   // The cap matters: without it the fragments outgrow any damage the player
   // can apply, and an unwinnable fight presents as tuning (BOSS-BRIEF).
   const cap = Math.max(share, Math.floor(share * def.growCap));
-  const col = main.cells[0][1];
   removeBodyProxies(main);
   B.bodies = [];
-  const lanes = shuffle([...Array(LANES).keys()]);
-  let placed = 0;
-  for (const l of lanes) {
-    if (placed >= def.fragments) break;
-    const c = freeColNear(l, col);
-    if (c == null) continue;
-    const nb = {id: B.nextBody++, hp: share, max: cap, grow: 1, cells: [[l, c]], dir: 1};
+  // Two shards bury themselves in YOUR half of the board; the third lands on
+  // the seam between midfield and the hive's ground. The fight comes to you.
+  const spots = [];
+  const freeIn = (cMin, cMax) => {
+    for (const l of shuffle([...Array(LANES).keys()])) {
+      for (let c = cMin; c <= cMax; c++) {
+        if (G.ter[l][c] === 'x' || unitAt(l, c) || foeAt(l, c) || civAt(l, c)) continue;
+        if (spots.some(([sl, sc]) => sl === l && sc === c)) continue;
+        return [l, c];
+      }
+    }
+    return null;
+  };
+  for (const [cMin, cMax] of [[0, 2], [0, 2], [4, 6]]) {
+    const at = freeIn(cMin, cMax) || freeIn(0, COLS - 1);
+    if (!at) continue;
+    spots.push(at);
+    const nb = {id: B.nextBody++, hp: share, max: cap, grow: 1, cells: [at], dir: 1};
     B.bodies.push(nb);
     addBodyProxies(nb);
-    G.ter[l][c] = 'e';
-    placed++;
+    G.ter[at[0]][at[1]] = 'e';
   }
 }
 
@@ -373,21 +383,30 @@ function broodTick(def) {
     }
   });
 
-  // One tendril lash per turn, a whole row, no warning — the breaches are what
-  // you plan around, the tendril is what you eat.
-  const armed = [...new Set(G.units.map(u => u.lane))];
-  if (armed.length) {
-    const l = armed[randInt(armed.length)];
-    const hit = G.units.filter(u => u.lane === l);
-    hit.forEach(u => dmgUnit(u, def.tendrilDmg, 'Tendril lash'));
-    clog(`<span class="d">Tendril</span> lashes lane ${l + 1} — ${hit.length} unit${hit.length > 1 ? 's' : ''} struck.`, 'loss');
+  // One tendril lash per turn — a whole ROW or a whole COLUMN, its pick, no
+  // warning. The breaches are what you plan around; the tendril is what you
+  // eat, and now no formation axis is safe from it.
+  if (G.units.length) {
+    if (randInt(2) === 0) {
+      const armed = [...new Set(G.units.map(u => u.lane))];
+      const l = armed[randInt(armed.length)];
+      const hit = G.units.filter(u => u.lane === l);
+      hit.forEach(u => dmgUnit(u, def.tendrilDmg, 'Tendril lash'));
+      clog(`<span class="d">Tendril</span> lashes lane ${l + 1} — ${hit.length} unit${hit.length > 1 ? 's' : ''} struck.`, 'loss');
+    } else {
+      const armed = [...new Set(G.units.map(u => u.col))];
+      const c = armed[randInt(armed.length)];
+      const hit = G.units.filter(u => u.col === c);
+      hit.forEach(u => dmgUnit(u, def.tendrilDmg, 'Tendril lash'));
+      clog(`<span class="d">Tendril</span> sweeps column ${c + 1} — ${hit.length} unit${hit.length > 1 ? 's' : ''} struck.`, 'loss');
+    }
   }
 
   // Tomorrow's breaches, telegraphed now — two per turn once it has split.
   markBreaches(B.phase === 2 ? 2 : 1);
 }
 
-function prismTick() {
+function prismTick(def) {
   const B = G.boss;
   // Fragments knit themselves back together, one point a turn, up to the cap.
   let grew = false;
@@ -398,9 +417,38 @@ function prismTick() {
     grew = true;
   });
   if (grew) clog('<span class="d">The fragments grow</span> — crystal knitting back along its planes.', 'info');
+  // Each shard hums — and everything standing beside one burns for it.
+  if (def.fragDmg && B.phase === 2) {
+    let caught = 0;
+    G.units.forEach(u => {
+      B.bodies.forEach(b => {
+        const [l, c] = b.cells[0];
+        if (Math.max(Math.abs(u.lane - l), Math.abs(u.col - c)) === 1) {
+          dmgUnit(u, def.fragDmg, 'Prism resonance');
+          caught++;
+        }
+      });
+    });
+    if (caught) clog(`<span class="d">The shards resonate</span> — ${caught} soldier${caught > 1 ? 's' : ''} caught beside the crystal.`, 'loss');
+  }
 }
 
 // --- SUBJECT ONE: whole, it walks at your line; divided, it comes apart ---
+
+/** A lone half endures: after reviveEvery solo turns, the splice knits the
+ * survivor back to FULL health. There is no clock on this fight — the
+ * pressure is finishing the second kill before the first one un-happens. */
+function soloBeat(B, def, survivor) {
+  B.solo = (B.solo || 0) + 1;
+  if (def.reviveEvery && B.solo >= def.reviveEvery) {
+    B.solo = 0;
+    survivor.hp = survivor.max;
+    setBodyHp(survivor);
+    clog('<span class="d">THE SPLICE KNITS ITSELF WHOLE</span> — the surviving half heals back to full.', 'loss');
+  } else if (def.reviveEvery) {
+    clog(`<span style="color:var(--violet)">The splice is knitting</span> — the survivor heals to full in ${def.reviveEvery - B.solo} turn${def.reviveEvery - B.solo > 1 ? 's' : ''}.`, 'info');
+  }
+}
 
 /** One free step for a 1-cell body. `away` flees the nearest soldier;
  * otherwise the step closes on them, wider axis first. */
@@ -509,27 +557,51 @@ function subjectTick(def) {
     const hive = B.bodies.find(b => b.role === 'hive');
     const human = B.bodies.find(b => b.role === 'human');
 
-    // The human half flees your line — and knits the hive half back together.
-    if (human) {
+    if (hive && human) {
+      // The duet: the human half flees your line and knits the hive half
+      // back together; the hive half hunts and claws.
       for (let i = 0; i < def.fleeMv; i++) if (!stepBody(human, true)) break;
-      if (hive && hive.hp < hive.max) {
+      if (hive.hp < hive.max) {
         hive.hp = Math.min(hive.max, hive.hp + def.mendN);
         setBodyHp(hive);
         clog(`<span class="d">The human half will not let it die</span> — ${def.mendN} hull knit back into the hive half.`, 'info');
       }
-    }
-
-    // The hive half hunts — harder, once there is no one left to hold it back.
-    if (hive) {
-      const rage = human ? 0 : 1;
-      for (let i = 0; i < def.huntMv + rage; i++) if (!stepBody(hive, false)) break;
+      for (let i = 0; i < def.huntMv; i++) if (!stepBody(hive, false)) break;
       const [l, c] = hive.cells[0];
       const prey = G.units.filter(u => Math.abs(u.lane - l) + Math.abs(u.col - c) === 1)
         .sort((a, b) => a.hp - b.hp || a.uid - b.uid)[0];
       if (prey) {
-        dmgUnit(prey, def.clawDmg + rage, 'Subject One');
-        clog(`<span class="d">The hive half claws ${prey.n}</span>${rage ? " — there is nothing holding it back now" : ''}.`, 'loss');
+        dmgUnit(prey, def.clawDmg, 'Subject One');
+        clog(`<span class="d">The hive half claws ${prey.n}</span>.`, 'loss');
       }
+      B.solo = 0;
+      B.snap = 0;
+    } else if (hive && !human) {
+      // The smaller partner is gone. The big form stops choosing targets:
+      // the claw becomes a storm — everything in reach, and it STUNS.
+      for (let i = 0; i < def.huntMv; i++) if (!stepBody(hive, false)) break;
+      const [l, c] = hive.cells[0];
+      const caught = G.units.filter(u => Math.abs(u.lane - l) + Math.abs(u.col - c) <= def.aoeR);
+      caught.forEach(u => { dmgUnit(u, def.clawDmg, 'Subject One'); if (u.hp > 0) u.stun = 1; });
+      if (caught.length) clog(`<span class="d">The hive half rages</span> — ${caught.length} soldier${caught.length > 1 ? 's' : ''} battered and STUNNED within its storm.`, 'loss');
+      soloBeat(B, def, hive);
+    } else if (human && !hive) {
+      // The big form is gone. The human half stops running — and every turn
+      // it is alone it comes faster and hits harder. Kill it quickly.
+      B.snap = (B.snap || 0) + 1;
+      const mv = Math.min(6, def.huntMv + B.snap);
+      for (let i = 0; i < mv; i++) if (!stepBody(human, false)) break;
+      const [l, c] = human.cells[0];
+      const prey = G.units.filter(u => Math.abs(u.lane - l) + Math.abs(u.col - c) === 1)
+        .sort((a, b) => a.hp - b.hp || a.uid - b.uid)[0];
+      const dmg = def.clawDmg + def.snapStep * B.snap;
+      if (prey) {
+        dmgUnit(prey, dmg, 'Subject One');
+        clog(`<span class="d">What is left of the researcher tears into ${prey.n}</span> — ${dmg}, and it is still accelerating.`, 'loss');
+      } else {
+        clog(`<span style="color:var(--violet)">The human half is coming</span> — faster every turn it is alone.`, 'info');
+      }
+      soloBeat(B, def, human);
     }
   }
 

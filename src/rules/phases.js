@@ -664,7 +664,9 @@ export function endTurn() {
     G.doctrine = rollDoctrine();
     predictSpawns();
     if (G.type === 'boss') {
-      clog(`<span class="t">TURN ${G.turn}</span> — ${G.waves - G.turn + 1} left on the clock.`, 'wave');
+      clog(G.waves > 900
+        ? `<span class="t">TURN ${G.turn}</span> — no clock. Finish it.`
+        : `<span class="t">TURN ${G.turn}</span> — ${G.waves - G.turn + 1} left on the clock.`, 'wave');
     } else {
       clog(`<span class="t">WAVE ${G.turn}</span> inbound — entry lanes marked.`, 'wave');
     }

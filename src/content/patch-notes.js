@@ -4,9 +4,18 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.19';
+export const VERSION = '2.20';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.20',
+    notes: [
+      'THE PRISM scatters. When it shatters at half hull, the three shards no longer huddle where the lens stood — two bury themselves in YOUR half of the grid and one takes the seam. The hull is still one hull; the argument is now about geometry. And a shattered Prism finally has a weapon: every turn, each shard resonates, burning every soldier standing beside it. It still reflects. It still grows. Now it also hums.',
+      'The BROOD MOTHER\'s tendril works in straight lines now — a full row or a full column each turn, her choice, for 3. A lash you can read is a lash you can vacate; a lash that can take a whole column is one you have to respect.',
+      'SUBJECT ONE has no clock. The splice fights until one of you is finished, and the duet got teeth: kill the hive half and the human half SNAPS — faster and harder every turn, without limit. Kill the human half and the hive half\'s stormbreak widens into a two-ring blast that stuns everyone it doesn\'t kill. And if you let the survivor stand too long, it knits itself back to full hull. Pick a half. Commit. There is no timer coming to save you either way.',
+      'The Gantry\'s containment field is up to 30 — a full extra barrage\'s worth of shield to chew through while the assembly line keeps stamping out hostiles behind it.',
+    ],
+  },
   {
     v: '2.19',
     notes: [

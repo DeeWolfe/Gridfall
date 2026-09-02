@@ -263,7 +263,8 @@ export function objBrief() {
   const left = ENDGAME_TURNS(G.type) - G.extra;
   const clock = G.endless ? `Wave ${G.turn}`
     : G.extra > 0 ? `Last wave committed — ${Math.max(0, left)} turn${left === 1 ? '' : 's'} to secure`
-      : `Wave ${Math.min(G.turn, G.waves)} / ${G.waves}`;
+      : G.waves > 900 ? `Turn ${G.turn} — no clock`
+        : `Wave ${Math.min(G.turn, G.waves)} / ${G.waves}`;
 
   // Every field here is stated the same way for the whole mission — the loss
   // terms never change, and the presentation no longer shows and hides them by
@@ -276,6 +277,9 @@ export function objBrief() {
       // turns is a loss here, not an endgame grace.
       const def = G.boss ? BOSSDEF[G.boss.k] : null;
       const name = G.boss ? BEST[G.boss.k].n : 'the target';
+      if (G.waves > 900) {
+        return b('Bring down ' + (G.boss ? BEST[G.boss.k].n : 'the target') + '. No clock — it ends when one of you does.', 0, 0);
+      }
       const left = Math.max(0, G.waves - G.turn + 1);
       return {
         goal: `Bring down ${name} before the clock runs out.`,
@@ -314,7 +318,9 @@ export function objBrief() {
 /** Why the mission was won — the line a loss has always had and a win never did. */
 export function winWhy() {
   switch (G.type) {
-    case 'boss': return `${G.boss ? BEST[G.boss.k].n : 'The target'} destroyed with ${Math.max(0, G.waves - G.turn)} turn${G.waves - G.turn === 1 ? '' : 's'} to spare.`;
+    case 'boss': return G.waves > 900
+      ? `${G.boss ? BEST[G.boss.k].n : 'The target'} destroyed on turn ${G.turn}. Both halves. All of it.`
+      : `${G.boss ? BEST[G.boss.k].n : 'The target'} destroyed with ${Math.max(0, G.waves - G.turn)} turn${G.waves - G.turn === 1 ? '' : 's'} to spare.`;
     case 'retake': return `${heldEnemyHalf()} tiles held inside hostile ground.`;
     case 'crystals': return `${crystalsHeld()} of 4 crystal nodes held when the clock ran out.`;
     case 'specimens':

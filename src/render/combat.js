@@ -257,6 +257,7 @@ function drawSel() {
           <div><span>Footprint</span><b>${cells} cell${cells === 1 ? '' : 's'}</b></div>
           ${def.plate ? `<div><span>Plating</span><b>−${def.plate} per hit</b></div>` : ''}
           ${def.bulk ? `<div><span>Bulkhead</span><b>max ${def.bulk} hull/turn${G.boss.dealt >= def.bulk ? ' — SEALED' : ''}</b></div>` : ''}
+          ${G.boss.k === 'subject' && G.boss.phase === 2 && G.boss.bodies.length === 1 && def.reviveEvery ? `<div><span>Knits whole</span><b>in ${def.reviveEvery - (G.boss.solo || 0)} turn${def.reviveEvery - (G.boss.solo || 0) === 1 ? '' : 's'}</b></div>` : ''}
           ${def.diveEvery ? `<div><span>Dives</span><b>every ${p2cut(def.diveEvery)} turns</b></div>` : ''}
           ${G.boss.k === 'pyreguard' ? `<div><span>Marches</span><b>one lane a turn</b></div>` : ''}
           ${def.chargeEvery ? `<div><span>Purge</span><b>in ${purgeIn} turn${purgeIn === 1 ? '' : 's'}</b></div>` : ''}

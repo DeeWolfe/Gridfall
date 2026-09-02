@@ -107,12 +107,11 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
   if (A.wave(3) === null || Object.keys(A.wave(3)).length) F.push('wave() is not empty mid-clock');
 
   // A 3x3 blast catches six covered cells: six hits into the same pool. The
-  // Gantry's field is 20, so a blast of 5 collapses it in four cells and the
-  // last two land on hull through plating (5 - 1 each) — area weapons being
-  // the anti-boss answer is the whole design.
+  // Gantry's field is 30, so one blast of 5 collapses it exactly — area
+  // weapons being the anti-boss answer is the whole design.
   A.blast(1, 6, 5, 'test');
   if (A.G.boss.shield !== 0) F.push(`blast left the field at ${A.G.boss.shield}, wanted 0`);
-  if (A.bossHp() !== d.hp - 8) F.push(`overkill landed ${d.hp - A.bossHp()} on hull, wanted 8 through plating`);
+  if (A.bossHp() !== d.hp) F.push('the blast leaked past the field into hull');
   if (A.G.boss.phase !== 2) F.push('shield collapse did not flip the phase');
 
   // Instant kills: the drop pod may not crush a boss.
@@ -261,10 +260,22 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
   const share = Math.ceil(d.hp / 5);
   const cap = Math.floor(share * d.growCap);
   if (A.G.boss.bodies.length !== d.fragments) F.push(`shatter left ${A.G.boss.bodies.length} fragments`);
-  if (new Set(A.G.boss.bodies.map(b => b.cells[0][0])).size !== d.fragments) F.push('fragments share a lane');
+  const cols = A.G.boss.bodies.map(b => b.cells[0][1]).sort((a, b) => a - b);
+  if (cols.filter(c => c <= 2).length !== 2) F.push(`only ${cols.filter(c => c <= 2).length} shards buried in the player half (cols ${cols})`);
+  if (!cols.some(c => c >= 4 && c <= 6)) F.push(`no shard on the mid/enemy seam (cols ${cols})`);
   if (A.G.boss.bodies.some(b => b.hp !== share || b.max !== cap)) F.push('fragment pools mis-sized');
   A.bossTick();
   if (A.G.boss.bodies.some(b => b.hp !== share + 1)) F.push('fragments did not grow');
+  // Resonance: a soldier standing beside a shard burns for it every turn.
+  const [fl2, fc2] = A.G.boss.bodies[0].cells[0];
+  const nl = fl2 > 0 ? fl2 - 1 : fl2 + 1;
+  const bystander = spawnUnit('rifle', nl, fc2, {hp: 20, max: 20, shield: 0});
+  const clear = spawnUnit('wall', (fl2 + 2) % A.LANES, (fc2 + 4) % A.COLS, {hp: 20, max: 20, shield: 0});
+  const preRes = bystander.hp;
+  A.bossTick();
+  if (preRes - bystander.hp < d.fragDmg) F.push('a soldier beside a shard was not caught by the resonance');
+  if (clear.hp !== 20) F.push('the resonance reached a soldier standing clear');
+  A.G.units.length = 0;
   A.G.boss.bodies.forEach(b => { b.hp = cap; });
   A.bossTick();
   if (A.G.boss.bodies.some(b => b.hp > cap)) F.push('growth ignored the cap — the unwinnable-fight bug');
@@ -308,7 +319,7 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
   if (!human || !hive) F.push('the split did not leave a human half and a hive half');
   if (A.G.boss.bodies.some(b => b.cells.length !== 1)) F.push('a split half kept more than one cell');
 
-  // The human half flees and mends; the hive half hunts and claws.
+  // The duet: the human half flees and mends; the hive half hunts.
   hive.hp = Math.max(1, hive.hp - 5);
   const hp0 = hive.hp;
   const hunterGap = () => {
@@ -320,21 +331,50 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
   A.bossTick();
   if (hive.hp !== Math.min(hive.max, hp0 + d.mendN)) F.push('the human half did not mend the hive half');
   if (hunterGap() >= hg0) F.push('the hive half did not hunt');
+  if (A.G.waves < 900) F.push('Subject One still has a clock — this fight should have none');
 
-  // Kill the human half: the mending stops and the hive half gets worse.
+  // Kill the human half: the mending stops, and the claw becomes a STORM —
+  // everything within reach battered and stunned.
   const humanProxy = proxies().find(e => e.body === human.id);
   A.dmgEnemy(humanProxy, 999, 'test', true);
   if (A.G.bossDown) F.push('one half down counted as the kill');
   A.G.units.length = 0;
   const [hl, hc] = hive.cells[0];
-  const prey = spawnUnit('rifle', hl, hc - 1 >= 0 ? hc - 1 : hc + 1, {hp: 20, max: 20, shield: 0});
+  const inStorm = spawnUnit('rifle', hl, Math.max(0, hc - 1), {hp: 20, max: 20, shield: 0});
+  const inStorm2 = spawnUnit('wall', hl > 0 ? hl - 1 : hl + 1, Math.max(0, hc - 1), {hp: 20, max: 20, shield: 0});
   const hurt = hive.hp = Math.max(1, hive.hp - 3);
   A.bossTick();
   if (hive.hp !== hurt) F.push('the hive half kept mending with the human half dead');
-  if (20 - prey.hp !== d.clawDmg + 1) F.push(`the enraged claw dealt ${20 - prey.hp}, wanted ${d.clawDmg + 1}`);
-  A.dmgEnemy(proxies().find(e => e.body === hive.id), 999, 'test', true);
-  if (!A.G.bossDown) F.push('both halves dead did not count as the kill');
-  console.log(`subject one: walks and strikes ${d.strikeDmg} whole; split leaves a fleeing mender (+${d.mendN}/turn) and a hunter that claws ${d.clawDmg} (+1 enraged)`);
+  if (inStorm.hp !== 20 - d.clawDmg || inStorm2.hp !== 20 - d.clawDmg) F.push('the solo hive storm missed someone in reach');
+  if (!inStorm.stun || !inStorm2.stun) F.push('the solo hive storm did not stun');
+
+  // The knitting: leave the survivor alone and it heals back to FULL.
+  A.G.units.length = 0;
+  spawnUnit('rifle', 0, 0, {hp: 30, max: 30, shield: 0});
+  A.G.boss.solo = 0;
+  hive.hp = 1;
+  for (let i = 0; i < d.reviveEvery; i++) A.bossTick();
+  if (hive.hp !== hive.max) F.push(`after ${d.reviveEvery} solo turns the survivor sat at ${hive.hp}/${hive.max} — it should knit back to full`);
+
+  // The snap: kill the HIVE half first and the human half stops running —
+  // closing faster and hitting harder every turn it is alone.
+  start('lumenspire');
+  hit(d.hp / 2 + 1);
+  const human2 = A.G.boss.bodies.find(b => b.role === 'human');
+  const hive2 = A.G.boss.bodies.find(b => b.role === 'hive');
+  A.dmgEnemy(proxies().find(e => e.body === hive2.id), 999, 'test', true);
+  const runner = spawnUnit('rifle', 2, 0, {hp: 40, max: 40, shield: 0});
+  const gap2 = () => Math.abs(runner.lane - human2.cells[0][0]) + Math.abs(runner.col - human2.cells[0][1]);
+  const g2 = gap2();
+  A.bossTick();
+  if (gap2() >= g2) F.push('the snapped human half did not close on the soldier');
+  while (gap2() > 1) A.bossTick();
+  const preSnap = runner.hp;
+  const snapAt = A.G.boss.snap + 1;
+  A.bossTick();
+  const want2 = d.clawDmg + d.snapStep * snapAt;
+  if (preSnap - runner.hp !== want2) F.push(`the snapped claw dealt ${preSnap - runner.hp}, wanted ${want2} at escalation ${snapAt}`);
+  console.log(`subject one: no clock; duet mends ${d.mendN}; solo hive storms+stuns for ${d.clawDmg}; solo human snaps +${d.snapStep}/turn; survivor knits whole after ${d.reviveEvery}`);
 }
 
 // --- envoytest: censure by adjacency, the dive is untouchable, the surface brings the delegation ---
@@ -510,7 +550,7 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
     }
     floors.push(`${k}:${t}`);
     if (t < 6) F.push(`${k}: an unlimited-damage deck killed it in ${t} turns — the floor is 6`);
-    if (t > d.turns - 4) F.push(`${k}: even unlimited damage took ${t} of ${d.turns} turns — too tight against the clock`);
+    if (d.turns && t > d.turns - 4) F.push(`${k}: even unlimited damage took ${t} of ${d.turns} turns — too tight against the clock`);
   }
   console.log('speed-kill floors (turns under infinite damage): ' + floors.join(' '));
 }
@@ -542,7 +582,7 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
       A.enterProfile(q);
       A.launchSpec({node: null, op: d.op, type: 'boss', mod: 'none', reward: 40, boss: d.sub ? k : undefined});
       const r = playOut({advance: true, maxTurns: 40});
-      if (!r.over) F.push(`${k}: fight ${i} never resolved`);
+      if (!r.over && d.turns) F.push(`${k}: fight ${i} never resolved`);
       if (A.G.turn > A.G.waves + 1) F.push(`${k}: fight ${i} outran the clock (turn ${A.G.turn})`);
     }
   }

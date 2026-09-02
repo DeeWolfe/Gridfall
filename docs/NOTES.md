@@ -4258,6 +4258,51 @@ fireDmg or hull is the lever. Speed-kill floors unchanged (damage
 does not move them). The user calibrates by hand via the Test Range;
 bot numbers recorded for the tiers work.
 
+## v2.20 — four-boss redesign (user's spec, verbatim)
+
+The user's redesign of four fights, applied as ordered:
+
+**Prism scatter + resonance.** On shatter the 3 shards no longer stay
+put: `prismShatter` places 2 via `freeIn(0,2)` (player half) and 1 via
+`freeIn(4,6)` (seam). One shared hull as before. New weapon in phase 2:
+each shard resonates every `prismTick`, hitting every soldier within
+Chebyshev distance 1 for `fragDmg` (2). Data: `fragments:3, fragDmg:2`.
+
+**Brood tendril = row OR column.** `broodTick` flips `randInt(2)`:
+lash a full lane row or sweep a full column, `tendrilDmg` 3 either way
+(user asked for "maybe lower to 3" — it was already 3 from v2.19, kept).
+
+**Subject One: no clock, duet escalation.** `turns:0` in data →
+`seedBoss` sets `G.waves=999`; mission/phases/objective text all carry
+"no clock" variants. Kill the hive half → human half SNAPS: `B.snap++`
+each turn, move `min(6, huntMv+snap)`, claw `clawDmg + snapStep*snap`
+(unbounded — the user asked for exponential-feeling growth; linear per
+turn with no cap reads that way in play). Kill the human half → hive
+half's storm widens to radius `aoeR` (2) and stuns survivors. Either
+solo survivor left standing `reviveEvery` (5) turns knits back to FULL
+hull (`soloBeat`). Data: `turns:0, reviveEvery:5, aoeR:2, snapStep:2`.
+
+**Gantry shield 24→30** — "allow for manufacturing of enemies to
+surface": one more full barrage of chew time.
+
+Bot band after (n=80): gantry 29, brood 21, **prism 0(!)**, envoy 31,
+reliquary 40, pyreguard 8, rimeguard 25, stormguard 44, shardguard 45,
+subject 25 (avgTurns 42 — no clock, so fights run long; "other" losses
+are the sim's turn cap, not a bug). Prism 0% is a bot blind spot, not
+a softlock: the two player-half shards sit behind the bot's firing
+lines and resonance chews its packed soldiers, but the shared hull is
+fully killable through the seam shard — a human retargets, the bot
+can't. All 80 losses are clock, none breach. If the user reports it as
+a wall in hands-on testing, levers are: hp 56 down, fragDmg down, or
+scatter bands shifted toward the seam. Awaiting Test Range verdict.
+
+Speed-kill floors (unlimited-damage sim): gantry 6, brood 6, prism 9,
+envoy 8, reliquary 8, pyre 7, rime 7, storm 7, shard 6, subject 8 —
+all ≥6, guard in bosstest holds. New bosstest guards: shield-30 blast
+containment, scatter placement bands + resonance, subject duet
+(storm+stun, snap escalation, knit-to-full, no-clock), run bulk-zeroed
+via bulkOff()/bulkOn() so mechanic asserts aren't masked by bulkheads.
+
 ## Card backlog — the next pass
 
 Not built. Recorded here so the next card batch starts from a list rather than a

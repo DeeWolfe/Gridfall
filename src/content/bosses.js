@@ -6,7 +6,7 @@ export const BOSSDEF = {
   gantry: {
     op: "ironveil",
     hp: 30,
-    shield: 20,
+    shield: 30,
     w: 3,
     h: 2,
     l: 1,
@@ -131,7 +131,7 @@ export const BOSSDEF = {
     c: 5,
     turns: 18,
     reflect: 0.35,
-    fragments: 4,
+    fragments: 3,
     growCap: 1.25,
     p1: "Inert — reflecting damage taken",
     p2: "Fractured — four fragments, each growing",
@@ -183,6 +183,7 @@ export const BOSSDEF = {
     },
     plate: 0,
     bulk: 10,
+    fragDmg: 2,
   },
   envoy: {
     op: "crownring",
@@ -444,7 +445,7 @@ export const BOSSDEF = {
     h: 2,
     l: 1,
     c: 5,
-    turns: 18,
+    turns: 0,
     strikeDmg: 3,
     huntMv: 2,
     clawDmg: 4,
@@ -498,5 +499,8 @@ export const BOSSDEF = {
     },
     plate: 1,
     bulk: 5,
+    reviveEvery: 5,
+    aoeR: 2,
+    snapStep: 2,
   },
 };
