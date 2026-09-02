@@ -463,7 +463,7 @@ export const BOSSDEF = {
     mendN: 3,
     add: "husk",
     addEvery: 3,
-    p1: "Whole — it walks at your line and strikes what it reaches",
+    p1: "Whole — it walks towards you and strikes whatever's in reach",
     p2: "Divided — the human half flees and mends; the hive half hunts",
     bt: "THE SPLICE COMES APART",
     bb: "Two silhouettes stand up out of one. One of them runs. The other one looks at you.",
@@ -496,12 +496,12 @@ export const BOSSDEF = {
       from: {n: "Hikaru", r: "CC Liaison"},
       beats: [
         {
-          say: ["It is done, Commander. Both halves confirmed down.", "The recovery team says the two pieces fell within sight of each other — and the human half was still reaching toward the other when it stopped. I am telling you plainly because you will hear it anyway, and you deserve better than a rumor."],
-          reply: "Did the splice fail, or did it work?",
+          say: ["It is done, Commander. Both halves confirmed down.", "The recovery team says the two pieces fell within sight of each other — and the human half was still reaching toward the other when it stopped."],
+          reply: "What was this? What was the research about?",
         },
         {
-          say: ["Central's answer: it worked twice. A body the hive could not read — and a body we could not keep. The research is sealed under the same order as Shallow Helm's chapels.", "The volunteer's family will be told they died in the evacuation. One for the many keeps a cost ledger, Commander. Today you carried it. Get some rest."],
-          reply: "Zanshin still stands. Out.",
+          say: ["All I can gather is Lumenspire was researching ways to rewire a hive guard's mind — to allow us to disconnect and control.", "...To use a human mind to control. Yet it looked like the hive mind was too much for the human subject to handle, and overwhelmed him.", "In any case, the data was retrieved. Today you carried it. Get some rest."],
+          reply: "...Copy. Heading back.",
         },
       ],
       close: "Channel closed. Lumenspire research: SEALED.",

@@ -278,7 +278,7 @@ export function objBrief() {
       const def = G.boss ? BOSSDEF[G.boss.k] : null;
       const name = G.boss ? BEST[G.boss.k].n : 'the target';
       if (G.waves > 900) {
-        return b('Bring down ' + (G.boss ? BEST[G.boss.k].n : 'the target') + '. No clock — it ends when one of you does.', 0, 0);
+        return b('Bring down ' + (G.boss ? BEST[G.boss.k].n : 'the target') + '. Beware when they become enraged.', 0, 0);
       }
       const left = Math.max(0, G.waves - G.turn + 1);
       return {
