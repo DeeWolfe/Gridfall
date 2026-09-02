@@ -28,6 +28,7 @@ const start = (op, boss) => {
   p.op = op;
   A.enterProfile(p);
   A.launchSpec({node: null, op, type: 'boss', mod: 'none', reward: 0, boss});
+  bulkOff();
   stillAir();
   // Clear everything EXCEPT the boss proxies — clearBoard would delete them.
   A.G.units.length = 0;
@@ -36,6 +37,12 @@ const start = (op, boss) => {
   A.G.held = [];
   A.G.dp = 30;
 };
+// Mechanic blocks run with the bulkhead OFF so single-hit hull math stays
+// exact; the bulkhead and speed-kill blocks switch it back on explicitly.
+const BULKS = Object.fromEntries(Object.keys(BOSSDEF).map(k => [k, BOSSDEF[k].bulk]));
+const bulkOff = () => Object.keys(BOSSDEF).forEach(k => { BOSSDEF[k].bulk = 0; });
+const bulkOn = () => Object.keys(BOSSDEF).forEach(k => { BOSSDEF[k].bulk = BULKS[k]; });
+
 const proxies = () => A.G.enemies.filter(e => e.boss);
 const adds = () => A.G.enemies.filter(e => !e.boss);
 /** Damage the pool through one covered cell, as a named unit. */
@@ -461,6 +468,49 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
   if (A.G.boss.shield !== BOSSDEF.gantry.shield - 5) F.push('plating taxed the containment field');
   if (A.bossHp() !== BOSSDEF.gantry.hp) F.push('a shield-absorbed hit leaked into hull');
   console.log('plating: 5 lands 4, 1 still lands 1, the field absorbs cleanly');
+}
+
+// --- the bulkhead: a hull can only lose so much in one turn ---
+{
+  start('blackmarrow');
+  bulkOn();
+  const cap = BOSSDEF.brood.bulk;
+  const full = A.bossHp();
+  hit(999);
+  if (full - A.bossHp() !== cap) F.push(`a 999 volley landed ${full - A.bossHp()}, wanted the ${cap} bulkhead`);
+  hit(999);
+  if (full - A.bossHp() !== cap) F.push('a second volley leaked past a sealed bulkhead');
+  A.G.units.length = 0;
+  A.bossTick();                            // the bulkhead recovers on its beat
+  const after = A.bossHp();
+  hit(999);
+  if (after - A.bossHp() !== cap) F.push('the bulkhead did not recover next turn');
+  console.log(`bulkhead: ${cap} lands, the rest of the turn glances off, next turn it lands again`);
+}
+
+// --- the speed-kill floor: infinite damage per turn cannot beat a boss
+// before turn six, and still beats every boss inside the clock ---
+{
+  const floors = [];
+  for (const k of Object.keys(BOSSDEF)) {
+    const d = BOSSDEF[k];
+    start(d.op, d.sub ? k : undefined);
+    bulkOn();
+    A.G.units.length = 0;
+    let t = 0;
+    while (t < 25 && !A.G.bossDown) {
+      t++;
+      proxies().forEach(p => A.dmgEnemy(p, 999, 'test', true));
+      if (A.G.bossDown) break;
+      A.bossTick();
+      A.G.units.length = 0;                // the sim brings no army to hurt
+      A.G.enemies = A.G.enemies.filter(e => e.boss);
+    }
+    floors.push(`${k}:${t}`);
+    if (t < 6) F.push(`${k}: an unlimited-damage deck killed it in ${t} turns — the floor is 6`);
+    if (t > d.turns - 4) F.push(`${k}: even unlimited damage took ${t} of ${d.turns} turns — too tight against the clock`);
+  }
+  console.log('speed-kill floors (turns under infinite damage): ' + floors.join(' '));
 }
 
 // --- the clock: running out of turns is a loss, the kill is the win ---

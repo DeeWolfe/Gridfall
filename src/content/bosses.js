@@ -60,6 +60,7 @@ export const BOSSDEF = {
       go: "Close channel",
     },
     plate: 1,
+    bulk: 5,
   },
   brood: {
     op: "blackmarrow",
@@ -119,6 +120,7 @@ export const BOSSDEF = {
       go: "Close channel",
     },
     plate: 1,
+    bulk: 5,
   },
   prism: {
     op: "sunderglass",
@@ -180,6 +182,7 @@ export const BOSSDEF = {
       go: "Close channel",
     },
     plate: 0,
+    bulk: 10,
   },
   envoy: {
     op: "crownring",
@@ -238,6 +241,7 @@ export const BOSSDEF = {
       go: "Close channel",
     },
     plate: 1,
+    bulk: 4,
   },
   reliquary: {
     op: "shallowhelm",
@@ -297,6 +301,7 @@ export const BOSSDEF = {
     },
     addN: 3,
     plate: 1,
+    bulk: 8,
   },
   pyreguard: {
     op: "crownring",
@@ -329,6 +334,7 @@ export const BOSSDEF = {
       go: "Begin descent",
     },
     plate: 1,
+    bulk: 4,
   },
   rimeguard: {
     op: "crownring",
@@ -362,6 +368,7 @@ export const BOSSDEF = {
       go: "Begin descent",
     },
     plate: 1,
+    bulk: 6,
   },
   stormguard: {
     op: "crownring",
@@ -395,6 +402,7 @@ export const BOSSDEF = {
       go: "Begin descent",
     },
     plate: 1,
+    bulk: 6,
   },
   shardguard: {
     op: "crownring",
@@ -427,6 +435,7 @@ export const BOSSDEF = {
       go: "Begin descent",
     },
     plate: 1,
+    bulk: 6,
   },
   subject: {
     op: "lumenspire",
@@ -488,5 +497,6 @@ export const BOSSDEF = {
       go: "Close channel",
     },
     plate: 1,
+    bulk: 5,
   },
 };

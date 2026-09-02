@@ -4209,6 +4209,38 @@ table: prism 76 · subject 68@24t · envoy 48@24t · brood probed into
 the same 20-25% band (~38-40 @ 22t). Waiting on the user's verdict
 for v2.18.
 
+## v2.18 — bulkheads (the anti-burst ceiling)
+
+User playtested the Test Range doubles with an optimized burst deck
+(mortar/hecate/railgun/dropod/sevenblades+armblade, FIREBRAND) and
+killed EVERY boss in under 6 turns — including 68-hull Subject One.
+Confirms: no hull number fits both audiences (bot 0% at doubles, top
+deck 6-turn kills at doubles). Hull answers chip; it cannot answer
+burst.
+
+- **Mechanic**: `def.bulk` — max hull a boss can LOSE per turn, applied
+  in dmgBoss after plating; the rest of the volley glances off ("The
+  bulkhead seals" log, once per turn; drawer row shows max/turn and
+  SEALED state). Shield damage uncapped (the Gantry collapse decision
+  stays one swing). Reset on bossTick. Weak decks never touch it.
+- **Values** (hp/bulk): gantry 30/5, brood 28/5, prism 56/10 (regen vs
+  cap needs the headroom), subject 34/5, envoy 24/4, reliquary 60/8,
+  pyre 26/4, rime 42/6, storm 38/6, shard 36/6.
+- **The real guard is the speed-kill floor** (bosstest): simulate
+  UNLIMITED damage per turn; assert every boss survives ≥6 turns and
+  still dies ≥4 turns inside its clock. Measured floors: gantry 6,
+  brood 6, prism 11, envoy 8, reliquary 8, guards 6-7, subject 8.
+  Bot-independent — this is the guard that actually encodes the
+  user's complaint. Mechanic test blocks run with bulk zeroed
+  (bulkOff/bulkOn in bosstest) so exact hull math stays testable.
+- **Bot band after bulkheads**: 18-38% (gantry 18, brood 28, envoy 38,
+  subject 33, reliquary 28 at n=40) — the deliberate "difficult"
+  setting per the user's verdict. Gantry lost the most (breach-flood
+  losses, not clock) — watch it if early-game feels like a wall for
+  NEW players; bulk is not its lever, fabricant ramp is.
+- Tiers note: `bulk` is per-boss data — tiers can lower it (crueler
+  ceiling) alongside plate.
+
 ## Card backlog — the next pass
 
 Not built. Recorded here so the next card batch starts from a list rather than a

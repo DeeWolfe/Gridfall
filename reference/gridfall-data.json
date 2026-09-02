@@ -2789,7 +2789,8 @@
     "close": "Channel closed. ZANSHIN PROTOCOL — active system-wide.",
     "go": "Close channel"
    },
-   "plate": 1
+   "plate": 1,
+   "bulk": 5
   },
   "brood": {
    "op": "blackmarrow",
@@ -2875,7 +2876,8 @@
     "close": "Channel closed. Sub-crust contacts: zero. For now.",
     "go": "Close channel"
    },
-   "plate": 1
+   "plate": 1,
+   "bulk": 5
   },
   "prism": {
    "op": "sunderglass",
@@ -2959,7 +2961,8 @@
     "close": "Channel closed. The glass fields are dark. The system is watching back.",
     "go": "Close channel"
    },
-   "plate": 0
+   "plate": 0,
+   "bulk": 10
   },
   "envoy": {
    "op": "crownring",
@@ -3038,7 +3041,8 @@
     "close": "Channel closed. The Concordat holds.",
     "go": "Close channel"
    },
-   "plate": 1
+   "plate": 1,
+   "bulk": 4
   },
   "reliquary": {
    "op": "shallowhelm",
@@ -3118,7 +3122,8 @@
     "go": "Close channel"
    },
    "addN": 3,
-   "plate": 1
+   "plate": 1,
+   "bulk": 8
   },
   "pyreguard": {
    "op": "crownring",
@@ -3156,7 +3161,8 @@
     "close": "Channel closed. First guard: THE PYREGUARD. Watch its road.",
     "go": "Begin descent"
    },
-   "plate": 1
+   "plate": 1,
+   "bulk": 4
   },
   "rimeguard": {
    "op": "crownring",
@@ -3195,7 +3201,8 @@
     "close": "Channel closed. Second guard: THE RIMEGUARD. Stagger your advance.",
     "go": "Begin descent"
    },
-   "plate": 1
+   "plate": 1,
+   "bulk": 6
   },
   "stormguard": {
    "op": "crownring",
@@ -3234,7 +3241,8 @@
     "close": "Channel closed. Third guard: THE STORMGUARD. Redundancy is armor.",
     "go": "Begin descent"
    },
-   "plate": 1
+   "plate": 1,
+   "bulk": 6
   },
   "shardguard": {
    "op": "crownring",
@@ -3276,7 +3284,8 @@
     "close": "Channel closed. Fourth guard: THE SHARDGUARD. Stand on the marks.",
     "go": "Begin descent"
    },
-   "plate": 1
+   "plate": 1,
+   "bulk": 6
   },
   "subject": {
    "op": "lumenspire",
@@ -3358,7 +3367,8 @@
     "close": "Channel closed. Lumenspire research: SEALED.",
     "go": "Close channel"
    },
-   "plate": 1
+   "plate": 1,
+   "bulk": 5
   }
  }
 }

@@ -60,7 +60,7 @@ export function seedBoss() {
   const cells = [];
   for (let l = d.l; l < d.l + d.h; l++) for (let c = d.c; c < d.c + d.w; c++) cells.push([l, c]);
   G.boss = {k, phase: 1, shield: d.shield || 0, turns: 0, marks: [],
-    under: false, charge: 0, grace: 0,
+    under: false, charge: 0, grace: 0, dealt: 0, sealed: false,
     bodies: [{id: 1, hp: d.hp, max: d.hp, cells, dir: 1}], nextBody: 2};
   G.bossDown = false;
   // Each machine sets its own clock — a doubled hull earns a longer siege.
@@ -70,6 +70,7 @@ export function seedBoss() {
   clog(`<span class="d">TARGET: ${BEST[k].n.toUpperCase()}</span> — ${d.hp} hull` +
     (d.shield ? ` behind a ${d.shield}-point containment field` : '') +
     (d.plate ? `, plated — armor shrugs ${d.plate} off every hit` : '') +
+    (d.bulk ? `. Bulkhead: it cannot lose more than ${d.bulk} hull in one turn` : '') +
     `. ${d.turns} turns on the clock.`, 'loss');
   clog(`<span style="color:var(--violet)">${d.p1}</span>`, 'info');
 }
@@ -112,6 +113,23 @@ export function dmgBoss(e, d, src, attacker) {
     // the boss answer. The containment field above absorbs cleanly; only
     // damage that reaches armor is taxed.
     if (def.plate) dealt = Math.max(1, dealt - def.plate);
+    // The bulkhead: a boss can only LOSE so much hull in one turn — the
+    // anti-burst ceiling that plating is not. An alpha-strike deck fills
+    // the ceiling and the rest of the volley glances off until next turn,
+    // so every boss fight has a guaranteed minimum length; decks that
+    // never reach the ceiling never feel it.
+    if (def.bulk) {
+      const room = Math.max(0, def.bulk - (B.dealt || 0));
+      if (dealt > room) {
+        dealt = room;
+        if (!B.sealed) {
+          B.sealed = true;
+          clog('<span style="color:var(--violet)">The bulkhead seals</span> — the rest of the volley glances off until it recovers.', 'info');
+        }
+      }
+      B.dealt = (B.dealt || 0) + dealt;
+      if (dealt <= 0) return;
+    }
     body.hp -= dealt;
     setBodyHp(body);
     tapeEvent({type: 'hit', foe: true, lane: e.lane, col: e.col, amount: dealt, died: body.hp <= 0});
@@ -687,6 +705,9 @@ export function bossTick() {
   const B = G.boss;
   if (!B || G.over || !B.bodies.length) return;
   B.turns++;
+  // The bulkhead recovers on the boss's own beat — next turn's fire lands.
+  B.dealt = 0;
+  B.sealed = false;
   const def = BOSSDEF[B.k];
   if (B.k === 'gantry') gantryTick(def);
   if (B.k === 'brood') broodTick(def);

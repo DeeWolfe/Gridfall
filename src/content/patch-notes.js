@@ -4,9 +4,17 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.17';
+export const VERSION = '2.18';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.18',
+    notes: [
+      'Bosses carry BULKHEADS now. Plating answered the swarm; this answers the alpha strike: a boss can only lose so much hull in a single turn — fill the ceiling and the rest of your volley glances off until it recovers. Field reports of Kill Orders ending inside six turns have been reviewed, found accurate, and made impossible: under unlimited firepower every boss now survives at least six turns, most seven to eleven, and every one of those turns it is doing its work on you.',
+      'The ceiling is honest and visible: the descent log announces it, the intel drawer shows it — and shows SEALED the moment your turn has filled it. Decks that never reach the ceiling never feel it; the ceiling exists exactly for the ones that do.',
+      'The arithmetic of a Kill Order is now three-layered: plating decides what KIND of guns hurt it, the bulkhead decides how FAST it can die, and the clock decides how long you have. The space between the bulkhead and the clock is the fight.',
+    ],
+  },
   {
     v: '2.17',
     notes: [

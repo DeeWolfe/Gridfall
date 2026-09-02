@@ -4649,6 +4649,7 @@ const BOSSDEF = {
       go: "Close channel",
     },
     plate: 1,
+    bulk: 5,
   },
   brood: {
     op: "blackmarrow",
@@ -4708,6 +4709,7 @@ const BOSSDEF = {
       go: "Close channel",
     },
     plate: 1,
+    bulk: 5,
   },
   prism: {
     op: "sunderglass",
@@ -4769,6 +4771,7 @@ const BOSSDEF = {
       go: "Close channel",
     },
     plate: 0,
+    bulk: 10,
   },
   envoy: {
     op: "crownring",
@@ -4827,6 +4830,7 @@ const BOSSDEF = {
       go: "Close channel",
     },
     plate: 1,
+    bulk: 4,
   },
   reliquary: {
     op: "shallowhelm",
@@ -4886,6 +4890,7 @@ const BOSSDEF = {
     },
     addN: 3,
     plate: 1,
+    bulk: 8,
   },
   pyreguard: {
     op: "crownring",
@@ -4918,6 +4923,7 @@ const BOSSDEF = {
       go: "Begin descent",
     },
     plate: 1,
+    bulk: 4,
   },
   rimeguard: {
     op: "crownring",
@@ -4951,6 +4957,7 @@ const BOSSDEF = {
       go: "Begin descent",
     },
     plate: 1,
+    bulk: 6,
   },
   stormguard: {
     op: "crownring",
@@ -4984,6 +4991,7 @@ const BOSSDEF = {
       go: "Begin descent",
     },
     plate: 1,
+    bulk: 6,
   },
   shardguard: {
     op: "crownring",
@@ -5016,6 +5024,7 @@ const BOSSDEF = {
       go: "Begin descent",
     },
     plate: 1,
+    bulk: 6,
   },
   subject: {
     op: "lumenspire",
@@ -5077,6 +5086,7 @@ const BOSSDEF = {
       go: "Close channel",
     },
     plate: 1,
+    bulk: 5,
   },
 };
 
@@ -6216,7 +6226,7 @@ function seedBoss() {
   const cells = [];
   for (let l = d.l; l < d.l + d.h; l++) for (let c = d.c; c < d.c + d.w; c++) cells.push([l, c]);
   G.boss = {k, phase: 1, shield: d.shield || 0, turns: 0, marks: [],
-    under: false, charge: 0, grace: 0,
+    under: false, charge: 0, grace: 0, dealt: 0, sealed: false,
     bodies: [{id: 1, hp: d.hp, max: d.hp, cells, dir: 1}], nextBody: 2};
   G.bossDown = false;
   // Each machine sets its own clock — a doubled hull earns a longer siege.
@@ -6226,6 +6236,7 @@ function seedBoss() {
   clog(`<span class="d">TARGET: ${BEST[k].n.toUpperCase()}</span> — ${d.hp} hull` +
     (d.shield ? ` behind a ${d.shield}-point containment field` : '') +
     (d.plate ? `, plated — armor shrugs ${d.plate} off every hit` : '') +
+    (d.bulk ? `. Bulkhead: it cannot lose more than ${d.bulk} hull in one turn` : '') +
     `. ${d.turns} turns on the clock.`, 'loss');
   clog(`<span style="color:var(--violet)">${d.p1}</span>`, 'info');
 }
@@ -6268,6 +6279,23 @@ function dmgBoss(e, d, src, attacker) {
     // the boss answer. The containment field above absorbs cleanly; only
     // damage that reaches armor is taxed.
     if (def.plate) dealt = Math.max(1, dealt - def.plate);
+    // The bulkhead: a boss can only LOSE so much hull in one turn — the
+    // anti-burst ceiling that plating is not. An alpha-strike deck fills
+    // the ceiling and the rest of the volley glances off until next turn,
+    // so every boss fight has a guaranteed minimum length; decks that
+    // never reach the ceiling never feel it.
+    if (def.bulk) {
+      const room = Math.max(0, def.bulk - (B.dealt || 0));
+      if (dealt > room) {
+        dealt = room;
+        if (!B.sealed) {
+          B.sealed = true;
+          clog('<span style="color:var(--violet)">The bulkhead seals</span> — the rest of the volley glances off until it recovers.', 'info');
+        }
+      }
+      B.dealt = (B.dealt || 0) + dealt;
+      if (dealt <= 0) return;
+    }
     body.hp -= dealt;
     setBodyHp(body);
     tapeEvent({type: 'hit', foe: true, lane: e.lane, col: e.col, amount: dealt, died: body.hp <= 0});
@@ -6843,6 +6871,9 @@ function bossTick() {
   const B = G.boss;
   if (!B || G.over || !B.bodies.length) return;
   B.turns++;
+  // The bulkhead recovers on the boss's own beat — next turn's fire lands.
+  B.dealt = 0;
+  B.sealed = false;
   const def = BOSSDEF[B.k];
   if (B.k === 'gantry') gantryTick(def);
   if (B.k === 'brood') broodTick(def);
@@ -13658,6 +13689,7 @@ function drawSel() {
           <div><span>Bodies</span><b>${G.boss.bodies.length}</b></div>
           <div><span>Footprint</span><b>${cells} cell${cells === 1 ? '' : 's'}</b></div>
           ${def.plate ? `<div><span>Plating</span><b>−${def.plate} per hit</b></div>` : ''}
+          ${def.bulk ? `<div><span>Bulkhead</span><b>max ${def.bulk} hull/turn${G.boss.dealt >= def.bulk ? ' — SEALED' : ''}</b></div>` : ''}
           ${def.diveEvery ? `<div><span>Dives</span><b>every ${p2cut(def.diveEvery)} turns</b></div>` : ''}
           ${G.boss.k === 'pyreguard' ? `<div><span>Marches</span><b>one lane a turn</b></div>` : ''}
           ${def.chargeEvery ? `<div><span>Purge</span><b>in ${purgeIn} turn${purgeIn === 1 ? '' : 's'}</b></div>` : ''}
@@ -15483,9 +15515,17 @@ function render() {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.17';
+const VERSION = '2.18';
 
 const PATCH_NOTES = [
+  {
+    v: '2.18',
+    notes: [
+      'Bosses carry BULKHEADS now. Plating answered the swarm; this answers the alpha strike: a boss can only lose so much hull in a single turn — fill the ceiling and the rest of your volley glances off until it recovers. Field reports of Kill Orders ending inside six turns have been reviewed, found accurate, and made impossible: under unlimited firepower every boss now survives at least six turns, most seven to eleven, and every one of those turns it is doing its work on you.',
+      'The ceiling is honest and visible: the descent log announces it, the intel drawer shows it — and shows SEALED the moment your turn has filled it. Decks that never reach the ceiling never feel it; the ceiling exists exactly for the ones that do.',
+      'The arithmetic of a Kill Order is now three-layered: plating decides what KIND of guns hurt it, the bulkhead decides how FAST it can die, and the clock decides how long you have. The space between the bulkhead and the clock is the fight.',
+    ],
+  },
   {
     v: '2.17',
     notes: [
