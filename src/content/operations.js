@@ -226,11 +226,11 @@ export const OPS = {
       from: {n: "Hikaru", r: "CC Liaison"},
       beats: [
         {
-          say: ["Commander. Meridian evacuated clean six hours ago — except Lumenspire's research division. They never made the manifest.", "Whatever they were working on, command wants it enough to send you back into a dead city for it."],
+          say: ["Meridian evacuated clean six hours ago — except Lumenspire's research division. They never made it out.", "Whatever they were working on, command wants it enough to send you back into a dead city for it."],
           reply: "Copy. What's the priority — the research, or the people?",
         },
         {
-          say: ["Officially, the research. The dorms where the barricaded researchers are holed up are listed as an optional objective.", "Unofficially — their families were told they were already out. That's not sitting well with me, and it shouldn't sit well with you either."],
+          say: ["Central really wants that data — so their families have been told just as so.", "That's not sitting well with me, and it shouldn't sit well with you either. But as always — one for the many."],
           reply: "Understood. We're not leaving anyone we find breathing behind a locked door.",
         },
         {
