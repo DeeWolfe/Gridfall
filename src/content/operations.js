@@ -146,7 +146,7 @@ export const OPS = {
       ["n7", "n8"],
       ["n6", "n8"],
     ],
-    lore: "The Sunderglass flats grow the resonant crystal every jump drive in the sector depends on, and the hive grazes on them like cattle. Every day the fields sit contested, the harvest shatters a little more. Cut what can still be saved and get out before the glassing swallows the route home.",
+    lore: "The Sunderglass flats grow the resonant crystal every jump drive in the sector depends on, and the hive grazes on them like cattle. Every day the fields sit contested, we are slowly losing ground. Retrieve what you can and get out before the route home is closed.",
     eventBias: "research",
     intro: {
       freq: "118.62",
@@ -154,12 +154,12 @@ export const OPS = {
       from: {n: "Hikaru", r: "CC Liaison"},
       beats: [
         {
-          say: ["Commander, Sunderglass is live. Every jump drive in the sector runs on that crystal, and the hive's been grazing the fields for weeks.", "Command wants what's left of the harvest before it's gone for good."],
+          say: ["Commander, you have been requested to help escort teams for crystal retrieval. Every jump drive in the sector runs on that crystal, and the hive's been grazing the fields for weeks.", "Central wants what's left of the harvest before it's gone for good."],
           reply: "Copy. How bad is the shrinkage?",
         },
         {
           say: ["Bad, and getting worse by the day. The Shallows are still stable, but Prism Ridge is thinning fast.", "Push too far and you hit the Glassing — that's what's left once the hive's done feeding a field. Nothing grows back through it."],
-          reply: "Understood. We take what we can hold and pull before the Glassing catches us.",
+          reply: "Understood. We will take what we can and pull before the Glassing catches us.",
         },
         {
           say: ["One more thing. If the route home starts closing, the crystal isn't worth the wait. Get your people out.", "Good hunting, Commander."],
