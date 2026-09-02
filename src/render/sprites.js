@@ -1043,22 +1043,6 @@ const FOE_PIX = {
     '..oo....oo..',
     '............',
   ],
-  // THE CONCORD — four chassis in one mass: flame above, rime and storm at
-  // the shoulders, shard at the footing. No face. Four were enough.
-  concord: [
-    '.....gg.....',
-    '....obbo....',
-    '..ooobboo...',
-    '.xbobbbbobw.',
-    '.oboWbbWobo.',
-    '.obbbssbbbo.',
-    '.obbbssbbbo.',
-    '.oboWbbWobo.',
-    '..obbbbbbo..',
-    '...oWWWWo...',
-    '..oo.oo.oo..',
-    '............',
-  ],
 };
 
 export const hasFoeSprite = k => !!FOE_PIX[k];

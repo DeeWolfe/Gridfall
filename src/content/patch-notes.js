@@ -4,9 +4,16 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.14';
+export const VERSION = '2.15';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.15',
+    notes: [
+      'One throne room, one throne. Crownring ends at the Summit Floor now: silence the four honor guards and the way to THE ENVOY opens — still in session, still diving beneath the wards, still choosing where it surfaces. Kill it and the operation is won. No second act behind it.',
+      'The Concord has left the building — but not the war. What the Envoy was assembling has been withdrawn to somewhere deeper in the hive\'s plans, and somewhere deeper in ours. You will meet it again.',
+    ],
+  },
   {
     v: '2.14',
     notes: [

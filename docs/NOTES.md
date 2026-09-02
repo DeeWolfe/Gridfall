@@ -3882,6 +3882,135 @@ creature." Chose "it leaves the lens" from three offered shapes.
   distance/claws-weakest-only guards. Bestiary d/counter updated
   (draft — user proofreads via the script doc).
 
+## v2.15 — the Envoy takes the finale; THE CONCORD goes on the shelf
+
+User: "can we save concord for something else down the line and keep the
+envoy as the final boss." Done:
+
+- Crownring is now exactly the user's hub shape: concourse start, four
+  guard wings, and ONE final — the Summit Floor (n10, role final, req
+  all four wings), where THE ENVOY sits. Envoy lost its `sub` flag
+  (bossForOp finds it); n11 removed; SAVE_VERSION 10 strips 'concord'
+  unlocks and resets stored crownring runs.
+- Concord runtime removed (concordTick/carryMotion/MOTIONS, hymn state,
+  Next-motion drawer row, glyph, sprite). The elemental helpers
+  (elemBurn/elemFreeze/elemJam) stay — the guards use them, and a
+  revived Concord would too.
+- Envoy balance unchanged (50% at its last 60-run probe — the fight
+  itself did not move).
+
+### SHELVED FOR LATER: THE CONCORD — full design archive
+
+The fused-guards rotation boss, fully built and tuned (55% bot win at
+84 hull as a crownring final), pulled at the user's request to return
+"down the line" — candidate futures: a late-campaign seventh operation,
+an Onslaught super-spike, or the endgame reveal of the imitation arc
+(machines → institutions → politics → ...). Mechanics: eruptMarks/
+markBreaches + elemental helpers still live in boss.js; a revived
+concordTick needs ~30 lines (rotation index on G.boss, one motion per
+turn, two after the flip). Everything needed to restore it verbatim:
+
+```json
+{
+ "bossdef": {
+  "op": "crownring",
+  "hp": 84,
+  "w": 2,
+  "h": 2,
+  "l": 1,
+  "c": 6,
+  "turns": 18,
+  "fireDmg": 4,
+  "freezeN": 2,
+  "jamN": 2,
+  "markN": 2,
+  "breachDmg": 3,
+  "breachPool": [
+   "burrower",
+   "crawler"
+  ],
+  "escort": "burrower",
+  "escEvery": 2,
+  "p1": "In session — one motion per turn: pyre, rime, storm, shard, in rotation",
+  "p2": "Unanimous — two motions per turn",
+  "bt": "UNANIMOUS",
+  "bb": "Four chassis, one body, no debate left in it. It carries two motions at once now.",
+  "brief": {
+   "freq": "141.95",
+   "net": "残心ネット",
+   "cap": "Kill Order · Priority target briefing",
+   "from": {
+    "n": "Hikaru",
+    "r": "CC Liaison"
+   },
+   "beats": [
+    {
+     "say": [
+      "Commander... the Envoy is dead and the readings from the Summit Hall got worse.",
+      "The four guard chassis are moving. Not walking — being drawn. Everything the Envoy studied from that chair is assembling on the floor it held, and the wards keep logging one word for it: CONCORD."
+     ],
+     "reply": "Four of them in one body."
+    },
+    {
+     "say": [
+      "Four hijacked Frames, one mass. It has everything you already fought in the wings: the Pyreguard's lane, the Rimeguard's cold, the Stormguard's arc, the Shardguard's breaches — one motion per turn, in rotation, and the rotation is readable. The wards telegraph the next motion. Use that.",
+      "You have fought every motion it can carry, Commander. It has never fought anyone who survived all four."
+     ],
+     "reply": "And when it's done?"
+    },
+    {
+     "say": [
+      "Then the Summit Hall is ours, the delegations reconvene under their own roof, and the hive's copy of our alliance dies on its floor.",
+      "One more kill, Commander. The chamber is waiting on your descent."
+     ],
+     "reply": "Calling the vote. Out."
+    }
+   ],
+   "close": "Channel closed. Final target: THE CONCORD. Read the next motion.",
+   "go": "Begin descent"
+  },
+  "debrief": {
+   "freq": "141.95",
+   "net": "残心ネット",
+   "cap": "After-action · CC uplink",
+   "from": {
+    "n": "Hikaru",
+    "r": "CC Liaison"
+   },
+   "beats": [
+    {
+     "say": [
+      "The Summit Hall is a ruin twice over, Commander — and it is ours twice over. The delegations reconvene under their own roof next month. That sentence exists because of you.",
+      "Central's first pass on the Concord wreckage settled the argument the Envoy started. It did not fuse those Frames to fight you. It fused them the way the Concordat fuses factions — a body of members, speaking in turns. It was not building a weapon, Commander. It was practicing being an alliance."
+     ],
+     "reply": "First our machines. Then our institutions. Now our politics."
+    },
+    {
+     "say": [
+      "In order, and faster each time. Central's analysts will not say aloud what comes after politics, but the task group studying it has been widened twice this month.",
+      "The alliance holds. The line holds. Whatever is directing these things now knows our unity is a weapon — because it tried to build one. Get some rest, Commander."
+     ],
+     "reply": "One for the many. Out."
+    }
+   ],
+   "close": "Channel closed. The Concordat holds — the copy did not.",
+   "go": "Close channel"
+  }
+ },
+ "hostile": {
+  "n": "The Concord",
+  "t": "boss",
+  "boss": 1,
+  "hp": 84,
+  "dmg": 0,
+  "threat": 0,
+  "spd": 0,
+  "d": "Four hijacked honor-guard Frames drawn into one mass on the Summit Hall floor — the hive's working copy of the alliance it studied. One motion per turn, in rotation: the pyre's lane, the rime's cold, the storm's arc, the shard's breaches.",
+  "counter": "The rotation is readable and the wards telegraph the next motion — position for the one that is coming, not the one that just ended. At half hull it stops taking turns."
+ }
+}
+```
+
 ## Card backlog — the next pass
 
 Not built. Recorded here so the next card batch starts from a list rather than a

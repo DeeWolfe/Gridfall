@@ -116,7 +116,7 @@ for (const opKey of Object.keys(A.OPS)) {
   if (!A.G.over || A.G.result.kind !== 'win') F.push('meeting the blitz quota did not win');
 }
 
-// G: Crownring — the guards bar the floor, and the floor bars the Concord
+// G: Crownring — the guards bar the floor, and the floor is the finale
 {
   const p = A.blankProfile('CR');
   p.op = 'crownring';
@@ -132,14 +132,12 @@ for (const opKey of Object.keys(A.OPS)) {
   if (A.nodeState('n10') !== 'locked') F.push('the Summit Floor open with one guard standing');
   run.cleared.push('n8', 'n9');
   if (A.nodeState('n10') !== 'open') F.push('breaking all four guards did not open the floor');
-  if (A.nodeState('n11') !== 'locked') F.push('the Concord open before the Envoy fell');
-  run.cleared.push('n10');
-  if (A.nodeState('n11') !== 'open') F.push('killing the Envoy did not reveal the Concord');
-  // The wing nodes carry their guards into the rolled run; the floor and the
-  // final carry theirs.
-  [['n3', 'pyreguard'], ['n5', 'rimeguard'], ['n7', 'stormguard'], ['n9', 'shardguard'], ['n10', 'envoy']].forEach(([id, k]) => {
+  // The wing nodes carry their guards into the rolled run; the final is the
+  // Envoy's fight by way of bossForOp, no node key needed.
+  [['n3', 'pyreguard'], ['n5', 'rimeguard'], ['n7', 'stormguard'], ['n9', 'shardguard']].forEach(([id, k]) => {
     if (run.nodes[id].type !== 'boss' || run.nodes[id].boss !== k) F.push(`${id} rolled without its guard (${k})`);
   });
+  if (run.nodes.n10.type !== 'boss') F.push('the Summit Floor did not roll as a Kill Order');
 }
 
 // H: Shallowhelm — the Cleanse needs power, and the way out needs the Cleanse

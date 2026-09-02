@@ -138,6 +138,17 @@ export function migrate(p) {
     if (p.ops && p.ops.crownring) delete p.ops.crownring;
   }
 
+  // v10: the Concord is shelved for a later chapter — the Envoy is
+  // Crownring's final again, and the Summit Floor is the last node. Stored
+  // crownring runs reference the removed Concord node, so they reset.
+  if (p.version < 10) {
+    p.version = 10;
+    if (p.unlocks && p.unlocks.enemies) {
+      p.unlocks.enemies = p.unlocks.enemies.filter(k => k !== 'concord');
+    }
+    if (p.ops && p.ops.crownring) delete p.ops.crownring;
+  }
+
   p.unlocks = p.unlocks || {};
   p.unlocks.cards = p.unlocks.cards || [...STARTER];
   p.unlocks.enemies = p.unlocks.enemies || [];

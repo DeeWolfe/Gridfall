@@ -47,7 +47,7 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
   const finals = ks.filter(k => !BOSSDEF[k].sub);
   const subs = ks.filter(k => BOSSDEF[k].sub);
   if (finals.length !== 6) F.push(`expected six operation finals, found ${finals.length}`);
-  if (subs.length !== 5) F.push(`expected five node-placed bosses (four guards + the Envoy), found ${subs.length}`);
+  if (subs.length !== 4) F.push(`expected four node-placed honor guards, found ${subs.length}`);
   if (subs.some(k => BOSSDEF[k].op !== 'crownring')) F.push('a node-placed boss strayed off crownring');
   ks.forEach(k => {
     const d = BOSSDEF[k];
@@ -58,21 +58,19 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
     if (!d.bt || !d.bb || !d.p1 || !d.p2) F.push(`${k}: missing phase labels or banner`);
     if (d.l + d.h > A.LANES || d.c + d.w > A.COLS) F.push(`${k}: footprint hangs off the board`);
   });
-  // Every named node on the Crownring map carries a real boss: four guard
-  // wings, the Envoy on the floor (gated on all four), the Concord after it.
-  const named = A.OPS.crownring.nodes.filter(n => n.boss);
-  if (named.length !== 5) F.push(`crownring map names ${named.length} bosses, wanted 5`);
-  named.forEach(n => {
+  // Every named node on the Crownring map carries a real guard, and the
+  // final — the Summit Floor, where the Envoy sits — is gated on all four.
+  const wings = A.OPS.crownring.nodes.filter(n => n.boss);
+  if (wings.length !== 4) F.push(`crownring map names ${wings.length} guards, wanted 4`);
+  wings.forEach(n => {
     if (!BOSSDEF[n.boss] || !BOSSDEF[n.boss].sub) F.push(`${n.id}: names unknown node boss '${n.boss}'`);
-    if (n.type !== 'boss') F.push(`${n.id}: boss node is not pinned to a boss mission`);
+    if (n.type !== 'boss') F.push(`${n.id}: guard node is not pinned to a boss mission`);
   });
-  const floor = A.OPS.crownring.nodes.find(n => n.boss === 'envoy');
-  const wings = named.filter(n => n.boss !== 'envoy');
-  if (!floor || !floor.req || floor.req.length !== 4 || wings.some(n => !floor.req.includes(n.id))) {
+  const fin = A.OPS.crownring.nodes.find(n => n.role === 'final');
+  if (!fin.req || fin.req.length !== 4 || wings.some(n => !fin.req.includes(n.id))) {
     F.push('the Summit Floor is not gated on all four guard wings');
   }
-  const fin = A.OPS.crownring.nodes.find(n => n.role === 'final');
-  if (!fin.req || !fin.req.includes(floor.id)) F.push('the Concord is not gated on the Envoy');
+  if (A.bossForOp('crownring') !== 'envoy') F.push('crownring final should seed the Envoy');
   if (!MISSIONS.boss) F.push('no boss mission type');
   // The encounter is the final node of its operation and nowhere else.
   ['ironveil', 'lumenspire'].forEach(op => {
@@ -406,41 +404,6 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
   if (A.G.boss.bodies[0].cells.map(x => x.join()).join(';') !== seat) F.push('the Shardguard moved — it is rooted');
   if (adds().some(e => !dOss.breachPool.includes(e.k))) F.push('a crystal breach surfaced something off the pool');
   console.log('honor guards: pyre marches and burns, rime freezes the deepest, storm jams guns not legs, shard keeps the breach contract');
-}
-
-// --- THE CONCORD: one motion per turn in rotation, two after the flip ---
-{
-  start('crownring');
-  const d = BOSSDEF.concord;
-  if (A.G.boss.k !== 'concord') F.push(`crownring final seeded ${A.G.boss.k}, wanted the Concord`);
-  const squad = [0, 1, 2, 3].map(l => spawnUnit('rifle', l, 3, {hp: 20, max: 20, shield: 0}));
-
-  A.bossTick();                            // motion 1: pyre — one lane burns
-  const burned = squad.filter(u => u.hp < 20);
-  if (burned.length !== 1) F.push(`the pyre motion burned ${burned.length} lanes' worth, wanted 1`);
-  if (burned.length && 20 - burned[0].hp !== d.fireDmg) F.push('pyre motion damage off');
-  if (A.G.boss.hymn !== 1) F.push('the rotation did not advance to rime');
-
-  A.bossTick();                            // motion 2: rime — deepest frozen
-  if (squad.filter(u => u.stun).length !== d.freezeN) F.push('the rime motion froze the wrong number');
-
-  squad.forEach(u => { u.stun = 0; });
-  A.bossTick();                            // motion 3: storm — guns arc dead
-  if (squad.filter(u => u.jam).length !== d.jamN) F.push('the storm motion jammed the wrong number');
-
-  squad.forEach(u => { u.jam = 0; });
-  A.bossTick();                            // motion 4: shard — breaches marked
-  if (A.G.boss.marks.length !== d.markN) F.push(`the shard motion marked ${A.G.boss.marks.length}, wanted ${d.markN}`);
-  if (A.G.boss.hymn !== 0) F.push('the rotation did not come back around to the pyre');
-
-  // The flip: two hymns a turn, and the rotation still advances two.
-  hit(d.hp / 2 + 1);
-  if (A.G.boss.phase !== 2) F.push('the Concord did not flip at half hull');
-  const at = A.G.boss.hymn;
-  A.G.boss.marks = [];
-  A.bossTick();
-  if (A.G.boss.hymn !== (at + 2) % 4) F.push('a unanimous floor did not carry two motions');
-  console.log(`concord: pyre->rime->storm->shard in rotation, two a turn after ${d.bt}`);
 }
 
 // --- reliquarytest: the purge spares held ground, erosion between charges, it never moves ---

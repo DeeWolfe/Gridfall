@@ -244,9 +244,7 @@ function drawSel() {
       const cells = G.boss.bodies.reduce((a, b) => a + b.cells.length, 0);
       // Phase two shortens the Envoy's dive cycle.
       const p2cut = n => (G.boss.phase === 2 ? Math.max(2, n - 1) : n);
-      // The Concord's rotation is readable by design — name the next motion.
-      // The Reliquary's purge countdown is just as public.
-      const motionNames = ['Pyre', 'Rime', 'Storm', 'Shard'];
+      // The Reliquary's purge countdown is public by design.
       const purgeIn = def.chargeEvery ? p2cut(def.chargeEvery) - G.boss.charge : 0;
       el.innerHTML = `<div class="selhead"><b style="color:var(--mag)">${D.n}</b>
           <span class="hpbadge">${bossHp()}/${def.hp}</span></div>
@@ -260,7 +258,6 @@ function drawSel() {
           ${G.boss.beam ? `<div><span>Beam</span><b>lane ${G.boss.beam.lane + 1} next</b></div>` : ''}
           ${G.boss.k === 'aperture' && G.boss.phase === 2 ? `<div><span>Stalks</span><b>${def.stalkMv} cells a turn</b></div><div><span>Claw</span><b>${def.clawDmg} — wounded first</b></div>` : ''}
           ${def.diveEvery ? `<div><span>Dives</span><b>every ${p2cut(def.diveEvery)} turns</b></div>` : ''}
-          ${G.boss.k === 'concord' ? `<div><span>Next motion</span><b>${motionNames[G.boss.hymn]}</b></div>` : ''}
           ${G.boss.k === 'pyreguard' ? `<div><span>Marches</span><b>one lane a turn</b></div>` : ''}
           ${def.chargeEvery ? `<div><span>Purge</span><b>in ${purgeIn} turn${purgeIn === 1 ? '' : 's'}</b></div>` : ''}
         </div>
@@ -355,7 +352,7 @@ const FOE_GLYPH = {
   fabricant: '⚙', gantry: '☰', brood: '❉', prism: '◇',
   aperture: '◎', envoy: '♔',
   zealot: '†', lector: '♰', choirwarden: '♪', reliquary: '⚱',
-  pyreguard: '🜂', rimeguard: '🜄', stormguard: '🜁', shardguard: '🜃', concord: '✥',
+  pyreguard: '🜂', rimeguard: '🜄', stormguard: '🜁', shardguard: '🜃',
 };
 
 /** The intent badge: what this hostile will do next turn, per enemyIntent(). */

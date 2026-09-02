@@ -25,7 +25,7 @@ import {clog} from './log.js';
 import {tapeEvent} from './tape.js';
 
 /** The boss guarding this operation's FINAL node, if it has one. Node-placed
- * bosses (def.sub — Crownring's guards and the Envoy) never come from here. */
+ * bosses (def.sub — Crownring's four honor guards) never come from here. */
 export const bossForOp = op =>
   Object.keys(BOSSDEF).find(k => BOSSDEF[k].op === op && !BOSSDEF[k].sub) || null;
 
@@ -60,7 +60,7 @@ export function seedBoss() {
   const cells = [];
   for (let l = d.l; l < d.l + d.h; l++) for (let c = d.c; c < d.c + d.w; c++) cells.push([l, c]);
   G.boss = {k, phase: 1, shield: d.shield || 0, turns: 0, marks: [],
-    beam: null, under: false, charge: 0, hymn: 0, grace: 0,
+    beam: null, under: false, charge: 0, grace: 0,
     bodies: [{id: 1, hp: d.hp, max: d.hp, cells, dir: 1}], nextBody: 2};
   G.bossDown = false;
   addBodyProxies(G.boss.bodies[0]);
@@ -280,7 +280,7 @@ function gantryTick(def) {
 
 /** Yesterday's marked breaches erupt. A unit standing on the mark takes the
  * damage INSTEAD of anything surfacing — occupying a breach is a choice. The
- * Brood Mother, the Shardguard and the Concord all keep this same contract. */
+ * Brood Mother and the Shardguard keep this same contract. */
 function eruptMarks(def) {
   const B = G.boss;
   const due = B.marks;
@@ -627,40 +627,6 @@ function shardguardTick(def) {
   markBreaches(def.markN + (B.phase === 2 ? 1 : 0));
 }
 
-// --- THE CONCORD: all four guards, one motion per turn, in a readable rotation ---
-const MOTIONS = ['pyre', 'rime', 'storm', 'shard'];
-
-function carryMotion(def, h) {
-  if (h === 'pyre') {
-    // The pyre motion burns the lane with the most soldiers in it.
-    const counts = {};
-    G.units.forEach(u => { counts[u.lane] = (counts[u.lane] || 0) + 1; });
-    const lanes = Object.keys(counts).map(Number);
-    if (!lanes.length) return;
-    const most = Math.max(...lanes.map(l => counts[l]));
-    const lane = shuffle(lanes.filter(l => counts[l] === most))[0];
-    const n = elemBurn([lane], def.fireDmg, 'The Concord');
-    clog(`<span class="d">The pyre motion</span> — lane ${lane + 1} burns, ${n} unit${n > 1 ? 's' : ''} caught.`, 'loss');
-  }
-  if (h === 'rime') elemFreeze(def.freezeN, 0, 'The Concord');
-  if (h === 'storm') elemJam(def.jamN, 0, 'The Concord');
-  if (h === 'shard') markBreaches(def.markN);
-}
-
-function concordTick(def) {
-  const B = G.boss;
-  eruptMarks(def);
-  const sing = B.phase === 2 ? 2 : 1;
-  for (let i = 0; i < sing; i++) {
-    carryMotion(def, MOTIONS[B.hymn]);
-    B.hymn = (B.hymn + 1) % MOTIONS.length;
-  }
-  clog(`<span style="color:var(--violet)">The floor turns</span> — next motion: ${MOTIONS[B.hymn].toUpperCase()}.`, 'info');
-  if (B.turns % def.escEvery === 0) {
-    if (summonAdds(def.escort, 1)) clog(`A ${BEST[def.escort].n} is recognized by the chair.`, 'wave');
-  }
-}
-
 /** The boss's whole turn. Runs after the horde acts, before territory flips. */
 export function bossTick() {
   const B = G.boss;
@@ -677,5 +643,4 @@ export function bossTick() {
   if (B.k === 'rimeguard') rimeguardTick(def);
   if (B.k === 'stormguard') stormguardTick(def);
   if (B.k === 'shardguard') shardguardTick(def);
-  if (B.k === 'concord') concordTick(def);
 }
