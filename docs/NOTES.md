@@ -4178,6 +4178,37 @@ hp/dmg buffs and over scaling retaliation.
 - TIERS NOTE: plate is now a per-boss data knob — Veteran/Zanshin can
   raise it (plate 2 taxes even area blasts meaningfully).
 
+## Boss-buff experiment (pending verdict) — the doubles test range
+
+User asked to double Brood/Subject/Envoy hulls and set Prism 76, then
+see data. Measured (bot, n=60, loss modes attached in session):
+
+| config | brood | subject | envoy | prism |
+|---|---|---|---|---|
+| v2.17 shipped (28/34/24/56) | 38% | 43% | 35% | 42% |
+| doubles @ 18t (56/68/48/76) | 2% | 0% | 2% | 25% |
+| +50% @ 18t (42/50/36) | 3% | 8% | 18% | — |
+| doubles @ 24-turn siege | 2% | 20% | 25% | — |
+
+Key findings: plating makes hull a razor lever (taxed bot lands
+~2.5-3.5 hull/turn → ~45-55 hull is the 18-turn ceiling); longer
+sieges rescue Subject/Envoy but FEED the Brood (her tendril/crush/
+breach kit scales with every extra turn — 2% at any clock).
+
+Shipped in this commit (safe, no balance change): per-boss clocks
+(`BOSSDEF[k].turns` now sets G.waves at seed — all 18 today) and
+data-driven prism test math. NOT shipped: the doubled values — they
+live in the published "Gridfall Test Range" artifact
+(claude.ai/code/artifact/c2288eee-ac3c-4a19-9e5c-e227d8be165a), a
+self-seeding test build with the user's requested deck (mortar, rifle,
+hecate, railgun, pathfinder, exo, hell+dropod, assassin, samurai,
+pilot + sevenblades/armblade, FIREBRAND) across three profiles
+covering all ten bosses. Rebuild it via scratchpad
+mktestseed.mjs + the localStorage-seed wrapper. Recommendation on the
+table: prism 76 · subject 68@24t · envoy 48@24t · brood probed into
+the same 20-25% band (~38-40 @ 22t). Waiting on the user's verdict
+for v2.18.
+
 ## Card backlog — the next pass
 
 Not built. Recorded here so the next card batch starts from a list rather than a

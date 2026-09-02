@@ -119,10 +119,10 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
 
 // --- bossphase: exactly one flip, at the right trigger ---
 {
-  start('sunderglass');                    // the Prism: 56 hull, unplated (crystal
-  hit(27);                                 // reflects; it does not armor), flips at 28
+  start('sunderglass');                    // the Prism: unplated (crystal reflects,
+  hit(Math.floor(BOSSDEF.prism.hp / 2) - 1);   // it does not armor) — just above half
   if (A.G.boss.phase !== 1) F.push('prism flipped above half hull');
-  hit(1);
+  hit(1);                                  // and the point that reaches it
   if (A.G.boss.phase !== 2) F.push('prism did not flip at half hull');
   const bodies = A.G.boss.bodies.length;
   hit(3);
@@ -247,7 +247,7 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
 
   // Shatter: four fragments in four lanes, growing one a turn to the cap.
   start('sunderglass');
-  hit(29);                                 // 56 -> 27, past half
+  hit(Math.floor(BOSSDEF.prism.hp / 2) + 2);   // past half, straight to the shatter
   const d = BOSSDEF.prism;
   const share = Math.ceil(d.hp / 5);
   const cap = Math.floor(share * d.growCap);

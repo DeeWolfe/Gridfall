@@ -6219,6 +6219,8 @@ function seedBoss() {
     under: false, charge: 0, grace: 0,
     bodies: [{id: 1, hp: d.hp, max: d.hp, cells, dir: 1}], nextBody: 2};
   G.bossDown = false;
+  // Each machine sets its own clock — a doubled hull earns a longer siege.
+  if (d.turns) G.waves = d.turns;
   addBodyProxies(G.boss.bodies[0]);
   cells.forEach(([l, c]) => { G.ter[l][c] = 'e'; });
   clog(`<span class="d">TARGET: ${BEST[k].n.toUpperCase()}</span> — ${d.hp} hull` +
