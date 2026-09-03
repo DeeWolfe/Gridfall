@@ -260,6 +260,7 @@ const CUT2 = ['pikewall', 'sentry', 'backstop', 'ram', 'beacon', 'supply', 'long
   const fob = spawnUnit('fob', 2, 0);
   const hurt = spawnUnit('rifle', 2, 1); hurt.hp = 1; hurt.cd = 3;
   const dp0 = A.MAXDP;
+  A.G.event = null; A.G.eventNext = null;              // a Supply Drop event would add +2 and lie
   A.endTurn();
   if (A.G.dp !== dp0 + 1) F.push(`Forward Base paid ${A.G.dp - dp0}, wanted 1`);
   if (hurt.hp !== 1) F.push('Forward Base still repairs');
