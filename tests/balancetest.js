@@ -405,7 +405,7 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'ordnance']
   if (A.G.hand.includes('ordnance')) F.push('Ordnance Drop stayed in hand');
 }
 
-// --- fog of war: the home third is seen, units see two, scouts three, nothing fires blind ---
+// --- fog of war: the home third is seen, units see one, scopes two, scouts three, nothing fires blind ---
 {
   A.enterProfile(unlockAll(A.blankProfile('FOG'), ['rifle', 'marks', 'scout', 'recon', 'wall', 'medic']));
   A.launchSpec({node: null, type: 'stronghold', mod: 'fog', reward: 0});
@@ -413,11 +413,11 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'ordnance']
   if (!A.G.fog) F.push('the fog modifier did not set G.fog');
   if (!A.cellVisible(2, 2) || A.cellVisible(2, 3)) F.push('an empty fogged board should show exactly the home third');
   const r = spawnUnit('rifle', 2, 2);
-  if (!A.cellVisible(2, 4) || A.cellVisible(2, 5)) F.push('a Rifleman should see two cells');
+  if (!A.cellVisible(2, 3) || A.cellVisible(2, 4)) F.push('a Rifleman should see one cell');
   const deep = spawnFoe('crawler', 2, 6, 10);
   if (A.geomFor(r).length) F.push('a Rifleman fired into the fog');
   if (A.foeVisible(deep)) F.push('a hostile in the fog is visible');
-  deep.col = 4;
+  deep.col = 3;
   if (!A.geomFor(r).includes(deep)) F.push('a hostile in sight should be a target');
   clearBoard();
   spawnUnit('scout', 2, 2);
@@ -591,6 +591,18 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'ordnance']
       if (run.nodes[start.id].mod !== 'none') F.push(`${op}'s first node rolled ${run.nodes[start.id].mod}`);
     }
   });
+}
+
+
+// --- sight: one cell by default, and only the cards with a reason see further ---
+{
+  const eyes = {scout: 3, falconer: 3, fob: 3, ftosiris: 3, pathfinder: 2, marks: 2, railgun: 2};
+  Object.entries(A.POOL).forEach(([id, k]) => {
+    if (k.sight && eyes[id] !== k.sight) F.push(`${id} sees ${k.sight} cells with no reason on record`);
+  });
+  Object.entries(eyes).forEach(([id, n]) => { if (A.POOL[id].sight !== n) F.push(`${id} should see ${n}`); });
+  const u = A.mkUnit('rifle', 0, 0);
+  if (u.sight) F.push('a Rifleman carries a sight value — the default is meant to be the rule');
 }
 
 F.report('balancetest');

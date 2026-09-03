@@ -4887,3 +4887,7 @@ Osiris: `drop` out, `boost` in (the Thruster Pack's two-cell straight stride, no
 ## v2.35.1 — the first node is clean
 
 Thirteen guards launch an operation's first node with whatever modifier genRun rolled; with `fog` in the pool a far hostile could be unseen and a Lancer 'hit 2, expected 3'. The start node now always rolls `none` — it was already meant to teach the base rules before any variant.
+
+## v2.36 — sight 1
+
+`DEFAULT_SIGHT` 2 → 1. Exceptions with a reason: eyes (Scout, Falconer, Forward Base, Osiris) 3; scopes (Pathfinder, Marksman, Rail Sniper) 2. balancetest pins the list so a stray `sight` value needs a reason written down.

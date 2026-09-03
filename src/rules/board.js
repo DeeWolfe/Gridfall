@@ -53,12 +53,12 @@ export const ENDGAME_TURNS = type =>
 
 /**
  * Fog of war. The player's home third is always seen; everything else needs a
- * unit's sight (two cells, three for scouts), a Recon Lark's reveal, or a
+ * unit's sight (one cell; two for a scope, three for scouts), a Recon Lark's reveal, or a
  * hostile giving itself away by striking. Recomputed on demand — the board is
  * forty cells and the answer changes every move.
  */
 export const FOG_HOME = 3;
-export const DEFAULT_SIGHT = 2;
+export const DEFAULT_SIGHT = 1;
 export function visibleCells() {
   const out = new Set();
   if (!G.fog || G.reveal) {

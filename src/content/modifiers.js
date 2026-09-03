@@ -15,6 +15,6 @@ export const MODS = {
   },
   fog: {
     n: "Fog of War",
-    d: "The middle and far ground are hidden. Most units see two cells around them; scouts see three; a Recon Lark lifts the fog for a turn.",
+    d: "The middle and far ground are hidden. Units see one cell around them; scopes see two; scouts, the Falconer and the Forward Base see three; a Recon Lark lifts the fog for a turn.",
   },
 };

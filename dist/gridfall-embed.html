@@ -2266,8 +2266,8 @@ const POOL = {
     tg: "first",
     dmg: 1,
     claim: 2,
-    d: "On deployment, claims the two tiles ahead as your ground.",
-    sight: 3,
+    d: "On deployment, claims the two tiles ahead as your ground. A forward scout: sees two cells in the fog.",
+    sight: 2,
   },
   rifle: {
     n: "Rifleman",
@@ -2342,7 +2342,8 @@ const POOL = {
     tg: "furthest",
     dmg: 3,
     burst: 5,
-    d: "Ignores everything in front and hits the furthest hostile in the lane.",
+    d: "Ignores everything in front and hits the furthest hostile in the lane. Scoped: sees two cells in the fog.",
+    sight: 2,
   },
   lancer: {
     n: "Lancer",
@@ -2527,7 +2528,8 @@ const POOL = {
     dmg: 5,
     burst: 8,
     pen: 1,
-    d: "Pierces the whole lane, ignoring armour floors. Three hull — it does not survive being found.",
+    d: "Pierces the whole lane, ignoring armour floors. Three hull — it does not survive being found. Scoped: sees two cells in the fog.",
+    sight: 2,
   },
   hell: {
     n: "Hell Jumpers",
@@ -5075,7 +5077,7 @@ const MODS = {
   },
   fog: {
     n: "Fog of War",
-    d: "The middle and far ground are hidden. Most units see two cells around them; scouts see three; a Recon Lark lifts the fog for a turn.",
+    d: "The middle and far ground are hidden. Units see one cell around them; scopes see two; scouts, the Falconer and the Forward Base see three; a Recon Lark lifts the fog for a turn.",
   },
 };
 
@@ -5392,12 +5394,12 @@ const ENDGAME_TURNS = type =>
 
 /**
  * Fog of war. The player's home third is always seen; everything else needs a
- * unit's sight (two cells, three for scouts), a Recon Lark's reveal, or a
+ * unit's sight (one cell; two for a scope, three for scouts), a Recon Lark's reveal, or a
  * hostile giving itself away by striking. Recomputed on demand — the board is
  * forty cells and the answer changes every move.
  */
 const FOG_HOME = 3;
-const DEFAULT_SIGHT = 2;
+const DEFAULT_SIGHT = 1;
 function visibleCells() {
   const out = new Set();
   if (!G.fog || G.reveal) {
@@ -5881,7 +5883,7 @@ function mkUnit(cid, l, c) {
     jet: false,
     locked: false,
     holo: false,
-    // Fog of war: how far this unit sees. Two cells unless the card says more.
+    // Fog of war: how far this unit sees. One cell unless the card says more.
     sight: k.sight || 0,
     aura: k.aura || 0,
     colBuff: k.col || 0,
@@ -15850,9 +15852,15 @@ function openPanel(key, quiet) {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.35.1';
+const VERSION = '2.36';
 
 const PATCH_NOTES = [
+  {
+    v: '2.36',
+    notes: [
+      'ONE CELL OF SIGHT. In the fog, every unit now sees one cell around it unless the card has a reason to see further: the Scout, the Falconer, the Forward Base and Fireteam Osiris see three; the Pathfinder, the Marksman and the Rail Sniper carry a scope and see two. A Recon Lark still lifts the whole board for a turn. Move forward or bring eyes — the horde is out there.',
+    ],
+  },
   {
     v: '2.35',
     notes: [

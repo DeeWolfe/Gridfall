@@ -37,8 +37,8 @@ export const POOL = {
     tg: "first",
     dmg: 1,
     claim: 2,
-    d: "On deployment, claims the two tiles ahead as your ground.",
-    sight: 3,
+    d: "On deployment, claims the two tiles ahead as your ground. A forward scout: sees two cells in the fog.",
+    sight: 2,
   },
   rifle: {
     n: "Rifleman",
@@ -113,7 +113,8 @@ export const POOL = {
     tg: "furthest",
     dmg: 3,
     burst: 5,
-    d: "Ignores everything in front and hits the furthest hostile in the lane.",
+    d: "Ignores everything in front and hits the furthest hostile in the lane. Scoped: sees two cells in the fog.",
+    sight: 2,
   },
   lancer: {
     n: "Lancer",
@@ -298,7 +299,8 @@ export const POOL = {
     dmg: 5,
     burst: 8,
     pen: 1,
-    d: "Pierces the whole lane, ignoring armour floors. Three hull — it does not survive being found.",
+    d: "Pierces the whole lane, ignoring armour floors. Three hull — it does not survive being found. Scoped: sees two cells in the fog.",
+    sight: 2,
   },
   hell: {
     n: "Hell Jumpers",

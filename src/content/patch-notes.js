@@ -4,9 +4,15 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.35.1';
+export const VERSION = '2.36';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.36',
+    notes: [
+      'ONE CELL OF SIGHT. In the fog, every unit now sees one cell around it unless the card has a reason to see further: the Scout, the Falconer, the Forward Base and Fireteam Osiris see three; the Pathfinder, the Marksman and the Rail Sniper carry a scope and see two. A Recon Lark still lifts the whole board for a turn. Move forward or bring eyes — the horde is out there.',
+    ],
+  },
   {
     v: '2.35',
     notes: [

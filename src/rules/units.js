@@ -69,7 +69,7 @@ export function mkUnit(cid, l, c) {
     jet: false,
     locked: false,
     holo: false,
-    // Fog of war: how far this unit sees. Two cells unless the card says more.
+    // Fog of war: how far this unit sees. One cell unless the card says more.
     sight: k.sight || 0,
     aura: k.aura || 0,
     colBuff: k.col || 0,
