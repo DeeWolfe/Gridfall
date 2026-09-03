@@ -4,9 +4,15 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.34';
+export const VERSION = '2.34.1';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.34.1',
+    notes: [
+      'FIRETEAM SHADOW drops behind the line: deploy on any tile, hostile ground included. And Fireteam abilities cycle with the reserve again, the way the teams themselves do — play Active Camo on Noble, draw it again later, play it on Shadow. Frame gear stays spent once bolted on; that fix stands.',
+    ],
+  },
   {
     v: '2.34',
     notes: [

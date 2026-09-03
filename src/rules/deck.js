@@ -21,8 +21,9 @@ import {clog} from './log.js';
 export function drawCard(force) {
   if (!force && G.hand.length >= HAND_CAP) return false;
   if (!G.deck.length) {
-    // ...and minus anything spent for good this mission — a kit already on
-    // its host would only come back as a dead duplicate.
+    // ...and minus Frame gear already played this mission — a kit on its
+    // machine would only come back as a dead duplicate. Fireteam abilities
+    // are not on this list: they cycle like the teams they fit.
     const back = active.loadout.deck.filter(c => POOL[c] && !G.hand.includes(c) && !(G.spent || []).includes(c));
     if (!back.length) return false;
     G.deck = shuffle([...back]);

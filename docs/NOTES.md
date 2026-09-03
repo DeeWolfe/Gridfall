@@ -4871,3 +4871,7 @@ User's call after weighing both sides: remove the one-line rule until testing sa
 ## v2.34 — Fireteams stack, Frames stride
 
 User's call: no field limit on Fireteams (the line gate in frameGateText is gone; validTiles offers every standing team of the line for a `fits` card, and deploy checks the tapped cell's line). Proto Frames get `servo` at mkUnit — move then fire or use the ability in one turn — as the buff, with stats held; the fallback if the stride is not enough is hull/damage.
+
+## v2.34.1
+
+Shadow gets `drop`. The v2.33.1 spent list now holds Frame gear only: Fireteam abilities (and Ordnance Drop) cycle with the reserve like the teams, per the user.

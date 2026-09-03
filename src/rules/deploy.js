@@ -174,10 +174,13 @@ export function deploy(cid, l, c) {
     // so the unit under (l, c) is the machine or the team this kit fits.
     const fr = unitAt(l, c);
     if (!fr || !(k.frameGear ? fr.id === k.frameGear : fr.line === k.fits)) return;
-    // A kit is spent the moment it is played: fitted, later stripped, or
-    // called in — none of those come back through the reserve.
-    G.spent = G.spent || [];
-    if (!G.spent.includes(cid)) G.spent.push(cid);
+    // Frame gear is spent the moment it is played: fitted, later stripped —
+    // it never comes back through the reserve. A Fireteam ability does: it
+    // cycles like the team it fits, and can be played onto the next team.
+    if (k.frameGear) {
+      G.spent = G.spent || [];
+      if (!G.spent.includes(cid)) G.spent.push(cid);
+    }
     // Ordnance Drop is called in, not carried: the lane takes it, the card is spent.
     if (k.ordnance) {
       const hit = G.enemies.filter(e => e.lane === fr.lane);

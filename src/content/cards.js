@@ -925,7 +925,8 @@ export const POOL = {
     tg: "diag",
     dmg: 5,
     pen: 1,
-    d: "Quiet work. Blades on all four diagonals for 5, and armour means nothing to them. The Fireteam that answers plate.",
+    d: "Quiet work. Deploys on any tile, including hostile ground. Blades on all four diagonals for 5, and armour means nothing to them. The Fireteam that answers plate.",
+    drop: 1,
   },
   camo: {
     n: "Active Camo",
