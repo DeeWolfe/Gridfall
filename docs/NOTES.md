@@ -4895,3 +4895,7 @@ Thirteen guards launch an operation's first node with whatever modifier genRun r
 ## v2.36.1 — X-Grenade
 
 `ordnance` → `xgrenade` (v18 migration follows unlocks, deck, presets, usage). `grenade: 5` + `pen`: thrown to front+2, hits the centre and its four diagonals, resolved in deploy.js like the old drop, never carried.
+
+## v2.37 — Naginata/Samurai split, five Fireteam weapons
+
+Naginata: around, 2 dmg, 8 hull. Samurai: sweep5, 3 dmg, burst 5, 5 hull. Five `fits: 'fireteam'` / `slot: 'weapon'` cards on the existing weapon branch of applyFrameGear, which now also carries `push`, `recharge` (and resets `cycling`). New `blast3` pattern (3x3 centred three out, cut by a wall directly ahead). Names and numbers are my drafts off the user's Halo brief.

@@ -29,4 +29,5 @@ export const TGNAME = {
   sweep5: "The cell either side and the three ahead",
   rearvert3: "The column directly behind, across three lanes",
   radius2: "Any hostile within two cells",
+  blast3: "3x3 centred three cells ahead",
 };

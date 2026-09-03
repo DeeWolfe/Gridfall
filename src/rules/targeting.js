@@ -150,6 +150,15 @@ function geomBase(u) {
       const centre = front + 4;
       return G.enemies.filter(e => Math.abs(e.lane - L) <= 1 && Math.abs(e.col - centre) <= 1);
     }
+    // Rocket Launcher: a 3x3 three cells out, direct — a wall of ours between cuts it.
+    case 'blast3': {
+      for (let x = front + 1; x <= front + 1; x++) {
+        const f = unitAt(L, x);
+        if (f && f.blocker && !f.parapet && f.uid !== u.uid) return [];
+      }
+      const centre = front + 3;
+      return G.enemies.filter(e => Math.abs(e.lane - L) <= 1 && Math.abs(e.col - centre) <= 1);
+    }
     // Mortar: a cross centred four cells out — the centre, one either side,
     // one nearer and one further. Indirect, so nothing of yours cuts it.
     case 'cross4': {
@@ -298,6 +307,9 @@ export function geomCells(u, at) {
     case 'range3': if (!cutTo(front + 2)) add(L, front + 3); break;
     case 'blast4':
       for (let l = L - 1; l <= L + 1; l++) for (let c = front + 3; c <= front + 5; c++) add(l, c);
+      break;
+    case 'blast3':
+      if (!cutTo(front + 1)) for (let l = L - 1; l <= L + 1; l++) for (let c = front + 2; c <= front + 4; c++) add(l, c);
       break;
     case 'cross4': {
       const cc = front + 4;

@@ -130,6 +130,9 @@ export function applyFrameGear(u, cid) {
     u.indirect = !!(base.indirect || k.indirect);
     u.aura = base.aura || k.aura || 0;
     u.choose = !!(base.choose || k.choose);
+    u.push = !!(base.push || k.push);
+    u.recharge = !!(base.recharge || k.recharge);
+    u.cycling = 0;
   } else {
     u.gearS.push(cid);
     if (k.boost) { u.boost = true; u.servo = true; }
@@ -151,6 +154,9 @@ function unmountWeapon(u) {
   u.indirect = !!k.indirect;
   u.aura = k.aura || 0;
   u.choose = !!k.choose;
+  u.push = !!k.push;
+  u.recharge = !!k.recharge;
+  u.cycling = 0;
 }
 
 function unmountSupports(u) {

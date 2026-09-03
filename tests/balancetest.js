@@ -612,4 +612,43 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'xgrenade']
   if (u.sight) F.push('a Rifleman carries a sight value — the default is meant to be the rule');
 }
 
+
+// --- Naginata reaches, Samurai hits ---
+{
+  const n = A.POOL.naginata, sa = A.POOL.samurai;
+  if (n.dp !== sa.dp) F.push('the pair should cost the same');
+  if (!(n.hp > sa.hp)) F.push('Naginata should be the sturdier');
+  if (!(sa.dmg > n.dmg) || sa.burst !== 5) F.push('Samurai should hit harder, with the iai draw on play');
+  if (n.tg !== 'around' || sa.tg !== 'sweep5') F.push('the pair swapped shapes');
+}
+
+// --- five Fireteam weapons, one carried at a time, each its own gun ---
+{
+  const WEAPONS = ['rocket', 'shotgun', 'sniper', 'esword', 'gravhammer'];
+  WEAPONS.forEach(id => { const k = A.POOL[id]; if (!k || k.fits !== 'fireteam' || k.slot !== 'weapon' || k.dp !== 1) F.push(`${id} is not a 1 DP Fireteam weapon`); });
+  if (!A.TGNAME.blast3) F.push('blast3 has no name');
+  start(['ftnoble', 'rocket', 'sniper', 'gravhammer', 'camo', 'rifle']);
+  A.G.hand = ['ftnoble', 'rocket', 'sniper', 'gravhammer', 'camo'];
+  A.G.dp = 20;
+  A.deploy('ftnoble', 2, 1);
+  const team = A.G.units.find(u => u.id === 'ftnoble');
+  A.deploy('rocket', 2, 1);
+  if (team.gearW !== 'rocket' || team.tg !== 'blast3' || team.dmg !== 3) F.push('Rocket Launcher did not take the weapon slot');
+  const cells = new Set(A.geomCells(team));
+  if (cells.size !== 9 || !cells.has(2 * A.COLS + 4) || !cells.has(1 * A.COLS + 3)) F.push('rocket blast is not the 3x3 centred three out');
+  spawnUnit('wall', 2, 2);
+  if (A.geomCells(team).length) F.push('a wall in front should cut the rocket');
+  A.G.units = A.G.units.filter(u => u.id !== 'wall');
+  A.deploy('sniper', 2, 1);
+  if (team.gearW !== 'sniper' || !team.pen || !team.recharge || team.tg !== 'furthest' || team.dmg !== 8) F.push('Sniper Rifle did not fit');
+  A.deploy('camo', 2, 1);
+  if (team.gearW !== 'sniper' || !team.camo) F.push('an armour ability displaced the weapon, or did not fit beside it');
+  A.deploy('gravhammer', 2, 1);
+  if (!team.push || team.recharge || team.pen || team.tg !== 'around') F.push('Gravity Hammer did not replace the Sniper cleanly');
+  const foe = spawnFoe('crawler', 2, 2, 10);
+  team.fresh = false; team.acted = false;
+  A.fire(team, false);
+  if (foe.hp !== 7 || foe.col !== 3) F.push(`the hammer dealt ${10 - foe.hp} and left the crawler at ${foe.col}, wanted 3 and a push to 3`);
+}
+
 F.report('balancetest');

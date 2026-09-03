@@ -4,9 +4,16 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.36.1';
+export const VERSION = '2.37';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.37',
+    notes: [
+      'NAGINATA AND SAMURAI, split for good. Same 3 DP. The Naginata is REACH: every cell around it for 2, on 8 hull — nothing gets past it unseen, and it never hits hard. The Samurai is DAMAGE: five cells for 3, with the draw cut on play at 5 — it kills what it reaches, on 5 hull, with nothing behind it.',
+      'FIVE FIRETEAM WEAPONS for the weapon slot, one carried at a time, any team: ROCKET LAUNCHER (a 3×3 three cells out for 3, direct), SHOTGUN (both columns ahead across three lanes for 2), SNIPER RIFLE (the furthest hostile for 8 through armour, every other turn), ENERGY SWORD (one adjacent hostile of your choice for 8) and GRAVITY HAMMER (every cell around the team for 3, survivors driven back). A weapon and an armour ability ride together; a new weapon strips the last. They cycle with the reserve like the rest of the line.',
+    ],
+  },
   {
     v: '2.36.1',
     notes: [

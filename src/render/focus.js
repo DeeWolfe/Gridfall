@@ -47,6 +47,7 @@ function statRows(id) {
     k.frameGear ? ['Fits', `${POOL[k.frameGear].n} only — played onto it while it stands`] : null,
     k.fits ? ['Fits', 'Any Fireteam — played onto it while it stands'] : null,
     k.slot === 'armor' ? ['Slot', 'Armour ability — one carried at a time, the new one replaces the last'] : null,
+    (k.fits && k.slot === 'weapon') ? ['Slot', 'Weapon — replaces the team\'s own gun; one carried at a time'] : null,
     k.line ? ['Line', 'Fireteam — one of each on the field; the card leaves the deck while the team stands and returns when it is lost'] : null,
     (k.omni && !k.chassis) ? ['Facing', 'Fights facing either way'] : null,
     isProto(id) ? ['Stride', 'Moves and still fires or uses its ability the same turn'] : null,
