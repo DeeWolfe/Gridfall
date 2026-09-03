@@ -109,8 +109,8 @@ export const LEADS = {
     con: {n: "Rushed Assembly", d: "Your Frame deploys with half hull."},
   },
   fieldrefit: {
-    n: "KAEDE",
-    call: "CHIEF",
+    n: "SHIGURE FORGE",
+    call: "FORGE",
     role: "Frame Engineer",
     col: "#ff9d4d",
     bio: "Rebuilds a loadout mid-sortie the way other people change their mind. Considers a fixed configuration a failure of imagination.",
@@ -119,5 +119,17 @@ export const LEADS = {
       d: "Gear may be swapped freely — playing gear onto a Frame that already carries one returns the old gear to your hand. The swap spends the Frame's turn.",
     },
     con: {n: "Single Mount", d: "Your Frame may carry only one gear at a time."},
+  },
+  masterchief: {
+    n: "JOHN-117",
+    call: "MASTER CHIEF",
+    role: "Spartan",
+    col: "#6f8f3a",
+    bio: "Says less than any officer in the service and is obeyed faster. Has never once asked what the odds were.",
+    passive: {
+      n: "Spartan Company",
+      d: "Your Fireteam and every card that fits it cost 1 less deploy point, minimum 1.",
+    },
+    con: {n: "No Frame", d: "You cannot field a Proto Frame. The Frame slot stays empty."},
   },
 };

@@ -23,7 +23,9 @@ import {clog} from './log.js';
 export function seedFrame() {
   const id = active && active.loadout ? active.loadout.frame : null;
   G.frame = null;
-  if (id && isProto(id) && POOL[id]) {
+  // No Frame (Master Chief): the slot may hold a machine, but it never flies.
+  const noFrame = leadOf().con && leadOf().con.n === 'No Frame';
+  if (id && isProto(id) && POOL[id] && !noFrame) {
     G.hand.push(id);
     G.frame = {k: id};
   }

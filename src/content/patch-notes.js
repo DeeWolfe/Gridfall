@@ -4,9 +4,15 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.31';
+export const VERSION = '2.31.1';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.31.1',
+    notes: [
+      'A TWELFTH LEAD. JOHN-117, callsign MASTER CHIEF, in military green: under SPARTAN COMPANY your Fireteam and every card that fits it deploy a point cheaper, and under NO FRAME the Proto Frame slot never flies. The Frame Engineer answers to SHIGURE FORGE now, callsign FORGE.',
+    ],
+  },
   {
     v: '2.31',
     notes: [

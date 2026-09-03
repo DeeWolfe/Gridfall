@@ -87,7 +87,11 @@ export function costOf(id) {
   // Quietstep: anything that lands on hostile ground goes in a point cheaper.
   const infiltrator = leadOf().passive && leadOf().passive.n === 'Quietstep' &&
     (k.drop || k.anyGround || (g && g.crush)) ? 1 : 0;
-  return Math.max(1, k.dp + (g && g.dp ? g.dp : 0) - infiltrator);
+  // Spartan Company: the Fireteam line — the team itself and anything that
+  // fits it — goes in a point cheaper under the Master Chief.
+  const spartan = leadOf().passive && leadOf().passive.n === 'Spartan Company' &&
+    (id === 'fireteam' || k.frameGear === 'fireteam') ? 1 : 0;
+  return Math.max(1, k.dp + (g && g.dp ? g.dp : 0) - infiltrator - spartan);
 }
 
 /** Deck ceiling under the active lead — Coronet and Quartermaster run short. */
@@ -102,6 +106,8 @@ export function leadBan(id) {
   if (!k) return null;
   const lead = leadOf();
   if (lead.banTier && k.t === lead.banTier) return lead.con.n;
+  // No Frame: the Master Chief fields no Proto Frame, seeded or not.
+  if (lead.con && lead.con.n === 'No Frame' && k.chassis === 'proto') return lead.con.n;
   return null;
 }
 

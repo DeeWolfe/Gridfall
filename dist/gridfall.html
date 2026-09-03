@@ -3414,8 +3414,8 @@ const LEADS = {
     con: {n: "Rushed Assembly", d: "Your Frame deploys with half hull."},
   },
   fieldrefit: {
-    n: "KAEDE",
-    call: "CHIEF",
+    n: "SHIGURE FORGE",
+    call: "FORGE",
     role: "Frame Engineer",
     col: "#ff9d4d",
     bio: "Rebuilds a loadout mid-sortie the way other people change their mind. Considers a fixed configuration a failure of imagination.",
@@ -3424,6 +3424,18 @@ const LEADS = {
       d: "Gear may be swapped freely — playing gear onto a Frame that already carries one returns the old gear to your hand. The swap spends the Frame's turn.",
     },
     con: {n: "Single Mount", d: "Your Frame may carry only one gear at a time."},
+  },
+  masterchief: {
+    n: "JOHN-117",
+    call: "MASTER CHIEF",
+    role: "Spartan",
+    col: "#6f8f3a",
+    bio: "Says less than any officer in the service and is obeyed faster. Has never once asked what the odds were.",
+    passive: {
+      n: "Spartan Company",
+      d: "Your Fireteam and every card that fits it cost 1 less deploy point, minimum 1.",
+    },
+    con: {n: "No Frame", d: "You cannot field a Proto Frame. The Frame slot stays empty."},
   },
 };
 
@@ -3443,6 +3455,7 @@ const LEADGATES = {
   riptide: {req: "store", price: 520},
   salvagerights: {req: "store", price: 500},
   fieldrefit: {req: "store", price: 500},
+  masterchief: {req: "store", price: 540},
 };
 
 /* ==== src/content/ranks.js ========================================== */
@@ -3570,7 +3583,11 @@ function costOf(id) {
   // Quietstep: anything that lands on hostile ground goes in a point cheaper.
   const infiltrator = leadOf().passive && leadOf().passive.n === 'Quietstep' &&
     (k.drop || k.anyGround || (g && g.crush)) ? 1 : 0;
-  return Math.max(1, k.dp + (g && g.dp ? g.dp : 0) - infiltrator);
+  // Spartan Company: the Fireteam line — the team itself and anything that
+  // fits it — goes in a point cheaper under the Master Chief.
+  const spartan = leadOf().passive && leadOf().passive.n === 'Spartan Company' &&
+    (id === 'fireteam' || k.frameGear === 'fireteam') ? 1 : 0;
+  return Math.max(1, k.dp + (g && g.dp ? g.dp : 0) - infiltrator - spartan);
 }
 
 /** Deck ceiling under the active lead — Coronet and Quartermaster run short. */
@@ -3585,6 +3602,8 @@ function leadBan(id) {
   if (!k) return null;
   const lead = leadOf();
   if (lead.banTier && k.t === lead.banTier) return lead.con.n;
+  // No Frame: the Master Chief fields no Proto Frame, seeded or not.
+  if (lead.con && lead.con.n === 'No Frame' && k.chassis === 'proto') return lead.con.n;
   return null;
 }
 
@@ -4517,7 +4536,9 @@ function clog(html, cat) {
 function seedFrame() {
   const id = active && active.loadout ? active.loadout.frame : null;
   G.frame = null;
-  if (id && isProto(id) && POOL[id]) {
+  // No Frame (Master Chief): the slot may hold a machine, but it never flies.
+  const noFrame = leadOf().con && leadOf().con.n === 'No Frame';
+  if (id && isProto(id) && POOL[id] && !noFrame) {
     G.hand.push(id);
     G.frame = {k: id};
   }
@@ -15363,9 +15384,15 @@ function openPanel(key, quiet) {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.31';
+const VERSION = '2.31.1';
 
 const PATCH_NOTES = [
+  {
+    v: '2.31.1',
+    notes: [
+      'A TWELFTH LEAD. JOHN-117, callsign MASTER CHIEF, in military green: under SPARTAN COMPANY your Fireteam and every card that fits it deploy a point cheaper, and under NO FRAME the Proto Frame slot never flies. The Frame Engineer answers to SHIGURE FORGE now, callsign FORGE.',
+    ],
+  },
   {
     v: '2.31',
     notes: [

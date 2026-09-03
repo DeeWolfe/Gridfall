@@ -131,4 +131,19 @@ const calm = () => { A.G.enemies.length = 0; A.G.predict = []; A.G.held = []; };
 
 // The Code and Field Refit — the two Frame leads — live in frametest,
 // beside the machinery their trades act on.
+// Spartan Company: the Fireteam line is a point cheaper; No Frame: the slot never flies
+{
+  start('masterchief', ['fireteam', 'noble', 'rifle', 'marks', 'wall', 'medic', 'lancer', 'archer']);
+  if (A.costOf('fireteam') !== A.POOL.fireteam.dp - 1) F.push(`Spartan Company priced the Fireteam at ${A.costOf('fireteam')}`);
+  if (A.costOf('noble') !== 1) F.push('a 1 DP kit must floor at 1');
+  if (A.costOf('rifle') !== A.POOL.rifle.dp) F.push('Spartan Company leaked onto a Rifleman');
+  if (!A.leadBan('whitedevil')) F.push('No Frame did not refuse a Proto Frame');
+  A.active.loadout.frame = 'whitedevil';
+  A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0});
+  if (A.G.hand.includes('whitedevil') || A.frameReady()) F.push('No Frame still seeded the machine');
+  A.active.loadout.frame = null;
+  start('ironbrand');
+  if (A.costOf('fireteam') !== A.POOL.fireteam.dp) F.push('Spartan Company applied under another lead');
+}
+
 F.report('lead pros and cons: every trade holds, nothing leaks between leads');

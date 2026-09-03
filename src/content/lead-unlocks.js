@@ -13,4 +13,5 @@ export const LEADGATES = {
   riptide: {req: "store", price: 520},
   salvagerights: {req: "store", price: 500},
   fieldrefit: {req: "store", price: 500},
+  masterchief: {req: "store", price: 540},
 };

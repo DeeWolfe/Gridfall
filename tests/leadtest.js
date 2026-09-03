@@ -19,7 +19,7 @@ const firstNode = () => Object.keys(A.opRun().nodes)[0];
 A.enterProfile(unlockAll(A.blankProfile('LD'), Object.keys(A.POOL).slice(0, 12)));
 
 // --- leads exist, render, and are switchable ---
-if (Object.keys(A.LEADS).length !== 11) F.push('expected 11 team leads');
+if (Object.keys(A.LEADS).length !== 12) F.push('expected 12 team leads');
 Object.keys(A.LEADS).forEach(id => {
   const L = A.LEADS[id];
   if (!L.passive) F.push(id + ' has no passive');

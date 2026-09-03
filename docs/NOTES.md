@@ -4805,3 +4805,12 @@ comes, these two are the first to read it.
 
 Kit and Singer designs, the Samurai's five cells and the Fatal Fury numbers
 are my drafts against one-line briefs — flagged as such in the reply.
+
+## v2.31.1 — Master Chief, and Shigure Forge
+
+Twelfth lead: `masterchief` (JOHN-117 / MASTER CHIEF / Spartan / #6f8f3a).
+Passive Spartan Company hooks `costOf` (the Fireteam and anything with
+`frameGear: 'fireteam'` cost 1 less, floor 1); con No Frame hooks `leadBan`
+(proto cards refused) and `seedFrame` (the slot is not seeded). Kaede became
+SHIGURE FORGE with callsign FORGE, since CHIEF now belongs to the Spartan.
+The bio is my draft.
