@@ -274,6 +274,19 @@ export function migrate(p) {
     });
   }
 
+  // v18: the Ordnance Drop became the X-Grenade — same slot, same price, new id.
+  if (p.version < 18) {
+    p.version = 18;
+    p.unlocks = p.unlocks || {};
+    p.loadout = p.loadout || {};
+    p.usage = p.usage || {};
+    const re = id => (id === 'ordnance' ? 'xgrenade' : id);
+    p.unlocks.cards = [...new Set((p.unlocks.cards || []).map(re))];
+    p.loadout.deck = (p.loadout.deck || []).map(re);
+    (p.presets || []).forEach(pr => { if (pr && Array.isArray(pr.deck)) pr.deck = pr.deck.map(re); });
+    if (p.usage.ordnance) { p.usage.xgrenade = (p.usage.xgrenade || 0) + p.usage.ordnance; delete p.usage.ordnance; }
+  }
+
   p.unlocks = p.unlocks || {};
   p.unlocks.cards = p.unlocks.cards || [...STARTER];
   p.unlocks.enemies = p.unlocks.enemies || [];

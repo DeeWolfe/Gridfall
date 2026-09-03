@@ -16,5 +16,5 @@ export const GROUND_FLOOR = 6;
  */
 export const HAND_CAP = 6;
 export const DECKSIZE = 12;
-export const SAVE_VERSION = 17;
+export const SAVE_VERSION = 18;
 export const STARTER = ["scout", "rifle", "marks", "wall", "medic", "archer", "lancer", "bulwark", "assassin"];

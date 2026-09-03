@@ -3238,8 +3238,8 @@ const POOL = {
     },
     d: "Armour ability. Every other turn the Fireteam projects a decoy: every hostile in its lane strikes the hologram this turn and hits nothing.",
   },
-  ordnance: {
-    n: "Ordnance Drop",
+  xgrenade: {
+    n: "X-Grenade",
     t: "tech",
     dp: 1,
     hp: 0,
@@ -3247,8 +3247,9 @@ const POOL = {
     fits: "fireteam",
     slot: "armor",
     tech: 1,
-    ordnance: 8,
-    d: "One shot, then spent: 8 damage to every hostile in the Fireteam's lane. Needs a Fireteam standing to call it in.",
+    grenade: 5,
+    pen: 1,
+    d: "Thrown two cells ahead of the Fireteam. Lands in an X — the cell it hits and the four diagonals around it — for 5 that ignores armour. Then spent.",
   },
 };
 
@@ -3584,7 +3585,7 @@ const GROUND_FLOOR = 6;
  */
 const HAND_CAP = 6;
 const DECKSIZE = 12;
-const SAVE_VERSION = 17;
+const SAVE_VERSION = 18;
 const STARTER = ["scout", "rifle", "marks", "wall", "medic", "archer", "lancer", "bulwark", "assassin"];
 
 /* ==== src/save/progression.js ======================================= */
@@ -4592,6 +4593,19 @@ function migrate(p) {
       const fin = map.nodes.find(n => n.role === 'final');
       if (fin && run.nodes[fin.id] && run.nodes[fin.id].type !== 'boss') run.nodes[fin.id].type = 'boss';
     });
+  }
+
+  // v18: the Ordnance Drop became the X-Grenade — same slot, same price, new id.
+  if (p.version < 18) {
+    p.version = 18;
+    p.unlocks = p.unlocks || {};
+    p.loadout = p.loadout || {};
+    p.usage = p.usage || {};
+    const re = id => (id === 'ordnance' ? 'xgrenade' : id);
+    p.unlocks.cards = [...new Set((p.unlocks.cards || []).map(re))];
+    p.loadout.deck = (p.loadout.deck || []).map(re);
+    (p.presets || []).forEach(pr => { if (pr && Array.isArray(pr.deck)) pr.deck = pr.deck.map(re); });
+    if (p.usage.ordnance) { p.usage.xgrenade = (p.usage.xgrenade || 0) + p.usage.ordnance; delete p.usage.ordnance; }
   }
 
   p.unlocks = p.unlocks || {};
@@ -8965,7 +8979,7 @@ const KANJI = {
   marshal: '将', ashura: '阿',
   // The Fireteam line and its armour abilities.
   ftnoble: '貴', ftshadow: '陰', ftosiris: '冥', ftmajestic: '威',
-  camo: '隠', lock: '錠', jetpack: '翼', dropshield: '泡', hologram: '幻', ordnance: '降',
+  camo: '隠', lock: '錠', jetpack: '翼', dropshield: '泡', hologram: '幻', xgrenade: '交',
   // Command calls — the old lead stratagems, cards in the deck now.
   duel: '決', refit: '復', insertion: '潜', breach: '砕',
   enfilade: '掃', grapple: '鎖',
@@ -9342,7 +9356,7 @@ function statRows(id) {
     k.camo ? ['Cloak', 'Hostiles cannot target it until the turn it fires'] : null,
     k.jet ? ['Jump', 'Any open held tile within two cells, then fires'] : null,
     (k.boost && !k.frameGear) ? ['Stride', 'Two cells in a straight line, both clear'] : null,
-    k.ordnance ? ['Call', `${k.ordnance} to every hostile in the Fireteam’s lane, then spent`] : null,
+    k.grenade ? ['Thrown', `Lands two cells ahead: ${k.grenade} to the centre and its four diagonals${k.pen ? ', armour ignored' : ''}, then spent`] : null,
     k.sight ? ['Sight', `Sees ${k.sight} cells in the fog`] : null,
     k.reveal ? ['Recon', 'Lifts the fog across the whole board until the end of the turn'] : null,
     k.frameGear ? [k.slot === 'weapon' ? 'Slot' : 'Slot', k.slot === 'weapon' ? 'Weapon — replaces the base weapon' : 'Support — rides alongside the weapon'] : null,
@@ -12535,11 +12549,14 @@ function deploy(cid, l, c) {
       G.spent = G.spent || [];
       if (!G.spent.includes(cid)) G.spent.push(cid);
     }
-    // Ordnance Drop is called in, not carried: the lane takes it, the card is spent.
-    if (k.ordnance) {
-      const hit = G.enemies.filter(e => e.lane === fr.lane);
-      hit.forEach(e => dmgEnemy(e, k.ordnance, 'Ordnance Drop', false, fr));
-      clog(`<span class="g">Ordnance Drop</span> — lane ${fr.lane + 1}, ${hit.length} hostile${hit.length === 1 ? '' : 's'} under it.`, 'order');
+    // X-Grenade is thrown, not carried: it lands two cells ahead of the team
+    // and hits the centre and its four diagonals, armour ignored. Then spent.
+    if (k.grenade) {
+      const cc = fr.col + fr.size + 1;
+      const cells = [[fr.lane, cc], [fr.lane - 1, cc - 1], [fr.lane + 1, cc - 1], [fr.lane - 1, cc + 1], [fr.lane + 1, cc + 1]];
+      const hit = G.enemies.filter(e => cells.some(([l2, c2]) => e.lane === l2 && e.col === c2));
+      hit.forEach(e => dmgEnemy(e, k.grenade, 'X-Grenade', !!k.pen, fr));
+      clog(`<span class="g">X-Grenade</span> — lands at column ${cc + 1}, ${hit.length} hostile${hit.length === 1 ? '' : 's'} in the X.`, 'order');
     } else {
       applyFrameGear(fr, cid);
     }
@@ -13991,17 +14008,17 @@ const PIXMAP = {
     '............',
     '............',
   ],
-  ordnance: [
+  xgrenade: [
     '............',
+    '.ff......ff.',
+    '..ff....ff..',
+    '...ff..ff...',
+    '....ffff....',
     '.....oo.....',
     '....obbo....',
-    '....obbo....',
-    '....obbo....',
-    '...oobboo...',
-    '..obbbbbbo..',
-    '...ffffff...',
-    '....ffff....',
-    '.....ff.....',
+    '...ff..ff...',
+    '..ff....ff..',
+    '.ff......ff.',
     '............',
     '............',
   ],
@@ -15849,9 +15866,15 @@ function openPanel(key, quiet) {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.36';
+const VERSION = '2.36.1';
 
 const PATCH_NOTES = [
+  {
+    v: '2.36.1',
+    notes: [
+      'THE ORDNANCE DROP IS THE X-GRENADE. Thrown two cells ahead of the Fireteam, it lands in an X — the cell it hits and the four diagonals around it — for 5 that ignores armour floors. Then spent, and back in the reserve like the other abilities. Anyone who owned the Ordnance Drop owns the X-Grenade.',
+    ],
+  },
   {
     v: '2.36',
     notes: [

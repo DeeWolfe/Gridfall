@@ -4891,3 +4891,7 @@ Thirteen guards launch an operation's first node with whatever modifier genRun r
 ## v2.36 — sight 1
 
 `DEFAULT_SIGHT` 2 → 1. Exceptions with a reason: eyes (Scout, Falconer, Forward Base, Osiris) 3; scopes (Pathfinder, Marksman, Rail Sniper) 2. balancetest pins the list so a stray `sight` value needs a reason written down.
+
+## v2.36.1 — X-Grenade
+
+`ordnance` → `xgrenade` (v18 migration follows unlocks, deck, presets, usage). `grenade: 5` + `pen`: thrown to front+2, hits the centre and its four diagonals, resolved in deploy.js like the old drop, never carried.

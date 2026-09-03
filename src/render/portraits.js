@@ -36,7 +36,7 @@ const KANJI = {
   marshal: '将', ashura: '阿',
   // The Fireteam line and its armour abilities.
   ftnoble: '貴', ftshadow: '陰', ftosiris: '冥', ftmajestic: '威',
-  camo: '隠', lock: '錠', jetpack: '翼', dropshield: '泡', hologram: '幻', ordnance: '降',
+  camo: '隠', lock: '錠', jetpack: '翼', dropshield: '泡', hologram: '幻', xgrenade: '交',
   // Command calls — the old lead stratagems, cards in the deck now.
   duel: '決', refit: '復', insertion: '潜', breach: '砕',
   enfilade: '掃', grapple: '鎖',

@@ -297,7 +297,7 @@ const CUT2 = ['pikewall', 'sentry', 'backstop', 'ram', 'beacon', 'supply', 'long
 
 // ============================ v2.32: the Fireteam line, saved decks, fog of war ============================
 const TEAMS = ['ftnoble', 'ftosiris', 'ftmajestic', 'ftshadow'];
-const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'ordnance'];
+const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'xgrenade'];
 {
   ['fireteam', 'noble', 'shadow', 'osiris', 'majestic'].forEach(id => { if (A.POOL[id]) F.push(`old Fireteam card '${id}' survives`); });
   TEAMS.forEach(id => { if (!A.POOL[id] || A.POOL[id].line !== 'fireteam' || A.POOL[id].t !== 'special') F.push(`${id} is not a Fireteam Specialist`); });
@@ -391,18 +391,25 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'ordnance']
   if (A.forecastThreat().hits[wall.uid]) F.push('the forecast ignored the hologram');
 }
 
-// --- Ordnance Drop: the lane takes 8, the card is spent ---
+// --- X-Grenade: lands two ahead in an X, ignores armour, the card is spent ---
 {
-  start(['ftnoble', 'ordnance', 'rifle', 'marks', 'wall', 'medic']);
-  A.G.hand = ['ordnance'];
+  start(['ftnoble', 'xgrenade', 'rifle', 'marks', 'wall', 'medic']);
+  A.G.hand = ['xgrenade'];
   A.G.dp = 5;
-  const team = spawnUnit('ftnoble', 2, 1);
-  const a = spawnFoe('crawler', 2, 4, 20); const b = spawnFoe('crawler', 2, 7, 20); const other = spawnFoe('crawler', 3, 4, 20);
-  A.deploy('ordnance', 2, 1);
-  if (a.hp !== 12 || b.hp !== 12) F.push('Ordnance Drop did not deal 8 down the lane');
-  if (other.hp !== 20) F.push('Ordnance Drop hit another lane');
-  if (team.gearS.length) F.push('Ordnance Drop was carried instead of spent');
-  if (A.G.hand.includes('ordnance')) F.push('Ordnance Drop stayed in hand');
+  const team = spawnUnit('ftnoble', 2, 1);                 // X centred at column 3
+  const centre = spawnFoe('hulk', 2, 3, 30);               // armour floor 1 — pen must ignore it
+  const ul = spawnFoe('crawler', 1, 2, 20); const dr = spawnFoe('crawler', 3, 4, 20);
+  const side = spawnFoe('crawler', 1, 3, 20);              // orthogonal to the centre: not in the X
+  const lane = spawnFoe('crawler', 2, 5, 20);              // down the lane: not in the X
+  A.deploy('xgrenade', 2, 1);
+  if (30 - centre.hp !== 5) F.push(`the X centre took ${30 - centre.hp}, wanted 5 through armour`);
+  if (ul.hp !== 15 || dr.hp !== 15) F.push('a diagonal of the X was missed');
+  if (side.hp !== 20 || lane.hp !== 20) F.push('the X hit outside its shape');
+  if (team.gearS.length) F.push('X-Grenade was carried instead of spent');
+  if (A.G.hand.includes('xgrenade')) F.push('X-Grenade stayed in hand');
+  const old = A.blankProfile('ORD'); old.version = 17; old.unlocks.cards = ['scout', 'ordnance']; old.loadout.deck = ['scout', 'ordnance'];
+  const m = A.migrate(old);
+  if (!m.unlocks.cards.includes('xgrenade') || m.loadout.deck.includes('ordnance')) F.push('the Ordnance Drop did not become the X-Grenade in an old save');
 }
 
 // --- fog of war: the home third is seen, units see one, scopes two, scouts three, nothing fires blind ---
@@ -466,19 +473,19 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'ordnance']
 
 // --- Frame gear never cycles back; Fireteam abilities do, like the teams ---
 {
-  start(['whitedevil', 'beamrifle', 'ftnoble', 'camo', 'ordnance', 'rifle', 'marks', 'wall']);
+  start(['whitedevil', 'beamrifle', 'ftnoble', 'camo', 'xgrenade', 'rifle', 'marks', 'wall']);
   A.active.loadout.frame = null;
-  A.G.hand = ['ftnoble', 'camo', 'ordnance'];
+  A.G.hand = ['ftnoble', 'camo', 'xgrenade'];
   A.G.deck = [];
   A.G.dp = 20;
   A.deploy('ftnoble', 2, 1);
   A.deploy('camo', 2, 1);
   spawnFoe('crawler', 2, 5, 10);
-  A.deploy('ordnance', 2, 1);
-  if ((A.G.spent || []).includes('camo') || (A.G.spent || []).includes('ordnance')) F.push('Fireteam abilities were marked spent');
+  A.deploy('xgrenade', 2, 1);
+  if ((A.G.spent || []).includes('camo') || (A.G.spent || []).includes('xgrenade')) F.push('Fireteam abilities were marked spent');
   const drawn = [];
   for (let i = 0; i < 12; i++) { if (A.drawCard(true)) drawn.push(A.G.hand[A.G.hand.length - 1]); }
-  if (!drawn.includes('camo') || !drawn.includes('ordnance')) F.push('Fireteam abilities did not cycle back with the reserve');
+  if (!drawn.includes('camo') || !drawn.includes('xgrenade')) F.push('Fireteam abilities did not cycle back with the reserve');
   if (drawn.includes('ftnoble')) F.push('a standing Fireteam cycled back while on the field');
   // Field Refit hands a displaced FRAME gear back — and it is in play again.
   // (A Fireteam's stripped ability is lost; Refit reads "your Frame".)

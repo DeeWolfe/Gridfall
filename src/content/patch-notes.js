@@ -4,9 +4,15 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.36';
+export const VERSION = '2.36.1';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.36.1',
+    notes: [
+      'THE ORDNANCE DROP IS THE X-GRENADE. Thrown two cells ahead of the Fireteam, it lands in an X — the cell it hits and the four diagonals around it — for 5 that ignores armour floors. Then spent, and back in the reserve like the other abilities. Anyone who owned the Ordnance Drop owns the X-Grenade.',
+    ],
+  },
   {
     v: '2.36',
     notes: [

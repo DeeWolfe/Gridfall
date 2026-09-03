@@ -1009,8 +1009,8 @@ export const POOL = {
     },
     d: "Armour ability. Every other turn the Fireteam projects a decoy: every hostile in its lane strikes the hologram this turn and hits nothing.",
   },
-  ordnance: {
-    n: "Ordnance Drop",
+  xgrenade: {
+    n: "X-Grenade",
     t: "tech",
     dp: 1,
     hp: 0,
@@ -1018,7 +1018,8 @@ export const POOL = {
     fits: "fireteam",
     slot: "armor",
     tech: 1,
-    ordnance: 8,
-    d: "One shot, then spent: 8 damage to every hostile in the Fireteam's lane. Needs a Fireteam standing to call it in.",
+    grenade: 5,
+    pen: 1,
+    d: "Thrown two cells ahead of the Fireteam. Lands in an X — the cell it hits and the four diagonals around it — for 5 that ignores armour. Then spent.",
   },
 };

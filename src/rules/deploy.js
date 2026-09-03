@@ -181,11 +181,14 @@ export function deploy(cid, l, c) {
       G.spent = G.spent || [];
       if (!G.spent.includes(cid)) G.spent.push(cid);
     }
-    // Ordnance Drop is called in, not carried: the lane takes it, the card is spent.
-    if (k.ordnance) {
-      const hit = G.enemies.filter(e => e.lane === fr.lane);
-      hit.forEach(e => dmgEnemy(e, k.ordnance, 'Ordnance Drop', false, fr));
-      clog(`<span class="g">Ordnance Drop</span> — lane ${fr.lane + 1}, ${hit.length} hostile${hit.length === 1 ? '' : 's'} under it.`, 'order');
+    // X-Grenade is thrown, not carried: it lands two cells ahead of the team
+    // and hits the centre and its four diagonals, armour ignored. Then spent.
+    if (k.grenade) {
+      const cc = fr.col + fr.size + 1;
+      const cells = [[fr.lane, cc], [fr.lane - 1, cc - 1], [fr.lane + 1, cc - 1], [fr.lane - 1, cc + 1], [fr.lane + 1, cc + 1]];
+      const hit = G.enemies.filter(e => cells.some(([l2, c2]) => e.lane === l2 && e.col === c2));
+      hit.forEach(e => dmgEnemy(e, k.grenade, 'X-Grenade', !!k.pen, fr));
+      clog(`<span class="g">X-Grenade</span> — lands at column ${cc + 1}, ${hit.length} hostile${hit.length === 1 ? '' : 's'} in the X.`, 'order');
     } else {
       applyFrameGear(fr, cid);
     }
