@@ -3257,7 +3257,8 @@ const POOL = {
     tech: 1,
     grenade: 5,
     pen: 1,
-    d: "Thrown two cells ahead of the Fireteam. Lands in an X — the cell it hits and the four diagonals around it — for 5 that ignores armour. Then spent.",
+    d: "Thrown by any Fireteam: tap a cell within two of a standing team and it lands there in an X — the cell and the four diagonals around it — for 5 that ignores armour. Then spent.",
+    throw: 2,
   },
 };
 
@@ -5606,6 +5607,16 @@ function rawTiles(cid, k) {
   if (k.frameGear) {
     const fr = hostFor(k);
     if (fr) out.push(fr.lane * COLS + fr.col);
+    return out;
+  }
+  // A thrown kit (the X-Grenade) is aimed: any cell within throw range of a
+  // standing team of its line, hostiles under it or not — that is the point.
+  if (k.fits && k.throw) {
+    const teams = G.units.filter(u => u.line === k.fits);
+    for (let l = 0; l < LANES; l++) for (let c = 0; c < COLS; c++) {
+      if (G.ter[l][c] === 'x') continue;
+      if (teams.some(u => Math.max(Math.abs(u.lane - l), Math.abs(u.col - c)) <= k.throw)) out.push(l * COLS + c);
+    }
     return out;
   }
   // An armour ability fits any standing team of its line — every one is a target.
@@ -9455,7 +9466,7 @@ function statRows(id) {
     k.camo ? ['Cloak', 'Hostiles cannot target it until the turn it fires'] : null,
     k.jet ? ['Jump', 'Any open held tile within two cells, then fires'] : null,
     (k.boost && !k.frameGear) ? ['Stride', 'Two cells in a straight line, both clear'] : null,
-    k.grenade ? ['Thrown', `Lands two cells ahead: ${k.grenade} to the centre and its four diagonals${k.pen ? ', armour ignored' : ''}, then spent`] : null,
+    k.grenade ? ['Thrown', `Tap any cell within ${k.throw} of a Fireteam: ${k.grenade} to that cell and its four diagonals${k.pen ? ', armour ignored' : ''}, then spent`] : null,
     k.sight ? ['Sight', `Sees ${k.sight} cells in the fog`] : null,
     k.reveal ? ['Recon', 'Lifts the fog across the whole board until the end of the turn'] : null,
     k.frameGear ? [k.slot === 'weapon' ? 'Slot' : 'Slot', k.slot === 'weapon' ? 'Weapon — replaces the base weapon' : 'Support — rides alongside the weapon'] : null,
@@ -12640,6 +12651,19 @@ function deploy(cid, l, c) {
   }
 
   if (k.frameGear || k.fits) {
+    // X-Grenade is thrown, not carried: the player names the landing cell
+    // (validTiles offered every cell within throw range of a team) and it
+    // hits that cell and its four diagonals, armour ignored. Then spent.
+    if (k.grenade) {
+      const reach = u => Math.max(Math.abs(u.lane - l), Math.abs(u.col - c));
+      const thrower = G.units.filter(u => u.line === k.fits).sort((a, b) => reach(a) - reach(b))[0];
+      if (!thrower || reach(thrower) > (k.throw || 0)) return;
+      const cells = [[l, c], [l - 1, c - 1], [l + 1, c - 1], [l - 1, c + 1], [l + 1, c + 1]];
+      const hit = G.enemies.filter(e => cells.some(([l2, c2]) => e.lane === l2 && e.col === c2));
+      hit.forEach(e => dmgEnemy(e, k.grenade, 'X-Grenade', !!k.pen, thrower));
+      clog(`<span class="g">X-Grenade</span> — ${thrower.n} lands it at ${l + 1},${c + 1}: ${hit.length} hostile${hit.length === 1 ? '' : 's'} in the X.`, 'order');
+      return consume(cid);
+    }
     // A kit lands on its host — validTiles only ever offers the host's cell,
     // so the unit under (l, c) is the machine or the team this kit fits.
     const fr = unitAt(l, c);
@@ -12651,17 +12675,7 @@ function deploy(cid, l, c) {
       G.spent = G.spent || [];
       if (!G.spent.includes(cid)) G.spent.push(cid);
     }
-    // X-Grenade is thrown, not carried: it lands two cells ahead of the team
-    // and hits the centre and its four diagonals, armour ignored. Then spent.
-    if (k.grenade) {
-      const cc = fr.col + fr.size + 1;
-      const cells = [[fr.lane, cc], [fr.lane - 1, cc - 1], [fr.lane + 1, cc - 1], [fr.lane - 1, cc + 1], [fr.lane + 1, cc + 1]];
-      const hit = G.enemies.filter(e => cells.some(([l2, c2]) => e.lane === l2 && e.col === c2));
-      hit.forEach(e => dmgEnemy(e, k.grenade, 'X-Grenade', !!k.pen, fr));
-      clog(`<span class="g">X-Grenade</span> — lands at column ${cc + 1}, ${hit.length} hostile${hit.length === 1 ? '' : 's'} in the X.`, 'order');
-    } else {
-      applyFrameGear(fr, cid);
-    }
+    applyFrameGear(fr, cid);
   } else if (k.attach) {
     const u = unitAt(l, c);
     if (!u) return;
@@ -15974,9 +15988,15 @@ function openPanel(key, quiet) {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.37.1';
+const VERSION = '2.37.2';
 
 const PATCH_NOTES = [
+  {
+    v: '2.37.2',
+    notes: [
+      'THE X-GRENADE IS AIMED. Play it and every cell within two of a standing Fireteam lights up; tap one and it lands there in an X for 5 through armour. Hostiles under the landing cell are fair game.',
+    ],
+  },
   {
     v: '2.37.1',
     notes: [

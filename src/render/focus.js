@@ -53,7 +53,7 @@ function statRows(id) {
     k.camo ? ['Cloak', 'Hostiles cannot target it until the turn it fires'] : null,
     k.jet ? ['Jump', 'Any open held tile within two cells, then fires'] : null,
     (k.boost && !k.frameGear) ? ['Stride', 'Two cells in a straight line, both clear'] : null,
-    k.grenade ? ['Thrown', `Lands two cells ahead: ${k.grenade} to the centre and its four diagonals${k.pen ? ', armour ignored' : ''}, then spent`] : null,
+    k.grenade ? ['Thrown', `Tap any cell within ${k.throw} of a Fireteam: ${k.grenade} to that cell and its four diagonals${k.pen ? ', armour ignored' : ''}, then spent`] : null,
     k.sight ? ['Sight', `Sees ${k.sight} cells in the fog`] : null,
     k.reveal ? ['Recon', 'Lifts the fog across the whole board until the end of the turn'] : null,
     k.frameGear ? [k.slot === 'weapon' ? 'Slot' : 'Slot', k.slot === 'weapon' ? 'Weapon — replaces the base weapon' : 'Support — rides alongside the weapon'] : null,

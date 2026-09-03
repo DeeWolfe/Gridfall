@@ -391,20 +391,25 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'xgrenade']
   if (A.forecastThreat().hits[wall.uid]) F.push('the forecast ignored the hologram');
 }
 
-// --- X-Grenade: lands two ahead in an X, ignores armour, the card is spent ---
+// --- X-Grenade: aimed within two of a team, lands in an X, ignores armour, the card is spent ---
 {
   start(['ftnoble', 'xgrenade', 'rifle', 'marks', 'wall', 'medic']);
   A.G.hand = ['xgrenade'];
   A.G.dp = 5;
-  const team = spawnUnit('ftnoble', 2, 1);                 // X centred at column 3
-  const centre = spawnFoe('hulk', 2, 3, 30);               // armour floor 1 — pen must ignore it
-  const ul = spawnFoe('crawler', 1, 2, 20); const dr = spawnFoe('crawler', 3, 4, 20);
-  const side = spawnFoe('crawler', 1, 3, 20);              // orthogonal to the centre: not in the X
-  const lane = spawnFoe('crawler', 2, 5, 20);              // down the lane: not in the X
-  A.deploy('xgrenade', 2, 1);
+  if (A.validTiles('xgrenade').length) F.push('a grenade with no team standing had targets');
+  const team = spawnUnit('ftnoble', 2, 1);
+  const tiles = A.validTiles('xgrenade');
+  if (!tiles.includes(2 * A.COLS + 3) || !tiles.includes(4 * A.COLS + 3) || !tiles.includes(0 * A.COLS + 0)) F.push('grenade range should reach two cells in every direction');
+  if (tiles.includes(2 * A.COLS + 4)) F.push('grenade range reached three cells');
+  const centre = spawnFoe('hulk', 4, 3, 30);               // aimed at the bottom-right of the range
+  const ul = spawnFoe('crawler', 3, 2, 20); const ur = spawnFoe('crawler', 3, 4, 20);
+  const side = spawnFoe('crawler', 4, 2, 20);              // orthogonal to the centre: not in the X
+  const far = spawnFoe('crawler', 2, 3, 20);               // where the old automatic throw landed
+  if (!A.validTiles('xgrenade').includes(4 * A.COLS + 3)) F.push('a cell holding a hostile should still be a landing cell');
+  A.deploy('xgrenade', 4, 3);
   if (30 - centre.hp !== 5) F.push(`the X centre took ${30 - centre.hp}, wanted 5 through armour`);
-  if (ul.hp !== 15 || dr.hp !== 15) F.push('a diagonal of the X was missed');
-  if (side.hp !== 20 || lane.hp !== 20) F.push('the X hit outside its shape');
+  if (ul.hp !== 15 || ur.hp !== 15) F.push('a diagonal of the X was missed');
+  if (side.hp !== 20 || far.hp !== 20) F.push('the X hit outside its shape');
   if (team.gearS.length) F.push('X-Grenade was carried instead of spent');
   if (A.G.hand.includes('xgrenade')) F.push('X-Grenade stayed in hand');
   const old = A.blankProfile('ORD'); old.version = 17; old.unlocks.cards = ['scout', 'ordnance']; old.loadout.deck = ['scout', 'ordnance'];

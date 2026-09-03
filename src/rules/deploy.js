@@ -170,6 +170,19 @@ export function deploy(cid, l, c) {
   }
 
   if (k.frameGear || k.fits) {
+    // X-Grenade is thrown, not carried: the player names the landing cell
+    // (validTiles offered every cell within throw range of a team) and it
+    // hits that cell and its four diagonals, armour ignored. Then spent.
+    if (k.grenade) {
+      const reach = u => Math.max(Math.abs(u.lane - l), Math.abs(u.col - c));
+      const thrower = G.units.filter(u => u.line === k.fits).sort((a, b) => reach(a) - reach(b))[0];
+      if (!thrower || reach(thrower) > (k.throw || 0)) return;
+      const cells = [[l, c], [l - 1, c - 1], [l + 1, c - 1], [l - 1, c + 1], [l + 1, c + 1]];
+      const hit = G.enemies.filter(e => cells.some(([l2, c2]) => e.lane === l2 && e.col === c2));
+      hit.forEach(e => dmgEnemy(e, k.grenade, 'X-Grenade', !!k.pen, thrower));
+      clog(`<span class="g">X-Grenade</span> — ${thrower.n} lands it at ${l + 1},${c + 1}: ${hit.length} hostile${hit.length === 1 ? '' : 's'} in the X.`, 'order');
+      return consume(cid);
+    }
     // A kit lands on its host — validTiles only ever offers the host's cell,
     // so the unit under (l, c) is the machine or the team this kit fits.
     const fr = unitAt(l, c);
@@ -181,17 +194,7 @@ export function deploy(cid, l, c) {
       G.spent = G.spent || [];
       if (!G.spent.includes(cid)) G.spent.push(cid);
     }
-    // X-Grenade is thrown, not carried: it lands two cells ahead of the team
-    // and hits the centre and its four diagonals, armour ignored. Then spent.
-    if (k.grenade) {
-      const cc = fr.col + fr.size + 1;
-      const cells = [[fr.lane, cc], [fr.lane - 1, cc - 1], [fr.lane + 1, cc - 1], [fr.lane - 1, cc + 1], [fr.lane + 1, cc + 1]];
-      const hit = G.enemies.filter(e => cells.some(([l2, c2]) => e.lane === l2 && e.col === c2));
-      hit.forEach(e => dmgEnemy(e, k.grenade, 'X-Grenade', !!k.pen, fr));
-      clog(`<span class="g">X-Grenade</span> — lands at column ${cc + 1}, ${hit.length} hostile${hit.length === 1 ? '' : 's'} in the X.`, 'order');
-    } else {
-      applyFrameGear(fr, cid);
-    }
+    applyFrameGear(fr, cid);
   } else if (k.attach) {
     const u = unitAt(l, c);
     if (!u) return;

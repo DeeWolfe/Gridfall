@@ -4,9 +4,15 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.37.1';
+export const VERSION = '2.37.2';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.37.2',
+    notes: [
+      'THE X-GRENADE IS AIMED. Play it and every cell within two of a standing Fireteam lights up; tap one and it lands there in an X for 5 through armour. Hostiles under the landing cell are fair game.',
+    ],
+  },
   {
     v: '2.37.1',
     notes: [

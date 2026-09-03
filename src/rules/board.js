@@ -174,6 +174,16 @@ function rawTiles(cid, k) {
     if (fr) out.push(fr.lane * COLS + fr.col);
     return out;
   }
+  // A thrown kit (the X-Grenade) is aimed: any cell within throw range of a
+  // standing team of its line, hostiles under it or not — that is the point.
+  if (k.fits && k.throw) {
+    const teams = G.units.filter(u => u.line === k.fits);
+    for (let l = 0; l < LANES; l++) for (let c = 0; c < COLS; c++) {
+      if (G.ter[l][c] === 'x') continue;
+      if (teams.some(u => Math.max(Math.abs(u.lane - l), Math.abs(u.col - c)) <= k.throw)) out.push(l * COLS + c);
+    }
+    return out;
+  }
   // An armour ability fits any standing team of its line — every one is a target.
   if (k.fits) {
     G.units.filter(u => u.line === k.fits).forEach(u => out.push(u.lane * COLS + u.col));

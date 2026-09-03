@@ -4903,3 +4903,7 @@ Naginata: around, 2 dmg, 8 hull. Samurai: sweep5, 3 dmg, burst 5, 5 hull. Five `
 ## v2.37.1 — Fireteam weapons are armoury gear
 
 User's call after weighing gear vs deck. The five weapons are GEAR entries with `fits: 'fireteam'` and a `tg`: mkUnit treats a gear with `tg` as a replacement gun (tg/dmg/single from the gear; push/recharge/choose added), gearFits refuses line gear off its line (and now enforces `frame` binding too), the hitbox diagram draws the fitted weapon, the Quartermaster shelves them under 'Fireteam weapons'. v19 refunds the card versions. Abilities remain deck cards.
+
+## v2.37.2 — aimed X-Grenade
+
+`throw: 2` on the card: validTiles offers every non-cratered cell within Chebyshev 2 of any standing Fireteam (occupied or not); deploy resolves the X at the tapped cell with the nearest team as the thrower, then consumes the card.
