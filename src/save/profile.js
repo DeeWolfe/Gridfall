@@ -7,6 +7,7 @@
 // this would corrupt every live save that had it in a deck.
 
 import {SAVE_VERSION, STARTER} from '../state/constants.js';
+import {BOSSDEF} from '../content/bosses.js';
 import {POOL} from '../content/cards.js';
 import {GEAR} from '../content/gear.js';
 import {LEADS} from '../content/leads.js';
@@ -255,6 +256,21 @@ export function migrate(p) {
     const refunds = {fireteam: 300, noble: 170, shadow: 170, osiris: 180, majestic: 180};
     (p.unlocks.cards || []).forEach(id => {
       if (refunds[id]) p.progress.credits = (p.progress.credits || 0) + refunds[id];
+    });
+  }
+
+  // v17: a run's node types are rolled once and stored, so an operation
+  // dealt before its boss existed still ends in an Extraction. Retype the
+  // final node of every stored run to the boss its operation now has.
+  if (p.version < 17) {
+    p.version = 17;
+    const bossOf = {};
+    Object.entries(BOSSDEF).forEach(([k, b]) => { if (b.op && !b.sub) bossOf[b.op] = k; });
+    Object.entries(p.ops || {}).forEach(([op, run]) => {
+      const map = OPS[op];
+      if (!map || !bossOf[op] || !run || !run.nodes) return;
+      const fin = map.nodes.find(n => n.role === 'final');
+      if (fin && run.nodes[fin.id] && run.nodes[fin.id].type !== 'boss') run.nodes[fin.id].type = 'boss';
     });
   }
 

@@ -504,4 +504,15 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'ordnance']
   A.active.lead = 'ironbrand';
 }
 
+
+// --- a run dealt before its boss existed gets the boss on its final node ---
+{
+  const p = A.blankProfile('OLDRUN');
+  p.version = 16;
+  p.ops = {sunderglass: {cleared: ['n1'], nodes: {n1: {type: 'stronghold'}, n5: {type: 'extract', reward: 100}}}};
+  const m = A.migrate(p);
+  if (m.ops.sunderglass.nodes.n5.type !== 'boss') F.push('an old Sunderglass run still ends in Extraction');
+  if (m.ops.sunderglass.nodes.n5.reward !== 100 || m.ops.sunderglass.cleared[0] !== 'n1') F.push('retyping the final node disturbed the rest of the run');
+}
+
 F.report('balancetest');

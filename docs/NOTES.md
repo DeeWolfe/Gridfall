@@ -4859,3 +4859,7 @@ the global rule covers it. Saved decks moved from a row under the deck to a
 ## v2.33.1 — kits do not cycle
 
 User-reported: a fitted kit was drawn again once the reserve cycled, because drawCard() rebuilt the deck from the whole loadout minus the hand. `G.spent` (an array, so it survives any serialisation) now lists every kit card played this mission; drawCard skips it; Field Refit and The Code remove a kit from it when they hand it back.
+
+## v2.33.2 — old runs get their boss
+
+User could not find the Prism. genRun() types nodes once and stores them in `p.ops[op]`; runs dealt before v2.10 kept `extract` on the final node and no migration ever retyped them. v17 walks every stored run and sets the final node to `boss` where BOSSDEF names a boss for the operation. Cleared status and rewards are untouched.

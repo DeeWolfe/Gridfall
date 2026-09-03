@@ -4,9 +4,15 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.33.1';
+export const VERSION = '2.33.2';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.33.2',
+    notes: [
+      'THE PRISM WAS HIDING. An operation\'s missions are dealt once and kept, so a Sunderglass, Ironveil or Blackmarrow run dealt before its boss existed still ended in a plain Extraction. Every stored run now ends where it should: the Gantry, the Brood Mother, the Prism.',
+    ],
+  },
   {
     v: '2.33.1',
     notes: [
