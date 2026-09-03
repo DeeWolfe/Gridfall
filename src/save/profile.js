@@ -287,6 +287,19 @@ export function migrate(p) {
     if (p.usage.ordnance) { p.usage.xgrenade = (p.usage.xgrenade || 0) + p.usage.ordnance; delete p.usage.ordnance; }
   }
 
+  // v19: the five Fireteam weapons moved from the deck into the armoury.
+  // Anyone who bought them as cards is refunded; they buy them as gear now.
+  if (p.version < 19) {
+    p.version = 19;
+    p.unlocks = p.unlocks || {};
+    p.progress = p.progress || {};
+    const refunds = {rocket: 190, shotgun: 180, sniper: 200, esword: 190, gravhammer: 190};
+    (p.unlocks.cards || []).forEach(id => {
+      if (refunds[id]) p.progress.credits = (p.progress.credits || 0) + refunds[id];
+    });
+    p.unlocks.cards = (p.unlocks.cards || []).filter(id => !refunds[id]);
+  }
+
   p.unlocks = p.unlocks || {};
   p.unlocks.cards = p.unlocks.cards || [...STARTER];
   p.unlocks.enemies = p.unlocks.enemies || [];

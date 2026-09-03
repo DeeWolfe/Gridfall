@@ -622,33 +622,39 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'xgrenade']
   if (n.tg !== 'around' || sa.tg !== 'sweep5') F.push('the pair swapped shapes');
 }
 
-// --- five Fireteam weapons, one carried at a time, each its own gun ---
+// --- five Fireteam weapons in the armoury: fit any team, nothing else, and replace the gun ---
 {
   const WEAPONS = ['rocket', 'shotgun', 'sniper', 'esword', 'gravhammer'];
-  WEAPONS.forEach(id => { const k = A.POOL[id]; if (!k || k.fits !== 'fireteam' || k.slot !== 'weapon' || k.dp !== 1) F.push(`${id} is not a 1 DP Fireteam weapon`); });
+  WEAPONS.forEach(id => {
+    if (A.POOL[id]) F.push(`${id} is still a card`);
+    const g = A.GEAR[id];
+    if (!g || g.fits !== 'fireteam' || !g.tg) F.push(`${id} is not a Fireteam weapon gear`);
+    if (!A.gearFits('ftnoble', id)) F.push(`${id} does not fit a Fireteam`);
+    if (A.gearFits('rifle', id) || A.gearFits('whitedevil', id)) F.push(`${id} fits something that is not a Fireteam`);
+  });
   if (!A.TGNAME.blast3) F.push('blast3 has no name');
-  start(['ftnoble', 'rocket', 'sniper', 'gravhammer', 'camo', 'rifle']);
-  A.G.hand = ['ftnoble', 'rocket', 'sniper', 'gravhammer', 'camo'];
-  A.G.dp = 20;
-  A.deploy('ftnoble', 2, 1);
-  const team = A.G.units.find(u => u.id === 'ftnoble');
-  A.deploy('rocket', 2, 1);
-  if (team.gearW !== 'rocket' || team.tg !== 'blast3' || team.dmg !== 3) F.push('Rocket Launcher did not take the weapon slot');
-  const cells = new Set(A.geomCells(team));
-  if (cells.size !== 9 || !cells.has(2 * A.COLS + 4) || !cells.has(1 * A.COLS + 3)) F.push('rocket blast is not the 3x3 centred three out');
-  spawnUnit('wall', 2, 2);
-  if (A.geomCells(team).length) F.push('a wall in front should cut the rocket');
-  A.G.units = A.G.units.filter(u => u.id !== 'wall');
-  A.deploy('sniper', 2, 1);
-  if (team.gearW !== 'sniper' || !team.pen || !team.recharge || team.tg !== 'furthest' || team.dmg !== 8) F.push('Sniper Rifle did not fit');
-  A.deploy('camo', 2, 1);
-  if (team.gearW !== 'sniper' || !team.camo) F.push('an armour ability displaced the weapon, or did not fit beside it');
-  A.deploy('gravhammer', 2, 1);
-  if (!team.push || team.recharge || team.pen || team.tg !== 'around') F.push('Gravity Hammer did not replace the Sniper cleanly');
-  const foe = spawnFoe('crawler', 2, 2, 10);
-  team.fresh = false; team.acted = false;
-  A.fire(team, false);
+  const p = unlockAll(A.blankProfile('ARM'), ['ftosiris', 'ftnoble', 'rifle', 'marks', 'wall', 'medic']);
+  p.unlocks.gear.push('sniper', 'gravhammer', 'rocket');
+  p.loadout.gear = {ftosiris: 'sniper', ftnoble: 'gravhammer'};
+  A.enterProfile(p);
+  A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0});
+  clearBoard();
+  const os = A.mkUnit('ftosiris', 2, 1);
+  if (os.tg !== 'furthest' || os.dmg !== 8 || !os.pen || !os.recharge || !os.single) F.push(`Sniper Rifle did not replace Osiris's gun (${os.tg}/${os.dmg})`);
+  const nb = A.mkUnit('ftnoble', 3, 1);
+  if (nb.tg !== 'around' || nb.dmg !== 3 || !nb.push || nb.riposte !== 2 || !nb.blocker) F.push('Gravity Hammer did not replace Noble\'s gun while keeping its traits');
+  A.G.units.push(nb);
+  const foe = spawnFoe('crawler', 3, 2, 10);
+  nb.fresh = false; nb.acted = false;
+  A.fire(nb, false);
   if (foe.hp !== 7 || foe.col !== 3) F.push(`the hammer dealt ${10 - foe.hp} and left the crawler at ${foe.col}, wanted 3 and a push to 3`);
+  p.loadout.gear.ftnoble = 'rocket';
+  const rk = A.mkUnit('ftnoble', 2, 1);
+  const cells = new Set(A.geomCells(rk));
+  if (cells.size !== 9 || !cells.has(2 * A.COLS + 4)) F.push('rocket blast is not the 3x3 centred three out');
+  const old = A.blankProfile('WPN'); old.version = 18; old.unlocks.cards = ['scout', 'sniper', 'rocket']; old.progress.credits = 0;
+  const m = A.migrate(old);
+  if (m.progress.credits !== 390 || m.unlocks.cards.includes('sniper')) F.push('weapon cards were not refunded out of an old save');
 }
 
 F.report('balancetest');

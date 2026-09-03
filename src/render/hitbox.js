@@ -37,8 +37,9 @@ function hbOffsets(id) {
   const g = gearOf(id);
   // Every card diagrams its own printed pattern now — a Frame draws its base
   // weapon, and each gear CARD carries the diagram of what it mounts.
-  const tg = k.tg;
-  const dmg = k.dmg;
+  // A fitted weapon gear draws ITS pattern — that is the gun this card fires now.
+  const tg = (g && g.tg) || k.tg;
+  const dmg = g && g.tg ? g.dmg : k.dmg;
   if (!tg || tg === 'none' || !dmg) return null;
 
   // A stand-in with just the fields geomCells reads. Deliberately not mkUnit:
@@ -46,6 +47,7 @@ function hbOffsets(id) {
   const stub = {
     tg,
     dmg,
+    single: g && g.tg ? !!g.single : !!k.single,
     size: k.size || 1,
     indirect: !!k.indirect || !!(g && g.indirect),
     rearsight: !!(g && g.rearsight),

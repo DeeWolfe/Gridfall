@@ -70,6 +70,10 @@ export function gearFits(id, gi) {
   // an attachment never stands on the board, so armoury gear has nothing to
   // ride on. And a Frame's own kit is cards in the deck, never armoury pieces.
   if (k.frameGear || k.fits || k.strat || k.instant || k.attach) return false;
+  // Line gear (the Fireteam weapons) fits only that line; a Frame-bound piece
+  // fits only its Frame.
+  if (g.fits && k.line !== g.fits) return false;
+  if (g.frame && id !== g.frame) return false;
   return !isProto(id);
 }
 

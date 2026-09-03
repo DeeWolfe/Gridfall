@@ -4,9 +4,15 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.37';
+export const VERSION = '2.37.1';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.37.1',
+    notes: [
+      'THE FIRETEAM WEAPONS ARE GEAR. Rocket Launcher, Shotgun, Sniper Rifle, Energy Sword and Gravity Hammer moved out of the deck and into the Quartermaster\'s armoury: buy one with credits, fit it to a team at the hold, and it replaces that team\'s own gun for the whole mission — no deck slot, no deploy point, no draw. Each fits any Fireteam and nothing else, and a team with a weapon carries nothing else from the armoury. Anyone who bought them as cards is refunded. The six armour abilities stay in the deck.',
+    ],
+  },
   {
     v: '2.37',
     notes: [

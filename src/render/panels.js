@@ -300,24 +300,30 @@ function quartermasterPanel() {
     const g = GEAR[gi];
     const owned = active.unlocks.gear.includes(gi);
     const affordable = active.progress.credits >= g.cost;
-    const needsFrame = g.frame && !active.unlocks.cards.includes(g.frame);
+    const needsFrame = (g.frame && !active.unlocks.cards.includes(g.frame))
+      || (g.fits && !active.unlocks.cards.some(c => POOL[c] && POOL[c].line === g.fits));
     const foot = owned ? '<div class="gfoot own">Owned</div>'
-      : needsFrame ? `<div class="gfoot no">Needs ${POOL[g.frame].n}</div>`
+      : needsFrame ? `<div class="gfoot no">Needs ${g.frame ? POOL[g.frame].n : 'a Fireteam'}</div>`
         : `<div class="gfoot ${affordable ? 'buy' : 'no'}">${g.cost} cr</div>`;
     return `<button class="gcard t-tech${owned ? ' owned' : (affordable && !needsFrame) ? '' : ' cant'}" data-gear="${gi}"
        title="${attr(g.n + ' — ' + g.cost + ' cr\n' + g.d +
-         (g.frame ? '\nFits the ' + POOL[g.frame].n + ' and nothing else.' : ''))}">
+         (g.frame ? '\nFits the ' + POOL[g.frame].n + ' and nothing else.' : g.fits ? '\nFits any Fireteam and nothing else.' : ''))}">
        <div class="inkmark">${sigil(gi, 'tech')}</div>
        <div class="tn">${g.n}</div>${foot}</button>`;
   };
-  const general = Object.keys(GEAR).filter(gi => !GEAR[gi].frame);
+  const general = Object.keys(GEAR).filter(gi => !GEAR[gi].frame && !GEAR[gi].fits);
   const frameGear = Object.keys(GEAR).filter(gi => GEAR[gi].frame);
+  const lineGear = Object.keys(GEAR).filter(gi => GEAR[gi].fits);
   const gearGrid = `<div class="sect" style="color:var(--cyan)">Gear</div>
      <div class="cgrid">${general.map(gearTile).join('')}</div>` +
     (frameGear.length ? `<div class="sect" style="color:var(--violet)">Frame weapons</div>
      <div class="bar"><div>Each one fits a single Frame and replaces its service weapon</div>
        <div style="color:var(--dim);font-size:0.6875rem">Buy the Frame first — a weapon with no Frame does nothing</div></div>
-     <div class="cgrid">${frameGear.map(gearTile).join('')}</div>` : '');
+     <div class="cgrid">${frameGear.map(gearTile).join('')}</div>` : '') +
+    (lineGear.length ? `<div class="sect" style="color:var(--violet)">Fireteam weapons</div>
+     <div class="bar"><div>Each one fits any Fireteam and replaces the team's own gun — chosen at the hold, carried all mission</div>
+       <div style="color:var(--dim);font-size:0.6875rem">One gear per card: a team with a weapon carries nothing else from the armoury</div></div>
+     <div class="cgrid">${lineGear.map(gearTile).join('')}</div>` : '');
 
   const schemeGrid = `<div class="sect" style="color:var(--gold)">Uniforms</div>
      <div class="cgrid">${Object.keys(SCHEMES).map(k => {

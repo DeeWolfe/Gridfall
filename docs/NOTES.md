@@ -4899,3 +4899,7 @@ Thirteen guards launch an operation's first node with whatever modifier genRun r
 ## v2.37 — Naginata/Samurai split, five Fireteam weapons
 
 Naginata: around, 2 dmg, 8 hull. Samurai: sweep5, 3 dmg, burst 5, 5 hull. Five `fits: 'fireteam'` / `slot: 'weapon'` cards on the existing weapon branch of applyFrameGear, which now also carries `push`, `recharge` (and resets `cycling`). New `blast3` pattern (3x3 centred three out, cut by a wall directly ahead). Names and numbers are my drafts off the user's Halo brief.
+
+## v2.37.1 — Fireteam weapons are armoury gear
+
+User's call after weighing gear vs deck. The five weapons are GEAR entries with `fits: 'fireteam'` and a `tg`: mkUnit treats a gear with `tg` as a replacement gun (tg/dmg/single from the gear; push/recharge/choose added), gearFits refuses line gear off its line (and now enforces `frame` binding too), the hitbox diagram draws the fitted weapon, the Quartermaster shelves them under 'Fireteam weapons'. v19 refunds the card versions. Abilities remain deck cards.

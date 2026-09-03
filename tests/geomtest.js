@@ -41,7 +41,9 @@ const SAMPLE = TGS.map(tg => {
   const onCard = Object.keys(POOL).find(k => POOL[k].tg === tg);
   if (onCard) return {tg, id: onCard, gear: null};
   const gi = Object.keys(GEAR).find(g => GEAR[g].tg === tg);
-  return {tg, id: GEAR[gi].frame, gear: gi};
+  // A gear-only pattern rides a Frame (bound piece) or any Fireteam (line piece).
+  const host = GEAR[gi].frame || Object.keys(POOL).find(k => POOL[k].line === GEAR[gi].fits);
+  return {tg, id: host, gear: gi};
 });
 
 let uid = 90000;

@@ -47,7 +47,6 @@ function statRows(id) {
     k.frameGear ? ['Fits', `${POOL[k.frameGear].n} only — played onto it while it stands`] : null,
     k.fits ? ['Fits', 'Any Fireteam — played onto it while it stands'] : null,
     k.slot === 'armor' ? ['Slot', 'Armour ability — one carried at a time, the new one replaces the last'] : null,
-    (k.fits && k.slot === 'weapon') ? ['Slot', 'Weapon — replaces the team\'s own gun; one carried at a time'] : null,
     k.line ? ['Line', 'Fireteam — one of each on the field; the card leaves the deck while the team stands and returns when it is lost'] : null,
     (k.omni && !k.chassis) ? ['Facing', 'Fights facing either way'] : null,
     isProto(id) ? ['Stride', 'Moves and still fires or uses its ability the same turn'] : null,
@@ -63,7 +62,8 @@ function statRows(id) {
     (k.hp && g && g.hp) ? ['Hull', k.hp + ' +' + g.hp] : null,
     // An instant never lands, so it has no footprint to report.
     (!k.instant && (k.size > 1 || k.attach)) ? ['Footprint', k.size > 1 ? k.size + ' cells' : 'Attachment'] : null,
-    k.dmg ? ['Damage', (k.dmg + (g && g.dmg ? g.dmg : 0)) + (k.burst ? ` (${k.burst} on play)` : '')] : null,
+    (g && g.tg) ? ['Weapon', `${g.n} — ${g.dmg} damage, replaces the team’s own gun`] : null,
+    (k.dmg && !(g && g.tg)) ? ['Damage', (k.dmg + (g && g.dmg ? g.dmg : 0)) + (k.burst ? ` (${k.burst} on play)` : '')] : null,
     k.recharge ? ['Rate of fire', 'Every other turn — needs a turn to cycle'] : null,
     k.charge ? ['Charge', `Moves up to ${k.charge} cells forward`] : null,
     k.push ? ['On hit', 'Drives the survivor back one cell'] : null,
@@ -360,9 +360,11 @@ function gearFitList(gi) {
   const on = gearWearer(gi);
   if (!deck.length) {
     const bound = GEAR[gi].frame;
+    const line = GEAR[gi].fits;
     return `<div class="fab"><b>Linked card</b><span style="color:var(--dim)">${bound
       ? `This is a ${POOL[bound].n} weapon. It fits nothing else, and the ${POOL[bound].n} is not in your deck.`
-      : 'No card in the deck can carry gear yet.'}</span></div>`;
+      : line ? 'This is a Fireteam weapon. It fits any Fireteam, and no Fireteam is in your deck.'
+        : 'No card in the deck can carry gear yet.'}</span></div>`;
   }
   const rows = deck.map(c => {
     const worn = active.loadout.gear[c];

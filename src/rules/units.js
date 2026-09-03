@@ -43,15 +43,17 @@ export function mkUnit(cid, l, c) {
     hp,
     max: hp,
     mob: !!k.mob,
-    tg: k.tg || 'none',
-    dmg: (k.dmg || 0) + (g && g.dmg ? g.dmg : 0),
+    // A weapon gear (the Fireteam armoury) replaces the card's gun outright;
+    // any other gear only adds to it.
+    tg: (g && g.tg) || k.tg || 'none',
+    dmg: g && g.tg ? (g.dmg || 0) : (k.dmg || 0) + (g && g.dmg ? g.dmg : 0),
     indirect: !!k.indirect || !!(g && g.indirect),
     rearsight: !!(g && g.rearsight),
     // NOTE: the reference build dropped this flag on the floor, which quietly
     // turned every single-target card into an area attack in live play. The
     // data, the spec, the targeting UI and the test suite all assume it is
     // here; see docs/NOTES.md for the balance impact of putting it back.
-    single: !!k.single,
+    single: g && g.tg ? !!g.single : !!k.single,
     blocker: !!k.blocker,
     // Firing Step: a blocker friendly direct fire shoots over. Still a wall
     // to the horde and to the wave scorer; only the beam walk ignores it.
@@ -86,9 +88,9 @@ export function mkUnit(cid, l, c) {
     degauss: !!k.degauss,
     swap: !!k.swap,
     charge: k.charge || 0,
-    push: !!k.push,
+    push: !!k.push || !!(g && g.push),
     mine: k.mine || 0,
-    recharge: !!k.recharge,
+    recharge: !!k.recharge || !!(g && g.recharge),
     cycling: 0,
     decay: !!(g && g.decay),
     ifield: !!(g && g.immuneIndirect),
@@ -100,7 +102,7 @@ export function mkUnit(cid, l, c) {
     scorch: !!k.scorch,
     cool: !!(g && g.cool),
     phase: !!(g && g.phase),
-    choose: !!k.choose,
+    choose: !!k.choose || !!(g && g.choose),
     tgt: null,
     pristine: k.pristine || 0,
     dynamo: k.dynamo || 0,
