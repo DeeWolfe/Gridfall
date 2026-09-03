@@ -3514,10 +3514,7 @@ const LEADS = {
       n: "Spartan Company",
       d: "Your Fireteam and every card that fits it cost 1 less deploy point, minimum 1.",
     },
-    con: {
-      n: "Lone Spartan",
-      d: "One Fireteam in the deck, never two. The team you field is the only team you have.",
-    },
+    con: {n: "No Frame", d: "You cannot field a Proto Frame. The Frame slot stays empty."},
   },
 };
 
@@ -3684,6 +3681,8 @@ function leadBan(id) {
   if (!k) return null;
   const lead = leadOf();
   if (lead.banTier && k.t === lead.banTier) return lead.con.n;
+  // No Frame: the Master Chief fields no Proto Frame, seeded or not.
+  if (lead.con && lead.con.n === 'No Frame' && k.chassis === 'proto') return lead.con.n;
   return null;
 }
 
@@ -3697,17 +3696,13 @@ function leadBan(id) {
  */
 function deckProblems(deck = active && active.loadout ? active.loadout.deck : [],
   frame = active && active.loadout ? active.loadout.frame : null) {
-  const out = [];
-  const teams = (deck || []).filter(c => POOL[c] && POOL[c].line === 'fireteam');
-  if (teams.length && frame && POOL[frame]) {
-    out.push({n: 'One line per deck',
-      d: `${teams.map(c => POOL[c].n).join(', ')} and the ${POOL[frame].n} — a deck fields the Fireteam line or the Frame line, not both. Drop the teams or empty the Frame slot.`});
-  }
-  const lead = leadOf();
-  if (lead.con && lead.con.n === 'Lone Spartan' && teams.length > 1) {
-    out.push({n: 'Lone Spartan', d: `${lead.call} carries one Fireteam, never two — ${teams.map(c => POOL[c].n).join(' and ')} cannot both ride.`});
-  }
-  return out;
+  // The one-line rule (Fireteam line or Frame line, never both) and Lone
+  // Spartan lived here in v2.33 and were shelved in v2.33.3 pending play
+  // testing: twelve slots already make a mixed deck a bad deck, and the
+  // Master Chief's No Frame covers his own. The hook stays — the Squad page
+  // and the launch guard still read it — so a rule can come back as one line.
+  void deck; void frame;
+  return [];
 }
 
 /** The active profile's team lead, defaulting to Ironbrand. */
@@ -5138,7 +5133,9 @@ function clog(html, cat) {
 function seedFrame() {
   const id = active && active.loadout ? active.loadout.frame : null;
   G.frame = null;
-  if (id && isProto(id) && POOL[id]) {
+  // No Frame (Master Chief): the slot may hold a machine, but it never flies.
+  const noFrame = leadOf().con && leadOf().con.n === 'No Frame';
+  if (id && isProto(id) && POOL[id] && !noFrame) {
     G.hand.push(id);
     G.frame = {k: id};
   }
@@ -15803,9 +15800,15 @@ function openPanel(key, quiet) {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.33.2';
+const VERSION = '2.33.3';
 
 const PATCH_NOTES = [
+  {
+    v: '2.33.3',
+    notes: [
+      'THE ONE-LINE RULE IS SHELVED for play testing. A deck may carry a Fireteam and field a Proto Frame at once; the twelve slots are the only judge. MASTER CHIEF has NO FRAME back as his cost — under him the Frame slot never flies — and Lone Spartan is gone.',
+    ],
+  },
   {
     v: '2.33.2',
     notes: [

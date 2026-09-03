@@ -4863,3 +4863,7 @@ User-reported: a fitted kit was drawn again once the reserve cycled, because dra
 ## v2.33.2 — old runs get their boss
 
 User could not find the Prism. genRun() types nodes once and stores them in `p.ops[op]`; runs dealt before v2.10 kept `extract` on the final node and no migration ever retyped them. v17 walks every stored run and sets the final node to `boss` where BOSSDEF names a boss for the operation. Cleared status and rewards are untouched.
+
+## v2.33.3 — one-line rule shelved
+
+User's call after weighing both sides: remove the one-line rule until testing says otherwise. `deckProblems()` stays as the hook (Squad page and launch guard still read it) but returns nothing. Master Chief's con is No Frame again, with its `leadBan` and `seedFrame` hooks restored; Lone Spartan is gone.

@@ -106,6 +106,8 @@ export function leadBan(id) {
   if (!k) return null;
   const lead = leadOf();
   if (lead.banTier && k.t === lead.banTier) return lead.con.n;
+  // No Frame: the Master Chief fields no Proto Frame, seeded or not.
+  if (lead.con && lead.con.n === 'No Frame' && k.chassis === 'proto') return lead.con.n;
   return null;
 }
 
@@ -119,17 +121,13 @@ export function leadBan(id) {
  */
 export function deckProblems(deck = active && active.loadout ? active.loadout.deck : [],
   frame = active && active.loadout ? active.loadout.frame : null) {
-  const out = [];
-  const teams = (deck || []).filter(c => POOL[c] && POOL[c].line === 'fireteam');
-  if (teams.length && frame && POOL[frame]) {
-    out.push({n: 'One line per deck',
-      d: `${teams.map(c => POOL[c].n).join(', ')} and the ${POOL[frame].n} — a deck fields the Fireteam line or the Frame line, not both. Drop the teams or empty the Frame slot.`});
-  }
-  const lead = leadOf();
-  if (lead.con && lead.con.n === 'Lone Spartan' && teams.length > 1) {
-    out.push({n: 'Lone Spartan', d: `${lead.call} carries one Fireteam, never two — ${teams.map(c => POOL[c].n).join(' and ')} cannot both ride.`});
-  }
-  return out;
+  // The one-line rule (Fireteam line or Frame line, never both) and Lone
+  // Spartan lived here in v2.33 and were shelved in v2.33.3 pending play
+  // testing: twelve slots already make a mixed deck a bad deck, and the
+  // Master Chief's No Frame covers his own. The hook stays — the Squad page
+  // and the launch guard still read it — so a rule can come back as one line.
+  void deck; void frame;
+  return [];
 }
 
 /** The active profile's team lead, defaulting to Ironbrand. */

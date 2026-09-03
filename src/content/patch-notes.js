@@ -4,9 +4,15 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.33.2';
+export const VERSION = '2.33.3';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.33.3',
+    notes: [
+      'THE ONE-LINE RULE IS SHELVED for play testing. A deck may carry a Fireteam and field a Proto Frame at once; the twelve slots are the only judge. MASTER CHIEF has NO FRAME back as his cost — under him the Frame slot never flies — and Lone Spartan is gone.',
+    ],
+  },
   {
     v: '2.33.2',
     notes: [
