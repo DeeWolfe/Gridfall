@@ -35,8 +35,13 @@ import {playBossDebrief} from './codec.js';
 import {renderMap} from './map.js';
 import {renderModes} from './modes.js';
 import {sfx} from './sound.js';
-import {setMusicMood} from './music.js';
+import {setMusicMood, musicOn, toggleMusic} from './music.js';
 import {unitSprite, foeSprite} from './sprites.js';
+import {openPanel} from './panels.js';
+import {openPatchNotes} from './patchnotes.js';
+import {cycleUiMode, uiPreference, UI_LABELS} from './uimode.js';
+import {paintHold} from './hold.js';
+import {startScene} from './battlefield.js';
 
 const LOG_LINES = 40;
 
@@ -57,18 +62,56 @@ export function leaveCombat() {
   if (bossDown) playBossDebrief(bossDown, null);
 }
 
+/** What walking away costs, in this mode's own terms. */
+const abortStakes = () => (G.gauntlet
+  ? 'The gauntlet chain is forfeit — legs already cleared keep their pay, but the run ends here.'
+  : G.endless
+    ? 'Onslaught pays out only when your line falls. Abort now and the run pays nothing.'
+    : G.daily
+      ? 'This attempt is abandoned, but the streak is untouched — you can retry today\'s challenge.'
+      : 'Progress on this mission is lost. The node stays open to try again.');
+
 /** Abort is irreversible, so it asks first — with the stakes for this mode. */
 function confirmAbort() {
   if (G.over) return leaveCombat();
-  const stakes = G.gauntlet
-    ? 'The gauntlet chain is forfeit — legs already cleared keep their pay, but the run ends here.'
-    : G.endless
-      ? 'Onslaught pays out only when your line falls. Abort now and the run pays nothing.'
-      : G.daily
-        ? 'This attempt is abandoned, but the streak is untouched — you can retry today\'s challenge.'
-        : 'Progress on this mission is lost. The node stays open to try again.';
-  ask('Abort mission', stakes + '<br><br>Leave the field?',
+  ask('Abort mission', abortStakes() + '<br><br>Leave the field?',
     ok => { if (ok) leaveCombat(); }, {ok: 'Abort'});
+}
+
+/** All the way out: abort and land on the hold rather than the map. */
+function exitToHold() {
+  abortMission();
+  $('result').classList.remove('on');
+  closeFocus();
+  setMusicMood('hold');
+  show('hold');
+  startScene();
+  paintHold();
+}
+
+function confirmMainMenu() {
+  if (G.over) return exitToHold();
+  ask('Main menu', abortStakes() + '<br><br>Return to the hold?',
+    ok => { if (ok) exitToHold(); }, {ok: 'Leave'});
+}
+
+// The combat menu: the drawer's options folded up over the action bar —
+// combat hides the global drawer, so the sheet lives here instead.
+let cmenuOpen = false;
+
+function paintCMenu() {
+  const el = $('cmenu');
+  if (!el) return;
+  el.classList.toggle('up', cmenuOpen);
+  $('cmUi').textContent = 'UI · ' + UI_LABELS[uiPreference()];
+  $('cmMus').textContent = 'Music · ' + (musicOn() ? 'On' : 'Off');
+  const close = () => { cmenuOpen = false; el.classList.remove('up'); };
+  $('cmAbort').onclick = () => { close(); confirmAbort(); };
+  $('cmHold').onclick = () => { close(); confirmMainMenu(); };
+  $('cmSet').onclick = () => { close(); openPanel('settings'); };
+  $('cmUi').onclick = () => { cycleUiMode(); paintCMenu(); };
+  $('cmMus').onclick = () => { toggleMusic(); paintCMenu(); };
+  $('cmPatch').onclick = () => { close(); openPatchNotes(); };
 }
 
 /** The team-lead badge: the pro and con, one tap away. */
@@ -94,6 +137,9 @@ export function drawActions() {
   const secondary = $('actSecondary');
   primary.disabled = false;
   secondary.disabled = false;
+
+  if (sel || mover || foeSel) cmenuOpen = false;
+  paintCMenu();
 
   if (sel) {
     primary.className = 'btn danger';
@@ -126,11 +172,18 @@ export function drawActions() {
   }
   primary.className = 'btn';
   primary.textContent = replaying ? 'Resolving…' : 'End turn';
-  primary.onclick = () => { sfx('confirm'); endTurn(); };
+  primary.onclick = () => { sfx('confirm'); cmenuOpen = false; endTurn(); };
   primary.disabled = G.over || replaying;
   secondary.className = 'btn ghost';
-  secondary.textContent = 'Abort';
-  secondary.onclick = confirmAbort;
+  // A finished mission has one exit and it should be one tap; mid-mission the
+  // button folds the menu sheet up instead — abort lives inside it.
+  if (G.over) {
+    secondary.textContent = 'Leave';
+    secondary.onclick = () => { cmenuOpen = false; leaveCombat(); };
+  } else {
+    secondary.textContent = 'Menu';
+    secondary.onclick = () => { sfx('tap'); cmenuOpen = !cmenuOpen; paintCMenu(); };
+  }
   secondary.disabled = replaying;
 }
 

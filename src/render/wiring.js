@@ -123,6 +123,9 @@ function wireNavigation() {
   };
   $('modesback').onclick = () => { show('hold'); startScene(); paintHold(); };
   $('opsback').onclick = () => { show('modes'); renderModes(); };
+  // The navfoot Menu buttons drive the same pull-up drawer as the corner tab.
+  $('modesmenu').onclick = () => $('drawtab').click();
+  $('opsmenu').onclick = () => $('drawtab').click();
   $('mapback').onclick = () => { show('ops'); renderOps(); };
   $('pclose').onclick = () => $('panel').classList.remove('on');
   $('fbg').onclick = closeFocus;

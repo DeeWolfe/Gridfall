@@ -251,6 +251,7 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .navfoot h2{font-size:0.75rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;
   color:var(--zan);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .navfoot .btn{flex:0 0 auto;padding:.8rem 1.3rem}
+.navbtns{display:flex;gap:9px;flex:0 0 auto}
 @media(max-width:520px){
   .navfoot{gap:9px;padding:9px 11px}
   .navfoot h2{font-size:0.75rem;letter-spacing:.14em}
@@ -1055,7 +1056,17 @@ body{font-size:1rem}
 .logtog.on{color:var(--cyan);border-color:var(--cyan-d)}
 .cbfoot{flex:0 0 auto;display:grid;grid-template-columns:minmax(0,1fr);
   gap:clamp(7px,.8vw,12px);padding:0 clamp(8px,.9vw,14px) clamp(8px,.9vw,14px)}
-.cbacts{flex:0 0 auto;display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center}
+.cbacts{flex:0 0 auto;display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;position:relative}
+/* The combat menu: the drawer's options, folded up over the action bar. */
+.cmenu{position:absolute;bottom:calc(100% + 8px);right:0;z-index:40;
+  display:flex;flex-direction:column;gap:6px;padding:10px;
+  background:var(--panel2);border:1px solid var(--line2);min-width:150px;
+  clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));
+  transform:translateY(12%);opacity:0;pointer-events:none;
+  transition:transform .26s cubic-bezier(.2,.9,.3,1.1),opacity .18s}
+.cmenu.up{transform:none;opacity:1;pointer-events:auto}
+.cmenu .mini{text-align:left;white-space:nowrap}
+@media (prefers-reduced-motion: reduce){.cmenu{transition:none}}
 .cbacts .btn{padding:.85rem 1.2rem;text-align:center;font-size:0.6875rem;white-space:nowrap}
 .cbacts .btn.ghost{padding:13px 16px;color:var(--dim);border:1px solid var(--line2)}
 .cbacts .btn.ghost:hover{color:var(--mag);border-color:var(--mag-d)}
@@ -1435,17 +1446,21 @@ body{font-size:1rem}
   color:var(--dim);font-size:0.6875rem;line-height:1.65;max-width:64ch}
 
 /* ============ PULL-UP DRAWER ============ */
-/* One tab on the hold/ops/map/modes screens: tap, the menu slides up; tap
-   again, it slides back down. Combat has no drawer — its bottom edge is
-   already the hand and action bar, and its top-right is the lead badge. */
-#drawer{position:fixed;left:50%;transform:translateX(-50%);bottom:0;z-index:60;
-  display:flex;flex-direction:column;align-items:center}
+/* One tab, bottom-RIGHT, on the hold/ops/map/modes screens: tap, the menu
+   slides up; tap again, it slides back down. Combat carries its own menu
+   sheet on the action bar instead (see .cmenu below). */
+#drawer{position:fixed;right:14px;bottom:0;z-index:60;
+  display:flex;flex-direction:column;align-items:flex-end}
 #title.on ~ #drawer,#boot.on ~ #drawer,#combat.on ~ #drawer{display:none}
+/* Screens whose footer carries its own Menu button: the corner tab hides and
+   the sheet rides up clear of the navfoot — one entry point per screen. */
+#modes.on ~ #drawer #drawtab,#ops.on ~ #drawer #drawtab{display:none}
+#modes.on ~ #drawer,#ops.on ~ #drawer{bottom:66px}
 #drawtab{width:52px;height:20px;border:1px solid var(--line2);border-bottom:none;
   background:var(--panel2);color:var(--dim);font-size:0.6562rem;cursor:pointer;
   clip-path:polygon(9px 0,calc(100% - 9px) 0,100% 100%,0 100%);transition:.15s}
 #drawtab:hover{color:var(--zan);border-color:var(--zan)}
-.drawmenu{position:absolute;bottom:26px;display:flex;flex-direction:column;gap:6px;
+.drawmenu{position:absolute;bottom:26px;right:0;display:flex;flex-direction:column;gap:6px;
   padding:10px;background:var(--panel2);border:1px solid var(--line2);min-width:150px;
   clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));
   transform:translateY(70%);opacity:0;pointer-events:none;
@@ -1544,12 +1559,14 @@ body{font-size:1rem}
 <div class="scr" id="modes">
   <div class="mapbody" id="modesbody"></div>
   <div class="navfoot"><h2>MODES</h2>
-    <button class="btn ghost" id="modesback">Return to hold</button></div>
+    <div class="navbtns"><button class="btn ghost" id="modesback">Back</button>
+      <button class="btn ghost" id="modesmenu">Menu</button></div></div>
 </div>
 <div class="scr" id="ops">
   <div class="mapbody" id="opsbody"></div>
   <div class="navfoot"><h2>CAMPAIGN OPERATIONS</h2>
-    <button class="btn ghost" id="opsback">Back to modes</button></div>
+    <div class="navbtns"><button class="btn ghost" id="opsback">Back</button>
+      <button class="btn ghost" id="opsmenu">Menu</button></div></div>
 </div>
 <div class="scr" id="map">
   <div class="mapbody" id="mapbody"></div>
@@ -1596,7 +1613,15 @@ body{font-size:1rem}
     <div class="cbacts">
       <button class="btn" id="actPrimary">End turn</button>
       <button class="btn ghost logtog" id="logtog" aria-pressed="false">Log</button>
-      <button class="btn ghost" id="actSecondary">Abort</button>
+      <button class="btn ghost" id="actSecondary">Menu</button>
+      <div class="cmenu" id="cmenu">
+        <button class="mini" id="cmAbort">Abort mission</button>
+        <button class="mini" id="cmHold">Main menu</button>
+        <button class="mini" id="cmSet">Settings</button>
+        <button class="mini" id="cmUi">UI</button>
+        <button class="mini" id="cmMus">Music</button>
+        <button class="mini" id="cmPatch">Patch notes</button>
+      </div>
     </div>
   </div>
   <div id="tut"></div>
@@ -14458,774 +14483,6 @@ function foeSprite(k, delay = 0) {
   return renderPix(map, PXE_COLOR, 'pxu pxe', delay);
 }
 
-/* ==== src/render/combat.js ========================================== */
-// The combat screen: header, board, hand, selection panel and action bar.
-//
-// Everything here is a pure function of (G, active, sel, mover) — drawAll()
-// rebuilds the screen from scratch each time rather than patching it, which is
-// why the rules layer only has to say "something changed".
-
-const LOG_LINES = 40;
-
-/** Leaving combat: back to the map, or to mode select for endless/gauntlet. */
-function leaveCombat() {
-  // A first boss kill earns an after-action call — the lore lands as the
-  // commander walks away from the wreck, over the map the win just changed.
-  // Read before abortMission(), which tears the mission state down.
-  const bossDown = G && G.over && G.type === 'boss' && G.result && G.result.cleared && G.boss
-    ? G.boss.k : null;
-  const {wasEndless, wasGauntlet, wasDaily} = abortMission();
-  $('result').classList.remove('on');
-  closeFocus();
-  setMusicMood('hold');
-  if (wasEndless || wasGauntlet || wasDaily) { show('modes'); renderModes(); return; }
-  show('map');
-  renderMap();
-  if (bossDown) playBossDebrief(bossDown, null);
-}
-
-/** Abort is irreversible, so it asks first — with the stakes for this mode. */
-function confirmAbort() {
-  if (G.over) return leaveCombat();
-  const stakes = G.gauntlet
-    ? 'The gauntlet chain is forfeit — legs already cleared keep their pay, but the run ends here.'
-    : G.endless
-      ? 'Onslaught pays out only when your line falls. Abort now and the run pays nothing.'
-      : G.daily
-        ? 'This attempt is abandoned, but the streak is untouched — you can retry today\'s challenge.'
-        : 'Progress on this mission is lost. The node stays open to try again.';
-  ask('Abort mission', stakes + '<br><br>Leave the field?',
-    ok => { if (ok) leaveCombat(); }, {ok: 'Abort'});
-}
-
-/** The team-lead badge: the pro and con, one tap away. */
-function drawLeadBadge() {
-  const L = leadOf();
-  const badge = $('leadbadge');
-  badge.innerHTML = `${portrait(active.lead || 'ironbrand')}
-    <span class="lbname">${L.call}</span>`;
-  badge.className = 'leadbadge';
-  badge.style.borderColor = L.col;
-
-  badge.onclick = () => {
-    const lines = [];
-    if (L.passive) lines.push(`<b>Passive · ${L.passive.n}</b> — ${L.passive.d}`);
-    if (L.con) lines.push(`<b>Cost · ${L.con.n}</b> — ${L.con.d}`);
-    notify(L.call + ' · ' + L.role, lines.join('<br><br>') || L.bio);
-  };
-}
-
-/** The two contextual buttons under the hand. */
-function drawActions() {
-  const primary = $('actPrimary');
-  const secondary = $('actSecondary');
-  primary.disabled = false;
-  secondary.disabled = false;
-
-  if (sel) {
-    primary.className = 'btn danger';
-    primary.textContent = 'Cancel placement';
-    primary.onclick = () => { setSel(null); drawAll(); };
-    secondary.className = 'btn ghost';
-    secondary.textContent = 'View card';
-    secondary.onclick = () => focusCard(sel, 'info');
-    return;
-  }
-  if (mover) {
-    primary.className = 'btn danger';
-    primary.textContent = 'Deselect unit';
-    primary.onclick = () => { setMover(null); drawAll(); };
-    secondary.className = 'btn ghost';
-    secondary.textContent = 'View card';
-    secondary.onclick = () => focusCard(mover.id, 'info');
-    return;
-  }
-  // A selected hostile gets the same two controls a unit does — the grid
-  // obeys one rule for both sides.
-  if (foeSel) {
-    primary.className = 'btn danger';
-    primary.textContent = 'Deselect hostile';
-    primary.onclick = () => { setFoeSel(null); drawAll(); };
-    secondary.className = 'btn ghost';
-    secondary.textContent = 'View card';
-    secondary.onclick = () => focusEnemy(foeSel.k);
-    return;
-  }
-  primary.className = 'btn';
-  primary.textContent = replaying ? 'Resolving…' : 'End turn';
-  primary.onclick = () => { sfx('confirm'); endTurn(); };
-  primary.disabled = G.over || replaying;
-  secondary.className = 'btn ghost';
-  secondary.textContent = 'Abort';
-  secondary.onclick = confirmAbort;
-  secondary.disabled = replaying;
-}
-
-/** What the selected unit will do, or what the selected card will cost. */
-function drawSel() {
-  const el = $('selinfo');
-  el.hidden = false;
-
-  if (mover) {
-    const u = mover;
-    const incoming = forecastThreat().hits[u.uid] || 0;
-    const g = geomFor(u);
-    const ts = targetsFor(u);
-    const dmg = dmgPreview(u);
-    const buff = buffOf(u);
-    const canChoose = u.single && g.length > 1;
-
-    const verdict = u.acted ? 'Action committed for this turn'
-      : u.cycling > 0 ? 'Weapon cycling — ready to fire next turn'
-        : !g.length ? 'No target in range — it will hold'
-          : canChoose ? `<b>${g.length}</b> targets in reach — tap one in gold to strike`
-            : u.single ? `Will strike ${BEST[ts[0].k].n} for <b>${dmg}</b>`
-              : `Will strike ${g.length} hostile${g.length > 1 ? 's' : ''} for <b>${dmg}</b> each`;
-
-    el.innerHTML = `<div class="selhead"><b style="color:var(--cyan)">${u.n}</b>
-        <span class="hpbadge">${u.hp}/${u.max}${u.acted ? ' · spent' : ''}</span></div>
-      <div class="hpbar"><i style="width:${Math.max(0, u.hp / u.max * 100)}%"></i></div>
-      <div class="selgrid">
-        <div><span>Damage</span><b>${u.dmg}${buff ? ` <span style="color:var(--green)">+${buff}</span>` : ''}</b></div>
-        <div><span>Targeting</span><b>${TGNAME[u.tg] || 'None'}</b></div>
-        ${u.shield ? `<div><span>Shield</span><b style="color:var(--cyan)">${u.shield}</b></div>` : ''}
-        ${incoming ? `<div><span>Incoming</span><b style="color:var(--mag)">${incoming}</b></div>` : ''}
-      </div>
-      ${u.frame ? `<div class="selsupport">Loadout: ${[u.gearW, ...u.gearS].filter(Boolean)
-    .map(c => POOL[c].n).join(' · ') || 'base weapon, nothing fitted'}</div>` : ''}
-      ${supportLabel(u) ? `<div class="selsupport">${supportLabel(u)}</div>` : ''}
-      <div class="selfire ${g.length ? 'live' : 'dead'}">${verdict}</div>
-      ${!u.acted && u.mob ? '<div class="hintline">Tap a green tile to reposition.</div>' : ''}
-      ${!u.acted && u.swap ? '<div class="hintline">Or tap a highlighted friendly to trade places — anywhere on the board.</div>' : ''}
-      ${u.ab && !u.acted ? `<div class="selacts">
-        <button class="mini" data-useab="1"${u.cd > 0 ? ' disabled' : ''}>${u.cd > 0 ? `${u.ab.n} (${u.cd})` : u.ab.n}</button></div>
-        <div class="abline"><b>${u.ab.n}</b> ${u.ab.d}</div>` : ''}`;
-
-    const b = el.querySelector('[data-useab]');
-    if (b && !u.cd) {
-      // A cell-targeted ability (Piercing Thrust) arms an aim mode instead of
-      // resolving on the spot: the board lights the legal cells, the tap on
-      // one of them is the commit, and tapping the button again stands down.
-      b.onclick = u.ab.target === 'cell'
-        ? () => { setAbAim(abAim && abAim.uid === u.uid ? null : u); drawAll(); }
-        : () => doAbility(u);
-    }
-    if (abAim && abAim.uid === u.uid) {
-      const spots = pierceTargets(u).length;
-      el.innerHTML += `<div class="selfire ${spots ? 'live' : 'dead'}">${spots
-        ? `${u.ab.n} armed — tap a lit cell down the lane to dash there.`
-        : `${u.ab.n} — no clear cell to dash to. The path is blocked.`}</div>`;
-    }
-    return;
-  }
-
-  if (foeSel) {
-    const e = foeSel;
-    const D = BEST[e.k];
-    const t = foeThreatCells(e);
-    const hitCell = t.strike.length ? t.strike[0] : null;
-    const victim = hitCell === null ? null : unitAt(Math.floor(hitCell / COLS), hitCell % COLS);
-    const dmg = Math.max(1, (D.dmg || 0) +
-      (G.enemies.some(o => BEST[o.k].aura) ? 1 : 0) - eventStrikeMalus());
-    const speed = D.spd === 0 ? 'Immobile' : D.spd === 0.5 ? 'Every other turn' : D.spd + ' / turn';
-
-    // A boss proxy reads as the whole machine: the shared pool, the shield,
-    // and which phase of its script it is running.
-    if (e.boss && G.boss) {
-      const def = BOSSDEF[G.boss.k];
-      const cells = G.boss.bodies.reduce((a, b) => a + b.cells.length, 0);
-      // Phase two shortens the Reliquary's purge cycle; the countdown is
-      // public by design.
-      const p2cut = n => (G.boss.phase === 2 ? Math.max(2, n - 1) : n);
-      const purgeIn = def.chargeEvery ? p2cut(def.chargeEvery) - G.boss.charge : 0;
-      // The Envoy's bar is the KING's hull — the formation carries its own.
-      const king = def.kingFlip ? G.boss.bodies.find(b => b.role === 'king') : null;
-      const hull = king ? king.hp : bossHp();
-      el.innerHTML = `<div class="selhead"><b style="color:var(--mag)">${D.n}</b>
-          <span class="hpbadge">${hull}/${def.hp}</span></div>
-        ${G.boss.shield > 0 ? `<div class="hpbar"><i style="width:${Math.max(0, G.boss.shield / def.shield * 100)}%;background:var(--cyan)"></i></div>` : ''}
-        <div class="hpbar"><i style="width:${Math.min(100, Math.max(0, hull / def.hp * 100))}%;background:var(--mag)"></i></div>
-        <div class="selgrid">
-          <div><span>Phase</span><b>${G.boss.phase} of 2</b></div>
-          ${G.boss.shield > 0 ? `<div><span>Field</span><b>${G.boss.shield}</b></div>` : ''}
-          <div><span>Bodies</span><b>${G.boss.bodies.length}</b></div>
-          <div><span>Footprint</span><b>${cells} cell${cells === 1 ? '' : 's'}</b></div>
-          ${def.plate ? `<div><span>Plating</span><b>−${def.plate} per hit</b></div>` : ''}
-          ${def.bulk ? `<div><span>Bulkhead</span><b>max ${def.bulk} hull/turn${G.boss.dealt >= def.bulk ? ' — SEALED' : ''}</b></div>` : ''}
-          ${G.boss.k === 'subject' && G.boss.phase === 2 && G.boss.bodies.length === 1 && def.reviveEvery ? `<div><span>Knits whole</span><b>in ${def.reviveEvery - (G.boss.solo || 0)} turn${def.reviveEvery - (G.boss.solo || 0) === 1 ? '' : 's'}</b></div>` : ''}
-          ${def.kingFlip && G.boss.phase === 1 ? `<div><span>Formation</span><b>${G.boss.bodies.length - 1} piece${G.boss.bodies.length - 1 === 1 ? '' : 's'} standing</b></div>` : ''}
-          ${def.kingFlip && G.boss.phase === 2 ? `<div><span>Thrones</span><b>${G.boss.bodies.length - (king ? 1 : 0)} of 4 answering</b></div>` : ''}
-          ${G.boss.k === 'pyreguard' ? `<div><span>Marches</span><b>one lane a turn</b></div>` : ''}
-          ${def.chargeEvery ? `<div><span>Purge</span><b>in ${purgeIn} turn${purgeIn === 1 ? '' : 's'}</b></div>` : ''}
-        </div>
-        <div class="selfire live">${G.boss.phase === 1 ? def.p1 : def.p2}</div>
-        <div class="hintline">${D.d}</div>`;
-      return;
-    }
-
-    const verdict = e.stun ? 'Stunned — it does nothing this turn.'
-      : hitCell !== null ? `Will strike ${victim ? victim.n : 'the line'} for <b>${dmg}</b>`
-        : t.threat.length ? `Closes <b>${t.threat.length}</b> cell${t.threat.length > 1 ? 's' : ''} — nothing in reach yet`
-          : D.dmg ? 'Holds — nothing to strike' : 'Carries no weapon';
-
-    el.innerHTML = `<div class="selhead"><b style="color:var(--mag)">${D.n}</b>
-        <span class="hpbadge">${e.hp}/${D.hp}</span></div>
-      <div class="hpbar"><i style="width:${Math.max(0, e.hp / D.hp * 100)}%;background:var(--mag)"></i></div>
-      <div class="selgrid">
-        <div><span>Damage</span><b>${D.dmg || '—'}</b></div>
-        <div><span>Speed</span><b>${speed}</b></div>
-        <div><span>Threatens</span><b>${t.threat.length + t.strike.length} tiles</b></div>
-        ${D.floor ? `<div><span>Armour</span><b>−${D.floor} taken</b></div>` : ''}
-      </div>
-      <div class="selfire ${hitCell !== null ? 'live' : 'dead'}">${verdict}</div>
-      <div class="hintline">${D.d}</div>`;
-    return;
-  }
-
-  if (sel) {
-    const k = POOL[sel];
-    const g = gearOf(sel);
-    const dmg = (k.dmg || 0) + (g && g.dmg ? g.dmg : 0);
-    // A gated card (a second Frame, gear whose machine is absent) lights
-    // nothing — say why instead of leaving the player tapping dead tiles.
-    const gate = frameGateText(sel);
-    const anchors = validTiles(sel).length;
-    el.innerHTML = `<div class="selhead"><b style="color:var(--green)">${k.n}</b>
-        <span class="hpbadge">${costOf(sel)} DP</span></div>
-      <div class="selgrid">
-        ${k.hp ? `<div><span>Hull</span><b>${k.hp + (g && g.hp ? g.hp : 0)}</b></div>` : ''}
-        ${dmg ? `<div><span>Damage</span><b>${dmg}</b></div>` : ''}
-        ${k.tg && k.tg !== 'none' ? `<div><span>Targeting</span><b>${TGNAME[k.tg]}</b></div>` : ''}
-        <div><span>Deploy</span><b>${k.frameGear ? 'Onto its Frame'
-    : k.drop ? 'Any tile'
-      : k.anyGround ? `Any ground · col ${k.zoneMin}+`
-        : k.zoneMin ? `Held · col ${k.zoneMin}+` : 'Held tiles'}</b></div>
-      </div>
-      <div class="selfire ${anchors ? 'live' : 'dead'}">${anchors
-    ? (k.frameGear ? 'Tap the Frame to fit it' : 'Tap a lit tile to deploy')
-    : (gate || 'No legal tile to deploy on.')}</div>
-      <div class="abline">${k.d}</div>`;
-    return;
-  }
-
-  // Idle. "Nothing selected. Tap a card to deploy" cost 44px of a 664px phone
-  // to say nothing — and the objective now sits above this, so the panel is
-  // no longer empty without it. What survives is the part that was actually
-  // information: who can still act, and who is about to be hit. With neither
-  // to report the block folds away and gives the room back.
-  const threatened = Object.keys(forecastThreat().hits).length;
-  const ready = G.units.filter(u => !u.acted).length;
-  if (!ready && !threatened) { el.hidden = true; el.innerHTML = ''; return; }
-  // One line, not two boxes. As stacked .selfire panels these two counts cost
-  // 72px of a 664px phone to carry about nine words between them.
-  el.innerHTML = `<div class="idlerow">
-    ${ready ? `<span class="ok"><b>${ready}</b> to act</span>` : ''}
-    ${threatened ? `<span class="hit"><b>${threatened}</b> will be struck</span>` : ''}</div>`;
-}
-
-/** Markup for one of your units standing in a cell. */
-function unitMarkup(u, incoming) {
-  const kind = u.t === 'special' ? 'p-spec' : u.tech ? 'p-struct' : 'p-unit';
-  return `<div class="ent ${kind}${u.size > 1 ? ' anchor' : ''}${u.stun ? ' stunned' : ''}${u.acted ? ' spent' : ''}${(u.cycling > 0 || u.jam) && !u.acted ? ' cooling' : ''}${u.controlled ? ' controlled' : ''}" title="${u.controlled ? u.n + ' — mind controlled' : u.jam ? u.n + ' — weapon arced dead this turn' : u.cycling > 0 ? u.n + ' — weapon cycling' : u.n}">
-        ${u.controlled ? '<span class="lockpip" style="color:var(--violet)">☍</span>' : ''}
-        ${incoming ? `<span class="incdmg">-${incoming}</span>` : ''}
-        ${u.tgt ? '<span class="lockpip">⌖</span>' : ''}
-        <span class="minihp"><i style="width:${Math.max(0, u.hp / u.max * 100)}%"></i></span>
-        ${u.shield > 0 ? `<span class="shield">${'◈'.repeat(Math.min(u.shield, 2))}</span>` : ''}
-        ${u.twin ? '<span class="att">▮</span>' : ''}${u.cycling > 0 ? '<span class="att cyc">⟳</span>' : ''}${u.acted ? '<span class="ord done">✓</span>' : ''}
-        ${unitSprite(u.id, u.uid, active.loadout.scheme) || `<div class="nm">${u.n.split(' ')[0]}</div>`}
-        <div class="hp">${u.hp}</div></div>`;
-}
-
-/** Every hostile type carries its own glyph — identity at cell size. */
-const FOE_GLYPH = {
-  crawler: '▪', hulk: '⬢', breacher: '◣', spitter: '◆', burrower: '⋒',
-  spore: '✱', jammer: '⌁', pylon: '▣', harrower: '✠', mender: '✚',
-  husk: '◍', screamer: '◉', chorus: '≋', sovereign: '♚', puppeteer: '☍',
-  fabricant: '⚙', gantry: '☰', brood: '❉', prism: '◇',
-  subject: '◐', envoy: '♔',
-  zealot: '†', lector: '♰', choirwarden: '♪', reliquary: '⚱',
-  pyreguard: '🜂', rimeguard: '🜄', stormguard: '🜁', shardguard: '🜃',
-};
-
-/** The intent badge: what this hostile will do next turn, per enemyIntent(). */
-function intentBadge(e) {
-  const it = enemyIntent(e);
-  if (it.k === 'strike') return `<span class="intent atk">⚔${it.dmg}</span>`;
-  if (it.k === 'advance') return `<span class="intent mov">${'▸'.repeat(Math.min(it.steps, 2))}</span>`;
-  if (it.k === 'mend') return '<span class="intent mend">✚</span>';
-  if (it.k === 'spawn') return '<span class="intent spwn">✱</span>';
-  return '<span class="intent idle">…</span>';
-}
-
-/** Markup for a hostile standing in a cell. */
-function foeMarkup(e, locked) {
-  const D = BEST[e.k];
-  const kind = D.t === 'boss' ? 'e-boss' : D.t === 'special' ? 'e-spec' : D.t === 'tech' ? 'e-tech' : 'e-unit';
-  // A boss proxy's bar reads against its BODY's pool (bmax), which after a
-  // split or shatter is smaller than the bestiary total.
-  const denom = e.bmax || D.hp;
-  const shieldPip = e.boss && G.boss && G.boss.shield > 0
-    ? `<span class="shield">◈${G.boss.shield}</span>` : '';
-  // A body with a chess-court role reads as its piece, not as another copy of
-  // the boss sprite; roles outside PIECE_GLYPH (wall, hive…) keep the sprite.
-  const role = e.boss && G.boss ? (G.boss.bodies.find(b => b.id === e.body) || {}).role : null;
-  const face = role && PIECE_GLYPH[role] && role !== 'king'
-    ? `<div class="nm"><span class="fglyph">${PIECE_GLYPH[role]}</span>${PIECE_NAME[role]}</div>`
-    : foeSprite(e.k, e.uid) || `<div class="nm"><span class="fglyph">${FOE_GLYPH[e.k] || '▪'}</span>${D.n.split(' ')[0]}</div>`;
-  return `<div class="ent ${kind}${e.stun ? ' stunned' : ''}" title="${role && PIECE_NAME[role] ? `${D.n} — ${PIECE_NAME[role]}` : D.n}">
-        ${e.boss ? '' : intentBadge(e)}
-        ${locked ? '<span class="lockpip">⌖</span>' : ''}
-        ${shieldPip}
-        <span class="minihp foe"><i style="width:${Math.max(0, e.hp / denom * 100)}%"></i></span>
-        ${face}
-        <div class="hp">${e.hp}</div></div>`;
-}
-
-function drawBoard() {
-  const valid = sel ? validTiles(sel) : [];
-  const moves = mover ? moveTargets(mover) : [];
-  const swaps = mover ? swapTargets(mover) : [];
-  const threat = forecastThreat();
-  const marks = new Set(stratMarkers());
-
-  // Gold = will be struck if this unit fires; aimable = may be locked onto.
-  const willHit = new Set();
-  const aimable = new Set();
-  if (mover && !mover.acted) {
-    targetsFor(mover).forEach(e => willHit.add(e.lane * COLS + e.col));
-    (mover.single ? candidatesFor(mover) : geomFor(mover)).forEach(e => aimable.add(e.lane * COLS + e.col));
-  }
-  // Cyan = every cell the weapon covers, occupied or not. Without this a
-  // weapon aimed at empty ground shows nothing until something walks into
-  // it — one turn too late to plan around.
-  const inRange = new Set(mover ? geomCells(mover) : []);
-  // The mirror for a selected hostile: what it threatens, and what it hits.
-  const foeStrike = new Set();
-  const foeThreat = new Set();
-  const foeInfl = new Set();
-  if (foeSel) {
-    const t = foeThreatCells(foeSel);
-    t.strike.forEach(i => foeStrike.add(i));
-    t.threat.forEach(i => foeThreat.add(i));
-    t.infl.forEach(i => foeInfl.add(i));
-  }
-  const buffed = new Set();
-  const influenced = new Set();
-  if (mover) {
-    supportTargets(mover).forEach(i => buffed.add(i));
-    influenceCells(mover).forEach(i => influenced.add(i));
-  }
-
-  // Piercing Thrust armed: the empty cells the frame may dash to.
-  const pierceCells = new Set(abAim ? pierceTargets(abAim) : []);
-
-  // Ground the boss has promised to hit next turn.
-  const bossWarn = new Set(G.boss ? bossWarnCells() : []);
-
-  // The spawn-marker contract, made visible. Blackout hides it entirely.
-  const spawnLanes = {};
-  if (G.mod !== 'blackout') {
-    (G.predict || []).concat(G.held || []).forEach(p => {
-      spawnLanes[p.lane] = (spawnLanes[p.lane] || 0) + 1;
-    });
-  }
-
-  const board = $('board');
-  board.style.gridTemplateColumns = `repeat(${COLS},1fr)`;
-  board.innerHTML = '';
-
-  for (let l = 0; l < LANES; l++) for (let c = 0; c < COLS; c++) {
-    const i = l * COLS + c;
-    const owner = G.ter[l][c];
-    const cell = document.createElement('div');
-
-    let cls = 'cell ' + (owner === 'p' ? 't-p' : owner === 'e' ? 't-e' : owner === 'x' ? 't-x' : 't-n');
-    if (scorched(l, c)) cls += ' scorch';
-    if (G.crystals.some(x => x.l === l && x.c === c)) cls += ' objtile';
-    if (G.uplinkAt && G.uplinkAt.l === l && G.uplinkAt.c === c) cls += ' objtile';
-    if (valid.includes(i)) cls += ' valid';
-    if (moves.includes(i)) cls += ' movetgt';
-    if (swaps.includes(i)) cls += ' swaptgt';
-    if (pierceCells.has(i)) cls += ' piercetgt';
-    if (marks.has(i)) cls += ' stratmark';
-    if (mover && mover.lane === l && mover.col === c) cls += ' movesel';
-    if (inRange.has(i)) cls += ' inrange';
-    if (foeInfl.has(i)) cls += ' foeinfl';
-    if (foeThreat.has(i)) cls += ' foethreat';
-    if (foeStrike.has(i)) cls += ' foestrike';
-    if (foeSel && foeSel.lane === l && foeSel.col === c) cls += ' foesel';
-    if (willHit.has(i)) cls += ' willhit';
-    if (buffed.has(i)) cls += ' buffed';
-    if (influenced.has(i)) cls += ' influence';
-    if (aimable.has(i)) cls += ' aimable';
-    const burrowWarn = G.burrowAt && G.burrowAt.l === l && G.burrowAt.c === c;
-    if (burrowWarn) cls += ' burrowmark';
-    // The Brood Mother's telegraphed breaches: marked this turn, erupting next.
-    const breachWarn = G.boss && G.boss.marks.some(m => m.l === l && m.c === c);
-    if (breachWarn) cls += ' breachwarn';
-    // The boss's promised ground: the tendril's wound-up line, the lance's
-    // aimed squares, the parade's burning lane. Same contract as the marks.
-    if (bossWarn.has(i)) cls += ' bosswarn';
-    cell.className = cls;
-
-    let marker = c === COLS - 1 && spawnLanes[l]
-      ? `<span class="spawnmark">◀${spawnLanes[l] > 1 ? spawnLanes[l] : ''}</span>` : '';
-    // The lane's Last-Stand charge, standing (bright) or spent (dark).
-    if (c === 0 && G.gridCharge) {
-      marker += `<span class="gridpip${G.gridCharge[l] ? '' : ' spent'}" title="${G.gridCharge[l]
-        ? 'Last-Stand charge armed — the first breach in this lane fires the grid instead of counting'
-        : 'Charge spent — breaches in this lane now count'}">⛨</span>`;
-    }
-
-    const u = unitAt(l, c);
-    const e = foeAt(l, c);
-    const v = civAt(l, c);
-
-    if (u && u.col === c) {
-      const incoming = threat.hits[u.uid] || 0;
-      if (incoming) cell.className = cls + ' underthreat';
-      cell.innerHTML = marker + unitMarkup(u, incoming);
-      if (!sel && !G.over && !u.acted && !u.controlled) {
-        cell.classList.add('clickable');
-        cell.onclick = () => {
-          setFoeSel(null);
-          setMover(mover && mover.uid === u.uid ? null : u);
-          drawAll();
-        };
-      }
-    } else if (u) {
-      // The trailing half of a two-cell unit.
-      cell.innerHTML = marker + '<div class="ent p-unit anchor"><div class="nm">◂</div></div>';
-    } else if (v) {
-      const label = v.research ? 'RSCH' : v.building ? 'BLDG' : 'CIV';
-      const ttl = v.research ? `<span class="ttl">${v.timer}</span>` : '';
-      cell.innerHTML = marker + `<div class="ent p-civ">${ttl}<div class="nm">${label}</div><div class="hp">${v.hp}</div></div>`;
-      if (v.research) {
-        cell.classList.add('clickable');
-        cell.onclick = () => notify(`${EVENTS.research.icon} ${EVENTS.research.n}`,
-          `${EVENTS.research.d}<br><br>Needs <b>${v.timer}</b> more turn${v.timer === 1 ? '' : 's'} standing to extract clean. Losing it forfeits the credit bonus — not the mission.`);
-      }
-    } else if (e) {
-      const locked = G.units.some(x => x.tgt === e.uid);
-      cell.innerHTML = marker + foeMarkup(e, locked);
-      cell.classList.add('clickable');
-      // Attacking still wins: with a unit selected, a hostile already in its
-      // sights is a target, not a thing to inspect. Selection is what a tap
-      // means only when there is no shot to take.
-      if (aimable.has(i) && mover && !mover.acted) cell.onclick = () => { sfx('zap'); doAttack(mover, e); };
-      else {
-        cell.onclick = () => {
-          setMover(null);
-          setSel(null);
-          setFoeSel(foeSel && foeSel.uid === e.uid ? null : e);
-          drawAll();
-        };
-      }
-    } else {
-      const rubble = owner === 'x' ? G.rubble[l + ',' + c] : null;
-      cell.innerHTML = marker + (rubble ? `<span class="ttl">${rubble}</span>` : '');
-      if (pierceCells.has(i)) {
-        cell.classList.add('clickable');
-        cell.onclick = () => {
-          sfx('zap');
-          const u = abAim;
-          setAbAim(null);
-          doPierce(u, l, c);
-          drawAll();
-        };
-      } else if (rubble) {
-        cell.classList.add('clickable');
-        cell.onclick = () => notify(`${EVENTS.bombard.icon} Bombardment crater`,
-          `Hive artillery scarred this ground — impassable to both sides while it holds.<br><br>Clears itself in <b>${rubble}</b> more turn${rubble === 1 ? '' : 's'}.`);
-      } else if (burrowWarn) {
-        cell.classList.add('clickable');
-        cell.onclick = () => notify(`${EVENTS.burrow.icon} ${EVENTS.burrow.n}`,
-          `${EVENTS.burrow.d}<br><br>This tile is the one marked — whatever is left standing here when it opens falls through with it.`);
-      }
-    }
-
-    // Placement, movement and swaps win over whatever the occupant wired up.
-    if (valid.includes(i)) cell.onclick = () => { sfx('deploy'); deploy(sel, l, c); };
-    else if (moves.includes(i)) cell.onclick = () => { sfx('move'); doMove(mover, l, c); };
-    else if (swaps.includes(i)) cell.onclick = () => { sfx('move'); doSwap(mover, l, c); };
-    else if (!cell.onclick && (sel || mover)) {
-      cell.onclick = () => { setSel(null); setMover(null); setFoeSel(null); drawAll(); };
-    }
-
-    board.appendChild(cell);
-  }
-
-  const total = LANES * COLS;
-  const mine = held();
-  const theirs = G.ter.flat().filter(t => t === 'e').length;
-  $('terbar').innerHTML = `<i class="p" style="width:${mine / total * 100}%"></i>` +
-    `<i class="n" style="width:${(total - mine - theirs) / total * 100}%"></i>` +
-    `<i class="e" style="width:${theirs / total * 100}%"></i>`;
-}
-
-/**
- * The combat log. The engine has always kept it; until the desktop layout there
- * was nowhere to put it. Newest first, capped to what the rail can show.
- */
-function drawLog() {
-  const el = $('cblog');
-  if (!el) return;
-  const entries = G.logs.slice(0, LOG_LINES);
-  el.innerHTML = entries.length
-    ? entries.map(e => `<div class="logline l-${e.c}">${e.h}</div>`).join('')
-    : '<div class="logline l-info">Awaiting contact.</div>';
-}
-
-/**
- * The one line in the log that a player cannot afford to miss.
- *
- * Measured across 938 turns of real missions, the log runs a median of 5 lines
- * a turn and up to 34 — and 43% of it is your own orders, 28% kills you watched
- * happen and 17% a wave the header already announced. The `loss` class, the
- * only category that reports something being done TO you, is 3.6% of it: about
- * one line every four turns, buried in narration of things already on screen.
- *
- * So that 3.6% comes out and sits under the board where the player is already
- * looking, and the other 96% stays in the history behind it. At a quarter of a
- * line per turn this can never become noise, which is the whole reason it is
- * allowed to interrupt without being asked.
- */
-function paintAlert() {
-  const el = $('alertstrip');
-  if (!el) return;
-  // The enemy phase resolves before the turn counter advances, so what was
-  // just done to you is stamped with the turn that ended. Both count as "now";
-  // anything older has been answered or absorbed and stops shouting.
-  const hits = G.logs.filter(e => e.c === 'loss' && e.t >= G.turn - 1);
-  const scr = $('combat');
-  if (!hits.length || G.over) {
-    el.hidden = true; el.innerHTML = '';
-    if (scr) scr.classList.remove('hasalert');
-    return;
-  }
-  const more = hits.length > 1 ? `<span class="amore">+${hits.length - 1} more</span>` : '';
-  el.hidden = false;
-  // One alarm at a time. While this strip is up it is already saying a
-  // threshold was crossed, so the objective panel does not also need to recite
-  // the rules underneath it — on a phone that is 20px of duplicate warning.
-  $('combat').classList.add('hasalert');
-  el.innerHTML = `<span class="aglyph">!</span><span class="atext">${hits[0].h}</span>${more}`;
-  el.title = 'Open the combat log';
-  el.onclick = () => openLog();
-}
-
-/**
- * The full history, as an overlay rather than a column.
- *
- * It used to be a grid track that the board had to pay for on every layout —
- * and folding it away was not even free, because the compact grid kept
- * reserving the row. Floating it costs the board nothing, works the same on a
- * phone as on a desktop, and lets the log be as long as it likes.
- */
-function openLog() {
-  setLogOpen(true);
-  // The objective rides at the top of the overlay, outside the scroller. The
-  // log is the one place a player goes to work out what just happened, and
-  // scrolling back through forty lines with the goal off-screen is how you
-  // lose track of what you were trying to do in the first place.
-  drawObjective('objlog');
-  drawLog();
-  $('logview').classList.add('on');
-  sfx('tap');
-}
-
-function closeLog() {
-  setLogOpen(false);
-  $('logview').classList.remove('on');
-}
-
-/** The Log button, and the two ways out of the overlay it opens. */
-function paintLogToggle() {
-  const tog = $('logtog');
-  if (!tog) return;
-  tog.onclick = () => (logOpen ? closeLog() : openLog());
-  const bg = $('lvbg');
-  const x = $('lvx');
-  if (bg) bg.onclick = closeLog;
-  if (x) x.onclick = closeLog;
-}
-
-/**
- * The objective, stated as an order, above whatever is selected.
- *
- * This is the panel's resting state: it read "Nothing selected" for most of a
- * turn while the mission's actual goal lived in a header span that is hidden
- * on every compact layout. Progress gets pips up to five and a bar beyond —
- * nine pips is a counting exercise, not a glance.
- */
-function drawObjective(host) {
-  const el = $(host || 'objblk');
-  if (!el) return;
-  const b = objBrief();
-  const met = b.total > 0 && b.done >= b.total;
-  let prog = '';
-  if (b.total > 0 && b.total <= 5) {
-    prog = `<span class="pips">${Array.from({length: b.total}, (_, i) =>
-      `<i class="${i < b.done ? 'on' : ''}"></i>`).join('')}</span>`;
-  } else if (b.total > 0) {
-    prog = `<span class="obar"><span style="width:${Math.min(100, b.done / b.total * 100)}%"></span></span>`;
-  }
-  const count = b.total > 0 ? `<b class="onum">${b.done} / ${b.total}</b>` : '';
-  el.className = 'objblk' + (host ? ' lvobj' : '') + (met ? ' met' : '');
-  el.innerHTML = `<span class="orow"><span class="olab">Objective</span>
-      <span class="oclock">${b.clock}</span></span>
-    <span class="ogoal">${b.goal}</span>
-    ${prog || count ? `<span class="orow">${prog}${count}</span>` : ''}
-    <span class="olose">${b.lose}</span>`;
-}
-
-/**
- * The hand header: how full you are, and why, when it matters.
- *
- * Two different situations wear two different colours. Gold FULL means the
- * turn draw is being held back and you should spend; violet OVER means a card
- * you played drew past the cap on purpose and nothing is being withheld.
- * Neither is an error, so neither uses the loss colour.
- */
-function paintHandCount() {
-  const n = $('handcount');
-  const chip = $('handchip');
-  if (!n || !chip) return;
-  const size = G.hand.length;
-  n.textContent = `Hand ${size}/${HAND_CAP}`;
-  if (size > HAND_CAP) {
-    chip.hidden = false;
-    chip.className = 'handchip over';
-    chip.textContent = 'over cap';
-  } else if (size === HAND_CAP) {
-    chip.hidden = false;
-    chip.className = 'handchip full';
-    chip.textContent = 'full — draw held';
-  } else {
-    chip.hidden = true;
-  }
-}
-
-function drawHand() {
-  paintHandCount();
-  const h = $('hcards');
-  h.innerHTML = '';
-  // The last tile the deck did not deal. Everything in front of it — the
-  // lead's call, the Proto Frame — is something you brought rather than drew,
-  // and the tray says so with a gap instead of asking the player to remember.
-  let offdeck = null;
-
-  // Only worth a divider when there is something on the other side of it.
-  if (offdeck && G.hand.length) offdeck.classList.add('railend');
-
-  G.hand.forEach((cid, index) => {
-    const k = POOL[cid];
-    const cost = costOf(cid);
-    // A card the lead refuses is dead in hand, whatever the points say.
-    const banned = leadBan(cid) || frameGateText(cid);
-    const unaffordable = cost > G.dp || G.over || !!banned;
-    const g = gearOf(cid);
-    const v = vetOf(cid);
-
-    const el = document.createElement('div');
-    el.className = `hc t-${k.t} v${v.t}` + (k.chassis === 'proto' ? ' proto' : '') + (unaffordable ? ' poor' : '') + (sel === cid ? ' sel' : '');
-    // A trading card: the seal face and the name, nothing else. Cost, hull
-    // and tier live in the details panel when the card is selected, and in
-    // full behind its View card button.
-    //
-    // The fitted gear used to print its name here as a third line. At six
-    // cards across, "Overclocked Uplink" wrapped to two lines under a name
-    // that had already wrapped, and it still only said which piece — never
-    // what it does. A cyan corner mark says "this one is geared"; the piece
-    // and its rules text are in View card, where there is room to read them.
-    el.innerHTML = `${index < 9 ? `<div class="hkey">${index + 1}</div>` : ''}
-      ${v.t ? `<div class="hpips">${'◆'.repeat(v.t)}</div>` : ''}
-      ${g ? '<div class="hgear" aria-hidden="true">◈</div>' : ''}
-      <div class="hart">${artFor(cid, k.t, null, v.t >= 2 ? v.col : null)}</div>
-      <div class="n">${cardName(cid)}</div>`;
-    // Hover carries the rules text, and the gear's too now that the tile does
-    // not print it.
-    el.title = cardName(cid) + ' — ' + k.d + (g ? `\nGear: ${g.n} — ${g.d}` : '')
-      + (banned ? `\n${leadOf().call} will not field this (${banned}).` : '');
-    el.onclick = () => {
-      if (unaffordable) return;
-      sfx(sel === cid ? 'tap' : 'select');
-      setSel(sel === cid ? null : cid);
-      setMover(null);
-      drawAll();
-    };
-    h.appendChild(el);
-  });
-
-  // Whether the tray actually spills is a measurement, not a count: the cap
-  // says six but a card effect can push past it, and how many fit depends on
-  // the width the tray was given. Ask the layout, then fade the edge so the
-  // extra cards announce themselves.
-  h.classList.remove('spill');
-  if (h.scrollWidth > h.clientWidth + 1) h.classList.add('spill');
-
-  if (!G.hand.length) {
-    h.innerHTML = '<div style="font-size:0.6875rem;color:var(--dim)">Hand empty — hold with what is on the board.</div>';
-  }
-}
-
-function drawAll() {
-  if (!G || !active) return;
-  const m = MISSIONS[G.type];
-
-  const waveLabel = G.endless ? `Wave ${G.turn}` : `Wave ${Math.min(G.turn, G.waves)} / ${G.waves}`;
-  $('c-title').innerHTML = `${waveLabel} <span class="sep">·</span> ${m.n}` +
-    (G.mod !== 'none' ? ` <span class="modtag">${MODS[G.mod].n}</span>` : '');
-  $('c-dp').textContent = G.dp;
-  paintLogToggle();
-  paintAlert();
-  drawObjective();
-  const ground = held();
-  const allow = breachAllowance(G.type);
-  $('c-ter').textContent = ground;
-  $('c-ter').className = ground <= GROUND_FLOOR ? 'bad' : ground <= GROUND_FLOOR + 2 ? 'warn' : '';
-  $('c-br').innerHTML = G.breaches + '<span class="of">/' + allow + '</span>';
-  $('c-br').className = G.breaches >= allow - 1 ? 'bad' : '';
-  $('c-deck').textContent = G.deck.length;
-
-  // Field events ride at the front of the incoming strip: the live one bright,
-  // the telegraphed one dim — the same promise contract as the spawn markers.
-  const evChips = (G.event ? `<span class="incp evt" data-evt="${G.event}">${EVENTS[G.event].icon} ${EVENTS[G.event].n}</span>` : '')
-    + (G.eventNext ? `<span class="incp evtnext" data-evt="${G.eventNext}">next · ${EVENTS[G.eventNext].n}</span>` : '');
-
-  const blind = G.mod === 'blackout';
-  const manChips = G.manifest && !blind
-    ? (Object.keys(G.manifest).length
-      ? Object.entries(G.manifest)
-        .map(([k, v]) => `<span class="incp" data-foe="${k}"><span class="fglyph">${FOE_GLYPH[k] || '▪'}</span>${BEST[k].n}<b>${v}</b></span>`).join('')
-      // A boss mission's manifest is empty every turn — the hive sends nothing,
-      // the machine makes its own. "Dead air" would be a lie here.
-      : G.type === 'boss' ? '<span class="incp">The target spawns its own escort</span>'
-        : '<span class="incp">Dead air — no spawns</span>')
-    : G.manifest ? '<span class="incp">Blackout — no preview</span>'
-      : '<span class="incp">No further hostiles</span>';
-  $('man').innerHTML = evChips + manChips;
-  document.querySelectorAll('#man [data-evt]').forEach(el => {
-    el.onclick = () => notify(EVENTS[el.dataset.evt].n, EVENTS[el.dataset.evt].d);
-  });
-
-  const doctrine = DOCTRINE.find(d => d.k === G.doctrine);
-  $('c-doc').textContent = G.manifest
-    ? (blind ? 'Approach unknown' : (doctrine ? doctrine.n : ''))
-    : 'Wave cleared';
-  document.querySelectorAll('#man [data-foe]').forEach(el => {
-    el.onclick = () => focusEnemy(el.dataset.foe);
-  });
-
-  drawLeadBadge();
-  drawBoard();
-  drawHand();
-  drawSel();
-  drawActions();
-  drawLog();
-}
-
 /* ==== src/render/card-html.js ======================================= */
 // The small card tile used in the Squad, Quartermaster and Database grids.
 // Ghost layout: no art panel, no stat chips — just the name over the card's
@@ -16172,288 +15429,6 @@ function openPanel(key, quiet) {
   }
 }
 
-/* ==== src/render/result.js ========================================== */
-// The end-of-mission card. Reads `G.result`, which the rules layer filled in;
-// it decides nothing itself.
-
-function showResult() {
-  const r = G && G.result;
-  if (!r) return;
-
-  sfx(r.kind === 'win' ? 'win' : 'lose');
-  $('rcard').className = 'rcard ' + r.kind;
-  $('rt').textContent = r.title;
-
-  // Every loss has always led with its reason; wins arrived with none at all,
-  // which is why "why did I win?" was a fair question. Same line, both ways.
-  const why = r.why ? `<span class="rwhy">${r.why}</span><br>` : '';
-  const payout = r.payout
-    ? `<br><br><b style="color:var(--gold)">+${r.payout.cr} credits</b>`
-    : '';
-  $('rs').innerHTML = why + r.lines.join('<br>') + payout;
-  $('result').classList.add('on');
-}
-
-/* ==== src/render/playback.js ======================================== */
-// Replaying a turn tape: the board steps through the recorded frames instead
-// of teleporting to the end state, with damage floats and hit flashes drawn
-// over the cells each frame touched.
-//
-// The frames carry clones of everything drawBoard() reads, so playback swaps
-// those fields into G, draws, and restores the real (final) values when it is
-// done. While it runs, `replaying` in the session holds off input: endTurn
-// refuses to re-enter, the action bar disables, and the cells go inert via the
-// `.replaying` class. Any key or click skips to the end.
-
-/** Everything a frame snapshot overrides on G while it is being shown. */
-const SWAP = ['ter', 'units', 'enemies', 'civ', 'scorch', 'predict', 'held', 'breaches'];
-
-/** Per-frame pacing by what the frame shows, before long-turn compression. */
-const PACE = {fire: 200, enemy: 155, territory: 300, spawn: 200};
-
-/** A turn never takes longer than ~22 beats to watch, however busy it was. */
-const MAX_BEATS = 22;
-const MIN_DELAY = 70;
-
-let saved = null;
-let queue = [];
-let timer = 0;
-let squeeze = 1;
-let onDone = null;
-
-const isReplaying = () => saved !== null;
-
-/**
- * Play the recorded frames, then call `done` with the real state restored.
- * Returns false (and plays nothing) when there is nothing to show or a replay
- * is somehow already running.
- */
-function playTurn(frames, done) {
-  if (saved || !frames.length || !G) {
-    if (done) done();
-    return false;
-  }
-  setReplaying(true);
-  $('combat').classList.add('replaying');
-  $('combat').onclick = skipReplay;
-
-  saved = {};
-  SWAP.forEach(k => { saved[k] = G[k]; });
-  queue = frames.slice();
-  squeeze = Math.min(1, MAX_BEATS / frames.length);
-  onDone = done;
-  stepFrame();
-  return true;
-}
-
-/** Jump straight to the end of the tape. Wired to any key or click. */
-function skipReplay() {
-  if (!saved) return;
-  clearTimeout(timer);
-  queue = [];
-  finishReplay();
-}
-
-function stepFrame() {
-  if (!saved) return;
-  const f = queue.shift();
-  if (!f) {
-    finishReplay();
-    return;
-  }
-  SWAP.forEach(k => { if (f[k] !== undefined) G[k] = f[k]; });
-  drawAll();
-  paintEffects(f.events);
-  const delay = Math.max(MIN_DELAY, (PACE[f.label] || 180) * squeeze);
-  timer = setTimeout(stepFrame, delay);
-}
-
-function finishReplay() {
-  SWAP.forEach(k => { G[k] = saved[k]; });
-  saved = null;
-  setReplaying(false);
-  $('combat').classList.remove('replaying');
-  $('combat').onclick = null;
-  const done = onDone;
-  onDone = null;
-  if (done) done();
-}
-
-/** The cell element at (lane, col) — drawBoard appends them in index order. */
-function cellAt(lane, col) {
-  return $('board').children[lane * COLS + col] || null;
-}
-
-function float(cell, text, cls) {
-  const s = document.createElement('span');
-  s.className = 'fxfloat' + (cls ? ' ' + cls : '');
-  s.textContent = text;
-  cell.appendChild(s);
-}
-
-function paintEffects(events) {
-  // A dense frame plays a handful of sounds, not a wall of them. The breach
-  // alarm always sounds — it is the one the player must not miss.
-  let sfxBudget = 3;
-  const play = name => { if (sfxBudget-- > 0) sfx(name); };
-
-  events.forEach(ev => {
-    const cell = ev.lane !== undefined ? cellAt(ev.lane, ev.col !== undefined ? ev.col : 0) : null;
-    if (!cell) return;
-    switch (ev.type) {
-      case 'hit':
-        cell.classList.add(ev.died ? 'fx-die' : 'fx-hit');
-        float(cell, '-' + ev.amount, ev.foe ? '' : 'own');
-        play(ev.died ? 'boom' : ev.foe ? 'zap' : 'thud');
-        break;
-      case 'shield':
-        cell.classList.add('fx-hit');
-        float(cell, '◈', 'shield');
-        play('ping');
-        break;
-      case 'spawn':
-      case 'clash':
-        cell.classList.add('fx-drop');
-        play('drop');
-        break;
-      case 'breach':
-        cell.classList.add('fx-breach');
-        float(cell, 'BREACH', 'own');
-        sfx('alarm');
-        break;
-    }
-  });
-}
-
-/* ==== src/render/tutorial.js ======================================== */
-// The first-mission briefing.
-//
-// Five steps over the combat screen, and the two that matter advance only when
-// the player actually does the thing — deploys a card, ends the turn — not
-// when they click past a wall of text. The whole thing is presentation: rules
-// know nothing about it, and progress lives in the profile so the briefing
-// runs once per commander (or again on request, from Settings).
-
-const STEPS = [
-  {
-    title: 'Command briefing',
-    body: 'This is the grid, Commander. The cyan tiles are yours — you may only ' +
-      'deploy on ground you hold, and tiles flip to whoever ends the turn ' +
-      'standing on them. Hold ground to deploy; deploy to hold ground.',
-    btn: 'Begin',
-  },
-  {
-    title: 'Deploy',
-    body: 'Tap a card in your hand, then a lit tile. Every card costs deploy ' +
-      'points — you get 6 a turn, and unspent points are lost. Selecting a ' +
-      'card shows its cost and record in the side panel.',
-    wait: 'Deploy a card to continue',
-    done: () => G && G.units.length > 0,
-  },
-  {
-    title: 'Read the chevrons',
-    body: 'The ◀ markers on the right edge promise which lane each hostile ' +
-      'enters next turn — and that promise is kept. The strip at the top shows ' +
-      'what is coming. Shape your line around both.',
-    btn: 'Next',
-  },
-  {
-    title: 'End the turn',
-    body: 'Each unit acts once per turn, committed the moment you give the ' +
-      'order. Any unit you leave alone fires on its own. End the turn (Space) ' +
-      'and watch the resolution play out.',
-    wait: 'End the turn to continue',
-    done: () => G && G.turn > 1,
-  },
-  {
-    title: 'Hold the line',
-    body: 'The ⛨ charge on each lane fires once — the first hostile to cross ' +
-      'that line is vaporised along with everything behind it, and the lane ' +
-      'goes naked. After that, one body through loses the mission, and so ' +
-      'does falling below 6 tiles. Good hunting, Commander.',
-    btn: 'Dismiss',
-  },
-];
-
-let tutStep = -1;
-
-const tutorialActive = () => tutStep >= 0;
-
-/**
- * Called on every entry into combat. Starts the briefing for a commander who
- * has never deployed (or asked for a replay); otherwise makes sure no stale
- * overlay survives from an aborted earlier run.
- */
-function maybeStartTutorial() {
-  const wants = active && G && !G.endless && !G.gauntlet && (
-    (active.settings.tutorial === undefined && active.stats.deployments === 0) ||
-    active.settings.tutorial === 'replay'
-  );
-  if (!wants) {
-    if (tutStep >= 0) dismiss();
-    return;
-  }
-  tutStep = 0;
-  render();
-}
-
-/**
- * Called after every redraw. Advances the do-it steps once their condition
- * holds; sits still during a turn replay so the briefing never reacts to the
- * swapped-in playback frames.
- */
-function tutorialTick() {
-  if (tutStep < 0 || replaying) return;
-  const s = STEPS[tutStep];
-  if (s.done && s.done()) advance();
-}
-
-function skipTutorial() {
-  if (tutStep >= 0) finishBriefing();
-}
-
-function advance() {
-  tutStep++;
-  if (tutStep >= STEPS.length) finishBriefing();
-  else render();
-}
-
-/** Done or skipped: either way it never auto-runs for this commander again. */
-function finishBriefing() {
-  dismiss();
-  if (!active) return;
-  active.settings = active.settings || {};
-  active.settings.tutorial = 'done';
-  commit();
-}
-
-function dismiss() {
-  tutStep = -1;
-  $('tut').classList.remove('on');
-  $('tut').innerHTML = '';
-}
-
-function render() {
-  const s = STEPS[tutStep];
-  const pips = STEPS.map((_, i) => `<i${i <= tutStep ? ' class="on"' : ''}></i>`).join('');
-
-  $('tut').innerHTML = `<div class="tutcard">
-    <div class="tutpips">${pips}</div>
-    <div class="tuttitle">${s.title}</div>
-    <div class="tutbody">${s.body}</div>
-    ${s.wait ? `<div class="tutwait">${s.wait}</div>` : ''}
-    <div class="tutacts">
-      <span class="tutskip" data-tut="skip">Skip briefing</span>
-      ${s.btn ? `<button class="btn gold" data-tut="next">${s.btn}</button>` : ''}
-    </div>
-  </div>`;
-  $('tut').classList.add('on');
-
-  document.querySelectorAll('#tut [data-tut]').forEach(el => {
-    el.onclick = () => (el.dataset.tut === 'skip' ? skipTutorial() : advance());
-  });
-}
-
 /* ==== src/content/patch-notes.js ==================================== */
 // Player-facing changelog. Unlike everything else under src/content, this is
 // hand-authored rather than generated from reference/gridfall-data.json —
@@ -16461,9 +15436,15 @@ function render() {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.28';
+const VERSION = '2.29';
 
 const PATCH_NOTES = [
+  {
+    v: '2.29',
+    notes: [
+      'NAVIGATION PASS. Combat\'s Abort button is a MENU now: it folds a sheet up over the action bar with everything in it — Abort mission, Main menu (straight back to the hold), Settings, the UI and Music toggles, Patch notes. A finished mission still leaves in one tap. The Modes and Operations screens read simply BACK, with the same Menu beside it on the right; and on the hold, the pull-up menu tab moved to the bottom-right corner where your thumb already lives.',
+    ],
+  },
   {
     v: '2.28',
     notes: [
@@ -16840,6 +15821,1104 @@ function openPatchNotes() {
   $('panel').classList.add('on');
 }
 
+/* ==== src/render/combat.js ========================================== */
+// The combat screen: header, board, hand, selection panel and action bar.
+//
+// Everything here is a pure function of (G, active, sel, mover) — drawAll()
+// rebuilds the screen from scratch each time rather than patching it, which is
+// why the rules layer only has to say "something changed".
+
+const LOG_LINES = 40;
+
+/** Leaving combat: back to the map, or to mode select for endless/gauntlet. */
+function leaveCombat() {
+  // A first boss kill earns an after-action call — the lore lands as the
+  // commander walks away from the wreck, over the map the win just changed.
+  // Read before abortMission(), which tears the mission state down.
+  const bossDown = G && G.over && G.type === 'boss' && G.result && G.result.cleared && G.boss
+    ? G.boss.k : null;
+  const {wasEndless, wasGauntlet, wasDaily} = abortMission();
+  $('result').classList.remove('on');
+  closeFocus();
+  setMusicMood('hold');
+  if (wasEndless || wasGauntlet || wasDaily) { show('modes'); renderModes(); return; }
+  show('map');
+  renderMap();
+  if (bossDown) playBossDebrief(bossDown, null);
+}
+
+/** What walking away costs, in this mode's own terms. */
+const abortStakes = () => (G.gauntlet
+  ? 'The gauntlet chain is forfeit — legs already cleared keep their pay, but the run ends here.'
+  : G.endless
+    ? 'Onslaught pays out only when your line falls. Abort now and the run pays nothing.'
+    : G.daily
+      ? 'This attempt is abandoned, but the streak is untouched — you can retry today\'s challenge.'
+      : 'Progress on this mission is lost. The node stays open to try again.');
+
+/** Abort is irreversible, so it asks first — with the stakes for this mode. */
+function confirmAbort() {
+  if (G.over) return leaveCombat();
+  ask('Abort mission', abortStakes() + '<br><br>Leave the field?',
+    ok => { if (ok) leaveCombat(); }, {ok: 'Abort'});
+}
+
+/** All the way out: abort and land on the hold rather than the map. */
+function exitToHold() {
+  abortMission();
+  $('result').classList.remove('on');
+  closeFocus();
+  setMusicMood('hold');
+  show('hold');
+  startScene();
+  paintHold();
+}
+
+function confirmMainMenu() {
+  if (G.over) return exitToHold();
+  ask('Main menu', abortStakes() + '<br><br>Return to the hold?',
+    ok => { if (ok) exitToHold(); }, {ok: 'Leave'});
+}
+
+// The combat menu: the drawer's options folded up over the action bar —
+// combat hides the global drawer, so the sheet lives here instead.
+let cmenuOpen = false;
+
+function paintCMenu() {
+  const el = $('cmenu');
+  if (!el) return;
+  el.classList.toggle('up', cmenuOpen);
+  $('cmUi').textContent = 'UI · ' + UI_LABELS[uiPreference()];
+  $('cmMus').textContent = 'Music · ' + (musicOn() ? 'On' : 'Off');
+  const close = () => { cmenuOpen = false; el.classList.remove('up'); };
+  $('cmAbort').onclick = () => { close(); confirmAbort(); };
+  $('cmHold').onclick = () => { close(); confirmMainMenu(); };
+  $('cmSet').onclick = () => { close(); openPanel('settings'); };
+  $('cmUi').onclick = () => { cycleUiMode(); paintCMenu(); };
+  $('cmMus').onclick = () => { toggleMusic(); paintCMenu(); };
+  $('cmPatch').onclick = () => { close(); openPatchNotes(); };
+}
+
+/** The team-lead badge: the pro and con, one tap away. */
+function drawLeadBadge() {
+  const L = leadOf();
+  const badge = $('leadbadge');
+  badge.innerHTML = `${portrait(active.lead || 'ironbrand')}
+    <span class="lbname">${L.call}</span>`;
+  badge.className = 'leadbadge';
+  badge.style.borderColor = L.col;
+
+  badge.onclick = () => {
+    const lines = [];
+    if (L.passive) lines.push(`<b>Passive · ${L.passive.n}</b> — ${L.passive.d}`);
+    if (L.con) lines.push(`<b>Cost · ${L.con.n}</b> — ${L.con.d}`);
+    notify(L.call + ' · ' + L.role, lines.join('<br><br>') || L.bio);
+  };
+}
+
+/** The two contextual buttons under the hand. */
+function drawActions() {
+  const primary = $('actPrimary');
+  const secondary = $('actSecondary');
+  primary.disabled = false;
+  secondary.disabled = false;
+
+  if (sel || mover || foeSel) cmenuOpen = false;
+  paintCMenu();
+
+  if (sel) {
+    primary.className = 'btn danger';
+    primary.textContent = 'Cancel placement';
+    primary.onclick = () => { setSel(null); drawAll(); };
+    secondary.className = 'btn ghost';
+    secondary.textContent = 'View card';
+    secondary.onclick = () => focusCard(sel, 'info');
+    return;
+  }
+  if (mover) {
+    primary.className = 'btn danger';
+    primary.textContent = 'Deselect unit';
+    primary.onclick = () => { setMover(null); drawAll(); };
+    secondary.className = 'btn ghost';
+    secondary.textContent = 'View card';
+    secondary.onclick = () => focusCard(mover.id, 'info');
+    return;
+  }
+  // A selected hostile gets the same two controls a unit does — the grid
+  // obeys one rule for both sides.
+  if (foeSel) {
+    primary.className = 'btn danger';
+    primary.textContent = 'Deselect hostile';
+    primary.onclick = () => { setFoeSel(null); drawAll(); };
+    secondary.className = 'btn ghost';
+    secondary.textContent = 'View card';
+    secondary.onclick = () => focusEnemy(foeSel.k);
+    return;
+  }
+  primary.className = 'btn';
+  primary.textContent = replaying ? 'Resolving…' : 'End turn';
+  primary.onclick = () => { sfx('confirm'); cmenuOpen = false; endTurn(); };
+  primary.disabled = G.over || replaying;
+  secondary.className = 'btn ghost';
+  // A finished mission has one exit and it should be one tap; mid-mission the
+  // button folds the menu sheet up instead — abort lives inside it.
+  if (G.over) {
+    secondary.textContent = 'Leave';
+    secondary.onclick = () => { cmenuOpen = false; leaveCombat(); };
+  } else {
+    secondary.textContent = 'Menu';
+    secondary.onclick = () => { sfx('tap'); cmenuOpen = !cmenuOpen; paintCMenu(); };
+  }
+  secondary.disabled = replaying;
+}
+
+/** What the selected unit will do, or what the selected card will cost. */
+function drawSel() {
+  const el = $('selinfo');
+  el.hidden = false;
+
+  if (mover) {
+    const u = mover;
+    const incoming = forecastThreat().hits[u.uid] || 0;
+    const g = geomFor(u);
+    const ts = targetsFor(u);
+    const dmg = dmgPreview(u);
+    const buff = buffOf(u);
+    const canChoose = u.single && g.length > 1;
+
+    const verdict = u.acted ? 'Action committed for this turn'
+      : u.cycling > 0 ? 'Weapon cycling — ready to fire next turn'
+        : !g.length ? 'No target in range — it will hold'
+          : canChoose ? `<b>${g.length}</b> targets in reach — tap one in gold to strike`
+            : u.single ? `Will strike ${BEST[ts[0].k].n} for <b>${dmg}</b>`
+              : `Will strike ${g.length} hostile${g.length > 1 ? 's' : ''} for <b>${dmg}</b> each`;
+
+    el.innerHTML = `<div class="selhead"><b style="color:var(--cyan)">${u.n}</b>
+        <span class="hpbadge">${u.hp}/${u.max}${u.acted ? ' · spent' : ''}</span></div>
+      <div class="hpbar"><i style="width:${Math.max(0, u.hp / u.max * 100)}%"></i></div>
+      <div class="selgrid">
+        <div><span>Damage</span><b>${u.dmg}${buff ? ` <span style="color:var(--green)">+${buff}</span>` : ''}</b></div>
+        <div><span>Targeting</span><b>${TGNAME[u.tg] || 'None'}</b></div>
+        ${u.shield ? `<div><span>Shield</span><b style="color:var(--cyan)">${u.shield}</b></div>` : ''}
+        ${incoming ? `<div><span>Incoming</span><b style="color:var(--mag)">${incoming}</b></div>` : ''}
+      </div>
+      ${u.frame ? `<div class="selsupport">Loadout: ${[u.gearW, ...u.gearS].filter(Boolean)
+    .map(c => POOL[c].n).join(' · ') || 'base weapon, nothing fitted'}</div>` : ''}
+      ${supportLabel(u) ? `<div class="selsupport">${supportLabel(u)}</div>` : ''}
+      <div class="selfire ${g.length ? 'live' : 'dead'}">${verdict}</div>
+      ${!u.acted && u.mob ? '<div class="hintline">Tap a green tile to reposition.</div>' : ''}
+      ${!u.acted && u.swap ? '<div class="hintline">Or tap a highlighted friendly to trade places — anywhere on the board.</div>' : ''}
+      ${u.ab && !u.acted ? `<div class="selacts">
+        <button class="mini" data-useab="1"${u.cd > 0 ? ' disabled' : ''}>${u.cd > 0 ? `${u.ab.n} (${u.cd})` : u.ab.n}</button></div>
+        <div class="abline"><b>${u.ab.n}</b> ${u.ab.d}</div>` : ''}`;
+
+    const b = el.querySelector('[data-useab]');
+    if (b && !u.cd) {
+      // A cell-targeted ability (Piercing Thrust) arms an aim mode instead of
+      // resolving on the spot: the board lights the legal cells, the tap on
+      // one of them is the commit, and tapping the button again stands down.
+      b.onclick = u.ab.target === 'cell'
+        ? () => { setAbAim(abAim && abAim.uid === u.uid ? null : u); drawAll(); }
+        : () => doAbility(u);
+    }
+    if (abAim && abAim.uid === u.uid) {
+      const spots = pierceTargets(u).length;
+      el.innerHTML += `<div class="selfire ${spots ? 'live' : 'dead'}">${spots
+        ? `${u.ab.n} armed — tap a lit cell down the lane to dash there.`
+        : `${u.ab.n} — no clear cell to dash to. The path is blocked.`}</div>`;
+    }
+    return;
+  }
+
+  if (foeSel) {
+    const e = foeSel;
+    const D = BEST[e.k];
+    const t = foeThreatCells(e);
+    const hitCell = t.strike.length ? t.strike[0] : null;
+    const victim = hitCell === null ? null : unitAt(Math.floor(hitCell / COLS), hitCell % COLS);
+    const dmg = Math.max(1, (D.dmg || 0) +
+      (G.enemies.some(o => BEST[o.k].aura) ? 1 : 0) - eventStrikeMalus());
+    const speed = D.spd === 0 ? 'Immobile' : D.spd === 0.5 ? 'Every other turn' : D.spd + ' / turn';
+
+    // A boss proxy reads as the whole machine: the shared pool, the shield,
+    // and which phase of its script it is running.
+    if (e.boss && G.boss) {
+      const def = BOSSDEF[G.boss.k];
+      const cells = G.boss.bodies.reduce((a, b) => a + b.cells.length, 0);
+      // Phase two shortens the Reliquary's purge cycle; the countdown is
+      // public by design.
+      const p2cut = n => (G.boss.phase === 2 ? Math.max(2, n - 1) : n);
+      const purgeIn = def.chargeEvery ? p2cut(def.chargeEvery) - G.boss.charge : 0;
+      // The Envoy's bar is the KING's hull — the formation carries its own.
+      const king = def.kingFlip ? G.boss.bodies.find(b => b.role === 'king') : null;
+      const hull = king ? king.hp : bossHp();
+      el.innerHTML = `<div class="selhead"><b style="color:var(--mag)">${D.n}</b>
+          <span class="hpbadge">${hull}/${def.hp}</span></div>
+        ${G.boss.shield > 0 ? `<div class="hpbar"><i style="width:${Math.max(0, G.boss.shield / def.shield * 100)}%;background:var(--cyan)"></i></div>` : ''}
+        <div class="hpbar"><i style="width:${Math.min(100, Math.max(0, hull / def.hp * 100))}%;background:var(--mag)"></i></div>
+        <div class="selgrid">
+          <div><span>Phase</span><b>${G.boss.phase} of 2</b></div>
+          ${G.boss.shield > 0 ? `<div><span>Field</span><b>${G.boss.shield}</b></div>` : ''}
+          <div><span>Bodies</span><b>${G.boss.bodies.length}</b></div>
+          <div><span>Footprint</span><b>${cells} cell${cells === 1 ? '' : 's'}</b></div>
+          ${def.plate ? `<div><span>Plating</span><b>−${def.plate} per hit</b></div>` : ''}
+          ${def.bulk ? `<div><span>Bulkhead</span><b>max ${def.bulk} hull/turn${G.boss.dealt >= def.bulk ? ' — SEALED' : ''}</b></div>` : ''}
+          ${G.boss.k === 'subject' && G.boss.phase === 2 && G.boss.bodies.length === 1 && def.reviveEvery ? `<div><span>Knits whole</span><b>in ${def.reviveEvery - (G.boss.solo || 0)} turn${def.reviveEvery - (G.boss.solo || 0) === 1 ? '' : 's'}</b></div>` : ''}
+          ${def.kingFlip && G.boss.phase === 1 ? `<div><span>Formation</span><b>${G.boss.bodies.length - 1} piece${G.boss.bodies.length - 1 === 1 ? '' : 's'} standing</b></div>` : ''}
+          ${def.kingFlip && G.boss.phase === 2 ? `<div><span>Thrones</span><b>${G.boss.bodies.length - (king ? 1 : 0)} of 4 answering</b></div>` : ''}
+          ${G.boss.k === 'pyreguard' ? `<div><span>Marches</span><b>one lane a turn</b></div>` : ''}
+          ${def.chargeEvery ? `<div><span>Purge</span><b>in ${purgeIn} turn${purgeIn === 1 ? '' : 's'}</b></div>` : ''}
+        </div>
+        <div class="selfire live">${G.boss.phase === 1 ? def.p1 : def.p2}</div>
+        <div class="hintline">${D.d}</div>`;
+      return;
+    }
+
+    const verdict = e.stun ? 'Stunned — it does nothing this turn.'
+      : hitCell !== null ? `Will strike ${victim ? victim.n : 'the line'} for <b>${dmg}</b>`
+        : t.threat.length ? `Closes <b>${t.threat.length}</b> cell${t.threat.length > 1 ? 's' : ''} — nothing in reach yet`
+          : D.dmg ? 'Holds — nothing to strike' : 'Carries no weapon';
+
+    el.innerHTML = `<div class="selhead"><b style="color:var(--mag)">${D.n}</b>
+        <span class="hpbadge">${e.hp}/${D.hp}</span></div>
+      <div class="hpbar"><i style="width:${Math.max(0, e.hp / D.hp * 100)}%;background:var(--mag)"></i></div>
+      <div class="selgrid">
+        <div><span>Damage</span><b>${D.dmg || '—'}</b></div>
+        <div><span>Speed</span><b>${speed}</b></div>
+        <div><span>Threatens</span><b>${t.threat.length + t.strike.length} tiles</b></div>
+        ${D.floor ? `<div><span>Armour</span><b>−${D.floor} taken</b></div>` : ''}
+      </div>
+      <div class="selfire ${hitCell !== null ? 'live' : 'dead'}">${verdict}</div>
+      <div class="hintline">${D.d}</div>`;
+    return;
+  }
+
+  if (sel) {
+    const k = POOL[sel];
+    const g = gearOf(sel);
+    const dmg = (k.dmg || 0) + (g && g.dmg ? g.dmg : 0);
+    // A gated card (a second Frame, gear whose machine is absent) lights
+    // nothing — say why instead of leaving the player tapping dead tiles.
+    const gate = frameGateText(sel);
+    const anchors = validTiles(sel).length;
+    el.innerHTML = `<div class="selhead"><b style="color:var(--green)">${k.n}</b>
+        <span class="hpbadge">${costOf(sel)} DP</span></div>
+      <div class="selgrid">
+        ${k.hp ? `<div><span>Hull</span><b>${k.hp + (g && g.hp ? g.hp : 0)}</b></div>` : ''}
+        ${dmg ? `<div><span>Damage</span><b>${dmg}</b></div>` : ''}
+        ${k.tg && k.tg !== 'none' ? `<div><span>Targeting</span><b>${TGNAME[k.tg]}</b></div>` : ''}
+        <div><span>Deploy</span><b>${k.frameGear ? 'Onto its Frame'
+    : k.drop ? 'Any tile'
+      : k.anyGround ? `Any ground · col ${k.zoneMin}+`
+        : k.zoneMin ? `Held · col ${k.zoneMin}+` : 'Held tiles'}</b></div>
+      </div>
+      <div class="selfire ${anchors ? 'live' : 'dead'}">${anchors
+    ? (k.frameGear ? 'Tap the Frame to fit it' : 'Tap a lit tile to deploy')
+    : (gate || 'No legal tile to deploy on.')}</div>
+      <div class="abline">${k.d}</div>`;
+    return;
+  }
+
+  // Idle. "Nothing selected. Tap a card to deploy" cost 44px of a 664px phone
+  // to say nothing — and the objective now sits above this, so the panel is
+  // no longer empty without it. What survives is the part that was actually
+  // information: who can still act, and who is about to be hit. With neither
+  // to report the block folds away and gives the room back.
+  const threatened = Object.keys(forecastThreat().hits).length;
+  const ready = G.units.filter(u => !u.acted).length;
+  if (!ready && !threatened) { el.hidden = true; el.innerHTML = ''; return; }
+  // One line, not two boxes. As stacked .selfire panels these two counts cost
+  // 72px of a 664px phone to carry about nine words between them.
+  el.innerHTML = `<div class="idlerow">
+    ${ready ? `<span class="ok"><b>${ready}</b> to act</span>` : ''}
+    ${threatened ? `<span class="hit"><b>${threatened}</b> will be struck</span>` : ''}</div>`;
+}
+
+/** Markup for one of your units standing in a cell. */
+function unitMarkup(u, incoming) {
+  const kind = u.t === 'special' ? 'p-spec' : u.tech ? 'p-struct' : 'p-unit';
+  return `<div class="ent ${kind}${u.size > 1 ? ' anchor' : ''}${u.stun ? ' stunned' : ''}${u.acted ? ' spent' : ''}${(u.cycling > 0 || u.jam) && !u.acted ? ' cooling' : ''}${u.controlled ? ' controlled' : ''}" title="${u.controlled ? u.n + ' — mind controlled' : u.jam ? u.n + ' — weapon arced dead this turn' : u.cycling > 0 ? u.n + ' — weapon cycling' : u.n}">
+        ${u.controlled ? '<span class="lockpip" style="color:var(--violet)">☍</span>' : ''}
+        ${incoming ? `<span class="incdmg">-${incoming}</span>` : ''}
+        ${u.tgt ? '<span class="lockpip">⌖</span>' : ''}
+        <span class="minihp"><i style="width:${Math.max(0, u.hp / u.max * 100)}%"></i></span>
+        ${u.shield > 0 ? `<span class="shield">${'◈'.repeat(Math.min(u.shield, 2))}</span>` : ''}
+        ${u.twin ? '<span class="att">▮</span>' : ''}${u.cycling > 0 ? '<span class="att cyc">⟳</span>' : ''}${u.acted ? '<span class="ord done">✓</span>' : ''}
+        ${unitSprite(u.id, u.uid, active.loadout.scheme) || `<div class="nm">${u.n.split(' ')[0]}</div>`}
+        <div class="hp">${u.hp}</div></div>`;
+}
+
+/** Every hostile type carries its own glyph — identity at cell size. */
+const FOE_GLYPH = {
+  crawler: '▪', hulk: '⬢', breacher: '◣', spitter: '◆', burrower: '⋒',
+  spore: '✱', jammer: '⌁', pylon: '▣', harrower: '✠', mender: '✚',
+  husk: '◍', screamer: '◉', chorus: '≋', sovereign: '♚', puppeteer: '☍',
+  fabricant: '⚙', gantry: '☰', brood: '❉', prism: '◇',
+  subject: '◐', envoy: '♔',
+  zealot: '†', lector: '♰', choirwarden: '♪', reliquary: '⚱',
+  pyreguard: '🜂', rimeguard: '🜄', stormguard: '🜁', shardguard: '🜃',
+};
+
+/** The intent badge: what this hostile will do next turn, per enemyIntent(). */
+function intentBadge(e) {
+  const it = enemyIntent(e);
+  if (it.k === 'strike') return `<span class="intent atk">⚔${it.dmg}</span>`;
+  if (it.k === 'advance') return `<span class="intent mov">${'▸'.repeat(Math.min(it.steps, 2))}</span>`;
+  if (it.k === 'mend') return '<span class="intent mend">✚</span>';
+  if (it.k === 'spawn') return '<span class="intent spwn">✱</span>';
+  return '<span class="intent idle">…</span>';
+}
+
+/** Markup for a hostile standing in a cell. */
+function foeMarkup(e, locked) {
+  const D = BEST[e.k];
+  const kind = D.t === 'boss' ? 'e-boss' : D.t === 'special' ? 'e-spec' : D.t === 'tech' ? 'e-tech' : 'e-unit';
+  // A boss proxy's bar reads against its BODY's pool (bmax), which after a
+  // split or shatter is smaller than the bestiary total.
+  const denom = e.bmax || D.hp;
+  const shieldPip = e.boss && G.boss && G.boss.shield > 0
+    ? `<span class="shield">◈${G.boss.shield}</span>` : '';
+  // A body with a chess-court role reads as its piece, not as another copy of
+  // the boss sprite; roles outside PIECE_GLYPH (wall, hive…) keep the sprite.
+  const role = e.boss && G.boss ? (G.boss.bodies.find(b => b.id === e.body) || {}).role : null;
+  const face = role && PIECE_GLYPH[role] && role !== 'king'
+    ? `<div class="nm"><span class="fglyph">${PIECE_GLYPH[role]}</span>${PIECE_NAME[role]}</div>`
+    : foeSprite(e.k, e.uid) || `<div class="nm"><span class="fglyph">${FOE_GLYPH[e.k] || '▪'}</span>${D.n.split(' ')[0]}</div>`;
+  return `<div class="ent ${kind}${e.stun ? ' stunned' : ''}" title="${role && PIECE_NAME[role] ? `${D.n} — ${PIECE_NAME[role]}` : D.n}">
+        ${e.boss ? '' : intentBadge(e)}
+        ${locked ? '<span class="lockpip">⌖</span>' : ''}
+        ${shieldPip}
+        <span class="minihp foe"><i style="width:${Math.max(0, e.hp / denom * 100)}%"></i></span>
+        ${face}
+        <div class="hp">${e.hp}</div></div>`;
+}
+
+function drawBoard() {
+  const valid = sel ? validTiles(sel) : [];
+  const moves = mover ? moveTargets(mover) : [];
+  const swaps = mover ? swapTargets(mover) : [];
+  const threat = forecastThreat();
+  const marks = new Set(stratMarkers());
+
+  // Gold = will be struck if this unit fires; aimable = may be locked onto.
+  const willHit = new Set();
+  const aimable = new Set();
+  if (mover && !mover.acted) {
+    targetsFor(mover).forEach(e => willHit.add(e.lane * COLS + e.col));
+    (mover.single ? candidatesFor(mover) : geomFor(mover)).forEach(e => aimable.add(e.lane * COLS + e.col));
+  }
+  // Cyan = every cell the weapon covers, occupied or not. Without this a
+  // weapon aimed at empty ground shows nothing until something walks into
+  // it — one turn too late to plan around.
+  const inRange = new Set(mover ? geomCells(mover) : []);
+  // The mirror for a selected hostile: what it threatens, and what it hits.
+  const foeStrike = new Set();
+  const foeThreat = new Set();
+  const foeInfl = new Set();
+  if (foeSel) {
+    const t = foeThreatCells(foeSel);
+    t.strike.forEach(i => foeStrike.add(i));
+    t.threat.forEach(i => foeThreat.add(i));
+    t.infl.forEach(i => foeInfl.add(i));
+  }
+  const buffed = new Set();
+  const influenced = new Set();
+  if (mover) {
+    supportTargets(mover).forEach(i => buffed.add(i));
+    influenceCells(mover).forEach(i => influenced.add(i));
+  }
+
+  // Piercing Thrust armed: the empty cells the frame may dash to.
+  const pierceCells = new Set(abAim ? pierceTargets(abAim) : []);
+
+  // Ground the boss has promised to hit next turn.
+  const bossWarn = new Set(G.boss ? bossWarnCells() : []);
+
+  // The spawn-marker contract, made visible. Blackout hides it entirely.
+  const spawnLanes = {};
+  if (G.mod !== 'blackout') {
+    (G.predict || []).concat(G.held || []).forEach(p => {
+      spawnLanes[p.lane] = (spawnLanes[p.lane] || 0) + 1;
+    });
+  }
+
+  const board = $('board');
+  board.style.gridTemplateColumns = `repeat(${COLS},1fr)`;
+  board.innerHTML = '';
+
+  for (let l = 0; l < LANES; l++) for (let c = 0; c < COLS; c++) {
+    const i = l * COLS + c;
+    const owner = G.ter[l][c];
+    const cell = document.createElement('div');
+
+    let cls = 'cell ' + (owner === 'p' ? 't-p' : owner === 'e' ? 't-e' : owner === 'x' ? 't-x' : 't-n');
+    if (scorched(l, c)) cls += ' scorch';
+    if (G.crystals.some(x => x.l === l && x.c === c)) cls += ' objtile';
+    if (G.uplinkAt && G.uplinkAt.l === l && G.uplinkAt.c === c) cls += ' objtile';
+    if (valid.includes(i)) cls += ' valid';
+    if (moves.includes(i)) cls += ' movetgt';
+    if (swaps.includes(i)) cls += ' swaptgt';
+    if (pierceCells.has(i)) cls += ' piercetgt';
+    if (marks.has(i)) cls += ' stratmark';
+    if (mover && mover.lane === l && mover.col === c) cls += ' movesel';
+    if (inRange.has(i)) cls += ' inrange';
+    if (foeInfl.has(i)) cls += ' foeinfl';
+    if (foeThreat.has(i)) cls += ' foethreat';
+    if (foeStrike.has(i)) cls += ' foestrike';
+    if (foeSel && foeSel.lane === l && foeSel.col === c) cls += ' foesel';
+    if (willHit.has(i)) cls += ' willhit';
+    if (buffed.has(i)) cls += ' buffed';
+    if (influenced.has(i)) cls += ' influence';
+    if (aimable.has(i)) cls += ' aimable';
+    const burrowWarn = G.burrowAt && G.burrowAt.l === l && G.burrowAt.c === c;
+    if (burrowWarn) cls += ' burrowmark';
+    // The Brood Mother's telegraphed breaches: marked this turn, erupting next.
+    const breachWarn = G.boss && G.boss.marks.some(m => m.l === l && m.c === c);
+    if (breachWarn) cls += ' breachwarn';
+    // The boss's promised ground: the tendril's wound-up line, the lance's
+    // aimed squares, the parade's burning lane. Same contract as the marks.
+    if (bossWarn.has(i)) cls += ' bosswarn';
+    cell.className = cls;
+
+    let marker = c === COLS - 1 && spawnLanes[l]
+      ? `<span class="spawnmark">◀${spawnLanes[l] > 1 ? spawnLanes[l] : ''}</span>` : '';
+    // The lane's Last-Stand charge, standing (bright) or spent (dark).
+    if (c === 0 && G.gridCharge) {
+      marker += `<span class="gridpip${G.gridCharge[l] ? '' : ' spent'}" title="${G.gridCharge[l]
+        ? 'Last-Stand charge armed — the first breach in this lane fires the grid instead of counting'
+        : 'Charge spent — breaches in this lane now count'}">⛨</span>`;
+    }
+
+    const u = unitAt(l, c);
+    const e = foeAt(l, c);
+    const v = civAt(l, c);
+
+    if (u && u.col === c) {
+      const incoming = threat.hits[u.uid] || 0;
+      if (incoming) cell.className = cls + ' underthreat';
+      cell.innerHTML = marker + unitMarkup(u, incoming);
+      if (!sel && !G.over && !u.acted && !u.controlled) {
+        cell.classList.add('clickable');
+        cell.onclick = () => {
+          setFoeSel(null);
+          setMover(mover && mover.uid === u.uid ? null : u);
+          drawAll();
+        };
+      }
+    } else if (u) {
+      // The trailing half of a two-cell unit.
+      cell.innerHTML = marker + '<div class="ent p-unit anchor"><div class="nm">◂</div></div>';
+    } else if (v) {
+      const label = v.research ? 'RSCH' : v.building ? 'BLDG' : 'CIV';
+      const ttl = v.research ? `<span class="ttl">${v.timer}</span>` : '';
+      cell.innerHTML = marker + `<div class="ent p-civ">${ttl}<div class="nm">${label}</div><div class="hp">${v.hp}</div></div>`;
+      if (v.research) {
+        cell.classList.add('clickable');
+        cell.onclick = () => notify(`${EVENTS.research.icon} ${EVENTS.research.n}`,
+          `${EVENTS.research.d}<br><br>Needs <b>${v.timer}</b> more turn${v.timer === 1 ? '' : 's'} standing to extract clean. Losing it forfeits the credit bonus — not the mission.`);
+      }
+    } else if (e) {
+      const locked = G.units.some(x => x.tgt === e.uid);
+      cell.innerHTML = marker + foeMarkup(e, locked);
+      cell.classList.add('clickable');
+      // Attacking still wins: with a unit selected, a hostile already in its
+      // sights is a target, not a thing to inspect. Selection is what a tap
+      // means only when there is no shot to take.
+      if (aimable.has(i) && mover && !mover.acted) cell.onclick = () => { sfx('zap'); doAttack(mover, e); };
+      else {
+        cell.onclick = () => {
+          setMover(null);
+          setSel(null);
+          setFoeSel(foeSel && foeSel.uid === e.uid ? null : e);
+          drawAll();
+        };
+      }
+    } else {
+      const rubble = owner === 'x' ? G.rubble[l + ',' + c] : null;
+      cell.innerHTML = marker + (rubble ? `<span class="ttl">${rubble}</span>` : '');
+      if (pierceCells.has(i)) {
+        cell.classList.add('clickable');
+        cell.onclick = () => {
+          sfx('zap');
+          const u = abAim;
+          setAbAim(null);
+          doPierce(u, l, c);
+          drawAll();
+        };
+      } else if (rubble) {
+        cell.classList.add('clickable');
+        cell.onclick = () => notify(`${EVENTS.bombard.icon} Bombardment crater`,
+          `Hive artillery scarred this ground — impassable to both sides while it holds.<br><br>Clears itself in <b>${rubble}</b> more turn${rubble === 1 ? '' : 's'}.`);
+      } else if (burrowWarn) {
+        cell.classList.add('clickable');
+        cell.onclick = () => notify(`${EVENTS.burrow.icon} ${EVENTS.burrow.n}`,
+          `${EVENTS.burrow.d}<br><br>This tile is the one marked — whatever is left standing here when it opens falls through with it.`);
+      }
+    }
+
+    // Placement, movement and swaps win over whatever the occupant wired up.
+    if (valid.includes(i)) cell.onclick = () => { sfx('deploy'); deploy(sel, l, c); };
+    else if (moves.includes(i)) cell.onclick = () => { sfx('move'); doMove(mover, l, c); };
+    else if (swaps.includes(i)) cell.onclick = () => { sfx('move'); doSwap(mover, l, c); };
+    else if (!cell.onclick && (sel || mover)) {
+      cell.onclick = () => { setSel(null); setMover(null); setFoeSel(null); drawAll(); };
+    }
+
+    board.appendChild(cell);
+  }
+
+  const total = LANES * COLS;
+  const mine = held();
+  const theirs = G.ter.flat().filter(t => t === 'e').length;
+  $('terbar').innerHTML = `<i class="p" style="width:${mine / total * 100}%"></i>` +
+    `<i class="n" style="width:${(total - mine - theirs) / total * 100}%"></i>` +
+    `<i class="e" style="width:${theirs / total * 100}%"></i>`;
+}
+
+/**
+ * The combat log. The engine has always kept it; until the desktop layout there
+ * was nowhere to put it. Newest first, capped to what the rail can show.
+ */
+function drawLog() {
+  const el = $('cblog');
+  if (!el) return;
+  const entries = G.logs.slice(0, LOG_LINES);
+  el.innerHTML = entries.length
+    ? entries.map(e => `<div class="logline l-${e.c}">${e.h}</div>`).join('')
+    : '<div class="logline l-info">Awaiting contact.</div>';
+}
+
+/**
+ * The one line in the log that a player cannot afford to miss.
+ *
+ * Measured across 938 turns of real missions, the log runs a median of 5 lines
+ * a turn and up to 34 — and 43% of it is your own orders, 28% kills you watched
+ * happen and 17% a wave the header already announced. The `loss` class, the
+ * only category that reports something being done TO you, is 3.6% of it: about
+ * one line every four turns, buried in narration of things already on screen.
+ *
+ * So that 3.6% comes out and sits under the board where the player is already
+ * looking, and the other 96% stays in the history behind it. At a quarter of a
+ * line per turn this can never become noise, which is the whole reason it is
+ * allowed to interrupt without being asked.
+ */
+function paintAlert() {
+  const el = $('alertstrip');
+  if (!el) return;
+  // The enemy phase resolves before the turn counter advances, so what was
+  // just done to you is stamped with the turn that ended. Both count as "now";
+  // anything older has been answered or absorbed and stops shouting.
+  const hits = G.logs.filter(e => e.c === 'loss' && e.t >= G.turn - 1);
+  const scr = $('combat');
+  if (!hits.length || G.over) {
+    el.hidden = true; el.innerHTML = '';
+    if (scr) scr.classList.remove('hasalert');
+    return;
+  }
+  const more = hits.length > 1 ? `<span class="amore">+${hits.length - 1} more</span>` : '';
+  el.hidden = false;
+  // One alarm at a time. While this strip is up it is already saying a
+  // threshold was crossed, so the objective panel does not also need to recite
+  // the rules underneath it — on a phone that is 20px of duplicate warning.
+  $('combat').classList.add('hasalert');
+  el.innerHTML = `<span class="aglyph">!</span><span class="atext">${hits[0].h}</span>${more}`;
+  el.title = 'Open the combat log';
+  el.onclick = () => openLog();
+}
+
+/**
+ * The full history, as an overlay rather than a column.
+ *
+ * It used to be a grid track that the board had to pay for on every layout —
+ * and folding it away was not even free, because the compact grid kept
+ * reserving the row. Floating it costs the board nothing, works the same on a
+ * phone as on a desktop, and lets the log be as long as it likes.
+ */
+function openLog() {
+  setLogOpen(true);
+  // The objective rides at the top of the overlay, outside the scroller. The
+  // log is the one place a player goes to work out what just happened, and
+  // scrolling back through forty lines with the goal off-screen is how you
+  // lose track of what you were trying to do in the first place.
+  drawObjective('objlog');
+  drawLog();
+  $('logview').classList.add('on');
+  sfx('tap');
+}
+
+function closeLog() {
+  setLogOpen(false);
+  $('logview').classList.remove('on');
+}
+
+/** The Log button, and the two ways out of the overlay it opens. */
+function paintLogToggle() {
+  const tog = $('logtog');
+  if (!tog) return;
+  tog.onclick = () => (logOpen ? closeLog() : openLog());
+  const bg = $('lvbg');
+  const x = $('lvx');
+  if (bg) bg.onclick = closeLog;
+  if (x) x.onclick = closeLog;
+}
+
+/**
+ * The objective, stated as an order, above whatever is selected.
+ *
+ * This is the panel's resting state: it read "Nothing selected" for most of a
+ * turn while the mission's actual goal lived in a header span that is hidden
+ * on every compact layout. Progress gets pips up to five and a bar beyond —
+ * nine pips is a counting exercise, not a glance.
+ */
+function drawObjective(host) {
+  const el = $(host || 'objblk');
+  if (!el) return;
+  const b = objBrief();
+  const met = b.total > 0 && b.done >= b.total;
+  let prog = '';
+  if (b.total > 0 && b.total <= 5) {
+    prog = `<span class="pips">${Array.from({length: b.total}, (_, i) =>
+      `<i class="${i < b.done ? 'on' : ''}"></i>`).join('')}</span>`;
+  } else if (b.total > 0) {
+    prog = `<span class="obar"><span style="width:${Math.min(100, b.done / b.total * 100)}%"></span></span>`;
+  }
+  const count = b.total > 0 ? `<b class="onum">${b.done} / ${b.total}</b>` : '';
+  el.className = 'objblk' + (host ? ' lvobj' : '') + (met ? ' met' : '');
+  el.innerHTML = `<span class="orow"><span class="olab">Objective</span>
+      <span class="oclock">${b.clock}</span></span>
+    <span class="ogoal">${b.goal}</span>
+    ${prog || count ? `<span class="orow">${prog}${count}</span>` : ''}
+    <span class="olose">${b.lose}</span>`;
+}
+
+/**
+ * The hand header: how full you are, and why, when it matters.
+ *
+ * Two different situations wear two different colours. Gold FULL means the
+ * turn draw is being held back and you should spend; violet OVER means a card
+ * you played drew past the cap on purpose and nothing is being withheld.
+ * Neither is an error, so neither uses the loss colour.
+ */
+function paintHandCount() {
+  const n = $('handcount');
+  const chip = $('handchip');
+  if (!n || !chip) return;
+  const size = G.hand.length;
+  n.textContent = `Hand ${size}/${HAND_CAP}`;
+  if (size > HAND_CAP) {
+    chip.hidden = false;
+    chip.className = 'handchip over';
+    chip.textContent = 'over cap';
+  } else if (size === HAND_CAP) {
+    chip.hidden = false;
+    chip.className = 'handchip full';
+    chip.textContent = 'full — draw held';
+  } else {
+    chip.hidden = true;
+  }
+}
+
+function drawHand() {
+  paintHandCount();
+  const h = $('hcards');
+  h.innerHTML = '';
+  // The last tile the deck did not deal. Everything in front of it — the
+  // lead's call, the Proto Frame — is something you brought rather than drew,
+  // and the tray says so with a gap instead of asking the player to remember.
+  let offdeck = null;
+
+  // Only worth a divider when there is something on the other side of it.
+  if (offdeck && G.hand.length) offdeck.classList.add('railend');
+
+  G.hand.forEach((cid, index) => {
+    const k = POOL[cid];
+    const cost = costOf(cid);
+    // A card the lead refuses is dead in hand, whatever the points say.
+    const banned = leadBan(cid) || frameGateText(cid);
+    const unaffordable = cost > G.dp || G.over || !!banned;
+    const g = gearOf(cid);
+    const v = vetOf(cid);
+
+    const el = document.createElement('div');
+    el.className = `hc t-${k.t} v${v.t}` + (k.chassis === 'proto' ? ' proto' : '') + (unaffordable ? ' poor' : '') + (sel === cid ? ' sel' : '');
+    // A trading card: the seal face and the name, nothing else. Cost, hull
+    // and tier live in the details panel when the card is selected, and in
+    // full behind its View card button.
+    //
+    // The fitted gear used to print its name here as a third line. At six
+    // cards across, "Overclocked Uplink" wrapped to two lines under a name
+    // that had already wrapped, and it still only said which piece — never
+    // what it does. A cyan corner mark says "this one is geared"; the piece
+    // and its rules text are in View card, where there is room to read them.
+    el.innerHTML = `${index < 9 ? `<div class="hkey">${index + 1}</div>` : ''}
+      ${v.t ? `<div class="hpips">${'◆'.repeat(v.t)}</div>` : ''}
+      ${g ? '<div class="hgear" aria-hidden="true">◈</div>' : ''}
+      <div class="hart">${artFor(cid, k.t, null, v.t >= 2 ? v.col : null)}</div>
+      <div class="n">${cardName(cid)}</div>`;
+    // Hover carries the rules text, and the gear's too now that the tile does
+    // not print it.
+    el.title = cardName(cid) + ' — ' + k.d + (g ? `\nGear: ${g.n} — ${g.d}` : '')
+      + (banned ? `\n${leadOf().call} will not field this (${banned}).` : '');
+    el.onclick = () => {
+      if (unaffordable) return;
+      sfx(sel === cid ? 'tap' : 'select');
+      setSel(sel === cid ? null : cid);
+      setMover(null);
+      drawAll();
+    };
+    h.appendChild(el);
+  });
+
+  // Whether the tray actually spills is a measurement, not a count: the cap
+  // says six but a card effect can push past it, and how many fit depends on
+  // the width the tray was given. Ask the layout, then fade the edge so the
+  // extra cards announce themselves.
+  h.classList.remove('spill');
+  if (h.scrollWidth > h.clientWidth + 1) h.classList.add('spill');
+
+  if (!G.hand.length) {
+    h.innerHTML = '<div style="font-size:0.6875rem;color:var(--dim)">Hand empty — hold with what is on the board.</div>';
+  }
+}
+
+function drawAll() {
+  if (!G || !active) return;
+  const m = MISSIONS[G.type];
+
+  const waveLabel = G.endless ? `Wave ${G.turn}` : `Wave ${Math.min(G.turn, G.waves)} / ${G.waves}`;
+  $('c-title').innerHTML = `${waveLabel} <span class="sep">·</span> ${m.n}` +
+    (G.mod !== 'none' ? ` <span class="modtag">${MODS[G.mod].n}</span>` : '');
+  $('c-dp').textContent = G.dp;
+  paintLogToggle();
+  paintAlert();
+  drawObjective();
+  const ground = held();
+  const allow = breachAllowance(G.type);
+  $('c-ter').textContent = ground;
+  $('c-ter').className = ground <= GROUND_FLOOR ? 'bad' : ground <= GROUND_FLOOR + 2 ? 'warn' : '';
+  $('c-br').innerHTML = G.breaches + '<span class="of">/' + allow + '</span>';
+  $('c-br').className = G.breaches >= allow - 1 ? 'bad' : '';
+  $('c-deck').textContent = G.deck.length;
+
+  // Field events ride at the front of the incoming strip: the live one bright,
+  // the telegraphed one dim — the same promise contract as the spawn markers.
+  const evChips = (G.event ? `<span class="incp evt" data-evt="${G.event}">${EVENTS[G.event].icon} ${EVENTS[G.event].n}</span>` : '')
+    + (G.eventNext ? `<span class="incp evtnext" data-evt="${G.eventNext}">next · ${EVENTS[G.eventNext].n}</span>` : '');
+
+  const blind = G.mod === 'blackout';
+  const manChips = G.manifest && !blind
+    ? (Object.keys(G.manifest).length
+      ? Object.entries(G.manifest)
+        .map(([k, v]) => `<span class="incp" data-foe="${k}"><span class="fglyph">${FOE_GLYPH[k] || '▪'}</span>${BEST[k].n}<b>${v}</b></span>`).join('')
+      // A boss mission's manifest is empty every turn — the hive sends nothing,
+      // the machine makes its own. "Dead air" would be a lie here.
+      : G.type === 'boss' ? '<span class="incp">The target spawns its own escort</span>'
+        : '<span class="incp">Dead air — no spawns</span>')
+    : G.manifest ? '<span class="incp">Blackout — no preview</span>'
+      : '<span class="incp">No further hostiles</span>';
+  $('man').innerHTML = evChips + manChips;
+  document.querySelectorAll('#man [data-evt]').forEach(el => {
+    el.onclick = () => notify(EVENTS[el.dataset.evt].n, EVENTS[el.dataset.evt].d);
+  });
+
+  const doctrine = DOCTRINE.find(d => d.k === G.doctrine);
+  $('c-doc').textContent = G.manifest
+    ? (blind ? 'Approach unknown' : (doctrine ? doctrine.n : ''))
+    : 'Wave cleared';
+  document.querySelectorAll('#man [data-foe]').forEach(el => {
+    el.onclick = () => focusEnemy(el.dataset.foe);
+  });
+
+  drawLeadBadge();
+  drawBoard();
+  drawHand();
+  drawSel();
+  drawActions();
+  drawLog();
+}
+
+/* ==== src/render/result.js ========================================== */
+// The end-of-mission card. Reads `G.result`, which the rules layer filled in;
+// it decides nothing itself.
+
+function showResult() {
+  const r = G && G.result;
+  if (!r) return;
+
+  sfx(r.kind === 'win' ? 'win' : 'lose');
+  $('rcard').className = 'rcard ' + r.kind;
+  $('rt').textContent = r.title;
+
+  // Every loss has always led with its reason; wins arrived with none at all,
+  // which is why "why did I win?" was a fair question. Same line, both ways.
+  const why = r.why ? `<span class="rwhy">${r.why}</span><br>` : '';
+  const payout = r.payout
+    ? `<br><br><b style="color:var(--gold)">+${r.payout.cr} credits</b>`
+    : '';
+  $('rs').innerHTML = why + r.lines.join('<br>') + payout;
+  $('result').classList.add('on');
+}
+
+/* ==== src/render/playback.js ======================================== */
+// Replaying a turn tape: the board steps through the recorded frames instead
+// of teleporting to the end state, with damage floats and hit flashes drawn
+// over the cells each frame touched.
+//
+// The frames carry clones of everything drawBoard() reads, so playback swaps
+// those fields into G, draws, and restores the real (final) values when it is
+// done. While it runs, `replaying` in the session holds off input: endTurn
+// refuses to re-enter, the action bar disables, and the cells go inert via the
+// `.replaying` class. Any key or click skips to the end.
+
+/** Everything a frame snapshot overrides on G while it is being shown. */
+const SWAP = ['ter', 'units', 'enemies', 'civ', 'scorch', 'predict', 'held', 'breaches'];
+
+/** Per-frame pacing by what the frame shows, before long-turn compression. */
+const PACE = {fire: 200, enemy: 155, territory: 300, spawn: 200};
+
+/** A turn never takes longer than ~22 beats to watch, however busy it was. */
+const MAX_BEATS = 22;
+const MIN_DELAY = 70;
+
+let saved = null;
+let queue = [];
+let timer = 0;
+let squeeze = 1;
+let onDone = null;
+
+const isReplaying = () => saved !== null;
+
+/**
+ * Play the recorded frames, then call `done` with the real state restored.
+ * Returns false (and plays nothing) when there is nothing to show or a replay
+ * is somehow already running.
+ */
+function playTurn(frames, done) {
+  if (saved || !frames.length || !G) {
+    if (done) done();
+    return false;
+  }
+  setReplaying(true);
+  $('combat').classList.add('replaying');
+  $('combat').onclick = skipReplay;
+
+  saved = {};
+  SWAP.forEach(k => { saved[k] = G[k]; });
+  queue = frames.slice();
+  squeeze = Math.min(1, MAX_BEATS / frames.length);
+  onDone = done;
+  stepFrame();
+  return true;
+}
+
+/** Jump straight to the end of the tape. Wired to any key or click. */
+function skipReplay() {
+  if (!saved) return;
+  clearTimeout(timer);
+  queue = [];
+  finishReplay();
+}
+
+function stepFrame() {
+  if (!saved) return;
+  const f = queue.shift();
+  if (!f) {
+    finishReplay();
+    return;
+  }
+  SWAP.forEach(k => { if (f[k] !== undefined) G[k] = f[k]; });
+  drawAll();
+  paintEffects(f.events);
+  const delay = Math.max(MIN_DELAY, (PACE[f.label] || 180) * squeeze);
+  timer = setTimeout(stepFrame, delay);
+}
+
+function finishReplay() {
+  SWAP.forEach(k => { G[k] = saved[k]; });
+  saved = null;
+  setReplaying(false);
+  $('combat').classList.remove('replaying');
+  $('combat').onclick = null;
+  const done = onDone;
+  onDone = null;
+  if (done) done();
+}
+
+/** The cell element at (lane, col) — drawBoard appends them in index order. */
+function cellAt(lane, col) {
+  return $('board').children[lane * COLS + col] || null;
+}
+
+function float(cell, text, cls) {
+  const s = document.createElement('span');
+  s.className = 'fxfloat' + (cls ? ' ' + cls : '');
+  s.textContent = text;
+  cell.appendChild(s);
+}
+
+function paintEffects(events) {
+  // A dense frame plays a handful of sounds, not a wall of them. The breach
+  // alarm always sounds — it is the one the player must not miss.
+  let sfxBudget = 3;
+  const play = name => { if (sfxBudget-- > 0) sfx(name); };
+
+  events.forEach(ev => {
+    const cell = ev.lane !== undefined ? cellAt(ev.lane, ev.col !== undefined ? ev.col : 0) : null;
+    if (!cell) return;
+    switch (ev.type) {
+      case 'hit':
+        cell.classList.add(ev.died ? 'fx-die' : 'fx-hit');
+        float(cell, '-' + ev.amount, ev.foe ? '' : 'own');
+        play(ev.died ? 'boom' : ev.foe ? 'zap' : 'thud');
+        break;
+      case 'shield':
+        cell.classList.add('fx-hit');
+        float(cell, '◈', 'shield');
+        play('ping');
+        break;
+      case 'spawn':
+      case 'clash':
+        cell.classList.add('fx-drop');
+        play('drop');
+        break;
+      case 'breach':
+        cell.classList.add('fx-breach');
+        float(cell, 'BREACH', 'own');
+        sfx('alarm');
+        break;
+    }
+  });
+}
+
+/* ==== src/render/tutorial.js ======================================== */
+// The first-mission briefing.
+//
+// Five steps over the combat screen, and the two that matter advance only when
+// the player actually does the thing — deploys a card, ends the turn — not
+// when they click past a wall of text. The whole thing is presentation: rules
+// know nothing about it, and progress lives in the profile so the briefing
+// runs once per commander (or again on request, from Settings).
+
+const STEPS = [
+  {
+    title: 'Command briefing',
+    body: 'This is the grid, Commander. The cyan tiles are yours — you may only ' +
+      'deploy on ground you hold, and tiles flip to whoever ends the turn ' +
+      'standing on them. Hold ground to deploy; deploy to hold ground.',
+    btn: 'Begin',
+  },
+  {
+    title: 'Deploy',
+    body: 'Tap a card in your hand, then a lit tile. Every card costs deploy ' +
+      'points — you get 6 a turn, and unspent points are lost. Selecting a ' +
+      'card shows its cost and record in the side panel.',
+    wait: 'Deploy a card to continue',
+    done: () => G && G.units.length > 0,
+  },
+  {
+    title: 'Read the chevrons',
+    body: 'The ◀ markers on the right edge promise which lane each hostile ' +
+      'enters next turn — and that promise is kept. The strip at the top shows ' +
+      'what is coming. Shape your line around both.',
+    btn: 'Next',
+  },
+  {
+    title: 'End the turn',
+    body: 'Each unit acts once per turn, committed the moment you give the ' +
+      'order. Any unit you leave alone fires on its own. End the turn (Space) ' +
+      'and watch the resolution play out.',
+    wait: 'End the turn to continue',
+    done: () => G && G.turn > 1,
+  },
+  {
+    title: 'Hold the line',
+    body: 'The ⛨ charge on each lane fires once — the first hostile to cross ' +
+      'that line is vaporised along with everything behind it, and the lane ' +
+      'goes naked. After that, one body through loses the mission, and so ' +
+      'does falling below 6 tiles. Good hunting, Commander.',
+    btn: 'Dismiss',
+  },
+];
+
+let tutStep = -1;
+
+const tutorialActive = () => tutStep >= 0;
+
+/**
+ * Called on every entry into combat. Starts the briefing for a commander who
+ * has never deployed (or asked for a replay); otherwise makes sure no stale
+ * overlay survives from an aborted earlier run.
+ */
+function maybeStartTutorial() {
+  const wants = active && G && !G.endless && !G.gauntlet && (
+    (active.settings.tutorial === undefined && active.stats.deployments === 0) ||
+    active.settings.tutorial === 'replay'
+  );
+  if (!wants) {
+    if (tutStep >= 0) dismiss();
+    return;
+  }
+  tutStep = 0;
+  render();
+}
+
+/**
+ * Called after every redraw. Advances the do-it steps once their condition
+ * holds; sits still during a turn replay so the briefing never reacts to the
+ * swapped-in playback frames.
+ */
+function tutorialTick() {
+  if (tutStep < 0 || replaying) return;
+  const s = STEPS[tutStep];
+  if (s.done && s.done()) advance();
+}
+
+function skipTutorial() {
+  if (tutStep >= 0) finishBriefing();
+}
+
+function advance() {
+  tutStep++;
+  if (tutStep >= STEPS.length) finishBriefing();
+  else render();
+}
+
+/** Done or skipped: either way it never auto-runs for this commander again. */
+function finishBriefing() {
+  dismiss();
+  if (!active) return;
+  active.settings = active.settings || {};
+  active.settings.tutorial = 'done';
+  commit();
+}
+
+function dismiss() {
+  tutStep = -1;
+  $('tut').classList.remove('on');
+  $('tut').innerHTML = '';
+}
+
+function render() {
+  const s = STEPS[tutStep];
+  const pips = STEPS.map((_, i) => `<i${i <= tutStep ? ' class="on"' : ''}></i>`).join('');
+
+  $('tut').innerHTML = `<div class="tutcard">
+    <div class="tutpips">${pips}</div>
+    <div class="tuttitle">${s.title}</div>
+    <div class="tutbody">${s.body}</div>
+    ${s.wait ? `<div class="tutwait">${s.wait}</div>` : ''}
+    <div class="tutacts">
+      <span class="tutskip" data-tut="skip">Skip briefing</span>
+      ${s.btn ? `<button class="btn gold" data-tut="next">${s.btn}</button>` : ''}
+    </div>
+  </div>`;
+  $('tut').classList.add('on');
+
+  document.querySelectorAll('#tut [data-tut]').forEach(el => {
+    el.onclick = () => (el.dataset.tut === 'skip' ? skipTutorial() : advance());
+  });
+}
+
 /* ==== src/render/wiring.js ========================================== */
 // Boot: install the presentation hooks, wire the shell's fixed controls, and
 // put the record-select screen up.
@@ -16937,6 +17016,9 @@ function wireNavigation() {
   };
   $('modesback').onclick = () => { show('hold'); startScene(); paintHold(); };
   $('opsback').onclick = () => { show('modes'); renderModes(); };
+  // The navfoot Menu buttons drive the same pull-up drawer as the corner tab.
+  $('modesmenu').onclick = () => $('drawtab').click();
+  $('opsmenu').onclick = () => $('drawtab').click();
   $('mapback').onclick = () => { show('ops'); renderOps(); };
   $('pclose').onclick = () => $('panel').classList.remove('on');
   $('fbg').onclick = closeFocus;

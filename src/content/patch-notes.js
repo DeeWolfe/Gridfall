@@ -4,9 +4,15 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.28';
+export const VERSION = '2.29';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.29',
+    notes: [
+      'NAVIGATION PASS. Combat\'s Abort button is a MENU now: it folds a sheet up over the action bar with everything in it — Abort mission, Main menu (straight back to the hold), Settings, the UI and Music toggles, Patch notes. A finished mission still leaves in one tap. The Modes and Operations screens read simply BACK, with the same Menu beside it on the right; and on the hold, the pull-up menu tab moved to the bottom-right corner where your thumb already lives.',
+    ],
+  },
   {
     v: '2.28',
     notes: [

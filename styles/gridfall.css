@@ -244,6 +244,7 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 .navfoot h2{font-size:0.75rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;
   color:var(--zan);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .navfoot .btn{flex:0 0 auto;padding:.8rem 1.3rem}
+.navbtns{display:flex;gap:9px;flex:0 0 auto}
 @media(max-width:520px){
   .navfoot{gap:9px;padding:9px 11px}
   .navfoot h2{font-size:0.75rem;letter-spacing:.14em}
@@ -1048,7 +1049,17 @@ body{font-size:1rem}
 .logtog.on{color:var(--cyan);border-color:var(--cyan-d)}
 .cbfoot{flex:0 0 auto;display:grid;grid-template-columns:minmax(0,1fr);
   gap:clamp(7px,.8vw,12px);padding:0 clamp(8px,.9vw,14px) clamp(8px,.9vw,14px)}
-.cbacts{flex:0 0 auto;display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center}
+.cbacts{flex:0 0 auto;display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;position:relative}
+/* The combat menu: the drawer's options, folded up over the action bar. */
+.cmenu{position:absolute;bottom:calc(100% + 8px);right:0;z-index:40;
+  display:flex;flex-direction:column;gap:6px;padding:10px;
+  background:var(--panel2);border:1px solid var(--line2);min-width:150px;
+  clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));
+  transform:translateY(12%);opacity:0;pointer-events:none;
+  transition:transform .26s cubic-bezier(.2,.9,.3,1.1),opacity .18s}
+.cmenu.up{transform:none;opacity:1;pointer-events:auto}
+.cmenu .mini{text-align:left;white-space:nowrap}
+@media (prefers-reduced-motion: reduce){.cmenu{transition:none}}
 .cbacts .btn{padding:.85rem 1.2rem;text-align:center;font-size:0.6875rem;white-space:nowrap}
 .cbacts .btn.ghost{padding:13px 16px;color:var(--dim);border:1px solid var(--line2)}
 .cbacts .btn.ghost:hover{color:var(--mag);border-color:var(--mag-d)}
@@ -1428,17 +1439,21 @@ body{font-size:1rem}
   color:var(--dim);font-size:0.6875rem;line-height:1.65;max-width:64ch}
 
 /* ============ PULL-UP DRAWER ============ */
-/* One tab on the hold/ops/map/modes screens: tap, the menu slides up; tap
-   again, it slides back down. Combat has no drawer — its bottom edge is
-   already the hand and action bar, and its top-right is the lead badge. */
-#drawer{position:fixed;left:50%;transform:translateX(-50%);bottom:0;z-index:60;
-  display:flex;flex-direction:column;align-items:center}
+/* One tab, bottom-RIGHT, on the hold/ops/map/modes screens: tap, the menu
+   slides up; tap again, it slides back down. Combat carries its own menu
+   sheet on the action bar instead (see .cmenu below). */
+#drawer{position:fixed;right:14px;bottom:0;z-index:60;
+  display:flex;flex-direction:column;align-items:flex-end}
 #title.on ~ #drawer,#boot.on ~ #drawer,#combat.on ~ #drawer{display:none}
+/* Screens whose footer carries its own Menu button: the corner tab hides and
+   the sheet rides up clear of the navfoot — one entry point per screen. */
+#modes.on ~ #drawer #drawtab,#ops.on ~ #drawer #drawtab{display:none}
+#modes.on ~ #drawer,#ops.on ~ #drawer{bottom:66px}
 #drawtab{width:52px;height:20px;border:1px solid var(--line2);border-bottom:none;
   background:var(--panel2);color:var(--dim);font-size:0.6562rem;cursor:pointer;
   clip-path:polygon(9px 0,calc(100% - 9px) 0,100% 100%,0 100%);transition:.15s}
 #drawtab:hover{color:var(--zan);border-color:var(--zan)}
-.drawmenu{position:absolute;bottom:26px;display:flex;flex-direction:column;gap:6px;
+.drawmenu{position:absolute;bottom:26px;right:0;display:flex;flex-direction:column;gap:6px;
   padding:10px;background:var(--panel2);border:1px solid var(--line2);min-width:150px;
   clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px));
   transform:translateY(70%);opacity:0;pointer-events:none;
