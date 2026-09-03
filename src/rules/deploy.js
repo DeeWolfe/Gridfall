@@ -174,6 +174,10 @@ export function deploy(cid, l, c) {
     // so the unit under (l, c) is the machine or the team this kit fits.
     const fr = unitAt(l, c);
     if (!fr || fr !== hostFor(k)) return;
+    // A kit is spent the moment it is played: fitted, later stripped, or
+    // called in — none of those come back through the reserve.
+    G.spent = G.spent || [];
+    if (!G.spent.includes(cid)) G.spent.push(cid);
     // Ordnance Drop is called in, not carried: the lane takes it, the card is spent.
     if (k.ordnance) {
       const hit = G.enemies.filter(e => e.lane === fr.lane);

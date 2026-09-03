@@ -469,4 +469,39 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'ordnance']
   if (A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0}) === false) F.push('a clean Fireteam deck was refused');
 }
 
+
+// --- a fitted kit never cycles back through the reserve ---
+{
+  start(['whitedevil', 'beamrifle', 'ftnoble', 'camo', 'ordnance', 'rifle', 'marks', 'wall']);
+  A.active.loadout.frame = null;
+  A.G.hand = ['ftnoble', 'camo', 'ordnance'];
+  A.G.deck = [];
+  A.G.dp = 20;
+  A.deploy('ftnoble', 2, 1);
+  A.deploy('camo', 2, 1);
+  spawnFoe('crawler', 2, 5, 10);
+  A.deploy('ordnance', 2, 1);
+  if (!A.G.spent.includes('camo') || !A.G.spent.includes('ordnance')) F.push('played kits were not marked spent');
+  const drawn = [];
+  for (let i = 0; i < 12; i++) { if (A.drawCard(true)) drawn.push(A.G.hand[A.G.hand.length - 1]); }
+  if (drawn.includes('camo')) F.push('Active Camo came back through the reserve while fitted');
+  if (drawn.includes('ordnance')) F.push('a spent Ordnance Drop came back through the reserve');
+  if (!drawn.includes('rifle')) F.push('the reserve stopped cycling ordinary cards');
+  // Field Refit hands a displaced FRAME gear back — and it is in play again.
+  // (A Fireteam's stripped ability is lost; Refit reads "your Frame".)
+  A.active.lead = 'fieldrefit';
+  ['whitedevil', 'beamrifle', 'beamsaber'].forEach(c => { if (!A.active.unlocks.cards.includes(c)) A.active.unlocks.cards.push(c); });
+  A.active.loadout.deck.push('beamrifle', 'beamsaber');
+  const wd = spawnUnit('whitedevil', 0, 1);
+  A.G.hand.push('beamrifle', 'beamsaber');
+  A.G.dp = 5;
+  A.deploy('beamrifle', 0, 1);
+  if (!A.G.spent.includes('beamrifle')) F.push('a fitted Beam Rifle was not marked spent');
+  A.deploy('beamsaber', 0, 1);
+  if (!A.G.hand.includes('beamrifle')) F.push('Field Refit did not hand the Beam Rifle back');
+  if (A.G.spent.includes('beamrifle')) F.push('a gear returned to hand by Field Refit stayed spent');
+  if (!A.G.spent.includes('beamsaber') || wd.gearW !== 'beamsaber') F.push('the Beam Saber did not take the mount');
+  A.active.lead = 'ironbrand';
+}
+
 F.report('balancetest');

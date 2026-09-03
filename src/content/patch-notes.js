@@ -4,9 +4,15 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.33';
+export const VERSION = '2.33.1';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.33.1',
+    notes: [
+      'KITS STAY SPENT. A Frame gear or Fireteam ability, once played, no longer comes back when the reserve cycles — it is on the machine, or torn off and lost, or called in. The reserve reshuffles everything else as before. The one way a kit returns is a lead handing it back: Field Refit\'s swap or Bushido\'s Code.',
+    ],
+  },
   {
     v: '2.33',
     notes: [

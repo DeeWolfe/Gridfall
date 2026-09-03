@@ -4660,6 +4660,7 @@ function applyFrameGear(u, cid) {
   if (refit && u.frame && carried.length) {
     carried.forEach(old => {
       G.hand.push(old);
+      G.spent = (G.spent || []).filter(c => c !== old);   // back in play
       clog(`<span class="g">${POOL[old].n}</span> comes off ${u.n} — back in hand.`, 'order');
     });
     u.gearW = null;
@@ -4749,6 +4750,7 @@ function salvageFrame(u) {
   if (!(leadOf().passive && leadOf().passive.n === 'The Code')) return;
   const back = [u.id, u.gearW, ...u.gearS].filter(Boolean);
   back.forEach(c => G.hand.push(c));
+  G.spent = (G.spent || []).filter(c => !back.includes(c));
   clog(`<span class="g">The Code</span> — ${cardName(u.id)} recovered to hand` +
     (back.length > 1 ? ' with its gear' : '') + '.', 'order');
 }
@@ -8272,6 +8274,9 @@ function launchSpec(nd) {
     // Fog of war rides the modifier; a boss fight is never fogged — the
     // machine IS the board, and hiding it would hide the fight.
     fog: nd.mod === 'fog' && nd.type !== 'boss', reveal: false,
+    // Cards gone for the mission: a kit bolted on (or torn off), an Ordnance
+    // Drop called in. The reserve cycle never hands these back.
+    spent: [],
     deck: shuffle([...deck]), hand: [], units: [], enemies: [],
     logs: [], kills: 0, lost: 0, extra: 0, doctrine: 'probe',
     capNoted: false,
@@ -12295,7 +12300,9 @@ function doAbility(u) {
 function drawCard(force) {
   if (!force && G.hand.length >= HAND_CAP) return false;
   if (!G.deck.length) {
-    const back = active.loadout.deck.filter(c => POOL[c] && !G.hand.includes(c));
+    // ...and minus anything spent for good this mission — a kit already on
+    // its host would only come back as a dead duplicate.
+    const back = active.loadout.deck.filter(c => POOL[c] && !G.hand.includes(c) && !(G.spent || []).includes(c));
     if (!back.length) return false;
     G.deck = shuffle([...back]);
     clog('<span class="t">Reserve cycled</span> — fresh requisition available.', 'info');
@@ -12465,6 +12472,10 @@ function deploy(cid, l, c) {
     // so the unit under (l, c) is the machine or the team this kit fits.
     const fr = unitAt(l, c);
     if (!fr || fr !== hostFor(k)) return;
+    // A kit is spent the moment it is played: fitted, later stripped, or
+    // called in — none of those come back through the reserve.
+    G.spent = G.spent || [];
+    if (!G.spent.includes(cid)) G.spent.push(cid);
     // Ordnance Drop is called in, not carried: the lane takes it, the card is spent.
     if (k.ordnance) {
       const hit = G.enemies.filter(e => e.lane === fr.lane);
@@ -15777,9 +15788,15 @@ function openPanel(key, quiet) {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.33';
+const VERSION = '2.33.1';
 
 const PATCH_NOTES = [
+  {
+    v: '2.33.1',
+    notes: [
+      'KITS STAY SPENT. A Frame gear or Fireteam ability, once played, no longer comes back when the reserve cycles — it is on the machine, or torn off and lost, or called in. The reserve reshuffles everything else as before. The one way a kit returns is a lead handing it back: Field Refit\'s swap or Bushido\'s Code.',
+    ],
+  },
   {
     v: '2.33',
     notes: [

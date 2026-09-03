@@ -21,7 +21,9 @@ import {clog} from './log.js';
 export function drawCard(force) {
   if (!force && G.hand.length >= HAND_CAP) return false;
   if (!G.deck.length) {
-    const back = active.loadout.deck.filter(c => POOL[c] && !G.hand.includes(c));
+    // ...and minus anything spent for good this mission — a kit already on
+    // its host would only come back as a dead duplicate.
+    const back = active.loadout.deck.filter(c => POOL[c] && !G.hand.includes(c) && !(G.spent || []).includes(c));
     if (!back.length) return false;
     G.deck = shuffle([...back]);
     clog('<span class="t">Reserve cycled</span> — fresh requisition available.', 'info');

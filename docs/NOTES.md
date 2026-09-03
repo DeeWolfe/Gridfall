@@ -4855,3 +4855,7 @@ same title, and the saved-decks tab flags a preset that would break them.
 Master Chief's No Frame con (and its leadBan/seedFrame hooks) are gone —
 the global rule covers it. Saved decks moved from a row under the deck to a
 `squadTab` beside Deck.
+
+## v2.33.1 — kits do not cycle
+
+User-reported: a fitted kit was drawn again once the reserve cycled, because drawCard() rebuilt the deck from the whole loadout minus the hand. `G.spent` (an array, so it survives any serialisation) now lists every kit card played this mission; drawCard skips it; Field Refit and The Code remove a kit from it when they hand it back.

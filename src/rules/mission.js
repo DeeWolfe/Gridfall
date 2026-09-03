@@ -103,6 +103,9 @@ export function launchSpec(nd) {
     // Fog of war rides the modifier; a boss fight is never fogged — the
     // machine IS the board, and hiding it would hide the fight.
     fog: nd.mod === 'fog' && nd.type !== 'boss', reveal: false,
+    // Cards gone for the mission: a kit bolted on (or torn off), an Ordnance
+    // Drop called in. The reserve cycle never hands these back.
+    spent: [],
     deck: shuffle([...deck]), hand: [], units: [], enemies: [],
     logs: [], kills: 0, lost: 0, extra: 0, doctrine: 'probe',
     capNoted: false,

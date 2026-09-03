@@ -78,6 +78,7 @@ export function applyFrameGear(u, cid) {
   if (refit && u.frame && carried.length) {
     carried.forEach(old => {
       G.hand.push(old);
+      G.spent = (G.spent || []).filter(c => c !== old);   // back in play
       clog(`<span class="g">${POOL[old].n}</span> comes off ${u.n} — back in hand.`, 'order');
     });
     u.gearW = null;
@@ -167,6 +168,7 @@ export function salvageFrame(u) {
   if (!(leadOf().passive && leadOf().passive.n === 'The Code')) return;
   const back = [u.id, u.gearW, ...u.gearS].filter(Boolean);
   back.forEach(c => G.hand.push(c));
+  G.spent = (G.spent || []).filter(c => !back.includes(c));
   clog(`<span class="g">The Code</span> — ${cardName(u.id)} recovered to hand` +
     (back.length > 1 ? ' with its gear' : '') + '.', 'order');
 }
