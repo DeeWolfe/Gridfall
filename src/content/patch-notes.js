@@ -4,7 +4,7 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.35';
+export const VERSION = '2.35.1';
 
 export const PATCH_NOTES = [
   {

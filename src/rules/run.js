@@ -41,7 +41,9 @@ export function genRun() {
       // An operation can name a signature modifier (Blackmarrow's tunnels
       // collapsing underfoot) — still a roll, just weighted toward the
       // theme instead of drawn flat from the full pool every time.
-      mod: chance(0.45)
+      // The first node teaches the base rules: no modifier, ever. Fog of War
+      // on a first mission was also the quiet cause of a flaky test or two.
+      mod: role === 'start' ? 'none' : chance(0.45)
         ? (map.modBias && chance(0.65) ? map.modBias : mods[1 + randInt(mods.length - 1)])
         : 'none',
       reward: 70 + randInt(5) * 20 + 5 + randInt(5),

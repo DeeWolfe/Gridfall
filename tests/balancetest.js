@@ -579,4 +579,17 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'ordnance']
   if (A.POOL.ftosiris.sight !== 3) F.push('Osiris should keep its three-cell sight');
 }
 
+
+// --- the first node of every operation is clean: no modifier ---
+{
+  Object.keys(A.OPS).forEach(op => {
+    for (let i = 0; i < 6; i++) {
+      const p = A.blankProfile('S' + i); p.op = op; A.enterProfile(p);
+      const run = A.opRun();
+      const start = A.OPS[op].nodes.find(n => n.role === 'start');
+      if (run.nodes[start.id].mod !== 'none') F.push(`${op}'s first node rolled ${run.nodes[start.id].mod}`);
+    }
+  });
+}
+
 F.report('balancetest');
