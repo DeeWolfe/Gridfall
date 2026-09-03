@@ -4,9 +4,15 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.34.1';
+export const VERSION = '2.34.2';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.34.2',
+    notes: [
+      'FIRETEAM OSIRIS no longer drops behind the line; Shadow owns that job. In its place the hunters are FAST: two cells in a straight line where everyone else takes one, both cells clear.',
+    ],
+  },
   {
     v: '2.34.1',
     notes: [

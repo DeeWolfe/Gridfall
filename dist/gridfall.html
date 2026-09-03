@@ -3133,9 +3133,9 @@ const POOL = {
     mob: 1,
     tg: "furthest",
     dmg: 5,
-    drop: 1,
     sight: 3,
-    d: "The hunters. Deploy on any tile, including hostile ground, and reach the deepest hostile in the lane for 5. They see three cells. Fragile once found.",
+    d: "The hunters. Fast: two cells in a straight line where others take one, and they reach the deepest hostile in the lane for 5. They see three cells. Fragile once found.",
+    boost: 1,
   },
   ftmajestic: {
     n: "Fireteam Majestic",
@@ -5887,7 +5887,8 @@ function mkUnit(cid, l, c) {
     frame: k.chassis === 'proto',
     gearW: null,
     gearS: [],
-    boost: false,
+    // A long stride on the card itself (Osiris), or from a Thruster Pack later.
+    boost: !!k.boost,
     resonate: 0,
     att: {},
     acted: false,
@@ -9284,6 +9285,7 @@ function statRows(id) {
     isProto(id) ? ['Stride', 'Moves and still fires or uses its ability the same turn'] : null,
     k.camo ? ['Cloak', 'Hostiles cannot target it until the turn it fires'] : null,
     k.jet ? ['Jump', 'Any open held tile within two cells, then fires'] : null,
+    (k.boost && !k.frameGear) ? ['Stride', 'Two cells in a straight line, both clear'] : null,
     k.ordnance ? ['Call', `${k.ordnance} to every hostile in the Fireteam’s lane, then spent`] : null,
     k.sight ? ['Sight', `Sees ${k.sight} cells in the fog`] : null,
     k.reveal ? ['Recon', 'Lifts the fog across the whole board until the end of the turn'] : null,
@@ -15818,9 +15820,15 @@ function openPanel(key, quiet) {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.34.1';
+const VERSION = '2.34.2';
 
 const PATCH_NOTES = [
+  {
+    v: '2.34.2',
+    notes: [
+      'FIRETEAM OSIRIS no longer drops behind the line; Shadow owns that job. In its place the hunters are FAST: two cells in a straight line where everyone else takes one, both cells clear.',
+    ],
+  },
   {
     v: '2.34.1',
     notes: [

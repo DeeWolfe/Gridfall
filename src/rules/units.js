@@ -125,7 +125,8 @@ export function mkUnit(cid, l, c) {
     frame: k.chassis === 'proto',
     gearW: null,
     gearS: [],
-    boost: false,
+    // A long stride on the card itself (Osiris), or from a Thruster Pack later.
+    boost: !!k.boost,
     resonate: 0,
     att: {},
     acted: false,

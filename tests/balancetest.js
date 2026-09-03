@@ -527,4 +527,20 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'ordnance']
   if (r.servo) F.push('servo stride leaked onto a Rifleman');
 }
 
+
+// --- Osiris strides two cells instead of dropping in ---
+{
+  start();
+  if (A.POOL.ftosiris.drop) F.push('Osiris still drops anywhere');
+  const o = spawnUnit('ftosiris', 2, 0);
+  o.fresh = false; o.acted = false; o.moved = false;
+  if (!o.boost) F.push('Osiris has no stride');
+  const m = A.moveTargets(o);
+  if (!m.includes(2 * A.COLS + 2)) F.push('Osiris cannot stride two cells forward');
+  if (!m.includes(4 * A.COLS + 0)) F.push('Osiris cannot stride two lanes down');
+  if (m.includes(3 * A.COLS + 1)) F.push('Osiris strode diagonally');
+  spawnUnit('wall', 2, 1);
+  if (A.moveTargets(o).includes(2 * A.COLS + 2)) F.push('Osiris strode through a wall');
+}
+
 F.report('balancetest');

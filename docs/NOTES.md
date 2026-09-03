@@ -4875,3 +4875,7 @@ User's call: no field limit on Fireteams (the line gate in frameGateText is gone
 ## v2.34.1
 
 Shadow gets `drop`. The v2.33.1 spent list now holds Frame gear only: Fireteam abilities (and Ordnance Drop) cycle with the reserve like the teams, per the user.
+
+## v2.34.2
+
+Osiris: `drop` out, `boost` in (the Thruster Pack's two-cell straight stride, now readable off a card at mkUnit). Move or fire, not both — that stays the Jetpack's.

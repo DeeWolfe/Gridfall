@@ -924,9 +924,9 @@
    "mob": 1,
    "tg": "furthest",
    "dmg": 5,
-   "drop": 1,
    "sight": 3,
-   "d": "The hunters. Deploy on any tile, including hostile ground, and reach the deepest hostile in the lane for 5. They see three cells. Fragile once found."
+   "d": "The hunters. Fast: two cells in a straight line where others take one, and they reach the deepest hostile in the lane for 5. They see three cells. Fragile once found.",
+   "boost": 1
   },
   "ftmajestic": {
    "n": "Fireteam Majestic",
