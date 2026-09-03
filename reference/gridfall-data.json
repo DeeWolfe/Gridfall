@@ -1653,7 +1653,7 @@
    "n": "CAINE",
    "call": "LONE EDGE",
    "role": "Frontline Duelist",
-   "col": "#4dffd0",
+   "col": "#8f1d1d",
    "bio": "Works alone by preference and by reputation. Squads assigned to him learn quickly to give him room.",
    "passive": {
     "n": "Lone Edge",
@@ -1745,9 +1745,9 @@
   },
   "salvagerights": {
    "n": "GRAHAM",
-   "call": "SALVAGE RIGHTS",
-   "role": "Frame Commander",
-   "col": "#ff9d4d",
+   "call": "BUSHIDO",
+   "role": "Ace Pilot",
+   "col": "#c1272d",
    "bio": "Fights every sortie as a private duel. Has lost more machines than anyone in the service and walked away from all of them.",
    "passive": {
     "n": "Salvage Rights",
@@ -1760,9 +1760,9 @@
   },
   "fieldrefit": {
    "n": "KAEDE",
-   "call": "FIELD REFIT",
+   "call": "CHIEF",
    "role": "Frame Engineer",
-   "col": "#66e0c2",
+   "col": "#ff9d4d",
    "bio": "Rebuilds a loadout mid-sortie the way other people change their mind. Considers a fixed configuration a failure of imagination.",
    "passive": {
     "n": "Field Refit",
