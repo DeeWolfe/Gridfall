@@ -4,9 +4,15 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.27';
+export const VERSION = '2.28';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.28',
+    notes: [
+      'EIGHT NEW ACHIEVEMENTS cover everything the last few patches shipped. The Frame line earns MACHINE SPIRIT for your first sortie, ROLLOUT COMPLETE for fielding all three machines, ACE OF THE LINE at twenty-five sorties, CLOSED KIT for owning a full gear set and GUNSMITH for fifteen fittings. The command calls earn FIRE MISSION on your first and FULL SPECTRUM for playing all seven. GROUND WRITER goes to the commander who owns the whole board-control kit. All thirty-two badges still compute straight from your service record — nothing new is tracked, nothing can desync. The roster also wears its new colours: BUSHIDO in blood red, CHIEF in orange, the Ex-Commander CORONET, and Lone Edge in navy.',
+    ],
+  },
   {
     v: '2.27',
     notes: [

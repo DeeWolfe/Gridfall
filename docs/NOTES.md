@@ -4602,6 +4602,22 @@ both beats, enfilade, a two-call queue, duel, requisition);
 grapple/breach harnesses moved onto the card path; kanji 決復潜砕掃鎖徴
 and seven call tokens for the coverage guards.
 
+## v2.28 — achievements catch up (+ the roster identity passes)
+
+Eight badges for the new systems, all obeying the list's founding rule
+(pure functions of the save — usage and unlocks only, no new counters):
+Machine Spirit / Rollout Complete / Ace of the Line (proto usage),
+Closed Kit (a frame's three gear cards owned), Gunsmith (gear usage 15),
+Fire Mission / Full Spectrum (call usage, first and all seven), Ground
+Writer (the four board-control cards owned). 24→32; achievetest's three
+arms (fresh earns none, maxed earns all, old saves don't crash) pass
+untouched — the maxed profile already owns every card and 200 uses.
+
+Also this train, per the user's direction: Graham → Ace Pilot BUSHIDO
+(blood red), passive renamed The Code; Kaede → CHIEF (orange);
+Coronet → Ex-Commander, new bio, con renamed Efficiency Management;
+Ironbrand's passive → Hardened Armor; Lone Edge → navy #3a5f9e.
+
 ## Card backlog — the next pass
 
 Not built. Recorded here so the next card batch starts from a list rather than a

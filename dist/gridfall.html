@@ -15833,6 +15833,22 @@ function achievementList() {
   // the moment a lane opens, which is exactly what the badge means.
   const clean = s.breaches === 0 ? s.deployments : 0;
 
+  // The newer classes read straight out of usage and unlocks, same rule:
+  // Frames and their kits, command calls, the board-control cards.
+  const usage = active.usage || {};
+  const protos = Object.keys(POOL).filter(c => POOL[c].chassis === 'proto');
+  const framesFlown = protos.filter(c => (usage[c] || 0) > 0).length;
+  const frameSorties = protos.reduce((a, c) => a + (usage[c] || 0), 0);
+  const gearIds = Object.keys(POOL).filter(c => POOL[c].frameGear);
+  const gearFitted = gearIds.reduce((a, c) => a + (usage[c] || 0), 0);
+  const kitDone = protos.some(f => gearIds.filter(c => POOL[c].frameGear === f)
+    .every(c => active.unlocks.cards.includes(c))) ? 1 : 0;
+  const callIds = Object.keys(POOL).filter(c => POOL[c].strat);
+  const callsMade = callIds.reduce((a, c) => a + (usage[c] || 0), 0);
+  const callsDistinct = callIds.filter(c => (usage[c] || 0) > 0).length;
+  const fieldKit = ['demo', 'cryo', 'lens', 'degausser']
+    .filter(c => active.unlocks.cards.includes(c)).length;
+
   return [
     {n: 'First Strike', d: 'Secure your first objective.', have: s.held, need: 1},
     {n: 'Line Holder', d: 'Secure ten objectives.', have: s.held, need: 10},
@@ -15864,6 +15880,15 @@ function achievementList() {
     {n: 'Chain of Command', d: 'Complete five Gauntlet chains.', have: active.bests.gauntlet || 0, need: 5},
     {n: 'Standing Order', d: 'Carry a seven-day Daily Challenge streak.',
       have: daily.streak || 0, need: 7},
+    {n: 'Machine Spirit', d: 'Field a Proto Frame for the first time.', have: frameSorties, need: 1},
+    {n: 'Rollout Complete', d: 'Field all three Proto Frames at least once.', have: framesFlown, need: 3},
+    {n: 'Ace of the Line', d: 'Fly twenty-five Frame sorties.', have: frameSorties, need: 25},
+    {n: 'Closed Kit', d: 'Own every gear card of one Frame\'s kit.', have: kitDone, need: 1},
+    {n: 'Gunsmith', d: 'Fit Frame gear fifteen times.', have: gearFitted, need: 15},
+    {n: 'Fire Mission', d: 'Arm your first command call.', have: callsMade, need: 1},
+    {n: 'Full Spectrum', d: 'Play every command call at least once.', have: callsDistinct, need: callIds.length},
+    {n: 'Ground Writer', d: 'Own the whole board-control kit — Demo Charge, Cryo Projector, Resonance Lens, Field Degausser.',
+      have: fieldKit, need: 4},
   ];
 }
 
@@ -16436,9 +16461,15 @@ function render() {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.27';
+const VERSION = '2.28';
 
 const PATCH_NOTES = [
+  {
+    v: '2.28',
+    notes: [
+      'EIGHT NEW ACHIEVEMENTS cover everything the last few patches shipped. The Frame line earns MACHINE SPIRIT for your first sortie, ROLLOUT COMPLETE for fielding all three machines, ACE OF THE LINE at twenty-five sorties, CLOSED KIT for owning a full gear set and GUNSMITH for fifteen fittings. The command calls earn FIRE MISSION on your first and FULL SPECTRUM for playing all seven. GROUND WRITER goes to the commander who owns the whole board-control kit. All thirty-two badges still compute straight from your service record — nothing new is tracked, nothing can desync. The roster also wears its new colours: BUSHIDO in blood red, CHIEF in orange, the Ex-Commander CORONET, and Lone Edge in navy.',
+    ],
+  },
   {
     v: '2.27',
     notes: [
