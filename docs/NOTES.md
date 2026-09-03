@@ -4630,17 +4630,20 @@ Three moves, one idea: every screen gets exactly one menu entry point.
   one-tap Leave (the old behavior, kept deliberately). Selecting a
   card/unit/hostile folds the sheet away. The sheet reuses the
   drawmenu's visual language.
-- **Modes/Ops**: navfoot back buttons read just "Back" inside a
+- **Modes/Ops/Map**: navfoot back buttons read just "Back" inside a
   `.navbtns` pair with a "Menu" button that drives the same global
-  drawer (it literally clicks #drawtab); on those two screens the
-  corner tab hides and the drawer rides up 66px clear of the navfoot,
-  so there is never a doubled affordance. The map screen keeps its
-  corner tab (not in the ask).
+  drawer (it literally clicks #drawtab); on navfoot screens the corner
+  tab hides and the drawer rides up 66px clear of the footer, so there
+  is never a doubled affordance. The corner tab is the HOLD's alone now
+  (follow-up direction) — any future screen takes the footer Menu
+  unless it genuinely has no room for one.
 - **Hold**: #drawer moved from bottom-centre to bottom-right
   (right:14px, flex-end, sheet right-anchored).
 
 actbar.js rewritten for the menu flow (open/close/abort-inside/fold-on-
-select/one-tap Leave); screenshot pass in scratchpad nav*.png.
+select/one-tap Leave); screenshot pass in scratchpad nav*.png. Same train: the Squad
+reserve's "By class" tech section splits into Tech and Proto Frame
+Tech, so the nine kit cards shelve apart from the field tech.
 
 ## Card backlog — the next pass
 

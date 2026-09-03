@@ -1445,10 +1445,11 @@ body{font-size:1rem}
 #drawer{position:fixed;right:14px;bottom:0;z-index:60;
   display:flex;flex-direction:column;align-items:flex-end}
 #title.on ~ #drawer,#boot.on ~ #drawer,#combat.on ~ #drawer{display:none}
-/* Screens whose footer carries its own Menu button: the corner tab hides and
-   the sheet rides up clear of the navfoot — one entry point per screen. */
-#modes.on ~ #drawer #drawtab,#ops.on ~ #drawer #drawtab{display:none}
-#modes.on ~ #drawer,#ops.on ~ #drawer{bottom:66px}
+/* The corner tab belongs to the hold alone. Every screen with a navfoot
+   carries its own Menu button instead — the tab hides there and the sheet
+   rides up clear of the footer, so each screen has one entry point. */
+#modes.on ~ #drawer #drawtab,#ops.on ~ #drawer #drawtab,#map.on ~ #drawer #drawtab{display:none}
+#modes.on ~ #drawer,#ops.on ~ #drawer,#map.on ~ #drawer{bottom:66px}
 #drawtab{width:52px;height:20px;border:1px solid var(--line2);border-bottom:none;
   background:var(--panel2);color:var(--dim);font-size:0.6562rem;cursor:pointer;
   clip-path:polygon(9px 0,calc(100% - 9px) 0,100% 100%,0 100%);transition:.15s}

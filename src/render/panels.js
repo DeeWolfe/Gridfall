@@ -89,11 +89,19 @@ function sortCards(ids) {
 function reserveCards(ids) {
   if (!ids.length) return cardGridEmpty('Nothing in reserve.');
   if (!squadGroup()) return cardGrid(sortCards(ids), 'gear');
+  const sub = (label, list) => (list.length
+    ? `<div class="subsect">${label} <span class="ct">${list.length}</span></div>` + cardGrid(list, 'gear')
+    : '');
   return TIERS.map(t => {
-    const inTier = sortCards(ids.filter(c => POOL[c].t === t));
+    const inTier = ids.filter(c => POOL[c].t === t);
     if (!inTier.length) return '';
-    return `<div class="subsect">${TIERNAME[t]} <span class="ct">${inTier.length}</span></div>` +
-      cardGrid(inTier, 'gear');
+    // Tech splits in two: field tech, and the Frame kits that only ever bolt
+    // onto a machine — different shopping lists, different shelves.
+    if (t === 'tech') {
+      return sub(TIERNAME.tech, sortCards(inTier.filter(c => !POOL[c].frameGear)))
+        + sub('Proto Frame Tech', sortCards(inTier.filter(c => POOL[c].frameGear)));
+    }
+    return sub(TIERNAME[t], sortCards(inTier));
   }).join('');
 }
 
