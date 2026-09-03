@@ -8,7 +8,7 @@
 import {LANES, COLS} from '../state/constants.js';
 import {BEST} from '../content/hostiles.js';
 import {G} from '../state/session.js';
-import {unitAt, foeAt, civAt} from './board.js';
+import {unitAt, foeAt, civAt, foeVisible} from './board.js';
 import {dampenIn, hymnAt, chillFactor} from './combat.js';
 import {eventStrikeMalus} from './events.js';
 import {bossSelThreat} from './boss.js';
@@ -26,6 +26,10 @@ export function forecastThreat() {
     const D = BEST[e.k];
     // Unarmed hostiles (the Mender) never strike; mirrors actHostile.
     if (D.spd === 0 || e.stun || !D.dmg) return;
+    // What the fog hides, the forecast does not know either.
+    if (G.fog && !foeVisible(e)) return;
+    // Mirrors strike(): a hologram in the lane draws every shot.
+    if (G.units.some(u => u.holo && u.lane === e.lane)) return;
 
     let willStrike = false;
     if (D.hold !== undefined && e.col <= D.hold) {
@@ -43,7 +47,7 @@ export function forecastThreat() {
     let target = null;
     for (let c = e.col - 1; c >= 0; c--) {
       const u = unitAt(e.lane, c);
-      if (u) { target = u; break; }
+      if (u) { if (!u.cloaked) target = u; break; }
     }
     const cv = civAt(e.lane, e.col - 1);
     atk[e.uid] = true;

@@ -45,6 +45,14 @@ function statRows(id) {
   return [
     isProto(id) ? ['Frame', 'Seeded into your opening hand — outside the deck, one per mission'] : null,
     k.frameGear ? ['Fits', `${POOL[k.frameGear].n} only — played onto it while it stands`] : null,
+    k.fits ? ['Fits', 'Any Fireteam — played onto it while it stands'] : null,
+    k.slot === 'armor' ? ['Slot', 'Armour ability — one carried at a time, the new one replaces the last'] : null,
+    k.line ? ['Line', 'Fireteam — one on the board at a time; any armour ability fits it'] : null,
+    k.camo ? ['Cloak', 'Hostiles cannot target it until the turn it fires'] : null,
+    k.jet ? ['Jump', 'Any open held tile within two cells, then fires'] : null,
+    k.ordnance ? ['Call', `${k.ordnance} to every hostile in the Fireteam’s lane, then spent`] : null,
+    k.sight ? ['Sight', `Sees ${k.sight} cells in the fog`] : null,
+    k.reveal ? ['Recon', 'Lifts the fog across the whole board until the end of the turn'] : null,
     k.frameGear ? [k.slot === 'weapon' ? 'Slot' : 'Slot', k.slot === 'weapon' ? 'Weapon — replaces the base weapon' : 'Support — rides alongside the weapon'] : null,
     // Only worth a row when the geared cost differs from the printed one.
     (g && g.dp) ? ['Deploy cost', costOf(id) + ' DP (geared)'] : null,

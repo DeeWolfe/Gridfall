@@ -34,11 +34,11 @@ export {
 export {genRun, opRun, nodeState, enterProfile, reqBlocked, opComplete} from '../../src/rules/run.js';
 export {
   unitAt, foeAt, civAt, held, heldEnemyHalf, crystalsHeld, scorched,
-  cellPassable, validTiles, breachAllowance,
+  cellPassable, validTiles, breachAllowance, visibleCells, cellVisible, foeVisible,
 } from '../../src/rules/board.js';
 export {wave, laneScore, rollDoctrine, predictSpawns} from '../../src/rules/waves.js';
 export {mkUnit, buffOf, dmgPreview, leadBonus, packBonus} from '../../src/rules/units.js';
-export {seedFrame, frameReady, frameOnBoard, kitHost, frameGateText, applyFrameGear, salvageFrame} from '../../src/rules/frames.js';
+export {seedFrame, frameReady, frameOnBoard, kitHost, hostFor, frameGateText, applyFrameGear, salvageFrame} from '../../src/rules/frames.js';
 export {seedBoss, bossForOp, bossHp, dmgBoss, bossTick, bossWarnCells, bossSelThreat} from '../../src/rules/boss.js';
 export {BOSSDEF} from '../../src/content/bosses.js';
 export {pierceUnit} from '../../src/rules/combat.js';

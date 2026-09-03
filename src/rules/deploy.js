@@ -14,7 +14,7 @@ import {VET} from '../content/ranks.js';
 import {hooks} from '../state/hooks.js';
 import {unitAt, foeAt, civAt} from './board.js';
 import {mkUnit} from './units.js';
-import {applyFrameGear} from './frames.js';
+import {applyFrameGear, hostFor} from './frames.js';
 import {armCall} from './stratagems.js';
 import {fire, blast, healPass, dmgEnemy} from './combat.js';
 import {clog} from './log.js';
@@ -70,6 +70,11 @@ function playInstant(cid, l, c) {
   if (k.draw) {
     for (let i = 0; i < k.draw; i++) drawCard(true);
     done.push(`${k.draw} cards called in`);
+  }
+  // Recon Lark: the whole board is seen until the end of the turn.
+  if (k.reveal && G.fog) {
+    G.reveal = true;
+    done.push('the fog lifted');
   }
   // Supply Cache's own price, declared on the card — being an instant does
   // not imply the penalty, which is why the flag is data and not a default.
@@ -164,12 +169,19 @@ export function deploy(cid, l, c) {
     return consume(cid);
   }
 
-  if (k.frameGear) {
-    // Gear bolts onto the standing Frame — validTiles only ever offers its
-    // cell, so the unit under (l, c) is the machine this kit belongs to.
+  if (k.frameGear || k.fits) {
+    // A kit lands on its host — validTiles only ever offers the host's cell,
+    // so the unit under (l, c) is the machine or the team this kit fits.
     const fr = unitAt(l, c);
-    if (!fr || fr.id !== k.frameGear) return;
-    applyFrameGear(fr, cid);
+    if (!fr || fr !== hostFor(k)) return;
+    // Ordnance Drop is called in, not carried: the lane takes it, the card is spent.
+    if (k.ordnance) {
+      const hit = G.enemies.filter(e => e.lane === fr.lane);
+      hit.forEach(e => dmgEnemy(e, k.ordnance, 'Ordnance Drop', false, fr));
+      clog(`<span class="g">Ordnance Drop</span> — lane ${fr.lane + 1}, ${hit.length} hostile${hit.length === 1 ? '' : 's'} under it.`, 'order');
+    } else {
+      applyFrameGear(fr, cid);
+    }
   } else if (k.attach) {
     const u = unitAt(l, c);
     if (!u) return;

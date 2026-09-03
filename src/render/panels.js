@@ -98,8 +98,9 @@ function reserveCards(ids) {
     // Tech splits in two: field tech, and the Frame kits that only ever bolt
     // onto a machine — different shopping lists, different shelves.
     if (t === 'tech') {
-      return sub(TIERNAME.tech, sortCards(inTier.filter(c => !POOL[c].frameGear)))
-        + sub('Kit Tech', sortCards(inTier.filter(c => POOL[c].frameGear)));
+      const kit = c => POOL[c].frameGear || POOL[c].fits;
+      return sub(TIERNAME.tech, sortCards(inTier.filter(c => !kit(c))))
+        + sub('Kit Tech', sortCards(inTier.filter(kit)));
     }
     return sub(TIERNAME[t], sortCards(inTier));
   }).join('');
@@ -208,8 +209,9 @@ function squadPanel() {
   // mission — say so here, before the mission finds out.
   // A kit is stranded when its host is not coming: a Frame kit whose Frame
   // is not in the slot, a Fireteam kit with no Fireteam in the twelve.
-  const strays = deck.filter(c => POOL[c].frameGear && (POOL[POOL[c].frameGear].chassis === 'proto'
-    ? POOL[c].frameGear !== fielded : !deck.includes(POOL[c].frameGear)));
+  const strays = deck.filter(c => (POOL[c].frameGear && (POOL[POOL[c].frameGear].chassis === 'proto'
+    ? POOL[c].frameGear !== fielded : !deck.includes(POOL[c].frameGear)))
+    || (POOL[c].fits && !deck.some(d => POOL[d].line === POOL[c].fits)));
   const orphan = strays.length
     ? `<div class="bar"><div style="color:var(--gold)"><b style="color:var(--gold)">⚠</b>
         ${strays.map(c => POOL[c].n).join(', ')} — ${strays.length > 1 ? 'their Frames are' : 'its Frame is'} not coming</div>
@@ -238,12 +240,33 @@ function squadPanel() {
    ${orphan}${over}${refused}
    <div class="sect">Active deck</div>
    ${deck.length ? cardGrid(deck, 'gear') : cardGridEmpty('Empty.')}
+   ${presetRow()}
    ${deckFrame()}
    <div class="sect">Reserve — ${reserve.length}</div>
    ${squadControls()}
    ${reserveCards(reserve)}
    ${frameSlot()}
    ${gearLocker()}`;
+}
+
+/**
+ * Saved decks. A preset is the twelve plus the Frame slot under a name — a
+ * Fireteam deck, a Frame deck, a gun line — swapped in with one tap. Cards
+ * the profile no longer owns are dropped on load rather than refused.
+ */
+const PRESET_CAP = 6;
+function presetRow() {
+  const list = active.presets || [];
+  const deck = active.loadout.deck;
+  const tiles = list.map((p, i) => {
+    const same = p.deck.length === deck.length && p.deck.every(c => deck.includes(c)) && (p.frame || null) === (active.loadout.frame || null);
+    return `<span class="preset${same ? ' on' : ''}">
+      <button class="mini${same ? ' on' : ''}" data-preset-load="${i}" title="Load this deck">${p.n}</button>
+      <button class="mini x" data-preset-del="${i}" title="Delete">✕</button></span>`;
+  }).join('');
+  return `<div class="sect">Saved decks — ${list.length} / ${PRESET_CAP}</div>
+   <div class="bar presets">${tiles || '<span style="color:var(--dim)">None yet.</span>'}
+     ${list.length < PRESET_CAP && deck.length ? '<button class="mini gold" data-preset-save>Save current deck</button>' : ''}</div>`;
 }
 
 function quartermasterPanel() {
@@ -646,6 +669,36 @@ export function openPanel(key, quiet) {
   each('[data-gearfit]', el => focusGear(el.dataset.gearfit, false, true));
   // Both arrangement choices live on the profile, so they survive the panel
   // closing, the session ending and the record moving to another device.
+  each('[data-preset-save]', () => {
+    const n = (active.presets || []).length + 1;
+    ask('Save deck', 'Name this deck. It saves the twelve and the Frame slot as they stand.', name => {
+      if (name === false) return;
+      const label = String(name || '').trim().slice(0, 18) || `Deck ${n}`;
+      active.presets = active.presets || [];
+      active.presets.push({n: label, deck: [...active.loadout.deck], frame: active.loadout.frame || null});
+      commit();
+      openPanel('squad', true);
+    }, {input: `Deck ${n}`, ok: 'Save'});
+  });
+  each('[data-preset-load]', el => {
+    const p = (active.presets || [])[Number(el.dataset.presetLoad)];
+    if (!p) return;
+    active.loadout.deck = p.deck.filter(c => POOL[c] && active.unlocks.cards.includes(c) && POOL[c].chassis !== 'proto');
+    active.loadout.frame = p.frame && POOL[p.frame] && active.unlocks.cards.includes(p.frame) ? p.frame : null;
+    commit();
+    openPanel('squad', true);
+  });
+  each('[data-preset-del]', el => {
+    const i = Number(el.dataset.presetDel);
+    const p = (active.presets || [])[i];
+    if (!p) return;
+    ask('Delete deck', `Forget <b>${p.n}</b>? The cards stay yours; only the list entry goes.`, ok => {
+      if (!ok) return;
+      active.presets.splice(i, 1);
+      commit();
+      openPanel('squad', true);
+    }, {ok: 'Delete'});
+  });
   each('[data-sqsort]', el => {
     active.settings.squadSort = el.dataset.sqsort;
     commit();

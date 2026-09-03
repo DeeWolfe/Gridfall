@@ -33,8 +33,10 @@ const KANJI = {
   // specialists
   aegis: '盾', techmed: '療', dragoon: '竜', railgun: '貫',
   hell: '焔', plasma: '光', exo: '鎧', hecate: '砲', kessen: '斬', rampart: '塞',
-  marshal: '将', ashura: '阿', fireteam: '班',
-  noble: '貴', shadow: '陰', osiris: '冥', majestic: '威',
+  marshal: '将', ashura: '阿',
+  // The Fireteam line and its armour abilities.
+  ftnoble: '貴', ftshadow: '陰', ftosiris: '冥', ftmajestic: '威',
+  camo: '隠', lock: '錠', jetpack: '翼', dropshield: '泡', hologram: '幻', ordnance: '降',
   // Command calls — the old lead stratagems, cards in the deck now.
   duel: '決', refit: '復', insertion: '潜', breach: '砕',
   enfilade: '掃', grapple: '鎖',

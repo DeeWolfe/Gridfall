@@ -41,6 +41,18 @@ export function moveTargets(u) {
       out.push(nl * COLS + nc);
     });
   }
+  // A Jetpack goes anywhere: any open HELD tile within two cells, walls,
+  // hostiles and craters between be damned — and the team still fires.
+  if (u.jet) {
+    for (let dl = -2; dl <= 2; dl++) for (let dc = -2; dc <= 2; dc++) {
+      if (!dl && !dc) continue;
+      const nl = u.lane + dl;
+      const nc = u.col + dc;
+      if (nl < 0 || nl >= G.ter.length || nc < 0 || nc >= COLS) continue;
+      if (G.ter[nl][nc] !== 'p' || !cellPassable(nl, nc, u.uid)) continue;
+      if (!out.includes(nl * COLS + nc)) out.push(nl * COLS + nc);
+    }
+  }
   // A charger may keep going forward, but never through anything — every cell
   // on the way must be passable too.
   for (let step = 2; step <= (u.charge || 0); step++) {

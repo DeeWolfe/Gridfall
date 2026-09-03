@@ -69,7 +69,7 @@ export function gearFits(id, gi) {
   // No body, no gear slot: a Frame's kit card, a command call, an instant or
   // an attachment never stands on the board, so armoury gear has nothing to
   // ride on. And a Frame's own kit is cards in the deck, never armoury pieces.
-  if (k.frameGear || k.strat || k.instant || k.attach) return false;
+  if (k.frameGear || k.fits || k.strat || k.instant || k.attach) return false;
   return !isProto(id);
 }
 
@@ -90,7 +90,7 @@ export function costOf(id) {
   // Spartan Company: the Fireteam line — the team itself and anything that
   // fits it — goes in a point cheaper under the Master Chief.
   const spartan = leadOf().passive && leadOf().passive.n === 'Spartan Company' &&
-    (id === 'fireteam' || k.frameGear === 'fireteam') ? 1 : 0;
+    (k.line === 'fireteam' || k.fits === 'fireteam') ? 1 : 0;
   return Math.max(1, k.dp + (g && g.dp ? g.dp : 0) - infiltrator - spartan);
 }
 

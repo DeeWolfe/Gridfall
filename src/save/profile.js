@@ -246,6 +246,18 @@ export function migrate(p) {
     });
   }
 
+  // v16: the Fireteam line. The generic Fireteam and its four kits refund;
+  // the four named teams and six armour abilities are bought fresh.
+  if (p.version < 16) {
+    p.version = 16;
+    p.unlocks = p.unlocks || {};
+    p.progress = p.progress || {};
+    const refunds = {fireteam: 300, noble: 170, shadow: 170, osiris: 180, majestic: 180};
+    (p.unlocks.cards || []).forEach(id => {
+      if (refunds[id]) p.progress.credits = (p.progress.credits || 0) + refunds[id];
+    });
+  }
+
   p.unlocks = p.unlocks || {};
   p.unlocks.cards = p.unlocks.cards || [...STARTER];
   p.unlocks.enemies = p.unlocks.enemies || [];
@@ -286,6 +298,8 @@ export function migrate(p) {
   p.gaunt = p.gaunt || null;
   p.usage = p.usage || {};
   p.settings = p.settings || {};
+  // Saved decks: name, the twelve, the Frame slot. Never more than a handful.
+  p.presets = Array.isArray(p.presets) ? p.presets.filter(x => x && Array.isArray(x.deck)).slice(0, 6) : [];
   p.lead = LEADS[p.lead] ? p.lead : 'ironbrand';
   return p;
 }

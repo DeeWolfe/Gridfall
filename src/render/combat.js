@@ -17,7 +17,7 @@ import {G, active, sel, mover, foeSel, replaying, logOpen, abAim, setSel, setMov
 import {stratMarkers} from '../rules/stratagems.js';
 import {frameOnBoard, frameGateText} from '../rules/frames.js';
 import {costOf, gearOf, vetOf, isProto, leadOf, leadBan, cardName} from '../save/progression.js';
-import {unitAt, foeAt, civAt, held, scorched, validTiles, breachAllowance} from '../rules/board.js';
+import {unitAt, foeAt, civAt, held, scorched, validTiles, breachAllowance, visibleCells, foeVisible} from '../rules/board.js';
 import {geomFor, geomCells, candidatesFor, targetsFor} from '../rules/targeting.js';
 import {buffOf, dmgPreview} from '../rules/units.js';
 import {moveTargets, doMove, doAttack, doAbility, swapTargets, doSwap} from '../rules/actions.js';
@@ -444,11 +444,14 @@ export function drawBoard() {
 
   // The spawn-marker contract, made visible. Blackout hides it entirely.
   const spawnLanes = {};
-  if (G.mod !== 'blackout') {
+  if (G.mod !== 'blackout' && !G.fog) {
     (G.predict || []).concat(G.held || []).forEach(p => {
       spawnLanes[p.lane] = (spawnLanes[p.lane] || 0) + 1;
     });
   }
+
+  // Fog of war: the set of cells the player can see this instant.
+  const vis = G.fog && !G.reveal ? visibleCells() : null;
 
   const board = $('board');
   board.style.gridTemplateColumns = `repeat(${COLS},1fr)`;
@@ -486,6 +489,8 @@ export function drawBoard() {
     // The boss's promised ground: the tendril's wound-up line, the lance's
     // aimed squares, the parade's burning lane. Same contract as the marks.
     if (bossWarn.has(i)) cls += ' bosswarn';
+    const fogged = !!vis && !vis.has(i);
+    if (fogged) cls += ' fog';
     cell.className = cls;
 
     let marker = c === COLS - 1 && spawnLanes[l]
@@ -498,10 +503,13 @@ export function drawBoard() {
     }
 
     const u = unitAt(l, c);
-    const e = foeAt(l, c);
+    // A hostile in the fog is not on the board as far as the player knows.
+    const e0 = foeAt(l, c);
+    const e = e0 && (!G.fog || foeVisible(e0)) ? e0 : null;
     const v = civAt(l, c);
 
     if (u && u.col === c) {
+      if (u.cloaked) cell.classList.add('cloaked');
       const incoming = threat.hits[u.uid] || 0;
       if (incoming) cell.className = cls + ' underthreat';
       cell.innerHTML = marker + unitMarkup(u, incoming);

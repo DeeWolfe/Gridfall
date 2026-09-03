@@ -12,7 +12,7 @@
 import {COLS, LANES} from '../state/constants.js';
 import {BEST} from '../content/hostiles.js';
 import {G} from '../state/session.js';
-import {unitAt} from './board.js';
+import {unitAt, foeVisible} from './board.js';
 
 /** A Jammer anywhere in the lane shuts off all indirect fire in it. */
 export const laneJammed = l => G.enemies.some(e => e.lane === l && BEST[e.k].jam);
@@ -88,12 +88,15 @@ export function geomFor(u) {
   // Rear Sights (gear) bolts the cell directly behind onto whatever the card
   // already covers, so a forward-facing weapon stops being flankable. Added
   // here rather than inside the switch so it composes with every pattern.
-  if (!u.rearsight) return base;
+  if (!u.rearsight) return inSight(base);
   const behind = G.enemies.filter(e => e.lane === u.lane && e.col === u.col - 1);
-  if (!behind.length) return base;
+  if (!behind.length) return inSight(base);
   const seen = new Set(base.map(e => e.uid));
-  return base.concat(behind.filter(e => !seen.has(e.uid)));
+  return inSight(base.concat(behind.filter(e => !seen.has(e.uid))));
 }
+
+/** Fog of war: a weapon reaches only what can be seen. */
+const inSight = list => (G && G.fog ? list.filter(foeVisible) : list);
 
 /** Concat without double-counting a body both lists found. */
 function dedupeFoes(list) {

@@ -98,14 +98,23 @@ export function strike(e, D, chorus, pressing) {
     }
     return;
   }
+  // Hologram: the whole lane shoots the decoy this turn.
+  if (G.units.some(u => u.holo && u.lane === e.lane)) {
+    clog(`${D.n} struck the <span class="g">hologram</span>.`, 'info');
+    return;
+  }
   let t = null;
   for (let c = e.col - 1; c >= 0; c--) {
     const u = unitAt(e.lane, c);
     // A controlled unit still blocks the lane — it's just not a target the
-    // Puppeteer's owner will shoot at.
-    if (u) { if (!u.controlled) t = u; break; }
+    // Puppeteer's owner will shoot at. A cloaked one blocks it too, and the
+    // hostile finds nothing there to shoot.
+    if (u) { if (!u.controlled && !u.cloaked) t = u; break; }
   }
   if (!t) return;
+  // Fog of war: a hostile that fires gives itself away until the player's
+  // next turn is over.
+  e.revealUntil = G.turn + 1;
   // Any strike that is not against the adjacent cell arcs in — an I-Field
   // shrugs it off entirely. forecastThreat mirrors this; keep them together.
   if (t.ifield && t.col + t.size - 1 < e.col - 1) {
@@ -391,6 +400,13 @@ export function territoryPhase() {
     G.scorch[k]--;
     if (G.scorch[k] <= 0) delete G.scorch[k];
   });
+  // The turn's armour states clear; a camo team cloaks again; the fog closes.
+  G.units.forEach(u => {
+    u.locked = false;
+    u.holo = false;
+    if (u.camo) u.cloaked = true;
+  });
+  G.reveal = false;
   G.units.filter(u => u.controlled).forEach(u => {
     u.ctrlTurns--;
     if (u.ctrlTurns > 0) return;

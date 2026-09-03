@@ -62,6 +62,15 @@ export function mkUnit(cid, l, c) {
     ember: !!k.ember,
     // Recoilless Team: the friendly directly behind eats this much per shot.
     backblast: k.backblast || 0,
+    // The Fireteam line: hosts carry a line, armour abilities set the flags.
+    line: k.line || null,
+    camo: false,
+    cloaked: false,
+    jet: false,
+    locked: false,
+    holo: false,
+    // Fog of war: how far this unit sees. Two cells unless the card says more.
+    sight: k.sight || 0,
     aura: k.aura || 0,
     colBuff: k.col || 0,
     laneB: k.laneB || 0,

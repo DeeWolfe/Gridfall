@@ -34,6 +34,10 @@ export function seedFrame() {
 /** The unit a kit card bolts onto — its Frame, or the Fireteam — if it stands. */
 export const kitHost = id => G.units.find(u => u.id === id) || null;
 
+/** The standing host for a kit card: a named Frame, or any unit of the line it fits. */
+export const hostFor = k => (k.frameGear ? kitHost(k.frameGear)
+  : k.fits ? G.units.find(u => u.line === k.fits) || null : null);
+
 /** The one Frame standing on the board, or null. Only one may stand. */
 export const frameOnBoard = () => G.units.find(u => u.frame) || null;
 
@@ -53,9 +57,10 @@ export function frameGateText(cid) {
   const k = POOL[cid];
   if (!k) return null;
   if (k.chassis === 'proto' && frameOnBoard()) return 'One Frame on the board at a time';
-  if (k.frameGear) {
-    if (!kitHost(k.frameGear)) return `${POOL[k.frameGear].n} must be on the board`;
-  }
+  // A line deploys one team at a time, the way the Frames fly one machine.
+  if (k.line && G.units.some(u => u.line === k.line)) return 'One Fireteam on the board at a time';
+  if (k.frameGear && !kitHost(k.frameGear)) return `${POOL[k.frameGear].n} must be on the board`;
+  if (k.fits && !hostFor(k)) return 'A Fireteam must be on the board';
   return null;
 }
 
@@ -72,7 +77,7 @@ export function applyFrameGear(u, cid) {
 
   // Single Mount: everything already carried comes off — and back to hand,
   // which is the pro paying for the con. The swap is the machine's turn.
-  if (refit && carried.length) {
+  if (refit && u.frame && carried.length) {
     carried.forEach(old => {
       G.hand.push(old);
       clog(`<span class="g">${POOL[old].n}</span> comes off ${u.n} — back in hand.`, 'order');
@@ -82,6 +87,27 @@ export function applyFrameGear(u, cid) {
     unmountWeapon(u);
     unmountSupports(u);
     u.acted = true;
+  }
+
+  // Armour abilities: one carried at a time. The new one strips the last,
+  // and every flag the last one set comes off with it.
+  if (k.slot === 'armor') {
+    const prev = u.gearS.find(c => POOL[c].slot === 'armor');
+    if (prev) {
+      u.gearS = u.gearS.filter(c => c !== prev);
+      clog(`${POOL[prev].n} comes off ${u.n}.`, 'info');
+    }
+    u.camo = false;
+    u.cloaked = false;
+    u.jet = false;
+    u.servo = false;
+    u.ab = POOL[u.id].ab || null;
+    u.gearS.push(cid);
+    if (k.camo) { u.camo = true; u.cloaked = true; }
+    if (k.jet) { u.jet = true; u.servo = true; }
+    if (k.ab) { u.ab = k.ab; u.cd = 0; }
+    clog(`<span class="g">${k.n}</span> fitted to ${u.n}.`, 'order');
+    return;
   }
 
   if (k.slot === 'weapon') {

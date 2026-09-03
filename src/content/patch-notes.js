@@ -4,9 +4,17 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.31.1';
+export const VERSION = '2.32';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.32',
+    notes: [
+      'THE FIRETEAM LINE. Four named Fireteams — NOBLE holds the line, OSIRIS hunts behind it, MAJESTIC fights the lane and steadies the flank, SHADOW cuts the diagonals through armour — each a single-cell Specialist, one on the board at a time, the way the Frames fly one machine. Six ARMOUR ABILITIES fit any of them at 1 DP, one carried at a time: ACTIVE CAMO (untargetable until it fires), ARMOR LOCK (no damage this turn, no action), JETPACK (any held tile within two, then fire), DROP SHIELD (a charge on every neighbour), HOLOGRAM (the lane shoots a ghost) and ORDNANCE DROP (8 down the lane, then spent). The generic Fireteam and its four kits are refunded. Under MASTER CHIEF the whole line deploys a point cheaper.',
+      'SAVED DECKS. The Squad page keeps up to six named decks — the twelve and the Frame slot as they stand. Save the gun line, save the Frame deck, save the Fireteam deck, and swap between them in one tap.',
+      'FOG OF WAR is a battlefield modifier now. Under it the middle and far ground are hidden: every cell you cannot see wears the 霧 glyph, hostiles inside it are off the board as far as you know, and nothing of yours fires into it. Your home third is always seen. Most units see two cells around them; the Scout, Pathfinder, Falconer, Forward Base and Fireteam Osiris see three; a Recon Lark lifts the fog across the whole board until the turn ends; and a hostile that fires gives itself away for a turn. Boss fights are never fogged. Move forward, or send scouts — the horde is out there either way.',
+    ],
+  },
   {
     v: '2.31.1',
     notes: [

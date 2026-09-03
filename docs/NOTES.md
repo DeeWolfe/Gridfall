@@ -4814,3 +4814,29 @@ Passive Spartan Company hooks `costOf` (the Fireteam and anything with
 (proto cards refused) and `seedFrame` (the slot is not seeded). Kaede became
 SHIGURE FORGE with callsign FORGE, since CHIEF now belongs to the Spartan.
 The bio is my draft.
+
+## v2.32 — the Fireteam line, saved decks, fog of war
+
+**Fireteam line.** The generic Fireteam + four team-locked kits (v2.31) were
+the wrong shape: four closed kits and no deck. Now four hosts carry
+`line: 'fireteam'` (one on the board at a time, gated in `frameGateText`)
+and six armour abilities carry `fits: 'fireteam'` + `slot: 'armor'`. The
+Frame gear path was generalised: `hostFor(k)` resolves a named Frame or any
+unit of the line; `applyFrameGear`'s armour branch strips the previous
+ability's flags and applies the new one's (`camo`/`cloaked`, `jet`/`servo`,
+or a keyed `ab` dispatched through `ARMOUR` in abilities.js). Ordnance Drop
+resolves in deploy.js and is never carried. Cloak, lock and hologram are
+turn states cleared at the end of `territoryPhase`; `strike()` and
+`forecastThreat()` honour all three together so the board never lies.
+
+**Saved decks.** `p.presets` (≤ 6 of `{n, deck, frame}`), Squad page row,
+`ask()` for the name; load drops cards the profile no longer owns.
+
+**Fog of war.** A modifier (`fog`), never on boss missions. `visibleCells()`
+in board.js: home third always, plus each unit's `sight` (default 2), plus a
+Recon Lark's `G.reveal` for the turn, plus `e.revealUntil` for a hostile
+that fired. `geomFor` filters through `foeVisible`, so nothing fires blind;
+the forecast skips hidden hostiles; the board hides them and marks fogged
+cells with 霧. Spawn markers are hidden under fog like Blackout.
+
+The Halo names and roles are the user's; the ability numbers are my drafts.

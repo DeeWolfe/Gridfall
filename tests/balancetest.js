@@ -22,7 +22,7 @@ const start = deck => {
 {
   CUT.forEach(id => { if (A.POOL[id]) F.push(`cut card '${id}' still in the pool`); });
   Object.entries(A.POOL).forEach(([id, k]) => {
-    if (k.frameGear || k.strat || k.instant || k.attach) return;   // 0-hull cards ride outside the ladders
+    if (k.frameGear || k.fits || k.strat || k.instant || k.attach) return;   // 0-hull cards ride outside the ladders
     if (!HULL.includes(k.hp)) F.push(`${id} hull ${k.hp} is off the ladder`);
     if (k.dmg && !DMG.includes(k.dmg)) F.push(`${id} damage ${k.dmg} is off the ladder`);
     if (k.burst && !DMG.includes(k.burst)) F.push(`${id} burst ${k.burst} is off the ladder`);
@@ -174,7 +174,7 @@ const start = deck => {
 const CUT2 = ['pikewall', 'sentry', 'backstop', 'ram', 'beacon', 'supply', 'longshot', 'herald', 'relay', 'reactor', 'dynamo', 'requisition', 'zaku', 'scrambler', 'degausser', 'lens'];
 {
   CUT2.forEach(id => { if (A.POOL[id]) F.push(`v2.31 cut '${id}' still in the pool`); });
-  ['fireteam', 'noble', 'shadow', 'osiris', 'majestic', 'singer', 'pyre', 'volt', 'crystal'].forEach(id => { if (!A.POOL[id]) F.push(`missing new card '${id}'`); });
+  ['singer', 'pyre', 'volt', 'crystal'].forEach(id => { if (!A.POOL[id]) F.push(`missing new card '${id}'`); });
   ['cross4', 'sweep5', 'rearvert3', 'radius2'].forEach(t => { if (!A.TGNAME[t]) F.push(`pattern '${t}' has no name`); });
   if (Object.keys(A.POOL).some(id => A.POOL[id].dynamo && id !== 'fob')) F.push('a deploy-point generator other than Forward Base survives');
   if (A.POOL.aegis.riposte) F.push('Aegis Knights kept their riposte');
@@ -225,28 +225,6 @@ const CUT2 = ['pikewall', 'sentry', 'backstop', 'ram', 'beacon', 'supply', 'long
   A.G.hand = ['ashigaru']; A.G.dp = 9;
   A.deploy('ashigaru', 0, 2);                                // top lane: only two more fit below
   if (A.G.units.filter(u => u.id === 'ashigaru').length !== 3) F.push('a column with room below should still seat three');
-}
-
-// --- the Fireteam and its kits ---
-{
-  start(['fireteam', 'noble', 'osiris', 'rifle', 'marks', 'wall']);
-  A.G.hand = ['noble', 'fireteam', 'osiris'];
-  A.G.dp = 9;
-  if (!A.frameGateText('noble')) F.push('Noble should be dead in hand with no Fireteam standing');
-  A.deploy('fireteam', 2, 1);
-  const ft = A.kitHost('fireteam');
-  if (!ft) F.push('Fireteam did not deploy');
-  if (A.frameGateText('noble')) F.push('Noble still gated with the Fireteam on the board');
-  const tiles = A.validTiles('noble');
-  if (tiles.length !== 1 || tiles[0] !== 2 * A.COLS + 1) F.push('Noble should target only the Fireteam cell');
-  A.deploy('noble', 2, 1);
-  if (ft.tg !== 'adj' || ft.dmg !== 5 || !ft.blocker || ft.riposte !== 2) F.push(`Noble did not re-spec the Fireteam (${ft.tg}/${ft.dmg}/${ft.blocker}/${ft.riposte})`);
-  A.deploy('osiris', 2, 1);
-  if (ft.tg !== 'furthest' || !ft.indirect || ft.blocker) F.push('Osiris did not replace Noble cleanly');
-  const wall = spawnUnit('wall', 2, 3);
-  const deep = spawnFoe('crawler', 2, 6, 10);
-  if (!A.geomFor(ft).includes(deep)) F.push('Osiris should arc over the Barricade to the deepest hostile');
-  if (A.frameReady()) F.push('a Fireteam is not a Frame and must not be seeded');
 }
 
 // --- Singer: hostiles within two cells strike softer, and the board says so ---
@@ -313,6 +291,161 @@ const CUT2 = ['pikewall', 'sentry', 'backstop', 'ram', 'beacon', 'supply', 'long
   if (!m.unlocks.cards.includes('pyre') || !m.unlocks.cards.includes('crystal') || m.unlocks.cards.includes('scrambler')) F.push('elemental id swap missed the unlocks');
   if (!m.loadout.deck.includes('pyre') || m.loadout.deck.includes('zaku')) F.push('deck did not swap and strip');
   if (m.usage.crystal !== 4) F.push('usage did not follow the id swap');
+}
+
+
+// ============================ v2.32: the Fireteam line, saved decks, fog of war ============================
+const TEAMS = ['ftnoble', 'ftosiris', 'ftmajestic', 'ftshadow'];
+const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'ordnance'];
+{
+  ['fireteam', 'noble', 'shadow', 'osiris', 'majestic'].forEach(id => { if (A.POOL[id]) F.push(`old Fireteam card '${id}' survives`); });
+  TEAMS.forEach(id => { if (!A.POOL[id] || A.POOL[id].line !== 'fireteam' || A.POOL[id].t !== 'special') F.push(`${id} is not a Fireteam Specialist`); });
+  ARMOUR.forEach(id => { if (!A.POOL[id] || A.POOL[id].fits !== 'fireteam' || A.POOL[id].dp !== 1) F.push(`${id} is not a 1 DP Fireteam ability`); });
+  if (!A.MODS.fog) F.push('no Fog of War modifier');
+}
+
+// --- one team at a time; abilities need a team; the new one strips the last ---
+{
+  start(['ftnoble', 'ftshadow', 'camo', 'jetpack', 'lock', 'rifle']);
+  A.G.hand = ['ftnoble', 'ftshadow', 'camo', 'jetpack', 'lock'];
+  A.G.dp = 20;
+  if (!A.frameGateText('camo')) F.push('an ability should be dead in hand with no Fireteam standing');
+  A.deploy('ftnoble', 2, 1);
+  const team = A.hostFor(A.POOL.camo);
+  if (!team || team.id !== 'ftnoble') F.push('Fireteam Noble did not stand as a kit host');
+  if (!A.frameGateText('ftshadow')) F.push('a second Fireteam should wait while one stands');
+  if (A.validTiles('ftshadow').length) F.push('a second Fireteam was offered tiles');
+  if (A.frameGateText('camo')) F.push('Active Camo still gated with a team standing');
+  A.deploy('camo', 2, 1);
+  if (!team.camo || !team.cloaked) F.push('Active Camo did not cloak the team');
+  A.deploy('jetpack', 2, 1);
+  if (team.camo || team.cloaked) F.push('Jetpack did not strip Active Camo');
+  if (!team.jet || !team.servo) F.push('Jetpack did not fit');
+  if (team.gearS.length !== 1 || team.gearS[0] !== 'jetpack') F.push(`the team carries ${team.gearS.join(',')}, wanted jetpack alone`);
+  A.G.ter[0][0] = 'p'; A.G.ter[4][3] = 'p';
+  team.acted = false; team.moved = false; team.fresh = false;   // the deploy spent its turn
+  const jumps = A.moveTargets(team);
+  if (!jumps.includes(0 * A.COLS + 0) || !jumps.includes(4 * A.COLS + 3)) F.push('Jetpack should reach held tiles two cells out in any direction');
+  A.G.ter[4][3] = 'n';
+  if (A.moveTargets(team).includes(4 * A.COLS + 3)) F.push('Jetpack landed on ground not held');
+  A.deploy('lock', 2, 1);
+  if (team.jet || team.servo) F.push('Armor Lock did not strip the Jetpack');
+  if (!team.ab || team.ab.key !== 'lock') F.push('Armor Lock did not grant its ability');
+  if (A.frameReady()) F.push('a Fireteam is not a Frame and must not be seeded');
+}
+
+// --- Active Camo: hostiles find nothing to shoot until it fires ---
+{
+  start();
+  const team = spawnUnit('ftnoble', 2, 3);
+  team.camo = true; team.cloaked = true;
+  const hulk = spawnFoe('hulk', 2, 4, 30);
+  const hp0 = team.hp;
+  A.strike(hulk, A.BEST.hulk, 0);
+  if (team.hp !== hp0) F.push('a cloaked team was struck');
+  if (A.forecastThreat().hits[team.uid]) F.push('the forecast threatened a cloaked team');
+  team.fresh = false;
+  A.fire(team, false);
+  if (team.cloaked) F.push('firing did not drop the cloak');
+  A.strike(hulk, A.BEST.hulk, 0);
+  if (team.hp === hp0) F.push('an uncloaked team should be struck');
+  A.territoryPhase();
+  if (!team.cloaked) F.push('the cloak did not return at the turn end');
+}
+
+// --- Armor Lock, Drop Shield, Hologram ---
+{
+  start();
+  const team = spawnUnit('ftmajestic', 2, 2);
+  team.ab = A.POOL.lock.ab; team.cd = 0;
+  A.useAbility(team);
+  if (!team.locked || !team.acted) F.push('Armor Lock did not lock');
+  const hp0 = team.hp;
+  A.dmgUnit(team, 9, 'test');
+  if (team.hp !== hp0) F.push('Armor Lock let damage through');
+  if (team.cd !== 3) F.push(`Armor Lock cooldown ${team.cd}, wanted 3`);
+  A.territoryPhase();
+  if (team.locked) F.push('Armor Lock outlived the turn');
+
+  clearBoard();
+  const t2 = spawnUnit('ftnoble', 2, 2);
+  const n1 = spawnUnit('rifle', 1, 2); const n2 = spawnUnit('rifle', 2, 3); const far = spawnUnit('rifle', 4, 2);
+  t2.ab = A.POOL.dropshield.ab; t2.cd = 0;
+  A.useAbility(t2);
+  if (n1.shield !== 1 || n2.shield !== 1) F.push('Drop Shield missed a neighbour');
+  if (far.shield) F.push('Drop Shield reached past the four adjacent cells');
+
+  clearBoard();
+  const t3 = spawnUnit('ftshadow', 2, 2);
+  const wall = spawnUnit('wall', 2, 4);
+  t3.ab = A.POOL.hologram.ab; t3.cd = 0;
+  A.useAbility(t3);
+  const hulk = spawnFoe('hulk', 2, 5, 30);
+  const w0 = wall.hp;
+  A.strike(hulk, A.BEST.hulk, 0);
+  if (wall.hp !== w0) F.push('the lane struck through the hologram');
+  if (A.forecastThreat().hits[wall.uid]) F.push('the forecast ignored the hologram');
+}
+
+// --- Ordnance Drop: the lane takes 8, the card is spent ---
+{
+  start(['ftnoble', 'ordnance', 'rifle', 'marks', 'wall', 'medic']);
+  A.G.hand = ['ordnance'];
+  A.G.dp = 5;
+  const team = spawnUnit('ftnoble', 2, 1);
+  const a = spawnFoe('crawler', 2, 4, 20); const b = spawnFoe('crawler', 2, 7, 20); const other = spawnFoe('crawler', 3, 4, 20);
+  A.deploy('ordnance', 2, 1);
+  if (a.hp !== 12 || b.hp !== 12) F.push('Ordnance Drop did not deal 8 down the lane');
+  if (other.hp !== 20) F.push('Ordnance Drop hit another lane');
+  if (team.gearS.length) F.push('Ordnance Drop was carried instead of spent');
+  if (A.G.hand.includes('ordnance')) F.push('Ordnance Drop stayed in hand');
+}
+
+// --- fog of war: the home third is seen, units see two, scouts three, nothing fires blind ---
+{
+  A.enterProfile(unlockAll(A.blankProfile('FOG'), ['rifle', 'marks', 'scout', 'recon', 'wall', 'medic']));
+  A.launchSpec({node: null, type: 'stronghold', mod: 'fog', reward: 0});
+  clearBoard();
+  if (!A.G.fog) F.push('the fog modifier did not set G.fog');
+  if (!A.cellVisible(2, 2) || A.cellVisible(2, 3)) F.push('an empty fogged board should show exactly the home third');
+  const r = spawnUnit('rifle', 2, 2);
+  if (!A.cellVisible(2, 4) || A.cellVisible(2, 5)) F.push('a Rifleman should see two cells');
+  const deep = spawnFoe('crawler', 2, 6, 10);
+  if (A.geomFor(r).length) F.push('a Rifleman fired into the fog');
+  if (A.foeVisible(deep)) F.push('a hostile in the fog is visible');
+  deep.col = 4;
+  if (!A.geomFor(r).includes(deep)) F.push('a hostile in sight should be a target');
+  clearBoard();
+  spawnUnit('scout', 2, 2);
+  if (!A.cellVisible(2, 5) || A.cellVisible(2, 6)) F.push('a Scout should see three cells');
+  const hidden = spawnFoe('hulk', 0, 7, 30);
+  spawnUnit('wall', 0, 4);                                  // sees to column 6, not 7
+  if (A.foeVisible(hidden)) F.push('a hostile beyond every sight line should be hidden');
+  A.strike(hidden, A.BEST.hulk, 0);
+  if (!A.foeVisible(hidden)) F.push('a hostile that strikes should give itself away');
+  A.G.hand = ['recon']; A.G.dp = 5;
+  A.deploy('recon', 2, 0);
+  if (!A.G.reveal || !A.cellVisible(4, 7)) F.push('Recon Lark did not lift the fog');
+  A.territoryPhase();
+  if (A.G.reveal) F.push('the Recon reveal outlived the turn');
+  // a boss fight is never fogged
+  A.enterProfile(unlockAll(A.blankProfile('FOGB'), ['rifle', 'marks', 'scout', 'recon', 'wall', 'medic']));
+  A.launchSpec({node: null, op: 'ironveil', type: 'boss', mod: 'fog', reward: 0});
+  if (A.G.fog) F.push('a boss mission was fogged');
+}
+
+// --- saved decks survive the save layer ---
+{
+  const p = A.blankProfile('PRE');
+  p.presets = [{n: 'Gun line', deck: ['rifle', 'marks'], frame: null}, null, {n: 'bad'}];
+  const m = A.migrate(p);
+  if (m.presets.length !== 1 || m.presets[0].n !== 'Gun line') F.push('presets did not survive migration cleanly');
+  const q = A.migrate(A.blankProfile('PRE2'));
+  if (!Array.isArray(q.presets)) F.push('a fresh profile has no presets list');
+  const v15 = A.blankProfile('V15'); v15.version = 15; v15.unlocks.cards = ['scout', 'fireteam', 'noble']; v15.progress.credits = 0;
+  const mv = A.migrate(v15);
+  if (mv.progress.credits !== 470) F.push(`v16 refunded ${mv.progress.credits}, wanted 470`);
+  if (mv.unlocks.cards.includes('fireteam')) F.push('the old Fireteam survived migration');
 }
 
 F.report('balancetest');

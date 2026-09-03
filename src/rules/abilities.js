@@ -11,6 +11,32 @@ import {foeAt, unitAt, civAt} from './board.js';
 import {clog} from './log.js';
 import {tapeEvent} from './tape.js';
 
+// Fireteam armour abilities — dispatched on the kit's key, not the card id.
+const ARMOUR = {
+  // Armor Lock: nothing gets through this turn, and nothing gets out.
+  lock(u) {
+    u.locked = true;
+    u.acted = true;
+    u.moved = true;
+    clog(`<span class="g">Armor Lock</span> — ${u.n} locked down.`, 'order');
+  },
+  // Drop Shield: a bubble over the four neighbours, one charge each.
+  bubble(u) {
+    let n = 0;
+    G.units.forEach(o => {
+      if (o.uid === u.uid || Math.abs(o.lane - u.lane) + Math.abs(o.col - u.col) !== 1) return;
+      o.shield = Math.min(2, (o.shield || 0) + 1);
+      n++;
+    });
+    clog(`<span class="g">Drop Shield</span> — ${n} neighbour${n === 1 ? '' : 's'} shielded.`, 'order');
+  },
+  // Hologram: the lane fires at the decoy this turn.
+  holo(u) {
+    u.holo = true;
+    clog(`<span class="g">Hologram</span> — lane ${u.lane + 1} is shooting at a ghost this turn.`, 'order');
+  },
+};
+
 const FURY_HITS = 4;
 const FURY_DMG = 2;
 
@@ -103,7 +129,7 @@ export function useAbility(u) {
   u.cd = Math.max(1, (u.ab.cd || 1) - (u.cool ? 1 : 0));
   // Gear-granted abilities dispatch on their own key; a card's printed
   // ability keeps dispatching on the card id.
-  const run = ABILITIES[u.ab.key || u.id];
+  const run = (u.ab.key && ARMOUR[u.ab.key]) || ABILITIES[u.ab.key || u.id];
   if (run) run(u);
 }
 

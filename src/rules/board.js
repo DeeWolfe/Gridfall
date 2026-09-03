@@ -9,6 +9,7 @@ import {POOL} from '../content/cards.js';
 import {BEST} from '../content/hostiles.js';
 import {G} from '../state/session.js';
 import {gearOf, leadOf, leadBan} from '../save/progression.js';
+import {hostFor} from './frames.js';
 import {STRATAGEMS} from '../content/stratagems.js';
 import {frameGateText} from './frames.js';
 
@@ -49,6 +50,38 @@ export const breachAllowance = type => type === 'crystals' ? MAXBREACH + 1 : MAX
  */
 export const ENDGAME_TURNS = type =>
   type === 'crystals' ? 4 : (type === 'stronghold' || type === 'extract') ? 2 : 3;
+
+/**
+ * Fog of war. The player's home third is always seen; everything else needs a
+ * unit's sight (two cells, three for scouts), a Recon Lark's reveal, or a
+ * hostile giving itself away by striking. Recomputed on demand — the board is
+ * forty cells and the answer changes every move.
+ */
+export const FOG_HOME = 3;
+export const DEFAULT_SIGHT = 2;
+export function visibleCells() {
+  const out = new Set();
+  if (!G.fog || G.reveal) {
+    for (let l = 0; l < LANES; l++) for (let c = 0; c < COLS; c++) out.add(l * COLS + c);
+    return out;
+  }
+  for (let l = 0; l < LANES; l++) for (let c = 0; c < FOG_HOME; c++) out.add(l * COLS + c);
+  G.units.forEach(u => {
+    const r = u.sight || DEFAULT_SIGHT;
+    for (let i = 0; i < (u.size || 1); i++) {
+      for (let dl = -r; dl <= r; dl++) for (let dc = -r; dc <= r; dc++) {
+        const l = u.lane + dl;
+        const c = u.col + i + dc;
+        if (l >= 0 && l < LANES && c >= 0 && c < COLS) out.add(l * COLS + c);
+      }
+    }
+  });
+  return out;
+}
+export const cellVisible = (l, c) => !G.fog || G.reveal || visibleCells().has(l * COLS + c);
+/** A hostile is seen where its cell is seen — or for a turn after it strikes. */
+export const foeVisible = e => !G.fog || G.reveal || (e.revealUntil || -1) >= G.turn ||
+  visibleCells().has(e.lane * COLS + e.col);
 
 /** Lingering plasma. Burns hostiles moving through and denies capture. */
 export const scorched = (l, c) => (G.scorch[l + ',' + c] || 0) > 0;
@@ -136,8 +169,8 @@ function rawTiles(cid, k) {
   // Gear lands on the machine itself: the standing Frame's cell is the one
   // legal target. frameGateText() above already guaranteed it is the right
   // Frame, so this cannot offer someone else's kit a home.
-  if (k.frameGear) {
-    const fr = G.units.find(u => u.id === k.frameGear);
+  if (k.frameGear || k.fits) {
+    const fr = hostFor(k);
     if (fr) out.push(fr.lane * COLS + fr.col);
     return out;
   }

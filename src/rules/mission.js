@@ -94,6 +94,9 @@ export function launchSpec(nd) {
     waves: nd.endless ? 9999 : m.waves,
     turn: 1, dp: Math.max(1, MAXDP + (leadOf().dpMod || 0)), breaches: 0, over: false,
     ter: freshTerritory(), scorch: {}, rubble: {}, burrowAt: null,
+    // Fog of war rides the modifier; a boss fight is never fogged — the
+    // machine IS the board, and hiding it would hide the fight.
+    fog: nd.mod === 'fog' && nd.type !== 'boss', reveal: false,
     deck: shuffle([...deck]), hand: [], units: [], enemies: [],
     logs: [], kills: 0, lost: 0, extra: 0, doctrine: 'probe',
     capNoted: false,

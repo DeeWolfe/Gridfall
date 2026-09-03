@@ -7,7 +7,7 @@
   "GROUND_FLOOR": 6,
   "HAND_CAP": 6,
   "DECKSIZE": 12,
-  "SAVE_VERSION": 15,
+  "SAVE_VERSION": 16,
   "STARTER": [
    "scout",
    "rifle",
@@ -30,7 +30,8 @@
    "mob": 1,
    "tg": "none",
    "aura": 1,
-   "d": "+1 damage to friendlies in the four adjacent cells. Carries no weapon."
+   "d": "+1 damage to friendlies in the four adjacent cells. Carries no weapon, but sees three cells in the fog.",
+   "sight": 3
   },
   "recon": {
    "n": "Recon Lark",
@@ -40,7 +41,8 @@
    "price": 80,
    "instant": 1,
    "draw": 2,
-   "d": "Calls in two more cards, then is gone. Leaves no unit on the board."
+   "d": "Calls in two more cards and lifts the fog across the whole board until the end of the turn. Leaves no unit on the board.",
+   "reveal": 1
   },
   "pathfinder": {
    "n": "Pathfinder",
@@ -53,7 +55,8 @@
    "tg": "first",
    "dmg": 1,
    "claim": 2,
-   "d": "On deployment, claims the two tiles ahead as your ground."
+   "d": "On deployment, claims the two tiles ahead as your ground.",
+   "sight": 3
   },
   "rifle": {
    "n": "Rifleman",
@@ -418,8 +421,9 @@
    "sustain": {
     "cooldown": 1
    },
-   "d": "Deploys on held ground. Adjacent friendlies cool down a turn faster, and the base feeds you +1 deploy point every turn it stands. Immobile.",
-   "dynamo": 1
+   "d": "Deploys on held ground. Adjacent friendlies cool down a turn faster, the base feeds you +1 deploy point every turn it stands, and it sees three cells in the fog. Immobile.",
+   "dynamo": 1,
+   "sight": 3
   },
   "mine": {
    "n": "Minefield",
@@ -472,9 +476,10 @@
    "mob": 1,
    "tg": "radius2",
    "dmg": 2,
-   "d": "The falcon strikes any hostile within two cells, in any direction. Tap one to pick its prey.",
+   "d": "The falcon strikes any hostile within two cells, in any direction, and sees three in the fog. Tap one to pick its prey.",
    "single": 1,
-   "choose": 1
+   "choose": 1,
+   "sight": 3
   },
   "rampart": {
    "n": "Rampart",
@@ -893,76 +898,148 @@
    "hymn": 1,
    "d": "No weapon. Her song reaches two cells in every direction, and every hostile inside it strikes 1 softer."
   },
-  "fireteam": {
-   "n": "Fireteam",
+  "ftnoble": {
+   "n": "Fireteam Noble",
    "t": "special",
+   "line": "fireteam",
    "single": 1,
    "dp": 4,
    "hp": 8,
-   "price": 300,
+   "price": 320,
    "mob": 1,
-   "tg": "first",
-   "dmg": 3,
-   "d": "A better rifleman: 8 hull, 3 damage down the lane, and a body that re-specs mid-sortie. Four exclusive kit cards — Noble, Shadow, Osiris, Majestic — each rewrite what it is for."
-  },
-  "noble": {
-   "n": "Noble",
-   "t": "tech",
-   "dp": 1,
-   "hp": 0,
-   "price": 170,
-   "frameGear": "fireteam",
-   "slot": "weapon",
    "tg": "adj",
-   "dmg": 5,
-   "single": 1,
+   "dmg": 3,
    "blocker": 1,
    "riposte": 2,
-   "tech": 1,
-   "d": "Tower shield and shortsword. The Fireteam becomes the wall: blocks the lane, cuts at contact for 5, answers every blow with 2."
+   "d": "The team that holds. Blocks the lane, cuts for 3 at contact and answers every blow with 2. Any armour ability fits it."
   },
-  "shadow": {
-   "n": "Shadow",
-   "t": "tech",
-   "dp": 1,
-   "hp": 0,
-   "price": 170,
-   "frameGear": "fireteam",
-   "slot": "weapon",
-   "tg": "diag",
-   "dmg": 5,
-   "pen": 1,
-   "tech": 1,
-   "d": "Blades in the dark. The Fireteam strikes all four diagonals for 5 and slips between armour plates — floors mean nothing."
-  },
-  "osiris": {
-   "n": "Osiris",
-   "t": "tech",
-   "dp": 1,
-   "hp": 0,
-   "price": 180,
-   "frameGear": "fireteam",
-   "slot": "weapon",
+  "ftosiris": {
+   "n": "Fireteam Osiris",
+   "t": "special",
+   "line": "fireteam",
+   "single": 1,
+   "dp": 4,
+   "hp": 5,
+   "price": 340,
+   "mob": 1,
    "tg": "furthest",
    "dmg": 5,
-   "single": 1,
-   "indirect": 1,
-   "tech": 1,
-   "d": "The long rifle. The Fireteam reaches the deepest hostile in its lane for 5, arcing over your own walls."
+   "drop": 1,
+   "sight": 3,
+   "d": "The hunters. Deploy on any tile, including hostile ground, and reach the deepest hostile in the lane for 5. They see three cells. Fragile once found."
   },
-  "majestic": {
-   "n": "Majestic",
-   "t": "tech",
-   "dp": 1,
-   "hp": 0,
-   "price": 180,
-   "frameGear": "fireteam",
-   "slot": "weapon",
+  "ftmajestic": {
+   "n": "Fireteam Majestic",
+   "t": "special",
+   "line": "fireteam",
+   "dp": 4,
+   "hp": 8,
+   "price": 330,
+   "mob": 1,
    "tg": "ahead3",
    "dmg": 3,
    "aura": 1,
+   "d": "Line Spartans. Sweep the three cells ahead for 3 and steady everyone beside them: +1 damage to adjacent friendlies."
+  },
+  "ftshadow": {
+   "n": "Fireteam Shadow",
+   "t": "special",
+   "line": "fireteam",
+   "dp": 4,
+   "hp": 5,
+   "price": 340,
+   "mob": 1,
+   "tg": "diag",
+   "dmg": 5,
+   "pen": 1,
+   "d": "Quiet work. Blades on all four diagonals for 5, and armour means nothing to them. The Fireteam that answers plate."
+  },
+  "camo": {
+   "n": "Active Camo",
+   "t": "tech",
+   "dp": 1,
+   "hp": 0,
+   "price": 160,
+   "fits": "fireteam",
+   "slot": "armor",
    "tech": 1,
-   "d": "The officer’s kit. The Fireteam sweeps the three cells ahead for 3 and steadies everyone beside it: +1 damage to adjacent friendlies."
+   "camo": 1,
+   "d": "Armour ability. The Fireteam cannot be targeted by hostiles until the turn it fires, and cloaks again at the start of each of your turns."
+  },
+  "lock": {
+   "n": "Armor Lock",
+   "t": "tech",
+   "dp": 1,
+   "hp": 0,
+   "price": 150,
+   "fits": "fireteam",
+   "slot": "armor",
+   "tech": 1,
+   "ab": {
+    "n": "Armor Lock",
+    "d": "The Fireteam takes no damage this turn and cannot move or fire.",
+    "cd": 3,
+    "key": "lock"
+   },
+   "d": "Armour ability. Once every three turns the Fireteam locks: no damage taken this turn, no move, no shot."
+  },
+  "jetpack": {
+   "n": "Jetpack",
+   "t": "tech",
+   "dp": 1,
+   "hp": 0,
+   "price": 170,
+   "fits": "fireteam",
+   "slot": "armor",
+   "tech": 1,
+   "jet": 1,
+   "d": "Armour ability. The Fireteam may move to any open held tile within two cells, walls and all, and still fire the same turn."
+  },
+  "dropshield": {
+   "n": "Drop Shield",
+   "t": "tech",
+   "dp": 1,
+   "hp": 0,
+   "price": 160,
+   "fits": "fireteam",
+   "slot": "armor",
+   "tech": 1,
+   "ab": {
+    "n": "Drop Shield",
+    "d": "Every friendly in the four adjacent cells gains a shield charge.",
+    "cd": 2,
+    "key": "bubble"
+   },
+   "d": "Armour ability. Every other turn the Fireteam drops a bubble: each friendly in the four adjacent cells gains one shield charge."
+  },
+  "hologram": {
+   "n": "Hologram",
+   "t": "tech",
+   "dp": 1,
+   "hp": 0,
+   "price": 160,
+   "fits": "fireteam",
+   "slot": "armor",
+   "tech": 1,
+   "ab": {
+    "n": "Hologram",
+    "d": "Every hostile in this lane strikes the decoy this turn and hits nothing.",
+    "cd": 2,
+    "key": "holo"
+   },
+   "d": "Armour ability. Every other turn the Fireteam projects a decoy: every hostile in its lane strikes the hologram this turn and hits nothing."
+  },
+  "ordnance": {
+   "n": "Ordnance Drop",
+   "t": "tech",
+   "dp": 1,
+   "hp": 0,
+   "price": 200,
+   "fits": "fireteam",
+   "slot": "armor",
+   "tech": 1,
+   "ordnance": 8,
+   "d": "One shot, then spent: 8 damage to every hostile in the Fireteam's lane. Needs a Fireteam standing to call it in."
   }
  },
  "gear": {
@@ -1703,6 +1780,10 @@
   "crumble": {
    "n": "Crumbling Ground",
    "d": "Every couple of turns, one open tile collapses for good — impassable to both sides."
+  },
+  "fog": {
+   "n": "Fog of War",
+   "d": "The middle and far ground are hidden. Most units see two cells around them; scouts see three; a Recon Lark lifts the fog for a turn."
   }
  },
  "operations": {

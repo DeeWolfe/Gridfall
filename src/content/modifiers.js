@@ -13,4 +13,8 @@ export const MODS = {
     n: "Crumbling Ground",
     d: "Every couple of turns, one open tile collapses for good — impassable to both sides.",
   },
+  fog: {
+    n: "Fog of War",
+    d: "The middle and far ground are hidden. Most units see two cells around them; scouts see three; a Recon Lark lifts the fog for a turn.",
+  },
 };

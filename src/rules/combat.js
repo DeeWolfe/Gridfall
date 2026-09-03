@@ -181,6 +181,11 @@ export function dmgUnit(u, d, src, attacker) {
   if (leadOf().con && leadOf().con.n === 'Exposed') d += 1;
   d = Math.max(1, d - dampenIn(u.lane) - (attacker ? hymnAt(attacker.lane, attacker.col) : 0));
 
+  // Armor Lock: the blow lands on nothing at all — not even a riposte.
+  if (u.locked) {
+    clog(`<span class="g">Armor Lock</span> holds — ${u.n} takes nothing.`, 'info');
+    return;
+  }
   if (u.riposte && attacker && attacker.hp > 0) {
     dmgEnemy(attacker, u.riposte, u.n + ' riposte', false);
   }
@@ -302,6 +307,9 @@ export function fire(u, onPlay) {
 
   // Recoilless Team: the backblast hits whoever stands directly behind it,
   // shields and all — one shot, one point, no matter how many targets fell.
+  // Active Camo: the shot gives the team away until its next turn.
+  if (u.camo && fired) u.cloaked = false;
+
   if (u.backblast && fired) {
     const behind = G.units.find(o => o.lane === u.lane && o.col + o.size === u.col);
     if (behind) dmgUnit(behind, u.backblast, u.n + ' backblast');
