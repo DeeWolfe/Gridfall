@@ -95,8 +95,20 @@ function wireRecordScreen() {
     $('drawtab').textContent = drawer.classList.contains('up') ? '▼' : '▲';
     $('drawui').textContent = 'UI · ' + UI_LABELS[uiPreference()];
     $('drawmus').textContent = 'Music · ' + (musicOn() ? 'On' : 'Off');
+    // "Main menu" only earns a row when you are not already standing on it.
+    const onHold = $('hold').classList.contains('on') && !$('panel').classList.contains('on');
+    $('drawmain').hidden = onHold;
   };
   $('drawtab').onclick = () => { sfx('tap'); drawer.classList.toggle('up'); paintDrawer(); };
+  $('drawmain').onclick = () => {
+    drawer.classList.remove('up');
+    paintDrawer();
+    $('panel').classList.remove('on');
+    stopScene();
+    show('hold');
+    startScene();
+    paintHold();
+  };
   $('drawset').onclick = () => { drawer.classList.remove('up'); paintDrawer(); openPanel('settings'); };
   $('drawui').onclick = () => { cycleUiMode(); paintDrawer(); };
   $('drawmus').onclick = () => { toggleMusic(); paintDrawer(); };

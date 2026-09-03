@@ -50,7 +50,7 @@ if (primary().textContent !== 'End turn') F.push('bar did not revert after cance
   if (A.mover !== null) F.push('deselect did not clear the selection');
 }
 
-// the menu folds up over the action bar; abort lives inside it and asks first
+// the menu folds up over the action bar; its one release asks first
 A.setMover(null);
 A.setSel(null);
 drawAll();
@@ -59,18 +59,18 @@ if (!get('cmenu')._cls.has('up')) F.push('Menu did not fold the sheet up');
 secondary().onclick();
 if (get('cmenu')._cls.has('up')) F.push('a second tap did not fold the sheet away');
 secondary().onclick();
-get('cmAbort').onclick();
-if (get('cmenu')._cls.has('up')) F.push('choosing Abort should close the sheet');
-if (!get('dlg')._cls.has('on')) F.push('Abort should open a confirmation dialog');
-if (!A.G) F.push('Abort left the mission before the player confirmed');
+get('cmHold').onclick();
+if (get('cmenu')._cls.has('up')) F.push('choosing Main menu should close the sheet');
+if (!get('dlg')._cls.has('on')) F.push('Main menu should open a confirmation dialog');
+if (!A.G) F.push('Main menu left the mission before the player confirmed');
 dlgClose(false);
 if (!A.G) F.push('cancelling the abort dialog should stay in the mission');
 if (get('dlg')._cls.has('on')) F.push('cancel should close the abort dialog');
 drawAll();
 secondary().onclick();
-get('cmAbort').onclick();
+get('cmHold').onclick();
 dlgClose(true);
-if (A.G) F.push('confirmed abort should leave the mission');
+if (A.G) F.push('a confirmed Main menu should leave the mission');
 
 // selecting anything folds the sheet away — it must not fight the hand
 A.launch(Object.keys(A.opRun().nodes)[0]);

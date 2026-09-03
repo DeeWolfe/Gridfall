@@ -71,13 +71,6 @@ const abortStakes = () => (G.gauntlet
       ? 'This attempt is abandoned, but the streak is untouched — you can retry today\'s challenge.'
       : 'Progress on this mission is lost. The node stays open to try again.');
 
-/** Abort is irreversible, so it asks first — with the stakes for this mode. */
-function confirmAbort() {
-  if (G.over) return leaveCombat();
-  ask('Abort mission', abortStakes() + '<br><br>Leave the field?',
-    ok => { if (ok) leaveCombat(); }, {ok: 'Abort'});
-}
-
 /** All the way out: abort and land on the hold rather than the map. */
 function exitToHold() {
   abortMission();
@@ -89,9 +82,10 @@ function exitToHold() {
   paintHold();
 }
 
+/** The mission's one release: abort and land on the main menu. */
 function confirmMainMenu() {
   if (G.over) return exitToHold();
-  ask('Main menu', abortStakes() + '<br><br>Return to the hold?',
+  ask('Main menu', abortStakes() + '<br><br>Abandon the mission and return to the hold?',
     ok => { if (ok) exitToHold(); }, {ok: 'Leave'});
 }
 
@@ -106,7 +100,6 @@ function paintCMenu() {
   $('cmUi').textContent = 'UI · ' + UI_LABELS[uiPreference()];
   $('cmMus').textContent = 'Music · ' + (musicOn() ? 'On' : 'Off');
   const close = () => { cmenuOpen = false; el.classList.remove('up'); };
-  $('cmAbort').onclick = () => { close(); confirmAbort(); };
   $('cmHold').onclick = () => { close(); confirmMainMenu(); };
   $('cmSet').onclick = () => { close(); openPanel('settings'); };
   $('cmUi').onclick = () => { cycleUiMode(); paintCMenu(); };

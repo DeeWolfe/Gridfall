@@ -1555,8 +1555,8 @@ body{font-size:1rem}
   <div class="pbody" id="pbody"></div>
   <div id="paneltut"></div>
   <div class="navfoot"><h2 id="ptitle">—</h2>
-    <div class="navbtns"><button class="btn ghost" id="panelmenu">Menu</button>
-      <button class="btn ghost" id="pclose">Close</button></div></div>
+    <div class="navbtns"><button class="btn ghost" id="pclose">Close</button>
+      <button class="btn ghost" id="panelmenu">Menu</button></div></div>
 </div>
 
 <div class="scr" id="modes">
@@ -1619,7 +1619,6 @@ body{font-size:1rem}
       <button class="btn ghost logtog" id="logtog" aria-pressed="false">Log</button>
       <button class="btn ghost" id="actSecondary">Menu</button>
       <div class="cmenu" id="cmenu">
-        <button class="mini" id="cmAbort">Abort mission</button>
         <button class="mini" id="cmHold">Main menu</button>
         <button class="mini" id="cmSet">Settings</button>
         <button class="mini" id="cmUi">UI</button>
@@ -1668,6 +1667,7 @@ body{font-size:1rem}
 
 <div id="drawer">
   <div class="drawmenu">
+    <button class="mini" id="drawmain">Main menu</button>
     <button class="mini" id="drawset">Settings</button>
     <button class="mini" id="drawui">UI</button>
     <button class="mini" id="drawmus">Music</button>
@@ -15877,13 +15877,6 @@ const abortStakes = () => (G.gauntlet
       ? 'This attempt is abandoned, but the streak is untouched — you can retry today\'s challenge.'
       : 'Progress on this mission is lost. The node stays open to try again.');
 
-/** Abort is irreversible, so it asks first — with the stakes for this mode. */
-function confirmAbort() {
-  if (G.over) return leaveCombat();
-  ask('Abort mission', abortStakes() + '<br><br>Leave the field?',
-    ok => { if (ok) leaveCombat(); }, {ok: 'Abort'});
-}
-
 /** All the way out: abort and land on the hold rather than the map. */
 function exitToHold() {
   abortMission();
@@ -15895,9 +15888,10 @@ function exitToHold() {
   paintHold();
 }
 
+/** The mission's one release: abort and land on the main menu. */
 function confirmMainMenu() {
   if (G.over) return exitToHold();
-  ask('Main menu', abortStakes() + '<br><br>Return to the hold?',
+  ask('Main menu', abortStakes() + '<br><br>Abandon the mission and return to the hold?',
     ok => { if (ok) exitToHold(); }, {ok: 'Leave'});
 }
 
@@ -15912,7 +15906,6 @@ function paintCMenu() {
   $('cmUi').textContent = 'UI · ' + UI_LABELS[uiPreference()];
   $('cmMus').textContent = 'Music · ' + (musicOn() ? 'On' : 'Off');
   const close = () => { cmenuOpen = false; el.classList.remove('up'); };
-  $('cmAbort').onclick = () => { close(); confirmAbort(); };
   $('cmHold').onclick = () => { close(); confirmMainMenu(); };
   $('cmSet').onclick = () => { close(); openPanel('settings'); };
   $('cmUi').onclick = () => { cycleUiMode(); paintCMenu(); };
@@ -17009,8 +17002,20 @@ function wireRecordScreen() {
     $('drawtab').textContent = drawer.classList.contains('up') ? '▼' : '▲';
     $('drawui').textContent = 'UI · ' + UI_LABELS[uiPreference()];
     $('drawmus').textContent = 'Music · ' + (musicOn() ? 'On' : 'Off');
+    // "Main menu" only earns a row when you are not already standing on it.
+    const onHold = $('hold').classList.contains('on') && !$('panel').classList.contains('on');
+    $('drawmain').hidden = onHold;
   };
   $('drawtab').onclick = () => { sfx('tap'); drawer.classList.toggle('up'); paintDrawer(); };
+  $('drawmain').onclick = () => {
+    drawer.classList.remove('up');
+    paintDrawer();
+    $('panel').classList.remove('on');
+    stopScene();
+    show('hold');
+    startScene();
+    paintHold();
+  };
   $('drawset').onclick = () => { drawer.classList.remove('up'); paintDrawer(); openPanel('settings'); };
   $('drawui').onclick = () => { cycleUiMode(); paintDrawer(); };
   $('drawmus').onclick = () => { toggleMusic(); paintDrawer(); };

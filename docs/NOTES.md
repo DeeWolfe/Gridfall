@@ -4640,8 +4640,12 @@ Three moves, one idea: every screen gets exactly one menu entry point.
 - **Hold**: #drawer moved from bottom-centre to bottom-right
   (right:14px, flex-end, sheet right-anchored).
 - **Panels** (Squad/Quartermaster/Database/Record/Settings, follow-up):
-  the shared panel footer carries Menu beside Close, and an open panel
-  hides the corner tab like every other non-hold surface. Also: the
+  the shared panel footer carries Menu beside Close — Menu rightmost,
+  matching every other footer — and an open panel hides the corner tab
+  like every other non-hold surface. The drawer sheet leads with a
+  "Main menu" row (hidden on the bare hold, where you already are), and
+  combat's sheet dropped Abort — Main menu is the mission's ONE release,
+  same stakes dialog, landing on the hold. Also: the
   slotless-card rule — kit cards, calls, instants, attachments (and
   Frames) take no armoury gear (gearFits + gearBlock + a migrate strip
   for old fitted pieces).
