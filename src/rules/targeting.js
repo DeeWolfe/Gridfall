@@ -28,7 +28,8 @@ export function laneFloor(e) {
 
 /**
  * Hostiles ahead of `u` in lane `L`, nearest first. Direct fire stops at the
- * first friendly blocker — your own wall cuts your own beam.
+ * first friendly blocker — your own wall cuts your own beam. A Firing Step is
+ * the one wall it does not: a parapet blocks the horde and not the guns.
  */
 export function laneAhead(u, L) {
   const front = u.col + u.size - 1;
@@ -37,7 +38,7 @@ export function laneAhead(u, L) {
     let limit = COLS;
     for (let c = front + 1; c < COLS; c++) {
       const f = unitAt(L, c);
-      if (f && f.blocker && f.uid !== u.uid) { limit = c; break; }
+      if (f && f.blocker && !f.parapet && f.uid !== u.uid) { limit = c; break; }
     }
     list = list.filter(e => e.col < limit);
   }
@@ -55,7 +56,7 @@ export function laneBehind(u, L) {
     let limit = -1;
     for (let c = u.col - 1; c >= 0; c--) {
       const f = unitAt(L, c);
-      if (f && f.blocker && f.uid !== u.uid) { limit = c; break; }
+      if (f && f.blocker && !f.parapet && f.uid !== u.uid) { limit = c; break; }
     }
     list = list.filter(e => e.col > limit);
   }
@@ -123,6 +124,8 @@ function geomBase(u) {
     case 'lane': return inLane;
     case 'ahead2': return inLane.filter(e => e.col <= front + 2);
     case 'ahead3': return inLane.filter(e => e.col <= front + 3);
+    // Recoilless Team: a dead zone at contact, then two cells of reach.
+    case 'window': return inLane.filter(e => e.col === front + 2 || e.col === front + 3);
     case 'range2':
       return G.enemies.filter(e => e.lane === L && e.col === front + 2);
     case 'range3': {
@@ -136,7 +139,7 @@ function geomBase(u) {
       // two-cell blockers became common enough to land in the way.
       for (let x = front + 1; x <= front + 2; x++) {
         const f = unitAt(L, x);
-        if (f && f.blocker && f.uid !== u.uid) return [];
+        if (f && f.blocker && !f.parapet && f.uid !== u.uid) return [];
       }
       return G.enemies.filter(e => e.lane === L && e.col === front + 3);
     }
@@ -229,7 +232,7 @@ export function geomCells(u, at) {
     if (!live || u.indirect) return false;
     for (let x = front + 1; x <= c; x++) {
       const f = unitAt(L, x);
-      if (f && f.blocker && f.uid !== u.uid) return true;
+      if (f && f.blocker && !f.parapet && f.uid !== u.uid) return true;
     }
     return false;
   };
@@ -238,7 +241,7 @@ export function geomCells(u, at) {
     if (!live || u.indirect) return false;
     for (let x = col - 1; x >= c; x--) {
       const f = unitAt(L, x);
-      if (f && f.blocker && f.uid !== u.uid) return true;
+      if (f && f.blocker && !f.parapet && f.uid !== u.uid) return true;
     }
     return false;
   };
@@ -261,6 +264,9 @@ export function geomCells(u, at) {
       break;
     case 'ahead3':
       for (let d = 1; d <= 3; d++) { if (cutTo(front + d)) break; add(L, front + d); }
+      break;
+    case 'window':
+      for (let d = 2; d <= 3; d++) { if (cutTo(front + d)) break; add(L, front + d); }
       break;
     case 'range2': add(L, front + 2); break;
     // Only a blocker strictly BETWEEN us and the target cuts this — one

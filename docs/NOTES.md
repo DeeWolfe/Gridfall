@@ -4728,3 +4728,43 @@ Two things the structure now makes cheap:
   entry in `reference/gridfall-data.json` under `operations`, not code.
 - **Cloud saves.** The save layer is versioned and sits behind `src/save/store.js`
   with a memory fallback. Swapping the backing store is the whole job.
+
+## v2.30 — the balance pass
+
+The roster was 85 cards on thirteen hull values and six damage values, with
+twenty-one cards on 2 or 3 damage. A one-point difference is invisible in
+play, and the card probe (random twelve-card decks, bot playouts, per-card
+win delta) had already said so: the whole middle of the roster measured
+within ±3% of itself. This pass snapped every unit onto two fixed ladders —
+hull 2/3/5/8/12/18/24, damage 1/2/3/5/8 — and cut ten cards that were each a
+weaker copy of a neighbour. `balancetest.js` now guards the ladders, so a
+future card cannot land between rungs by accident.
+
+**Cuts (85 → 75), all refunded at their sale price by the v14 migration:**
+Knight (riposte moved onto the Bulwark, now 12 hull), Vanguard, Turret (the
+Rampart inherits its starter slot and gets a real 2-damage rifle), Bio Medic,
+Pulse Emitter, Suppressor, Lance Battery, Bore Lance, Supply Cache, Sapper
+Turret. The Suppressor was also a bug: `dampenIn` returned a flat 1, so its
+`dampen: 2` was never honoured. It now returns the strongest field in the lane.
+
+**Pushbacks on the patch document, and why:** the Forward Base's `zoneMin`
+is removed rather than tightened — it was the single worst card in the probe
+(−27%) because it rotted in hand until you held column 3; the Shield gets two
+charges rather than staying a one-hit card slot; the Medic loses its stale
+Triage ability (it already healed every adjacent unit each turn, which was
+what Triage claimed to add).
+
+**Four new cards (75 → 79)**, each on a mechanic nothing else has:
+
+- **Banner Bearer** — `pack`: +1 own damage per adjacent friendly, outside
+  `MAX_BUFF`. The swarm payoff Zaku and Ashigaru never had.
+- **Firing Step** — `parapet`: a blocker the five beam walks in targeting.js
+  ignore. The bastion archetype stops cutting its own fire.
+- **Ember Lance** — `ember` on the previously unused `cone` pattern: the cell
+  under each hit burns for one turn (scorch = 1, so it survives the enemy
+  phase and the capture pass, then clears).
+- **Recoilless Team** — the new `window` pattern (cells 2 and 3 ahead, blind
+  at 1) with `backblast`: the friendly directly behind takes 1 per shot.
+  Backlog item 6, finally built.
+
+Before/after probe numbers are in the commit message for this entry.

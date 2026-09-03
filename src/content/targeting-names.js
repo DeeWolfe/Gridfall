@@ -24,4 +24,5 @@ export const TGNAME = {
   sweep: "Every cell in the two columns directly ahead",
   cross3: "A cross centred three cells ahead",
   cone: "A flame cone — one cell ahead, then three across",
+  window: "Two and three cells ahead — blind to the adjacent cell",
 };

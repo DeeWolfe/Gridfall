@@ -20,7 +20,7 @@ function clear() {
 // 1. a fragile Assassin blocking the drop zone dies, and the Hulk arrives damaged
 {
   clear();
-  spawnUnit('assassin', 2, 7);              // 3 hull, 4 damage
+  spawnUnit('assassin', 2, 7);              // 3 hull, 5 damage
   const landed = A.resolveSpawn('hulk', 2); // Hulk: 14 hull, 6 damage
   if (!landed) F.push('hulk failed to land on the assassin');
   if (G().units.length) F.push('assassin should have been destroyed');
@@ -32,8 +32,9 @@ function clear() {
     if (h.lane !== 2 || h.col !== 7) F.push(`hulk landed at ${h.lane},${h.col}, expected 2,7`);
     if (h.hp >= A.BEST.hulk.hp) F.push('hulk arrived undamaged — combat did not carry over');
     if (h.hp <= 0) F.push('hulk arrived dead');
-    // 3 hull vs 6 damage is one round; the assassin deals 4 - 1 armour floor = 3.
-    if (h.hp !== A.BEST.hulk.hp - 3) F.push(`hulk hull ${h.hp}, expected ${A.BEST.hulk.hp - 3}`);
+    // 3 hull vs 6 damage is one round; the assassin deals its damage less the armour floor.
+    const cut = A.POOL.assassin.dmg - (A.BEST.hulk.floor || 0);
+    if (h.hp !== A.BEST.hulk.hp - cut) F.push(`hulk hull ${h.hp}, expected ${A.BEST.hulk.hp - cut}`);
   }
 }
 

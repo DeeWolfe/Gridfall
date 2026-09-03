@@ -120,16 +120,17 @@ A.active.lead = 'ironbrand';
   A.active.loadout.gear = {};
 }
 
-// --- Knight is a Common unit, and does not out-riposte the Specialist ---
+// --- Bulwark (the Knight's heir) is a Common unit, and does not out-riposte the Specialist ---
 {
-  const knight = A.POOL.knight;
-  if (knight.t !== 'common') F.push('Knight is not a Common');
-  if (knight.tech) F.push('Knight is still flagged Tech');
-  if (knight.riposte >= A.POOL.aegis.riposte) {
-    F.push(`Knight ripostes for ${knight.riposte}, at or above the Specialist's ${A.POOL.aegis.riposte}`);
+  const bulwark = A.POOL.bulwark;
+  if (bulwark.t !== 'common') F.push('Bulwark is not a Common');
+  if (bulwark.tech) F.push('Bulwark is flagged Tech');
+  if (!bulwark.riposte) F.push('Bulwark did not inherit the Knight\'s riposte');
+  if (bulwark.riposte > A.POOL.aegis.riposte) {
+    F.push(`Bulwark ripostes for ${bulwark.riposte}, above the Specialist's ${A.POOL.aegis.riposte}`);
   }
-  const u = A.mkUnit('knight', 2, 1);
-  if (u.tech) F.push('a deployed Knight still counts as Tech');
+  const u = A.mkUnit('bulwark', 2, 1);
+  if (u.tech) F.push('a deployed Bulwark counts as Tech');
 }
 
 // --- doctrine variety, and what each posture does to lane spread ---

@@ -53,6 +53,15 @@ export function mkUnit(cid, l, c) {
     // here; see docs/NOTES.md for the balance impact of putting it back.
     single: !!k.single,
     blocker: !!k.blocker,
+    // Firing Step: a blocker friendly direct fire shoots over. Still a wall
+    // to the horde and to the wave scorer; only the beam walk ignores it.
+    parapet: !!k.parapet,
+    // Banner Bearer: +pack damage per adjacent friendly, outside the buff cap.
+    pack: k.pack || 0,
+    // Ember Lance: the cell under anything it hits burns for a turn.
+    ember: !!k.ember,
+    // Recoilless Team: the friendly directly behind eats this much per shot.
+    backblast: k.backblast || 0,
     aura: k.aura || 0,
     colBuff: k.col || 0,
     laneB: k.laneB || 0,
@@ -155,8 +164,19 @@ export function leadBonus(u) {
   return b;
 }
 
+/**
+ * The Banner Bearer's own rally: +pack for every friendly in the four cells
+ * around it, and deliberately outside MAX_BUFF — the cap exists to stop
+ * support stacking, and this is the swarm paying off, not support.
+ */
+export function packBonus(u) {
+  if (!u.pack) return 0;
+  return u.pack * G.units.filter(o =>
+    o.uid !== u.uid && Math.abs(o.lane - u.lane) + Math.abs(o.col - u.col) === 1).length;
+}
+
 /** Damage this unit would deal right now, buffs and pristine bonus included. */
 export function dmgPreview(u) {
   const pristine = u.pristine && u.hp >= u.max ? u.pristine : 0;
-  return Math.max(0, u.dmg + buffOf(u) + leadBonus(u) + pristine + eventTechBonus(u));
+  return Math.max(0, u.dmg + buffOf(u) + leadBonus(u) + pristine + packBonus(u) + eventTechBonus(u));
 }

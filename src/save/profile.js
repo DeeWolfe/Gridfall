@@ -193,6 +193,32 @@ export function migrate(p) {
     delete p.pilotName;
   }
 
+  // v14: the balance pass. Ten cards left the roster — every one refunds at
+  // the price it sold for. The Turret came free with the starter set and its
+  // job passed to the Rampart, so a Turret commander gets the Rampart in its
+  // place (deck slot included); one who already owned both is paid instead.
+  if (p.version < 14) {
+    p.version = 14;
+    p.unlocks = p.unlocks || {};
+    p.progress = p.progress || {};
+    p.loadout = p.loadout || {};
+    const cards = p.unlocks.cards || [];
+    const refunds = {knight: 145, vanguard: 145, biomed: 280, pulse: 110, suppressor: 150,
+      battery: 160, bore: 165, cache: 115, sapper: 280};
+    Object.keys(refunds).forEach(id => {
+      if (cards.includes(id)) p.progress.credits = (p.progress.credits || 0) + refunds[id];
+    });
+    if (cards.includes('turret')) {
+      if (cards.includes('rampart')) {
+        p.progress.credits = (p.progress.credits || 0) + 100;
+      } else {
+        cards.push('rampart');
+        p.loadout.deck = (p.loadout.deck || []).map(c => (c === 'turret' ? 'rampart' : c));
+      }
+    }
+    p.unlocks.cards = cards;
+  }
+
   p.unlocks = p.unlocks || {};
   p.unlocks.cards = p.unlocks.cards || [...STARTER];
   p.unlocks.enemies = p.unlocks.enemies || [];

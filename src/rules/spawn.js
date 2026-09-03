@@ -11,7 +11,7 @@ import {BEST} from '../content/hostiles.js';
 import {G, active, nextUid} from '../state/session.js';
 import {randInt} from '../state/rng.js';
 import {unitAt, foeAt, civAt} from './board.js';
-import {buffOf} from './units.js';
+import {buffOf, packBonus} from './units.js';
 import {dampenIn} from './combat.js';
 import {clog} from './log.js';
 import {tapeEvent, tapeMark} from './tape.js';
@@ -30,7 +30,7 @@ export const mkFoe = (k, lane, col, hp) => {
  */
 export function spawnClash(k, D, u) {
   const eDmg = Math.max(1, (D.dmg || 0) - dampenIn(u.lane));
-  const uDmg = Math.max(0, (u.dmg || 0) + (u.riposte || 0) + buffOf(u));
+  const uDmg = Math.max(0, (u.dmg || 0) + (u.riposte || 0) + buffOf(u) + packBonus(u));
   const uNet = u.pen ? uDmg : Math.max(0, uDmg - (BEST[k].floor || 0));
 
   // A zero-damage emplacement cannot force a landing at all.

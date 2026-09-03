@@ -5,7 +5,7 @@ import {POOL} from '../content/cards.js';
 import {BEST} from '../content/hostiles.js';
 import {G, active, nextUid} from '../state/session.js';
 import {unitAt, foeAt, civAt, scorched} from './board.js';
-import {buffOf, leadBonus} from './units.js';
+import {buffOf, leadBonus, packBonus} from './units.js';
 import {leadOf} from '../save/progression.js';
 import {targetsFor, laneFloor} from './targeting.js';
 import {eventTechBonus} from './events.js';
@@ -15,7 +15,10 @@ import {clog} from './log.js';
 import {tapeEvent} from './tape.js';
 
 /** Scramblers shave 1 off every hostile attack in their lane. Does not stack. */
-export const dampenIn = l => (G.units.some(o => o.dampen && o.lane === l) ? 1 : 0);
+/** The strongest damping field in the lane. Fields do not stack with each
+ * other — two Scramblers are still one point off — but the value on the card
+ * is honoured, which it was not while this read a flat 1. */
+export const dampenIn = l => G.units.reduce((m, o) => (o.lane === l && o.dampen > m ? o.dampen : m), 0);
 
 /** A Cryo Projector halves every hostile's advance in its lane. Does not stack. */
 export const chillFactor = l => (G.units.some(o => o.chill && o.lane === l) ? 0.5 : 1);
@@ -146,7 +149,7 @@ function screamerRush(e) {
       dmgEnemy(o, su.mine, 'Minefield', true);
     }
     if (o.hp <= 0) return;
-    if (scorched(o.lane, nc)) dmgEnemy(o, 2, 'Plasma');
+    if (scorched(o.lane, nc)) dmgEnemy(o, 2, 'Burning ground');
     if (o.hp <= 0) return;
     o.col = nc;
   });
@@ -247,11 +250,13 @@ export function fire(u, onPlay) {
       Math.abs(e.lane - u.lane) + Math.abs(e.col - u.col) === 1).length
     : 0;
   const base = (onPlay && k.burst ? k.burst + gearBonus : u.dmg)
-    + buffOf(u) + leadBonus(u) + pristine + resonance + eventTechBonus(u);
+    + buffOf(u) + leadBonus(u) + pristine + resonance + packBonus(u) + eventTechBonus(u);
 
+  let fired = false;
   for (let shot = 0; shot < (u.twin ? 2 : 1); shot++) {
     const ts = targetsFor(u);
     if (!ts.length) break;
+    fired = true;
     ts.forEach(e => dmgEnemy(e, base + lensBonus(u, e), u.n, u.pen, u));
 
     // A recharge weapon spends the next turn cycling. Set to 2 because the
@@ -274,6 +279,10 @@ export function fire(u, onPlay) {
       });
     }
 
+    // Ember Lance: the ground under every hostile it hits burns for one turn
+    // — through the enemy phase and the capture pass, gone at the end of it.
+    if (u.ember) ts.forEach(t => { G.scorch[t.lane + ',' + t.col] = Math.max(G.scorch[t.lane + ',' + t.col] || 0, 1); });
+
     // Plasma lingers on the first target's 3x3 for two turns.
     if (u.scorch && ts.length) {
       const t = ts[0];
@@ -283,6 +292,13 @@ export function fire(u, onPlay) {
         if (nl >= 0 && nl < LANES && nc >= 0 && nc < COLS) G.scorch[nl + ',' + nc] = 2;
       }
     }
+  }
+
+  // Recoilless Team: the backblast hits whoever stands directly behind it,
+  // shields and all — one shot, one point, no matter how many targets fell.
+  if (u.backblast && fired) {
+    const behind = G.units.find(o => o.lane === u.lane && o.col + o.size === u.col);
+    if (behind) dmgUnit(behind, u.backblast, u.n + ' backblast');
   }
 }
 

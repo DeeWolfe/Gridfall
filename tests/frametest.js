@@ -158,7 +158,8 @@ const play = (cid, l, c) => {
   if (!ha.twin) F.push('ammo hopper did not double the gatling');
   const e = spawnFoe('crawler', 2, 5, 99);
   A.fire(ha, false);
-  if (99 - e.hp !== 8) F.push(`hoppered gatling dealt ${99 - e.hp}, wanted 4+4`);
+  const twice = POOL.heavyarms.dmg * 2;
+  if (99 - e.hp !== twice) F.push(`hoppered gatling dealt ${99 - e.hp}, wanted ${twice}`);
   // Resonance Core: +1 per adjacent hostile.
   start('sevenblades');
   const sb = play('sevenblades', 2, 3);

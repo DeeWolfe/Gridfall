@@ -25,7 +25,7 @@ const RUNS_PER_OP = Number(process.env.FRM_RUNS || 4);
 // A spine strong enough that the arms differ by the Frame line and not by luck
 // of the draw. Eleven, so the Pilot arms swap one card rather than adding one.
 const SPINE = ['rifle', 'marks', 'wall', 'medic', 'lancer', 'bulwark',
-  'assassin', 'knight', 'samurai', 'archer', 'turret'];
+  'assassin', 'sentry', 'samurai', 'archer', 'rampart'];
 const FRAMES = Object.keys(POOL).filter(c => POOL[c].chassis === 'proto');
 
 // Two gear CARDS per frame — a weapon and its support — swapped in for two

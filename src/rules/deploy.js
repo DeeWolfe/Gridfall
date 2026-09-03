@@ -168,7 +168,8 @@ export function deploy(cid, l, c) {
     const u = unitAt(l, c);
     if (!u) return;
     u.att[k.attach] = true;
-    if (k.attach === 'shield') u.shield = 1;
+    // Two charges: one hit for a whole card slot never earned the slot.
+    if (k.attach === 'shield') u.shield = 2;
     clog(`<span class="g">${k.n}</span> fitted to ${u.n}.`, 'order');
   } else if (k.squad) {
     placeSquad(cid, l, c);

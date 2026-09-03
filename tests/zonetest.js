@@ -1,4 +1,4 @@
-// Deployment zones: Forward Base needs held ground in column 3+, Minefield
+// Deployment zones: Forward Base needs held ground (any column), Minefield
 // takes any ground in column 3+ — and the mine's entry trigger fires once.
 import * as A from './support/api.js';
 import {failures} from './support/harness.js';
@@ -14,17 +14,16 @@ clearBoard();
 
 // The fresh board: columns 0-2 yours, 3-4 neutral, 5-7 hostile.
 
-// A: Forward Base — held ground only, column 3 and beyond
+// A: Forward Base — held ground only, any column (the zone minimum left in v2.30)
 {
   const tiles = A.validTiles('fob');
-  if (tiles.some(i => i % A.COLS < 3)) F.push('Forward Base offered columns 0-2');
-  if (tiles.length) F.push('Forward Base deployable with no held ground past column 2');
-  A.G.ter[2][3] = 'p';
-  const after = A.validTiles('fob');
-  if (!after.includes(cell(2, 3))) F.push('Forward Base rejects a held tile in its zone');
-  if (after.some(i => A.G.ter[(i / A.COLS) | 0][i % A.COLS] !== 'p')) {
+  if (!tiles.length) F.push('Forward Base has nowhere to land on a fresh board');
+  if (!tiles.some(i => i % A.COLS === 0)) F.push('Forward Base refuses the home column');
+  if (tiles.some(i => A.G.ter[(i / A.COLS) | 0][i % A.COLS] !== 'p')) {
     F.push('Forward Base offered unheld ground');
   }
+  A.G.ter[2][3] = 'p';
+  if (!A.validTiles('fob').includes(cell(2, 3))) F.push('Forward Base rejects newly held ground');
   A.G.ter[2][3] = 'n';
 }
 

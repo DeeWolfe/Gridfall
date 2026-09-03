@@ -4,9 +4,17 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.29';
+export const VERSION = '2.30';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.30',
+    notes: [
+      'THE BALANCE PASS. Every unit now sits on two fixed ladders — hull 2, 3, 5, 8, 12, 18, 24 and damage 1, 2, 3, 5, 8 — so a step between two cards is a step you can feel, not a point you cannot see. The Commons are the cheap bodies; the Tech tier buys position and support; and every Specialist is lopsided on purpose: the Rail Sniper is 3 hull and an 8-damage opening shot, the Exo Juggernaut is 24 hull and an 8-damage hammer, the Plasma Artillerist hits 5 where the Mortar hits 3. The Barricade costs 2 now — twelve hull for one point was the strongest opening in the game — and the Forward Base deploys on any held ground, not just the far half.',
+      'TEN CARDS LEFT THE ROSTER, every one refunded in full at the Quartermaster: the Knight (its riposte lives on the Bulwark, now 12 hull), the Vanguard, the Turret (the Rampart takes its starter slot with a proper 2-damage rifle), the Bio Medic, the Pulse Emitter, the Suppressor, the Lance Battery, the Bore Lance, the Supply Cache and the Sapper Turret. Each was a weaker copy of a card standing next to it, and with twelve slots in a deck a copy is a slot wasted. The Scrambler\'s damping is honoured at its printed value now — the Suppressor\'s never was — and a Shield card carries TWO charges.',
+      'FOUR NEW CARDS fill the holes the cuts left. The BANNER BEARER hits +1 for every friendly around it, with no cap — the first card that pays a swarm for being a swarm. The FIRING STEP is a wall your own guns shoot over. The EMBER LANCE sprays a flame cone — one cell, then three across — and the ground under anything it hits burns for a turn. The RECOILLESS TEAM fires five damage into the second and third cells ahead, blind to the first, and its backblast costs whoever stands behind it a point of hull every shot. Seventy-nine cards.',
+    ],
+  },
   {
     v: '2.29',
     notes: [

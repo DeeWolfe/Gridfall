@@ -8,7 +8,7 @@ import {spawnUnit, spawnFoe, clearBoard, unlockAll} from './support/fixtures.js'
 const F = failures();
 
 const start = () => {
-  A.enterProfile(unlockAll(A.blankProfile('EV'), ['rifle', 'marks', 'wall', 'medic', 'turret', 'dynamo']));
+  A.enterProfile(unlockAll(A.blankProfile('EV'), ['rifle', 'marks', 'wall', 'medic', 'rampart', 'dynamo']));
   A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0});
   clearBoard();
   A.G.eventNext = null;
@@ -45,14 +45,14 @@ const start = () => {
 // C: the overclock arms Tech only, and the preview matches the shot
 {
   start();
-  const t = spawnUnit('turret', 1, 2);
+  const t = spawnUnit('rampart', 1, 2);
   const r = spawnUnit('rifle', 3, 2);
   A.G.event = 'overclock';
-  if (A.dmgPreview(t) !== A.POOL.turret.dmg + 1) F.push('overclock preview missing on Tech');
+  if (A.dmgPreview(t) !== A.POOL.rampart.dmg + 1) F.push('overclock preview missing on Tech');
   if (A.dmgPreview(r) !== A.POOL.rifle.dmg) F.push('overclock leaked onto personnel');
   const foe = spawnFoe('crawler', 1, 3, 10);   // no armour floor in the way
   A.fire(t, false);
-  if (10 - foe.hp !== A.POOL.turret.dmg + 1) F.push('overclocked shot did not match its preview');
+  if (10 - foe.hp !== A.POOL.rampart.dmg + 1) F.push('overclocked shot did not match its preview');
   A.G.event = null;
 }
 

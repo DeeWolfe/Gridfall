@@ -18,7 +18,7 @@ for (const k of (process.env.KEYS || Object.keys(BOSSDEF).join(',')).split(','))
   const why = {};
   for (let i = 0; i < RUNS; i++) {
     const q = unlockAll(A.blankProfile('B' + i),
-      ['rifle', 'marks', 'wall', 'medic', 'lancer', 'bulwark', 'assassin', 'knight', 'samurai', 'archer', 'turret', 'scout']);
+      ['rifle', 'marks', 'wall', 'medic', 'lancer', 'bulwark', 'assassin', 'sentry', 'samurai', 'archer', 'rampart', 'scout']);
     q.op = d.op;
     A.enterProfile(q);
     A.launchSpec({node: null, op: d.op, type: 'boss', mod: 'none', reward: 40, boss: d.sub ? k : undefined});

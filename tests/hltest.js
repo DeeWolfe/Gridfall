@@ -58,7 +58,7 @@ clearBoard();
   clearBoard();
   const medic = spawnUnit('medic', 2, 1);
   const ahead = spawnUnit('rifle', 2, 2);
-  const techAhead = spawnUnit('turret', 1, 2);
+  const techAhead = spawnUnit('rampart', 1, 2);
 
   const lit = new Set(A.supportTargets(medic));
   if (!lit.has(cell(ahead))) F.push('medic missed the unit ahead');
@@ -69,11 +69,11 @@ clearBoard();
 {
   clearBoard();
   const techmed = spawnUnit('techmed', 2, 3);
-  const turret = spawnUnit('turret', 0, 3);
+  const rampart = spawnUnit('rampart', 0, 3);
   const person = spawnUnit('rifle', 4, 3);
 
   const lit = new Set(A.supportTargets(techmed));
-  if (!lit.has(cell(turret))) F.push('tech medic missed a Tech unit');
+  if (!lit.has(cell(rampart))) F.push('tech medic missed a Tech unit');
   if (lit.has(cell(person))) F.push('tech medic targeted personnel');
 }
 

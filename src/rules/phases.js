@@ -317,7 +317,7 @@ function actHostile(e, chorus) {
       clog(`<span class="d">${D.n}</span> walked onto a <span class="g">Minefield</span> — ${stepUnit.mine} damage.`, 'kill');
       dmgEnemy(e, stepUnit.mine, 'Minefield', true);
     }
-    if (scorched(e.lane, nc)) dmgEnemy(e, 2, 'Plasma');
+    if (scorched(e.lane, nc)) dmgEnemy(e, 2, 'Burning ground');
     if (e.hp <= 0) break;
     e.col = nc;
     advanced = true;

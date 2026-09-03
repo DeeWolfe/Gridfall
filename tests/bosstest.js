@@ -725,7 +725,7 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
     const d = BOSSDEF[k];
     for (let i = 0; i < 3; i++) {
       const q = unlockAll(A.blankProfile('R' + i),
-        ['rifle', 'marks', 'wall', 'medic', 'lancer', 'bulwark', 'assassin', 'knight', 'samurai', 'archer', 'turret', 'scout']);
+        ['rifle', 'marks', 'wall', 'medic', 'lancer', 'bulwark', 'assassin', 'sentry', 'samurai', 'archer', 'rampart', 'scout']);
       q.op = d.op;
       A.enterProfile(q);
       A.launchSpec({node: null, op: d.op, type: 'boss', mod: 'none', reward: 40, boss: d.sub ? k : undefined});
