@@ -65,9 +65,9 @@ for (let trial = 0; trial < 400; trial++) {
 
   for (const {id, gear} of SAMPLE) {
     // Fit this pattern's weapon just before building the unit that carries it.
-    if (gear) p.loadout.gear[GEAR[gear].frame] = gear;
+    if (gear) p.loadout.gear[id] = gear;
     G.units.push(place(id, rand(LANES), rand(3)));
-    if (gear) delete p.loadout.gear[GEAR[gear].frame];
+    if (gear) delete p.loadout.gear[id];
   }
   // Friendly blockers, so the beam-cutting path is exercised rather than
   // assumed — that is where the two functions are most likely to drift.
