@@ -10,7 +10,7 @@
 //   - weapon gear replaces the weapon, support gear rides alongside;
 //   - a riposte is a trait and survives a weapon swap;
 //   - the reserve cycle never re-deals the machine;
-//   - Salvage Rights returns the wreck and its kit to hand, at half hull;
+//   - The Code (Bushido) returns the wreck and its kit to hand, at half hull;
 //   - Field Refit swaps gear freely, one mounted at a time, for the turn.
 import './support/install-dom.js';
 import * as A from './support/api.js';
@@ -184,7 +184,7 @@ const play = (cid, l, c) => {
   console.log('cycle: the machine is seeded once and never reshuffled in');
 }
 
-// --- Salvage Rights: half hull, and the wreck comes home with its kit ---
+// --- The Code: half hull, and the wreck comes home with its kit ---
 {
   start('whitedevil', 'salvagerights');
   const u = play('whitedevil', 2, 1);
@@ -199,7 +199,7 @@ const play = (cid, l, c) => {
   if (A.G.units.some(x => x.uid === u.uid)) F.push('the frame survived 99');
   if (A.G.lost !== lost + 1) F.push('a salvaged frame did not count as a loss');
   ['whitedevil', 'beamsaber', 'booster'].forEach(c => {
-    if (!A.G.hand.includes(c)) F.push(`Salvage Rights lost ${c}`);
+    if (!A.G.hand.includes(c)) F.push(`The Code lost ${c}`);
   });
   // Rushed Assembly leaves everyone else's units whole.
   const r = A.mkUnit('rifle', 3, 1);
@@ -209,8 +209,8 @@ const play = (cid, l, c) => {
   const v = play('whitedevil', 2, 1);
   v.shield = 0;
   A.dmgUnit(v, 99, 'test');
-  if (A.G.hand.includes('whitedevil')) F.push('a frame came back without Salvage Rights');
-  console.log('salvage rights: half hull out, machine and kit recovered on death');
+  if (A.G.hand.includes('whitedevil')) F.push('a frame came back without The Code');
+  console.log('the code: half hull out, machine and kit recovered on death');
 }
 
 // --- Field Refit: swap freely, one mount, the swap is the turn ---

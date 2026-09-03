@@ -129,6 +129,6 @@ const calm = () => { A.G.enemies.length = 0; A.G.predict = []; A.G.held = []; };
   if (!A.validTiles('wall').length) F.push('No Requisition swallowed a Tech');
 }
 
-// Salvage Rights and Field Refit — the two Frame leads — live in frametest,
+// The Code and Field Refit — the two Frame leads — live in frametest,
 // beside the machinery their trades act on.
 F.report('lead pros and cons: every trade holds, nothing leaks between leads');

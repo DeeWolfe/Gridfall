@@ -3434,16 +3434,16 @@ const LEADS = {
     role: "Line Commander",
     col: "#4de8ff",
     bio: "Held the Sundering Gate for nine days with a company of forty. Believes armour is a philosophy.",
-    passive: {n: "Hardened Frames", d: "Every unit you deploy arrives with +1 hull."},
+    passive: {n: "Hardened Armor", d: "Every unit you deploy arrives with +1 hull."},
   },
   coronet: {
     n: "TREIZE",
     call: "CORONET",
-    role: "Commander",
+    role: "Ex-Commander",
     col: "#ffc94d",
-    bio: "Runs a war the way old money runs an estate: nothing wasted, nothing hurried, and the ledger always balances in his favour.",
+    bio: "Retired from active command years ago. What he carried out with him — the experience — is what makes the biggest difference on a line now. Nothing wasted, nothing hurried.",
     passive: {n: "Standing Reserve", d: "+2 deploy points every turn."},
-    con: {n: "Lean Manifest", d: "Your deck may hold only 9 cards."},
+    con: {n: "Efficiency Management", d: "Your deck may hold only 9 cards."},
     dpMod: 2,
     deckCap: 9,
   },
@@ -3461,7 +3461,7 @@ const LEADS = {
     n: "CAINE",
     call: "LONE EDGE",
     role: "Frontline Duelist",
-    col: "#8f1d1d",
+    col: "#3a5f9e",
     bio: "Works alone by preference and by reputation. Squads assigned to him learn quickly to give him room.",
     passive: {n: "Lone Edge", d: "A unit with no friendly in an adjacent cell deals +3 damage."},
     con: {n: "No Formation", d: "A unit with a friendly adjacent deals -1 damage."},
@@ -3528,7 +3528,7 @@ const LEADS = {
     col: "#c1272d",
     bio: "Fights every sortie as a private duel. Has lost more machines than anyone in the service and walked away from all of them.",
     passive: {
-      n: "Salvage Rights",
+      n: "The Code",
       d: "When your Frame is destroyed, it returns to your hand along with every gear that was attached.",
     },
     con: {n: "Rushed Assembly", d: "Your Frame deploys with half hull."},
@@ -4669,16 +4669,16 @@ function unmountSupports(u) {
 }
 
 /**
- * A destroyed Frame under Salvage Rights comes back to the hand — machine
+ * A destroyed Frame under Bushido's Code comes back to the hand — machine
  * and every attached gear together. The loss still counts as a loss; what
- * Graham buys is that it is never a PERMANENT one.
+ * The Code buys is that it is never a PERMANENT one.
  */
 function salvageFrame(u) {
   if (!u.frame) return;
-  if (!(leadOf().passive && leadOf().passive.n === 'Salvage Rights')) return;
+  if (!(leadOf().passive && leadOf().passive.n === 'The Code')) return;
   const back = [u.id, u.gearW, ...u.gearS].filter(Boolean);
   back.forEach(c => G.hand.push(c));
-  clog(`<span class="g">Salvage Rights</span> — ${cardName(u.id)} recovered to hand` +
+  clog(`<span class="g">The Code</span> — ${cardName(u.id)} recovered to hand` +
     (back.length > 1 ? ' with its gear' : '') + '.', 'order');
 }
 
@@ -5599,7 +5599,7 @@ function mkUnit(cid, l, c) {
   const k = POOL[cid];
   const g = gearOf(cid);
   const lead = leadOf();
-  const hardened = lead.passive && lead.passive.n === 'Hardened Frames' && k.hp ? 1 : 0;
+  const hardened = lead.passive && lead.passive.n === 'Hardened Armor' && k.hp ? 1 : 0;
   const fabricated = lead.passive && lead.passive.n === 'Field Fabrication' && k.tech && k.hp ? 2 : 0;
   // Skunkworks' trade: the machines get the workshop, the infantry gets thin
   // rations. Floored at 1 so a Scout is fragile rather than stillborn.

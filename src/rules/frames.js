@@ -116,15 +116,15 @@ function unmountSupports(u) {
 }
 
 /**
- * A destroyed Frame under Salvage Rights comes back to the hand — machine
+ * A destroyed Frame under Bushido's Code comes back to the hand — machine
  * and every attached gear together. The loss still counts as a loss; what
- * Graham buys is that it is never a PERMANENT one.
+ * The Code buys is that it is never a PERMANENT one.
  */
 export function salvageFrame(u) {
   if (!u.frame) return;
-  if (!(leadOf().passive && leadOf().passive.n === 'Salvage Rights')) return;
+  if (!(leadOf().passive && leadOf().passive.n === 'The Code')) return;
   const back = [u.id, u.gearW, ...u.gearS].filter(Boolean);
   back.forEach(c => G.hand.push(c));
-  clog(`<span class="g">Salvage Rights</span> — ${cardName(u.id)} recovered to hand` +
+  clog(`<span class="g">The Code</span> — ${cardName(u.id)} recovered to hand` +
     (back.length > 1 ? ' with its gear' : '') + '.', 'order');
 }

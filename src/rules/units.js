@@ -17,7 +17,7 @@ export function mkUnit(cid, l, c) {
   const k = POOL[cid];
   const g = gearOf(cid);
   const lead = leadOf();
-  const hardened = lead.passive && lead.passive.n === 'Hardened Frames' && k.hp ? 1 : 0;
+  const hardened = lead.passive && lead.passive.n === 'Hardened Armor' && k.hp ? 1 : 0;
   const fabricated = lead.passive && lead.passive.n === 'Field Fabrication' && k.tech && k.hp ? 2 : 0;
   // Skunkworks' trade: the machines get the workshop, the infantry gets thin
   // rations. Floored at 1 so a Scout is fragile rather than stillborn.
