@@ -66,7 +66,10 @@ export function gearFits(id, gi) {
   const k = POOL[id];
   const g = GEAR[gi];
   if (!k || !g) return false;
-  // A Frame's kit is cards in the deck now, never armoury pieces.
+  // No body, no gear slot: a Frame's kit card, a command call, an instant or
+  // an attachment never stands on the board, so armoury gear has nothing to
+  // ride on. And a Frame's own kit is cards in the deck, never armoury pieces.
+  if (k.frameGear || k.strat || k.instant || k.attach) return false;
   return !isProto(id);
 }
 

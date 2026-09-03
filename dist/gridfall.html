@@ -1455,8 +1455,9 @@ body{font-size:1rem}
 /* The corner tab belongs to the hold alone. Every screen with a navfoot
    carries its own Menu button instead — the tab hides there and the sheet
    rides up clear of the footer, so each screen has one entry point. */
-#modes.on ~ #drawer #drawtab,#ops.on ~ #drawer #drawtab,#map.on ~ #drawer #drawtab{display:none}
-#modes.on ~ #drawer,#ops.on ~ #drawer,#map.on ~ #drawer{bottom:66px}
+#modes.on ~ #drawer #drawtab,#ops.on ~ #drawer #drawtab,#map.on ~ #drawer #drawtab,
+#panel.on ~ #drawer #drawtab{display:none}
+#modes.on ~ #drawer,#ops.on ~ #drawer,#map.on ~ #drawer,#panel.on ~ #drawer{bottom:66px}
 #drawtab{width:52px;height:20px;border:1px solid var(--line2);border-bottom:none;
   background:var(--panel2);color:var(--dim);font-size:0.6562rem;cursor:pointer;
   clip-path:polygon(9px 0,calc(100% - 9px) 0,100% 100%,0 100%);transition:.15s}
@@ -1554,7 +1555,8 @@ body{font-size:1rem}
   <div class="pbody" id="pbody"></div>
   <div id="paneltut"></div>
   <div class="navfoot"><h2 id="ptitle">—</h2>
-    <button class="btn ghost" id="pclose">Close</button></div>
+    <div class="navbtns"><button class="btn ghost" id="panelmenu">Menu</button>
+      <button class="btn ghost" id="pclose">Close</button></div></div>
 </div>
 
 <div class="scr" id="modes">
@@ -3703,7 +3705,10 @@ function gearFits(id, gi) {
   const k = POOL[id];
   const g = GEAR[gi];
   if (!k || !g) return false;
-  // A Frame's kit is cards in the deck now, never armoury pieces.
+  // No body, no gear slot: a Frame's kit card, a command call, an instant or
+  // an attachment never stands on the board, so armoury gear has nothing to
+  // ride on. And a Frame's own kit is cards in the deck, never armoury pieces.
+  if (k.frameGear || k.strat || k.instant || k.attach) return false;
   return !isProto(id);
 }
 
@@ -4042,11 +4047,16 @@ function migrate(p) {
     ? p.loadout.frame : (strayFrame || null);
   p.loadout.deck = p.loadout.deck.filter(c => !(POOL[c] && POOL[c].chassis === 'proto'));
 
-  // Strip anything that points at content we no longer ship.
+  // Strip anything that points at content we no longer ship — and gear
+  // fitted to a card that no longer has a slot for it (kit cards, calls,
+  // instants, attachments, the Frames themselves).
   p.loadout.deck = p.loadout.deck.filter(c => POOL[c]);
   p.unlocks.cards = p.unlocks.cards.filter(c => POOL[c]);
   Object.keys(p.loadout.gear).forEach(k => {
-    if (!GEAR[p.loadout.gear[k]] || !POOL[k]) delete p.loadout.gear[k];
+    const card = POOL[k];
+    const slotless = card && (card.frameGear || card.strat || card.instant
+      || card.attach || card.chassis === 'proto');
+    if (!GEAR[p.loadout.gear[k]] || !card || slotless) delete p.loadout.gear[k];
   });
 
   p.stats = p.stats || {deployments: 0, held: 0, lost: 0, breaches: 0, kills: 0, unitsLost: 0};
@@ -9165,8 +9175,9 @@ function frameKitBlock(id) {
 
 function gearBlock(id, mode) {
   const k = POOL[id];
-  // An attachment card is gear in card form; it has no slot of its own.
-  if (k.attach) return '';
+  // Slotless cards: attachments are gear in card form, and a kit card, call
+  // or instant never lands a body for a piece to ride on.
+  if (k.attach || k.frameGear || k.strat || k.instant) return '';
   // A Frame is a closed kit and reads as one.
   if (isProto(id)) return frameKitBlock(id);
   const g = gearOf(id);
@@ -17030,6 +17041,7 @@ function wireNavigation() {
   $('modesmenu').onclick = () => $('drawtab').click();
   $('opsmenu').onclick = () => $('drawtab').click();
   $('mapmenu').onclick = () => $('drawtab').click();
+  $('panelmenu').onclick = () => $('drawtab').click();
   $('mapback').onclick = () => { show('ops'); renderOps(); };
   $('pclose').onclick = () => $('panel').classList.remove('on');
   $('fbg').onclick = closeFocus;

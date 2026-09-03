@@ -208,8 +208,9 @@ function frameKitBlock(id) {
 
 function gearBlock(id, mode) {
   const k = POOL[id];
-  // An attachment card is gear in card form; it has no slot of its own.
-  if (k.attach) return '';
+  // Slotless cards: attachments are gear in card form, and a kit card, call
+  // or instant never lands a body for a piece to ride on.
+  if (k.attach || k.frameGear || k.strat || k.instant) return '';
   // A Frame is a closed kit and reads as one.
   if (isProto(id)) return frameKitBlock(id);
   const g = gearOf(id);

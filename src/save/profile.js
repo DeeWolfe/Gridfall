@@ -212,11 +212,16 @@ export function migrate(p) {
     ? p.loadout.frame : (strayFrame || null);
   p.loadout.deck = p.loadout.deck.filter(c => !(POOL[c] && POOL[c].chassis === 'proto'));
 
-  // Strip anything that points at content we no longer ship.
+  // Strip anything that points at content we no longer ship — and gear
+  // fitted to a card that no longer has a slot for it (kit cards, calls,
+  // instants, attachments, the Frames themselves).
   p.loadout.deck = p.loadout.deck.filter(c => POOL[c]);
   p.unlocks.cards = p.unlocks.cards.filter(c => POOL[c]);
   Object.keys(p.loadout.gear).forEach(k => {
-    if (!GEAR[p.loadout.gear[k]] || !POOL[k]) delete p.loadout.gear[k];
+    const card = POOL[k];
+    const slotless = card && (card.frameGear || card.strat || card.instant
+      || card.attach || card.chassis === 'proto');
+    if (!GEAR[p.loadout.gear[k]] || !card || slotless) delete p.loadout.gear[k];
   });
 
   p.stats = p.stats || {deployments: 0, held: 0, lost: 0, breaches: 0, kills: 0, unitsLost: 0};

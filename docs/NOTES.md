@@ -4639,6 +4639,12 @@ Three moves, one idea: every screen gets exactly one menu entry point.
   unless it genuinely has no room for one.
 - **Hold**: #drawer moved from bottom-centre to bottom-right
   (right:14px, flex-end, sheet right-anchored).
+- **Panels** (Squad/Quartermaster/Database/Record/Settings, follow-up):
+  the shared panel footer carries Menu beside Close, and an open panel
+  hides the corner tab like every other non-hold surface. Also: the
+  slotless-card rule — kit cards, calls, instants, attachments (and
+  Frames) take no armoury gear (gearFits + gearBlock + a migrate strip
+  for old fitted pieces).
 
 actbar.js rewritten for the menu flow (open/close/abort-inside/fold-on-
 select/one-tap Leave); screenshot pass in scratchpad nav*.png. Same train: the Squad

@@ -127,6 +127,7 @@ function wireNavigation() {
   $('modesmenu').onclick = () => $('drawtab').click();
   $('opsmenu').onclick = () => $('drawtab').click();
   $('mapmenu').onclick = () => $('drawtab').click();
+  $('panelmenu').onclick = () => $('drawtab').click();
   $('mapback').onclick = () => { show('ops'); renderOps(); };
   $('pclose').onclick = () => $('panel').classList.remove('on');
   $('fbg').onclick = closeFocus;

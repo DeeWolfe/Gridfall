@@ -1448,8 +1448,9 @@ body{font-size:1rem}
 /* The corner tab belongs to the hold alone. Every screen with a navfoot
    carries its own Menu button instead — the tab hides there and the sheet
    rides up clear of the footer, so each screen has one entry point. */
-#modes.on ~ #drawer #drawtab,#ops.on ~ #drawer #drawtab,#map.on ~ #drawer #drawtab{display:none}
-#modes.on ~ #drawer,#ops.on ~ #drawer,#map.on ~ #drawer{bottom:66px}
+#modes.on ~ #drawer #drawtab,#ops.on ~ #drawer #drawtab,#map.on ~ #drawer #drawtab,
+#panel.on ~ #drawer #drawtab{display:none}
+#modes.on ~ #drawer,#ops.on ~ #drawer,#map.on ~ #drawer,#panel.on ~ #drawer{bottom:66px}
 #drawtab{width:52px;height:20px;border:1px solid var(--line2);border-bottom:none;
   background:var(--panel2);color:var(--dim);font-size:0.6562rem;cursor:pointer;
   clip-path:polygon(9px 0,calc(100% - 9px) 0,100% 100%,0 100%);transition:.15s}
