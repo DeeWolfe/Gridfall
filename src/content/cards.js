@@ -888,7 +888,6 @@ export const POOL = {
     riposte: 2,
     d: "The team that holds. Blocks the lane, cuts for 3 at contact on either side and answers every blow with 2. Fights facing either way. Any armour ability fits it.",
     omni: 1,
-    sight: 1,
   },
   ftosiris: {
     n: "Fireteam Osiris",
@@ -919,7 +918,6 @@ export const POOL = {
     aura: 1,
     d: "Line Spartans. Sweep the three cells ahead — or behind — for 3 and steady everyone beside them: +1 damage to adjacent friendlies. Fights facing either way.",
     omni: 1,
-    sight: 1,
   },
   ftshadow: {
     n: "Fireteam Shadow",
@@ -935,7 +933,6 @@ export const POOL = {
     d: "Quiet work. Deploys on any tile, including hostile ground. Blades on all four diagonals for 5, and armour means nothing to them. The Fireteam that answers plate.",
     drop: 1,
     omni: 1,
-    sight: 1,
   },
   camo: {
     n: "Active Camo",

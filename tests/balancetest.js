@@ -576,7 +576,7 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'ordnance']
   const ahead = spawnFoe('crawler', 2, 4, 10);
   const g = A.geomFor(maj);
   if (!g.includes(behind) || !g.includes(ahead)) F.push('Majestic does not fight facing either way');
-  if (A.POOL.ftnoble.sight !== 1 || A.POOL.ftshadow.sight !== 1 || A.POOL.ftmajestic.sight !== 1) F.push('teams should see one cell');
+  if (A.POOL.ftnoble.sight || A.POOL.ftshadow.sight || A.POOL.ftmajestic.sight) F.push('teams should fall to the one-cell default');
   if (A.POOL.ftosiris.sight !== 3) F.push('Osiris should keep its three-cell sight');
 }
 
