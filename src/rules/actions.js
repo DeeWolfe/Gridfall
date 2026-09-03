@@ -27,6 +27,20 @@ export function moveTargets(u) {
     for (let i = 0; i < u.size; i++) if (!cellPassable(nl, nc + i, u.uid)) return;
     out.push(nl * COLS + nc);
   });
+  // A Thruster Pack lengthens the stride: two cells in any straight line,
+  // both cells clear — a stride, not a jump.
+  if (u.boost) {
+    [[0, 2], [0, -2], [2, 0], [-2, 0]].forEach(([dl, dc]) => {
+      const ml = u.lane + dl / 2;
+      const mc = u.col + dc / 2;
+      const nl = u.lane + dl;
+      const nc = u.col + dc;
+      for (let i = 0; i < u.size; i++) {
+        if (!cellPassable(ml, mc + i, u.uid) || !cellPassable(nl, nc + i, u.uid)) return;
+      }
+      out.push(nl * COLS + nc);
+    });
+  }
   // A charger may keep going forward, but never through anything — every cell
   // on the way must be passable too.
   for (let step = 2; step <= (u.charge || 0); step++) {

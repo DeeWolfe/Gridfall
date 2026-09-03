@@ -14,7 +14,7 @@ import {LANES, COLS} from '../state/constants.js';
 import {POOL} from '../content/cards.js';
 import {BEST} from '../content/hostiles.js';
 import {geomCells} from '../rules/targeting.js';
-import {gearOf, frameWeapon} from '../save/progression.js';
+import {gearOf} from '../save/progression.js';
 
 // A window wide enough for the deepest pattern (blast4 reaches +5) plus one
 // cell behind, and tall enough for the three lanes anything spans.
@@ -35,12 +35,10 @@ const HB_SEEKS = {first: 'nearest', furthest: 'deepest', lane: null, boardFurthe
 function hbOffsets(id) {
   const k = POOL[id];
   const g = gearOf(id);
-  // A Frame's fitted weapon replaces the printed one, so the diagram has to be
-  // of what it is actually carrying — otherwise a Laser Gatling draws the
-  // gatling's single cell and the hole in the middle never appears anywhere.
-  const w = frameWeapon(id);
-  const tg = (w && w.tg) || k.tg;
-  const dmg = w ? w.dmg : k.dmg;
+  // Every card diagrams its own printed pattern now — a Frame draws its base
+  // weapon, and each gear CARD carries the diagram of what it mounts.
+  const tg = k.tg;
+  const dmg = k.dmg;
   if (!tg || tg === 'none' || !dmg) return null;
 
   // A stand-in with just the fields geomCells reads. Deliberately not mkUnit:
@@ -100,10 +98,7 @@ export function hitboxFor(id) {
   const offs = hbOffsets(id);
   if (!offs || !offs.length) return '';
   const k = POOL[id];
-  // Same substitution the offsets made: a Beam Rifle seeks down the lane even
-  // though the White Devil's printed blade does not.
-  const w = frameWeapon(id);
-  const tg = (w && w.tg) || k.tg;
+  const tg = k.tg;
   const seek = HB_SEEKS[tg];
 
   // A seeking pattern settles on one cell out of its reach: draw that one

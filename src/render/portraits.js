@@ -35,8 +35,11 @@ const KANJI = {
   aegis: '盾', biomed: '命', techmed: '療', dragoon: '竜', railgun: '貫',
   hell: '焔', plasma: '光', exo: '鎧', hecate: '砲', kessen: '斬', ram: '衝',
   marshal: '将', ashura: '阿',
-  // Frames and the pilot who has to be standing there first.
-  pilot: '操', whitedevil: '白', sevenblades: '七', heavyarms: '重',
+  // The Frame line and its closed kits of gear cards.
+  whitedevil: '白', sevenblades: '七', heavyarms: '重',
+  beamrifle: '射', beamsaber: '剣', booster: '翔',
+  greatsword: '大', longsword: '長', resonator: '振',
+  lasergatling: '閃', missilegatling: '雨', ammohopper: '弾',
 };
 
 const INK = '#e8e4f5';

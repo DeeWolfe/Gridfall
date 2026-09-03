@@ -168,6 +168,31 @@ export function migrate(p) {
     if (!p.unlocks.leads.includes('coldwire')) p.unlocks.leads.push('coldwire');
   }
 
+  // v13: the Frame rework. The Pilot is retired and the armoury's nine Frame
+  // weapons became gear CARDS inside the deck — anything bought under the old
+  // system refunds at full price, so nobody pays for the redesign. Ironwright
+  // rotated out for the two new Frame leads; her commanders get Graham.
+  if (p.version < 13) {
+    p.version = 13;
+    p.unlocks = p.unlocks || {};
+    p.progress = p.progress || {};
+    const refunds = {pilot: 70};
+    const oldGear = {greatsword: 520, armblade: 520, lasergat: 500, missilegat: 540,
+      beamrifle: 440, beamsaber: 480, javelin: 480, napalm: 520, railcannon: 560};
+    if ((p.unlocks.cards || []).includes('pilot')) {
+      p.progress.credits = (p.progress.credits || 0) + refunds.pilot;
+    }
+    (p.unlocks.gear || []).forEach(g => {
+      if (oldGear[g]) p.progress.credits = (p.progress.credits || 0) + oldGear[g];
+    });
+    p.unlocks.gear = (p.unlocks.gear || []).filter(g => !oldGear[g]);
+    p.unlocks.leads = p.unlocks.leads || [];
+    const iw = p.unlocks.leads.indexOf('ironwright');
+    if (iw >= 0) p.unlocks.leads[iw] = 'salvagerights';
+    if (p.lead === 'ironwright') p.lead = 'salvagerights';
+    delete p.pilotName;
+  }
+
   p.unlocks = p.unlocks || {};
   p.unlocks.cards = p.unlocks.cards || [...STARTER];
   p.unlocks.enemies = p.unlocks.enemies || [];

@@ -7,7 +7,7 @@
   "GROUND_FLOOR": 6,
   "HAND_CAP": 6,
   "DECKSIZE": 12,
-  "SAVE_VERSION": 12,
+  "SAVE_VERSION": 13,
   "STARTER": [
    "scout",
    "rifle",
@@ -894,60 +894,157 @@
    },
    "d": "A four-armed war frame. The scythes sweep the column ahead across three lanes at once, so nothing gets past it by stepping sideways."
   },
-  "pilot": {
-   "n": "Frame Pilot",
-   "t": "common",
-   "dp": 1,
-   "hp": 2,
-   "price": 70,
-   "mob": 1,
-   "tg": "none",
-   "dmg": 0,
-   "pilot": 1,
-   "d": "Carries no weapon and cannot hold a cell. Deploy one, keep it alive, and a Frame can land on it — that is the whole job."
-  },
   "whitedevil": {
    "n": "White Devil",
    "t": "special",
    "chassis": "proto",
-   "dp": 6,
-   "hp": 20,
+   "dp": 5,
+   "hp": 16,
    "price": 470,
    "mob": 1,
-   "tg": "adj4",
-   "dmg": 3,
+   "tg": "adj",
+   "dmg": 2,
    "regen": 1,
    "blocker": 1,
-   "d": "The all-rounder. A regenerating shield and a service blade that cuts everything at contact — all four sides at once. Five prototype weapons re-spec it to whatever the mission is, and it fights facing either way.",
+   "d": "The all-rounder. Head vulcans cut whatever stands at contact, a shield that re-forms every turn, and it fights facing either way. Three gear cards re-spec it mid-sortie: beam rifle, beam saber, thruster pack.",
    "omni": 1
   },
   "sevenblades": {
    "n": "Seven Blades",
    "t": "special",
    "chassis": "proto",
-   "dp": 6,
-   "hp": 18,
+   "dp": 5,
+   "hp": 14,
    "price": 480,
    "mob": 1,
-   "tg": "ahead3",
-   "dmg": 8,
+   "tg": "adj",
+   "dmg": 4,
    "blocker": 1,
-   "d": "The melee frame. A crystal longsword is standard — one running thrust takes everything in the lane, three cells deep, ahead or behind. It moves like a fencer: any direction, diagonals included.",
-   "omni": 1
+   "d": "The melee frame. An arm blade at contact and a temper to answer everything that touches it. Moves like a fencer — any direction, diagonals included. Its gear: crystal greatsword, crystal longsword, resonance core.",
+   "omni": 1,
+   "riposte": 2
   },
   "heavyarms": {
    "n": "Heavy Arms",
    "t": "special",
    "chassis": "proto",
-   "dp": 6,
-   "hp": 25,
+   "dp": 5,
+   "hp": 18,
    "price": 510,
    "mob": 0,
-   "tg": "ahead3",
+   "tg": "first",
    "dmg": 4,
    "blocker": 1,
-   "d": "The artillery frame. Anchored, heaviest hull on the field, and a ballistic gatling that walks fire three cells down the lane — in front or behind. Nothing sneaks past it in either direction.",
-   "omni": 1
+   "d": "The artillery frame. Anchored where it lands, heaviest hull on the field, and a ballistic gatling that owns its lane in both directions. Its gear: laser gatling, missile gatling, ammo hopper.",
+   "omni": 1,
+   "single": 1
+  },
+  "beamrifle": {
+   "n": "Beam Rifle",
+   "t": "special",
+   "dp": 1,
+   "hp": 0,
+   "price": 180,
+   "frameGear": "whitedevil",
+   "slot": "weapon",
+   "d": "White Devil only. Replaces the vulcans: 5 damage to the first hostile in the lane.",
+   "tg": "first",
+   "dmg": 5,
+   "single": 1
+  },
+  "beamsaber": {
+   "n": "Beam Saber",
+   "t": "special",
+   "dp": 1,
+   "hp": 0,
+   "price": 200,
+   "frameGear": "whitedevil",
+   "slot": "weapon",
+   "d": "White Devil only. Replaces the vulcans: 7 damage at contact, and it strikes back at whatever hits it.",
+   "tg": "adj",
+   "dmg": 7,
+   "riposte": 3
+  },
+  "booster": {
+   "n": "Thruster Pack",
+   "t": "special",
+   "dp": 1,
+   "hp": 0,
+   "price": 170,
+   "frameGear": "whitedevil",
+   "slot": "support",
+   "d": "White Devil only. It moves up to two cells, and may move and fire in the same turn.",
+   "boost": 1
+  },
+  "greatsword": {
+   "n": "Crystal Greatsword",
+   "t": "special",
+   "dp": 1,
+   "hp": 0,
+   "price": 200,
+   "frameGear": "sevenblades",
+   "slot": "weapon",
+   "d": "Seven Blades only. Replaces the arm blade: 5 damage across all three cells directly ahead.",
+   "tg": "vert3",
+   "dmg": 5
+  },
+  "longsword": {
+   "n": "Crystal Longsword",
+   "t": "special",
+   "dp": 1,
+   "hp": 0,
+   "price": 180,
+   "frameGear": "sevenblades",
+   "slot": "weapon",
+   "d": "Seven Blades only. Replaces the arm blade: 4 damage at exactly two cells out. Reach without closing.",
+   "tg": "range2",
+   "dmg": 4
+  },
+  "resonator": {
+   "n": "Resonance Core",
+   "t": "special",
+   "dp": 1,
+   "hp": 0,
+   "price": 190,
+   "frameGear": "sevenblades",
+   "slot": "support",
+   "d": "Seven Blades only. +1 damage for every hostile standing adjacent to the frame.",
+   "resonate": 1
+  },
+  "lasergatling": {
+   "n": "Laser Gatling",
+   "t": "special",
+   "dp": 1,
+   "hp": 0,
+   "price": 180,
+   "frameGear": "heavyarms",
+   "slot": "weapon",
+   "d": "Heavy Arms only. Replaces the ballistic gatling: 3 damage to both forward diagonals, two cells deep — nothing in the centre.",
+   "tg": "wings",
+   "dmg": 3
+  },
+  "missilegatling": {
+   "n": "Missile Gatling",
+   "t": "special",
+   "dp": 1,
+   "hp": 0,
+   "price": 190,
+   "frameGear": "heavyarms",
+   "slot": "weapon",
+   "d": "Heavy Arms only. Replaces the ballistic gatling: 3 damage in a cross of warheads centred three cells out.",
+   "tg": "cross3",
+   "dmg": 3
+  },
+  "ammohopper": {
+   "n": "Ammo Hopper",
+   "t": "special",
+   "dp": 1,
+   "hp": 0,
+   "price": 200,
+   "frameGear": "heavyarms",
+   "slot": "support",
+   "d": "Heavy Arms only. The gatling fires a second time every turn.",
+   "twin": 1
   }
  },
  "gear": {
@@ -1097,98 +1194,6 @@
    "d": "Fires a second time every turn, at the same targets.",
    "twin": 1,
    "role": "offense"
-  },
-  "greatsword": {
-   "n": "Crystal Greatsword",
-   "cost": 520,
-   "d": "Replaces the Seven Blades' arm blade. One swing takes the whole area directly ahead.",
-   "frame": "sevenblades",
-   "role": "offense",
-   "tg": "sweep",
-   "dmg": 6
-  },
-  "armblade": {
-   "n": "Arm-Mounted Blade",
-   "cost": 520,
-   "d": "The longsword stays in hand — this is the drive behind it. Piercing Thrust: dash to an empty cell down the lane, running the blade through every hostile along the way.",
-   "frame": "sevenblades",
-   "role": "offense",
-   "ab": {
-    "key": "pierce",
-    "target": "cell",
-    "n": "Piercing Thrust",
-    "cd": 2,
-    "d": "Choose an empty cell ahead in the lane. The frame dashes there, dealing 8 to every hostile it passes through. A machine or your own line stops the dash; the horde does not."
-   }
-  },
-  "lasergat": {
-   "n": "Laser Gatling",
-   "cost": 500,
-   "d": "Replaces the Heavy Arms gatling. Both forward diagonals two cells deep, and nothing at all in the centre.",
-   "frame": "heavyarms",
-   "role": "offense",
-   "tg": "wings",
-   "dmg": 9
-  },
-  "missilegat": {
-   "n": "Missile Gatling",
-   "cost": 540,
-   "d": "Replaces the Heavy Arms gatling. A cross of warheads centred three cells out.",
-   "frame": "heavyarms",
-   "role": "offense",
-   "tg": "cross3",
-   "dmg": 6
-  },
-  "beamrifle": {
-   "n": "Beam Rifle",
-   "cost": 440,
-   "d": "The standard barrel. One hostile down the lane, hit very hard.",
-   "frame": "whitedevil",
-   "role": "offense",
-   "tg": "first",
-   "dmg": 9,
-   "single": 1
-  },
-  "beamsaber": {
-   "n": "Beam Saber",
-   "cost": 480,
-   "d": "Brutal at contact, and it answers anything that strikes the frame — hard.",
-   "frame": "whitedevil",
-   "role": "offense",
-   "tg": "adj",
-   "dmg": 12,
-   "single": 1,
-   "riposte": 6
-  },
-  "javelin": {
-   "n": "Beam Javelin",
-   "cost": 480,
-   "d": "A two-cell thrust. Reach without giving up the contact fight.",
-   "frame": "whitedevil",
-   "role": "offense",
-   "tg": "ahead2",
-   "dmg": 8
-  },
-  "napalm": {
-   "n": "Hyper Napalm",
-   "cost": 520,
-   "d": "A cone of burning promethium, and the ground keeps burning after it lands.",
-   "frame": "whitedevil",
-   "role": "offense",
-   "tg": "cone",
-   "dmg": 6,
-   "scorch": 1
-  },
-  "railcannon": {
-   "n": "Hyper Rail Cannon",
-   "cost": 560,
-   "d": "Anti-armour. Punches through the front rank to the hostile deepest in the lane, and armour floors do not apply to what it finds there.",
-   "frame": "whitedevil",
-   "role": "offense",
-   "tg": "furthest",
-   "dmg": 12,
-   "single": 1,
-   "pen": 1
   }
  },
  "hostiles": {
@@ -1567,11 +1572,11 @@
    "banTier": "special"
   },
   "loneedge": {
-   "n": "GRAHAM",
+   "n": "CAINE",
    "call": "LONE EDGE",
    "role": "Frontline Duelist",
    "col": "#4dffd0",
-   "bio": "Treats every engagement as a private duel. Plunges into the centre of a formation and trusts the squad to keep up or stay clear.",
+   "bio": "Works alone by preference and by reputation. Squads assigned to him learn quickly to give him room.",
    "passive": {
     "n": "Lone Edge",
     "d": "A unit with no friendly in an adjacent cell deals +3 damage."
@@ -1665,23 +1670,35 @@
    "drawBonus": 1,
    "deckCap": 8
   },
-  "ironwright": {
-   "n": "KAEDE",
-   "call": "IRONWRIGHT",
+  "salvagerights": {
+   "n": "GRAHAM",
+   "call": "SALVAGE RIGHTS",
    "role": "Frame Commander",
    "col": "#ff9d4d",
-   "bio": "Built her first Frame out of two wrecks and a dockyard crane, and has never fully trusted anything with a pulse to hold a line since.",
+   "bio": "Fights every sortie as a private duel. Has lost more machines than anyone in the service and walked away from all of them.",
    "passive": {
-    "n": "Ironwright",
-    "d": "Frames and exo suits cost 2 less deploy points, and Pilots deploy with +3 hull."
+    "n": "Salvage Rights",
+    "d": "When your Frame is destroyed, it returns to your hand along with every gear that was attached."
    },
    "con": {
-    "n": "Machines Only",
-    "d": "You cannot deploy Specialist cards that are not machines."
+    "n": "Rushed Assembly",
+    "d": "Your Frame deploys with half hull."
+   }
+  },
+  "fieldrefit": {
+   "n": "KAEDE",
+   "call": "FIELD REFIT",
+   "role": "Frame Engineer",
+   "col": "#66e0c2",
+   "bio": "Rebuilds a loadout mid-sortie the way other people change their mind. Considers a fixed configuration a failure of imagination.",
+   "passive": {
+    "n": "Field Refit",
+    "d": "Gear may be swapped freely — playing gear onto a Frame that already carries one returns the old gear to your hand. The swap spends the Frame's turn."
    },
-   "banNonMachine": 1,
-   "frameDiscount": 2,
-   "pilotHull": 3
+   "con": {
+    "n": "Single Mount",
+    "d": "Your Frame may carry only one gear at a time."
+   }
   }
  },
  "missions": {
@@ -2830,10 +2847,6 @@
    "req": "store",
    "price": 480
   },
-  "ironwright": {
-   "req": "store",
-   "price": 500
-  },
   "coronet": {
    "req": "store",
    "price": 520
@@ -2841,6 +2854,14 @@
   "riptide": {
    "req": "store",
    "price": 520
+  },
+  "salvagerights": {
+   "req": "store",
+   "price": 500
+  },
+  "fieldrefit": {
+   "req": "store",
+   "price": 500
   }
  },
  "bosses": {

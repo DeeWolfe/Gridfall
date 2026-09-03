@@ -159,7 +159,7 @@ function deckFrame() {
   }
   return `<div class="frameslot">${head}
    ${cardGrid([fielded], 'proto')}
-   <div class="framehint">Rides beside the twelve — never drawn, one deployment per mission.</div></div>`;
+   <div class="framehint">Seeded into your opening hand — outside the deck, one on the board at a time.</div></div>`;
 }
 
 /**
@@ -175,15 +175,15 @@ function frameSlot() {
   if (!owned.length) {
     return `<div class="sect" style="color:var(--violet)">Proto Frame slot</div>
      <div class="stub"><b>No prototype on strength</b>${all.length} Proto Frames exist.
-       They take a slot of their own beside the deck — one per deck, one per mission —
-       and each needs a Frame Pilot among the twelve to land on.</div>`;
+       The fielded one is seeded straight into your opening hand — outside the
+       deck and its size — and its gear cards ride inside the deck.</div>`;
   }
   // Fielded first: the answer, then what you could swap it for.
   const order = [...owned].sort((a, b) => (b === fielded ? 1 : 0) - (a === fielded ? 1 : 0)
     || POOL[a].n.localeCompare(POOL[b].n));
   return `<div class="sect" style="color:var(--violet)">Proto Frame slot — ${fielded ? POOL[fielded].n : 'empty'}</div>
-   <div class="bar"><div>One Frame per deck, one deployment per mission</div>
-     <div style="color:var(--dim);font-size:0.6875rem">Tap to field it and choose its weapon</div></div>
+   <div class="bar"><div>Seeded into your opening hand — one Frame on the board at a time</div>
+     <div style="color:var(--dim);font-size:0.6875rem">Tap to field it; its gear cards go in the deck</div></div>
    ${cardGrid(order, 'proto')}`;
 }
 
@@ -196,11 +196,13 @@ function squadPanel() {
   // the only place that can say so before the mission starts. Cheap to check,
   // and the alternative is finding out on the board with six DP spent.
   const fielded = active.loadout.frame;
-  const pilots = deck.filter(c => POOL[c].pilot);
-  const orphan = fielded && !pilots.length
+  // Gear whose Frame is not the fielded one is a blank card for the whole
+  // mission — say so here, before the mission finds out.
+  const strays = deck.filter(c => POOL[c].frameGear && POOL[c].frameGear !== fielded);
+  const orphan = strays.length
     ? `<div class="bar"><div style="color:var(--gold)"><b style="color:var(--gold)">⚠</b>
-        ${POOL[fielded].n} cannot deploy without a Frame Pilot in this deck</div>
-        <div style="color:var(--dim);font-size:0.6875rem">A Frame lands on a Pilot, never on open ground</div></div>`
+        ${strays.map(c => POOL[c].n).join(', ')} — ${strays.length > 1 ? 'their Frames are' : 'its Frame is'} not in the Frame slot</div>
+        <div style="color:var(--dim);font-size:0.6875rem">Frame gear is dead in hand unless its own machine is fielded and on the board</div></div>`
     : '';
   // A deck that breaks the active lead's rules must be obvious HERE, at the
   // build table — not discovered as a dead card at deploy or a refusal at

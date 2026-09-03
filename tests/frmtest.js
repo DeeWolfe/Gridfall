@@ -2,22 +2,18 @@
 //
 // Informational — this harness reports, it does not pass or fail.
 //
-// Every other balance number in this repo is blind to Frames: mtest and onstest
-// play STARTER decks, which carry no Pilot and leave the Frame slot empty, so
-// the class has never once appeared in a measured mission. This exists to
-// answer the only question that matters about it — is committing a deck slot,
-// a card, and a whole turn to the Frame line worth doing?
+// Every other balance number in this repo is blind to Frames: mtest and
+// onstest play STARTER decks with the Frame slot empty. This answers the
+// system's own open questions — is a bare Frame worth its 5 DP, and does
+// buying deck slots into its gear pay the commitment back?
 //
-// Four arms, same twelve-card spine, same bot, same mission set:
+// Arms, same spine, same bot, same mission set:
 //
-//   control    twelve cards, no Pilot, no Frame. What you play instead.
-//   pilot      eleven cards + a Pilot, no Frame. The cost of the setup on its
-//              own — this is what the Frame has to beat, because a Pilot with
-//              nothing to climb into is a wasted card and a wasted point.
-//   <frame>    eleven cards + a Pilot + that Frame fielded.
-//
-// The gap between `control` and `pilot` is the price of the line. The gap
-// between `pilot` and a Frame arm is what the machine pays back.
+//   control    twelve cards, no Frame. What you play instead.
+//   <frame>    the same twelve, that Frame fielded — seeded to hand, so the
+//              bare machine costs deploy points and nothing else.
+//   <frame>+   ten cards + two of its gear cards, Frame fielded. The kit's
+//              real price: deck slots spent on cards only one unit can wear.
 import * as A from './support/api.js';
 import {playOut} from './support/bot.js';
 import {POOL} from '../src/content/cards.js';
@@ -32,27 +28,21 @@ const SPINE = ['rifle', 'marks', 'wall', 'medic', 'lancer', 'bulwark',
   'assassin', 'knight', 'samurai', 'archer', 'turret'];
 const FRAMES = Object.keys(POOL).filter(c => POOL[c].chassis === 'proto');
 
-// The weapons each Frame is most itself with. A bare Frame and a kitted one
-// are different cards — a bare White Devil is a 20-hull wall with a 2-damage
-// blade — so both get arms, or the numbers describe a machine nobody fields.
-// Two kits per Frame: the contact weapon and the reach weapon, because they
-// answered very differently the first time this was measured — adjacency gear
-// on an immobile machine waits for the fight, reach gear goes and finds it.
+// Two gear CARDS per frame — a weapon and its support — swapped in for two
+// spine cards, which is the commitment the system actually asks for.
 const KITS = {
-  whitedevil: ['railcannon', 'napalm'],
-  // The Arm-Mounted Blade grants a targeted ability the bot cannot aim, so
-  // the Seven Blades measures with its one weapon kit.
-  sevenblades: ['greatsword'],
-  heavyarms: ['lasergat', 'missilegat'],
+  whitedevil: ['beamrifle', 'booster'],
+  sevenblades: ['greatsword', 'resonator'],
+  heavyarms: ['missilegatling', 'ammohopper'],
 };
 
 const ARMS = [
   {k: 'control', deck: [...SPINE, 'scout'], frame: null},
-  {k: 'pilot', deck: [...SPINE, 'pilot'], frame: null},
-  ...FRAMES.map(f => ({k: f, label: POOL[f].n + ' (bare)', deck: [...SPINE, 'pilot'], frame: f})),
-  ...FRAMES.flatMap(f => KITS[f].map(g => ({
-    k: f + '+' + g, label: POOL[f].n.split(' ')[0] + ' +' + g, deck: [...SPINE, 'pilot'], frame: f, gear: g,
-  }))),
+  ...FRAMES.map(f => ({k: f, label: POOL[f].n + ' (bare)', deck: [...SPINE, 'scout'], frame: f})),
+  ...FRAMES.map(f => ({
+    k: f + '+kit', label: POOL[f].n.split(' ')[0] + ' +kit',
+    deck: [...SPINE.slice(0, 10), ...KITS[f]], frame: f,
+  })),
 ];
 
 const stat = () => ({w: 0, l: 0, e: 0, framed: 0, turns: 0, kills: 0, lost: 0});
@@ -81,7 +71,6 @@ for (const opKey of Object.keys(A.OPS)) {
         p.loadout.deck = [...arm.deck];
         p.loadout.frame = arm.frame;
         p.unlocks.gear = Object.keys(A.GEAR);
-        p.loadout.gear = arm.gear ? {[arm.frame]: arm.gear} : {};
         A.setActive(p);
         A.setMapdef(opKey);
 
@@ -115,7 +104,7 @@ const name = a => a.label || (POOL[a.k] ? POOL[a.k].n : a.k);
 
 console.log('\n-- proto frames: is the line worth running? --');
 console.log('arm                    win%   missions   landed%  avg turns  kills  lost');
-const base = tally.pilot;
+const base = tally.control;
 const basePct = pct(base.w, base.w + base.l);
 for (const arm of ARMS) {
   const t = tally[arm.k];
@@ -129,7 +118,7 @@ for (const arm of ARMS) {
     (n ? (t.kills / n).toFixed(1) : '0').padStart(7),
     (n ? (t.lost / n).toFixed(1) : '0').padStart(6),
   ].join(' ');
-  const delta = arm.frame ? `   ${(pct(t.w, n) - basePct >= 0 ? '+' : '')}${(pct(t.w, n) - basePct).toFixed(1)} vs pilot` : '';
+  const delta = arm.frame ? `   ${(pct(t.w, n) - basePct >= 0 ? '+' : '')}${(pct(t.w, n) - basePct).toFixed(1)} vs control` : '';
   console.log(row + delta);
 }
 

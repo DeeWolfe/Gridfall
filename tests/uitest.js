@@ -162,13 +162,11 @@ const stamp = () => document.documentElement.dataset.ui;
   if (!/\.hgear\{/.test(css)) F.push('.hgear rule missing');
 }
 
-// --- the Proto Frame rides in the tray without ever being dealt ---
+// --- the seeded Frame sits IN the hand now, wearing the proto rail ---
 {
-  if (!page.includes('frameReady()')) F.push('the hand tray never asks for the mission Frame');
-  if (!/hc proto t-/.test(page)) F.push('no Proto Frame tile in the hand tray');
-  if (!/\.hc\.proto\{/.test(css)) F.push('.hc.proto rule missing — the Frame looks dealt');
-  // It is spent from its slot, never spliced out of a hand it was never in.
-  if (!page.includes('isMissionFrame(cid)')) F.push('spending a card does not check the Frame slot');
+  if (!page.includes('seedFrame()')) F.push('launch never seeds the Frame to hand');
+  if (!page.includes("chassis === 'proto' ? ' proto'")) F.push('the hand tile never marks the Frame');
+  if (!/\.hc\.proto\{/.test(css)) F.push('.hc.proto rule missing — the Frame looks like a dealt card');
 }
 
 F.report('interface modes: all checks pass');

@@ -4,9 +4,17 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.25';
+export const VERSION = '2.26';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.26',
+    notes: [
+      'THE PILOT IS RETIRED, and the Frame line finally works the way a machine should. A Proto Frame is a 5 DP Specialist now: it deploys on held ground like any other unit, arrives with a functional base weapon — the White Devil\'s vulcans, the Seven Blades\' arm blade, the Heavy Arms\' ballistic gatling — and is SEEDED into your opening hand at mission start, outside the deck and outside its size. It sits there visible and unaffordable from turn one; every turn you don\'t field it is a turn you chose something else. Anything you\'d spent on the old system — the Pilot, the armoury\'s frame weapons — is refunded in full.',
+      'FRAME GEAR ARE CARDS NOW: nine of them, 1 DP each, three per machine, bought like any card and shuffled into your deck. A weapon card replaces the base weapon mid-sortie — Beam Rifle, Beam Saber, Crystal Greatsword, Longsword, Laser Gatling, Missile Gatling — and a support card rides alongside: a Thruster Pack that strides two cells and fires on the move, a Resonance Core that swings harder for every hostile at its side, an Ammo Hopper that doubles the gatling. Gear fits ONLY its own Frame and is dead in hand until the machine stands, so committing to a Frame means buying deck slots into one plan — that\'s the gamble, and the seeding removes the luck from it while keeping the cost.',
+      'TWO FRAME COMMANDERS take the roster to eleven. GRAHAM hands Lone Edge to the newcomer CAINE and takes up SALVAGE RIGHTS: when your Frame is destroyed it returns to your hand with every gear still bolted on — but the machine that always comes back is never built whole, deploying at half hull. KAEDE runs FIELD REFIT: gear swaps freely, the displaced piece returning to hand at no cost — but her Frame carries one gear at a time, and the swap spends the machine\'s turn. Rifle at range, blade when they close.',
+    ],
+  },
   {
     v: '2.25',
     notes: [

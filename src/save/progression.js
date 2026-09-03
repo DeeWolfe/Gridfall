@@ -39,9 +39,9 @@ export function gearOf(id) {
  * An EXO frame is a suit — Aegis Knights, the Ashura, the Exo Juggernaut, the
  * Thruster Ram. Proven, in service, and deployed like any other card.
  *
- * A PROTO frame is a prototype: bigger, further along, and not yet trusted to
- * walk itself onto a battlefield. It needs a Pilot already standing there, it
- * takes one deck slot of its own, and there is exactly one per mission. Every
+ * A PROTO frame is a prototype: bigger, further along, and yours to commit a
+ * deck to. It rides its own loadout slot, is seeded into the opening hand at
+ * launch, and runs a closed kit of gear cards no other unit may wear. Every
  * rule that treats Frames specially keys off this, so the lore word and the
  * behaviour cannot drift apart.
  */
@@ -66,41 +66,14 @@ export function gearFits(id, gi) {
   const k = POOL[id];
   const g = GEAR[gi];
   if (!k || !g) return false;
-  if (g.frame) return g.frame === id;
+  // A Frame's kit is cards in the deck now, never armoury pieces.
   return !isProto(id);
 }
 
-/**
- * A Frame's fitted weapon, or null. Frame gear REPLACES the printed weapon
- * rather than riding on top of it, so everything that reads a card's targeting
- * or damage has to ask this first — hence one accessor rather than the check
- * being rewritten at each call site.
- */
-/**
- * The name a card wears for THIS commander. One card earns a callsign of its
- * own: the Frame Pilot — a person, not a machine, and yours to name in Squad.
- * Stored sanitized (setPilotName), so it is safe to interpolate into markup.
- */
+/** The name a card wears. One accessor so a rename system can return later. */
 export function cardName(id) {
   const k = POOL[id];
-  if (!k) return id;
-  if (k.pilot && active && active.pilotName) return active.pilotName;
-  return k.n;
-}
-
-/** Trim, strip markup-dangerous characters, cap the length. '' clears it. */
-export function setPilotName(raw) {
-  if (!active) return;
-  const clean = String(raw || '').replace(/[^\w \-'.]/g, '').trim().slice(0, 14);
-  active.pilotName = clean || null;
-}
-
-export function frameWeapon(id) {
-  if (!isProto(id)) return null;
-  const g = gearOf(id);
-  // Only gear that IS a weapon replaces the printed one — the Arm-Mounted
-  // Blade grants an ability and leaves the longsword in hand.
-  return g && g.frame === id && g.tg ? g : null;
+  return k ? k.n : id;
 }
 
 /** Deploy-point cost including any gear discount. Never below 1. */
@@ -111,9 +84,7 @@ export function costOf(id) {
   // Quietstep: anything that lands on hostile ground goes in a point cheaper.
   const infiltrator = leadOf().passive && leadOf().passive.n === 'Quietstep' &&
     (k.drop || k.anyGround || (g && g.crush)) ? 1 : 0;
-  // Ironwright: the machines — Proto Frames and exo suits alike — run cheaper.
-  const wright = leadOf().frameDiscount && k.chassis ? leadOf().frameDiscount : 0;
-  return Math.max(1, k.dp + (g && g.dp ? g.dp : 0) - infiltrator - wright);
+  return Math.max(1, k.dp + (g && g.dp ? g.dp : 0) - infiltrator);
 }
 
 /** Deck ceiling under the active lead — Coronet and Quartermaster run short. */
@@ -121,15 +92,13 @@ export const deckCapOf = () => leadOf().deckCap || DECKSIZE;
 
 /**
  * The name of the lead's rule refusing this card, or null if it may deploy.
- * Coldwire fields no Specialists at all; Ironwright fields no Specialist
- * that is not a machine (a chassis — the Frame line and the exo suits).
+ * Coldwire fields no Specialists at all — the Frame line included.
  */
 export function leadBan(id) {
   const k = POOL[id];
   if (!k) return null;
   const lead = leadOf();
   if (lead.banTier && k.t === lead.banTier) return lead.con.n;
-  if (lead.banNonMachine && k.t === 'special' && !k.chassis) return lead.con.n;
   return null;
 }
 

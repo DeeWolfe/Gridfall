@@ -9,7 +9,8 @@ export const LEADGATES = {
   skunkworks: {req: "store", price: 420},
   quietstep: {req: "store", price: 450},
   quartermaster: {req: "store", price: 480},
-  ironwright: {req: "store", price: 500},
   coronet: {req: "store", price: 520},
   riptide: {req: "store", price: 520},
+  salvagerights: {req: "store", price: 500},
+  fieldrefit: {req: "store", price: 500},
 };

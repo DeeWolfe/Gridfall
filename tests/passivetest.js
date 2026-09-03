@@ -129,19 +129,6 @@ const calm = () => { A.G.enemies.length = 0; A.G.predict = []; A.G.held = []; };
   if (!A.validTiles('wall').length) F.push('No Requisition swallowed a Tech');
 }
 
-// Ironwright: machines run 2 cheaper, Pilots deploy tough — flesh Specialists refused
-{
-  start('ironwright');
-  if (A.costOf('exo') !== A.POOL.exo.dp - 2) F.push('Ironwright discount missing on an exo suit');
-  if (A.costOf('sevenblades') !== A.POOL.sevenblades.dp - 2) F.push('Ironwright discount missing on a Frame');
-  if (A.costOf('rifle') !== A.POOL.rifle.dp) F.push('Ironwright discounted a Common');
-  const p = A.mkUnit('pilot', 2, 0);
-  if (p.max !== A.POOL.pilot.hp + 3) F.push(`Ironwright pilot hull missing (${p.max})`);
-  if (A.validTiles('kessen').length) F.push('Machines Only still deploys a flesh Specialist');
-  if (!A.validTiles('exo').length) F.push('Machines Only refused an exo suit');
-  if (!A.validTiles('rifle').length) F.push('Machines Only refused a Common');
-  A.active.lead = 'ironbrand';
-  if (A.costOf('exo') !== A.POOL.exo.dp) F.push('Ironwright discount stuck to the wrong lead');
-}
-
-F.report('lead pros and cons: all ten trades hold, nothing leaks between leads');
+// Salvage Rights and Field Refit — the two Frame leads — live in frametest,
+// beside the machinery their trades act on.
+F.report('lead pros and cons: every trade holds, nothing leaks between leads');

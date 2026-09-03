@@ -2,7 +2,7 @@
 
 import {POOL} from '../content/cards.js';
 import {G, nextUid} from '../state/session.js';
-import {gearOf, frameWeapon, leadOf, cardName} from '../save/progression.js';
+import {gearOf, leadOf, cardName} from '../save/progression.js';
 import {eventTechBonus} from './events.js';
 
 /** Buffs stack but are capped, so a Scout/Relay/Herald stack cannot run away. */
@@ -16,12 +16,6 @@ const MAX_BUFF = 2;
 export function mkUnit(cid, l, c) {
   const k = POOL[cid];
   const g = gearOf(cid);
-  // A Frame's weapon is chosen before the mission and REPLACES the printed one
-  // — a Beam Saber is not a rider on the White Devil's service blade, it is
-  // what the White Devil is carrying instead. `w` is therefore consulted ahead
-  // of the card for targeting and damage, and the card is the fallback so a
-  // bare Frame is always playable rather than a dead draw.
-  const w = frameWeapon(cid);
   const lead = leadOf();
   const hardened = lead.passive && lead.passive.n === 'Hardened Frames' && k.hp ? 1 : 0;
   const fabricated = lead.passive && lead.passive.n === 'Field Fabrication' && k.tech && k.hp ? 2 : 0;
@@ -29,9 +23,12 @@ export function mkUnit(cid, l, c) {
   // rations. Floored at 1 so a Scout is fragile rather than stillborn.
   const thinned = lead.passive && lead.passive.n === 'Field Fabrication'
     && k.t === 'common' && k.hp ? -2 : 0;
-  // Ironwright hardens the people who matter to her: the ones inside machines.
-  const wright = lead.pilotHull && k.pilot ? lead.pilotHull : 0;
-  const hp = Math.max(1, k.hp + (g && g.hp ? g.hp : 0) + hardened + fabricated + thinned + wright);
+  let hp = Math.max(1, k.hp + (g && g.hp ? g.hp : 0) + hardened + fabricated + thinned);
+  // Salvage Rights' Rushed Assembly: the machine that always comes back is
+  // never built whole. Rounded up, so a 15-hull frame fields at 8, not 7.
+  if (lead.con && lead.con.n === 'Rushed Assembly' && k.chassis === 'proto') {
+    hp = Math.max(1, Math.ceil(hp / 2));
+  }
   const shield = (k.regen ? 1 : 0) + (g && g.shield ? g.shield : 0);
 
   return {
@@ -46,15 +43,15 @@ export function mkUnit(cid, l, c) {
     hp,
     max: hp,
     mob: !!k.mob,
-    tg: (w && w.tg) || k.tg || 'none',
-    dmg: w ? (w.dmg || 0) : (k.dmg || 0) + (g && g.dmg ? g.dmg : 0),
+    tg: k.tg || 'none',
+    dmg: (k.dmg || 0) + (g && g.dmg ? g.dmg : 0),
     indirect: !!k.indirect || !!(g && g.indirect),
     rearsight: !!(g && g.rearsight),
     // NOTE: the reference build dropped this flag on the floor, which quietly
     // turned every single-target card into an area attack in live play. The
     // data, the spec, the targeting UI and the test suite all assume it is
     // here; see docs/NOTES.md for the balance impact of putting it back.
-    single: w ? !!w.single : !!k.single,
+    single: !!k.single,
     blocker: !!k.blocker,
     aura: k.aura || 0,
     colBuff: k.col || 0,
@@ -77,8 +74,8 @@ export function mkUnit(cid, l, c) {
     hot: k.hot || 0,
     healType: k.healType,
     healMode: k.healMode,
-    pen: !!k.pen || !!(g && g.pen) || !!(w && w.pen),
-    scorch: !!k.scorch || !!(w && w.scorch),
+    pen: !!k.pen || !!(g && g.pen),
+    scorch: !!k.scorch,
     cool: !!(g && g.cool),
     phase: !!(g && g.phase),
     choose: !!k.choose,
@@ -87,7 +84,7 @@ export function mkUnit(cid, l, c) {
     dynamo: k.dynamo || 0,
     tech: !!k.tech,
     regen: !!k.regen,
-    riposte: (k.riposte || 0) + (w && w.riposte ? w.riposte : 0),
+    riposte: k.riposte || 0,
     servo: !!(g && g.servo),
     // Shoulder Cannon. It was a card that landed on a unit mid-mission; as
     // gear it is chosen at the armoury instead, so the second shot is a
@@ -99,10 +96,13 @@ export function mkUnit(cid, l, c) {
     // Proto Frames fight facing either way and step diagonally — the machine
     // turns; the grid does not care which way it was parked.
     omni: !!k.omni,
-    // Which Pilot walked in with it — the one that steps back out if the
-    // machine is destroyed. Set by deploy(), never by the card data.
+    // The Frame system: the machine's gear state. gearW holds the fitted
+    // weapon card, gearS the support cards riding alongside.
     frame: k.chassis === 'proto',
-    pilotId: null,
+    gearW: null,
+    gearS: [],
+    boost: false,
+    resonate: 0,
     att: {},
     acted: false,
     moved: false,

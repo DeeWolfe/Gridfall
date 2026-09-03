@@ -9,7 +9,7 @@ import {TGNAME} from '../content/targeting-names.js';
 import {TIERNAME, VET} from '../content/ranks.js';
 import {active, setSel, setMover} from '../state/session.js';
 import {commit} from '../save/profile.js';
-import {costOf, gearOf, vetOf, gearFits, frameWeapon, isProto, CHASSIS_NAME, leadUnlocked, leadPrice, leadGateText, cardName, setPilotName, deckCapOf, leadBan} from '../save/progression.js';
+import {costOf, gearOf, vetOf, gearFits, isProto, CHASSIS_NAME, leadUnlocked, leadPrice, leadGateText, cardName, deckCapOf, leadBan} from '../save/progression.js';
 import {$, attr} from './dom.js';
 import {sigil, artFor, portrait, bokehLayer} from './art.js';
 import {notify} from './dialog.js';
@@ -42,20 +42,16 @@ export function closeFocus() {
 function statRows(id) {
   const k = POOL[id];
   const g = gearOf(id);
-  // Frame gear replaces rather than adds, so the damage row has to read the
-  // weapon when there is one — printing "4 + 8" for a Beam Rifle would be a lie
-  // about a number the player is choosing between two of.
-  const w = frameWeapon(id);
   return [
-    isProto(id) ? ['Crew', 'Needs a Frame Pilot on or beside the cells it fills'] : null,
-    k.pilot ? ['Purpose', 'Unarmed. A Frame deploys onto it and takes it aboard'] : null,
+    isProto(id) ? ['Frame', 'Seeded into your opening hand — outside the deck, one per mission'] : null,
+    k.frameGear ? ['Fits', `${POOL[k.frameGear].n} only — played onto it while it stands`] : null,
+    k.frameGear ? [k.slot === 'weapon' ? 'Slot' : 'Slot', k.slot === 'weapon' ? 'Weapon — replaces the base weapon' : 'Support — rides alongside the weapon'] : null,
     // Only worth a row when the geared cost differs from the printed one.
     (g && g.dp) ? ['Deploy cost', costOf(id) + ' DP (geared)'] : null,
     (k.hp && g && g.hp) ? ['Hull', k.hp + ' +' + g.hp] : null,
     // An instant never lands, so it has no footprint to report.
     (!k.instant && (k.size > 1 || k.attach)) ? ['Footprint', k.size > 1 ? k.size + ' cells' : 'Attachment'] : null,
-    (w && w.dmg) ? ['Damage', `${w.dmg} — ${w.n}`] : null,
-    (!w && k.dmg) ? ['Damage', (k.dmg + (g && g.dmg ? g.dmg : 0)) + (k.burst ? ` (${k.burst} on play)` : '')] : null,
+    k.dmg ? ['Damage', (k.dmg + (g && g.dmg ? g.dmg : 0)) + (k.burst ? ` (${k.burst} on play)` : '')] : null,
     k.recharge ? ['Rate of fire', 'Every other turn — needs a turn to cycle'] : null,
     k.charge ? ['Charge', `Moves up to ${k.charge} cells forward`] : null,
     k.push ? ['On hit', 'Drives the survivor back one cell'] : null,
@@ -67,7 +63,7 @@ function statRows(id) {
     k.zoneMin ? ['Deployment', `Column ${k.zoneMin} and beyond${k.anyGround ? ', any ground' : ', held ground only'}`] : null,
     k.drop ? ['Deployment', 'Any tile, including hostile ground'] : null,
     k.regen ? ['Shield', 'Regenerates each turn'] : null,
-    (k.riposte || (w && w.riposte)) ? ['Riposte', ((k.riposte || 0) + ((w && w.riposte) || 0)) + ' back to attackers'] : null,
+    k.riposte ? ['Riposte', k.riposte + ' back to attackers'] : null,
     k.pristine ? ['Pristine bonus', '+' + k.pristine + ' damage at full hull'] : null,
     k.claim ? ['On deployment', 'Claims ' + k.claim + ' tiles ahead'] : null,
     k.instant ? ['Type', 'Instant — no body left behind'] : null,
@@ -189,40 +185,19 @@ function gearRow(id, gi) {
  * Frame has to say what it is carrying instead of reading as empty. Role tabs
  * would be silly over two pieces, so the list is flat.
  */
-function frameWeaponBlock(id, mode) {
+function frameKitBlock(id) {
   const k = POOL[id];
-  // Two different questions: what is FITTED (any Frame gear — the Arm-Mounted
-  // Blade included) versus what WEAPON it carries (only gear with a firing
-  // pattern replaces the printed one). Conflating them once left an ability
-  // drive with no way to be removed at all.
-  const g = gearOf(id);
-  const fitted = g && g.frame === id ? g : null;
-  const w = frameWeapon(id);
-  const carried = w ? `${w.n}`
-    : fitted ? `${k.n} service weapon + ${fitted.n}`
-      : `${k.n} service weapon`;
-  const rules = fitted ? fitted.d
-    : `${TGNAME[k.tg] || k.tg} · ${k.dmg} damage. Fit a weapon in Squad to change it.`;
-
-  // The picker belongs on both surfaces a Frame is reachable from: the deck
-  // grid ('gear') and the Frame slot ('proto'). It used to check only the
-  // first, and moving Frames out of the deck therefore left no way at all to
-  // change what one was carrying.
-  if (mode !== 'gear' && mode !== 'proto') {
-    return `<div class="fab"><b>Weapon · ${carried}</b>${rules}</div>`;
-  }
-
-  const owned = active.unlocks.gear.filter(gi => gearFits(id, gi));
-  const all = Object.keys(GEAR).filter(gi => GEAR[gi].frame === id);
-  if (!owned.length) {
-    return `<div class="fab"><b>Weapon · ${carried}</b>${rules}
-      <div style="margin-top:8px;color:var(--dim)">No ${k.n} weapon owned yet — ${all.length} exist,
-        and they fit nothing else. The Quartermaster has them.</div></div>`;
-  }
-  const rows = owned.map(gi => gearRow(id, gi)).join('');
-  return `<div class="fab"><b>Weapon · ${carried}</b>${rules}
-      <div class="glist" style="margin-top:8px">${rows}</div>
-      ${fitted ? `<button class="mini" data-fitgear="${id}:none" style="color:var(--mag);margin-top:8px">${w ? 'Back to the service weapon' : `Remove ${fitted.n}`}</button>` : ''}</div>`;
+  const kit = Object.keys(POOL).filter(c => POOL[c].frameGear === id);
+  const owned = kit.filter(c => active && active.unlocks.cards.includes(c));
+  const rows = kit.map(c => {
+    const gk = POOL[c];
+    const have = owned.includes(c);
+    return `<div style="margin-top:6px;${have ? '' : 'color:var(--dim)'}"><b>${gk.n}</b>
+      · ${gk.slot === 'weapon' ? 'weapon' : 'support'}${have ? '' : ' · not owned'}<br>${gk.d}</div>`;
+  }).join('');
+  return `<div class="fab"><b>Base weapon</b>${TGNAME[k.tg] || k.tg} · ${k.dmg} damage —
+      functional bare; its gear cards re-spec it mid-mission.
+      ${rows ? `<div style="margin-top:8px"><b style="display:block">Kit · ${owned.length}/${kit.length} owned</b>${rows}</div>` : ''}</div>`;
 }
 
 function gearBlock(id, mode) {
@@ -230,7 +205,7 @@ function gearBlock(id, mode) {
   // An attachment card is gear in card form; it has no slot of its own.
   if (k.attach) return '';
   // A Frame is a closed kit and reads as one.
-  if (isProto(id)) return frameWeaponBlock(id, mode);
+  if (isProto(id)) return frameKitBlock(id);
   const g = gearOf(id);
 
   // Everywhere but the fitting surface this is a readout, not a control — and
@@ -280,7 +255,7 @@ export function focusCard(id, mode) {
         ${v.t ? `<div class="pips big">${'◆'.repeat(v.t)}</div>` : ''}
         ${k.hp ? `<div class="fhp">${k.hp + (g && g.hp ? g.hp : 0)} HULL</div>` : ''}</div>
       <div class="fname">${cardName(id)}</div>
-      <div class="ftype">${k.pilot && active && active.pilotName ? k.n + ' · ' : ''}${CHASSIS_NAME[k.chassis] || TIERNAME[k.t]}${k.instant ? '' : ' · ' + (k.attach ? 'Attachment'
+      <div class="ftype">${CHASSIS_NAME[k.chassis] || TIERNAME[k.t]}${k.instant ? '' : ' · ' + (k.attach ? 'Attachment'
     : k.mob ? (g && g.servo ? 'Mobile · fires moving' : 'Mobile') : 'Anchored')}${g ? ' · ' + g.n : ''}</div>
       ${cardChips(id)}
       <div class="vetbar"><div class="vlab"><span style="color:${v.col}">${v.n}</span>
@@ -296,11 +271,6 @@ export function focusCard(id, mode) {
       `<div class="fstat"><span class="k">${a}</span><span class="v">${b}</span></div>`).join('')}</div>` : '';
   })()}
       ${k.ab ? `<div class="fab"><b>Ability · ${k.ab.n}${k.ab.cd ? ` · ${k.ab.cd} turn cooldown` : ''}</b>${k.ab.d}</div>` : ''}
-      ${k.pilot && (mode === 'deck' || mode === 'gear') ? `<div class="fab">
-        <b>Callsign</b>Name your pilot — it is what the field reports will call them.
-        <div class="pnrow"><input id="pnamein" maxlength="14" placeholder="Frame Pilot"
-          value="${active && active.pilotName ? active.pilotName : ''}">
-        <button class="mini" data-pname="1">Set</button></div></div>` : ''}
       ${gearBlock(id, mode)}
     </div><div class="facts">${actionsFor(id, mode)}</div>`;
 
@@ -459,17 +429,6 @@ function filterGear() {
 
 function wireFocus() {
   each('data-close', () => closeFocus());
-
-  // The Pilot's callsign: save, then repaint the popup so the new name is on
-  // the card face immediately. An empty field restores "Frame Pilot".
-  each('data-pname', () => {
-    const input = $('fwrap').querySelector('#pnamein');
-    if (!input) return;
-    setPilotName(input.value);
-    commit();
-    const pid = Object.keys(POOL).find(c => POOL[c].pilot);
-    if (pid) focusCard(pid, $('fwrap').dataset.fmode || 'deck');
-  });
 
   each('data-groletab', b => {
     document.querySelectorAll('#fwrap [data-groletab]').forEach(x => x.classList.toggle('on', x === b));

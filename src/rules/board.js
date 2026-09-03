@@ -8,7 +8,8 @@ import {LANES, COLS, MAXBREACH} from '../state/constants.js';
 import {POOL} from '../content/cards.js';
 import {BEST} from '../content/hostiles.js';
 import {G} from '../state/session.js';
-import {gearOf, isProto, leadOf, leadBan} from '../save/progression.js';
+import {gearOf, leadOf, leadBan} from '../save/progression.js';
+import {frameGateText} from './frames.js';
 
 /** Your unit covering this cell — units may be two cells wide. */
 export const unitAt = (l, c) => G.units.find(u => u.lane === l && c >= u.col && c < u.col + u.size);
@@ -61,34 +62,6 @@ export function cellPassable(l, c, selfUid) {
   return true;
 }
 
-/** A Frame Pilot: the cheap body a Frame needs in order to exist. */
-export const isPilot = u => !!(u && POOL[u.id] && POOL[u.id].pilot);
-
-/**
- * The Pilot a Frame filling `cells` would climb into: one standing inside the
- * footprint first, otherwise the nearest one orthogonally beside it.
- *
- * Shared by validTiles() and deploy() so the cell you are offered and the Pilot
- * you actually spend can never disagree.
- */
-export function frameAnchorFor(cells) {
-  const pilots = G.units.filter(isPilot);
-  if (!pilots.length) return null;
-  const inside = pilots.find(p => cells.some(([l, c]) => p.lane === l && p.col === c));
-  if (inside) return inside;
-  const beside = pilots
-    .map(p => ({p, d: Math.min(...cells.map(([l, c]) => Math.abs(p.lane - l) + Math.abs(p.col - c)))}))
-    .filter(x => x.d === 1)
-    .sort((a, b) => a.p.uid - b.p.uid)[0];
-  return beside ? beside.p : null;
-}
-
-/** The cells a Frame played at (l, c) would fill. */
-export const frameCells = (cid, l, c) => {
-  const size = (POOL[cid] && POOL[cid].size) || 1;
-  return Array.from({length: size}, (_, i) => [l, c + i]);
-};
-
 /**
  * Every cell index (lane * COLS + col) where this card may legally be played.
  * Each card family answers the question differently, so they branch out early
@@ -98,11 +71,14 @@ export function validTiles(cid) {
   const k = POOL[cid];
   // A lead's ban is absolute: the card is dead in hand, not merely awkward.
   if (leadBan(cid)) return [];
+  // The Frame system's gates read the same way: a second Frame waits its
+  // turn, and gear is dead in hand until its own machine stands.
+  if (frameGateText(cid)) return [];
   const tiles = rawTiles(cid, k);
   // Quietstep's No Rear Line: nothing that lands a body may land in the two
-  // rearmost columns. Ground-target instants and attachments are not bodies.
+  // rearmost columns. Ground-target instants, attachments and gear are not bodies.
   const minCol = leadOf().minCol || 0;
-  if (!minCol || k.instant || k.attach) return tiles;
+  if (!minCol || k.instant || k.attach || k.frameGear) return tiles;
   return tiles.filter(i => i % COLS >= minCol);
 }
 
@@ -137,34 +113,12 @@ function rawTiles(cid, k) {
     return out;
   }
 
-  // A Frame does not land on ground, it lands on a person. The usual held-tile
-  // rule does not apply at all: the only question is whether one of your
-  // Pilots is standing on, or orthogonally beside, the cells the machine will
-  // fill. This branch returns before the ownership loop below on purpose —
-  // a Silent Insertion charge widens where ordinary cards may be played, and
-  // it must not quietly turn a Frame into a card that drops anywhere.
-  if (isProto(cid)) {
-    const size = k.size || 1;
-    for (let l = 0; l < LANES; l++) for (let c = 0; c < COLS; c++) {
-      const cells = [];
-      let ok = true;
-      let inside = 0;
-      for (let i = 0; i < size; i++) {
-        const cc = c + i;
-        if (cc >= COLS || G.ter[l][cc] === 'x') { ok = false; break; }
-        if (foeAt(l, cc) || civAt(l, cc)) { ok = false; break; }
-        const holder = unitAt(l, cc);
-        // Only the Pilot being climbed into may be standing in the footprint,
-        // and only one of them — two would mean silently deleting a card.
-        if (holder) {
-          if (!isPilot(holder)) { ok = false; break; }
-          inside++;
-        }
-        cells.push([l, cc]);
-      }
-      if (!ok || inside > 1) continue;
-      if (frameAnchorFor(cells)) out.push(l * COLS + c);
-    }
+  // Gear lands on the machine itself: the standing Frame's cell is the one
+  // legal target. frameGateText() above already guaranteed it is the right
+  // Frame, so this cannot offer someone else's kit a home.
+  if (k.frameGear) {
+    const fr = G.units.find(u => u.frame);
+    if (fr) out.push(fr.lane * COLS + fr.col);
     return out;
   }
 

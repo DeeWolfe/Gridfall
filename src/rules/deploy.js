@@ -9,15 +9,15 @@ import {POOL} from '../content/cards.js';
 import {BEST} from '../content/hostiles.js';
 import {G, active, clearSelection} from '../state/session.js';
 import {randInt} from '../state/rng.js';
-import {costOf, vetOf, gearOf, frameWeapon, isProto} from '../save/progression.js';
+import {costOf, vetOf, gearOf} from '../save/progression.js';
 import {VET} from '../content/ranks.js';
 import {hooks} from '../state/hooks.js';
-import {unitAt, foeAt, civAt, frameAnchorFor, frameCells} from './board.js';
+import {unitAt, foeAt, civAt} from './board.js';
 import {mkUnit} from './units.js';
+import {applyFrameGear} from './frames.js';
 import {fire, blast, healPass, dmgEnemy} from './combat.js';
 import {clog} from './log.js';
 import {drawCard} from './deck.js';
-import {isMissionFrame} from './frames.js';
 
 /** Spend the card, bill the deploy points, and log any promotion it earned. */
 function consume(cid) {
@@ -31,10 +31,7 @@ function consume(cid) {
   if (after > before) clog(`<span class="g">${k.n} promoted to ${VET[after].n}.</span>`, 'info');
 
   G.dp -= costOf(cid);
-  // The Frame never entered the hand, so it is not removed from one. Spending
-  // it closes the slot for the rest of the mission — there is no second Frame.
-  if (isMissionFrame(cid)) G.frame.played = true;
-  else G.hand.splice(G.hand.indexOf(cid), 1);
+  G.hand.splice(G.hand.indexOf(cid), 1);
   clearSelection();
   hooks.invalidate();
 }
@@ -153,7 +150,13 @@ export function deploy(cid, l, c) {
   // points, logs a promotion and clears the selection by the same path.
   if (k.instant) { playInstant(cid, l, c); return consume(cid); }
 
-  if (k.attach) {
+  if (k.frameGear) {
+    // Gear bolts onto the standing Frame — validTiles only ever offers its
+    // cell, so the unit under (l, c) is the machine this kit belongs to.
+    const fr = unitAt(l, c);
+    if (!fr || fr.id !== k.frameGear) return;
+    applyFrameGear(fr, cid);
+  } else if (k.attach) {
     const u = unitAt(l, c);
     if (!u) return;
     u.att[k.attach] = true;
@@ -177,19 +180,7 @@ export function deploy(cid, l, c) {
       }
     }
 
-    // A Frame spends a Pilot rather than a tile. The Pilot is consumed, not
-    // killed — it is climbing in, so G.lost stays where it is and the card is
-    // not counted as a casualty. The machine remembers which Pilot walked in
-    // with it, because that is who steps back out if it is destroyed.
-    let rider = null;
-    if (isProto(cid)) {
-      rider = frameAnchorFor(frameCells(cid, l, c));
-      if (!rider) return;
-      G.units = G.units.filter(x => x.uid !== rider.uid);
-    }
-
     const u = mkUnit(cid, l, c);
-    if (rider) u.pilotId = rider.id;
     G.units.push(u);
     if (k.drop) {
       G.ter[l][c] = 'p';
@@ -209,13 +200,7 @@ export function deploy(cid, l, c) {
       for (let i = 0; i < k.draw; i++) drawCard(true);
       clog(`<span class="g">${k.n}</span> — ${k.draw} cards called in.`, 'info');
     }
-    if (rider) {
-      const w = frameWeapon(cid);
-      clog(`<span class="g">${k.n}</span> came down on your ${rider.n} — lane ${l + 1}, ` +
-        `carrying ${w ? w.n : 'its service weapon'}.`, 'order');
-    } else {
-      clog(`Deployed <span class="g">${k.n}</span> — lane ${l + 1}, col ${c}.`, 'order');
-    }
+    clog(`Deployed <span class="g">${k.n}</span> — lane ${l + 1}, col ${c}.`, 'order');
   }
 
   consume(cid);

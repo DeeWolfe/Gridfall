@@ -32,27 +32,15 @@ const PLAYS_PER_TURN = 6;
  * arm is played to a plan, the control arm is not.
  */
 function playFrameLine() {
+  // The Frame sits seeded in the hand from turn one. On a turn where the
+  // points are there, it goes down BEFORE anything else — the greedy loop
+  // below would spend the turn on Barricades and the machine would never fly.
   const proto = A.frameReady();
-  if (!proto) return;
-
-  // A standing Pilot and a full turn's points: the Frame is the turn.
-  if (A.G.units.some(A.isPilot) && A.costOf(proto) <= A.G.dp) {
-    const tiles = A.validTiles(proto);
-    if (tiles.length) {
-      const tile = tiles[A.randInt(tiles.length)];
-      A.deploy(proto, (tile / A.COLS) | 0, tile % A.COLS);
-      return;
-    }
-  }
-
-  // No Pilot on the board? Get one down, as far back as the tiles allow.
-  if (A.G.units.some(A.isPilot)) return;
-  const pilot = [...A.G.hand].find(x => A.POOL[x].pilot && A.costOf(x) <= A.G.dp);
-  if (!pilot) return;
-  const tiles = A.validTiles(pilot);
+  if (!proto || A.costOf(proto) > A.G.dp) return;
+  const tiles = A.validTiles(proto);
   if (!tiles.length) return;
-  const safest = tiles.sort((a, b) => (a % A.COLS) - (b % A.COLS))[0];
-  A.deploy(pilot, (safest / A.COLS) | 0, safest % A.COLS);
+  const tile = tiles[A.randInt(tiles.length)];
+  A.deploy(proto, (tile / A.COLS) | 0, tile % A.COLS);
 }
 
 /** Play cards until the deploy points or the legal tiles run out. */

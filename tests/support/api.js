@@ -7,7 +7,7 @@
 
 export {blankProfile, migrate, loadAll, saveAll, commit, initProfiles} from '../../src/save/profile.js';
 export {store, KEY} from '../../src/save/store.js';
-export {rankName, ago, vetOf, gearOf, costOf, leadOf, leadUnlocked, leadGateText, cardName, setPilotName, deckCapOf, leadBan} from '../../src/save/progression.js';
+export {rankName, ago, vetOf, gearOf, costOf, leadOf, leadUnlocked, leadGateText, cardName, deckCapOf, leadBan, isProto} from '../../src/save/progression.js';
 
 export {POOL} from '../../src/content/cards.js';
 export {GEAR} from '../../src/content/gear.js';
@@ -33,12 +33,12 @@ export {
 
 export {genRun, opRun, nodeState, enterProfile, reqBlocked, opComplete} from '../../src/rules/run.js';
 export {
-  unitAt, foeAt, civAt, held, heldEnemyHalf, crystalsHeld, scorched, isPilot, frameAnchorFor, frameCells,
+  unitAt, foeAt, civAt, held, heldEnemyHalf, crystalsHeld, scorched,
   cellPassable, validTiles, breachAllowance,
 } from '../../src/rules/board.js';
 export {wave, laneScore, rollDoctrine, predictSpawns} from '../../src/rules/waves.js';
 export {mkUnit, buffOf, dmgPreview, leadBonus} from '../../src/rules/units.js';
-export {seedFrame, frameReady, isMissionFrame} from '../../src/rules/frames.js';
+export {seedFrame, frameReady, frameOnBoard, frameGateText, applyFrameGear, salvageFrame} from '../../src/rules/frames.js';
 export {seedBoss, bossForOp, bossHp, dmgBoss, bossTick, bossWarnCells, bossSelThreat} from '../../src/rules/boss.js';
 export {BOSSDEF} from '../../src/content/bosses.js';
 export {pierceUnit} from '../../src/rules/combat.js';

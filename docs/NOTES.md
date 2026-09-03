@@ -4511,6 +4511,56 @@ a common-heavy probe deck — both are the trade working, not a hole. The
 spec's watch-items (riptide dominance in HUMAN hands, lone edge making
 support cards genuinely bad) need play, not sims.
 
+## v2.26 — the Frame rework (user's framesdeckleadspatch spec)
+
+The Pilot is deleted and the Frame system rebuilt per the uploaded spec:
+a Frame is a 5 DP Specialist card seeded into the opening hand (same
+mechanism and reasoning as the stratagem), deployed on held ground with
+a functional base weapon; its gear are nine 1 DP CARDS in the deck,
+exclusive to their machine and dead in hand without it.
+
+**Cards.** Protos: dp 6→5, new hulls (16/14/18), base weapons per spec
+(WD vulcans 2 adj + regen shield, SB arm blade 4 adj + riposte 2 trait,
+HA gatling 4 first, immobile). omni kept — established identity. Gear
+cards: beamrifle/beamsaber/booster, greatsword/longsword/resonator,
+lasergatling (tg wings — the TGNAME already read "both forward
+diagonals, nothing in the centre")/missilegatling (cross3)/ammohopper.
+The armoury's nine frame pieces are deleted; migrate() v13 refunds
+every one at full price, plus the Pilot's 70 cr, and hands Ironwright
+commanders to Graham.
+
+**Rules.** frames.js is the system now: seedFrame pushes loadout.frame
+into G.hand at launch (G.frame just marks the mission carries one);
+frameGateText gates a second Frame (one on board at a time) and absent-
+frame gear — routed through validTiles beside leadBan, so dead-in-hand
+falls out of the machinery the leads already built. applyFrameGear
+mounts: weapon replaces tg/dmg/single (riposte = frame trait + weapon
+rider, so Seven Blades keeps its temper under any sword), support adds
+boost (2-cell strides in moveTargets + servo), twin, resonate (+1/adj
+hostile at fire time). Reserve cycling can never re-deal the machine —
+it was never in loadout.deck.
+
+**The two Frame leads** (roster 9→11; both ship per the spec's "both is
+fine"): salvagerights — Rushed Assembly halves proto hull at mkUnit
+(ceil), salvageFrame() in the dmgUnit/pierceUnit death path returns
+machine + kit to hand (still counts as a loss); fieldrefit — Single
+Mount enforced inside applyFrameGear: anything carried returns to hand
+(the pro paying for the con), the swap sets u.acted. Lone Edge's person
+is CAINE now; Graham moved to the Frame chair. fieldrefit's spec colour
+#5dffa0 collided with Skunkworks — shipped as #66e0c2, flagged.
+
+**Everything deleted:** isPilot, frameAnchorFor, frameCells, ejectPilot,
+frameWeapon, isMissionFrame, setPilotName/pilotName (the callsign
+feature died with the card), the offdeck proto hand tile (the Frame IS
+in the hand now, wearing the .proto rail), deck.js's pilot filter.
+
+**frmtest** (arms rebuilt: control / bare frame — deck-free now — /
+frame + two gear cards for two spine slots; n≈380/arm): control 50.4,
+bare −1.1..−3.4, kits −5.9..+0.4. Frames land 100% of missions (the
+Pilot era's failure mode, gone). The spec's open question — is losing a
+kitted Frame correctly brutal or unplayable — is Graham's to answer in
+real hands.
+
 ## Card backlog — the next pass
 
 Not built. Recorded here so the next card batch starts from a list rather than a
