@@ -219,6 +219,33 @@ export function migrate(p) {
     p.unlocks.cards = cards;
   }
 
+  // v15: the roster review. Thirteen cards left, every one refunded at its
+  // sale price; the Fireteam Zaku became the Fireteam Specialist (its owners
+  // are paid for the old card, not handed the new one); the lane fields were
+  // re-cast as an elemental set and three of them changed id, so a saved
+  // Scrambler / Degausser / Resonance Lens becomes a Pyre / Volt / Crystal.
+  if (p.version < 15) {
+    p.version = 15;
+    p.unlocks = p.unlocks || {};
+    p.progress = p.progress || {};
+    p.loadout = p.loadout || {};
+    p.loadout.gear = p.loadout.gear || {};
+    p.usage = p.usage || {};
+    const refunds = {pikewall: 120, sentry: 100, backstop: 260, ram: 310, beacon: 125, supply: 95,
+      longshot: 160, herald: 110, relay: 115, reactor: 165, dynamo: 110, requisition: 190, zaku: 100};
+    (p.unlocks.cards || []).forEach(id => {
+      if (refunds[id]) p.progress.credits = (p.progress.credits || 0) + refunds[id];
+    });
+    const swap = {scrambler: 'pyre', degausser: 'volt', lens: 'crystal'};
+    const re = id => swap[id] || id;
+    p.unlocks.cards = [...new Set((p.unlocks.cards || []).map(re))];
+    p.loadout.deck = (p.loadout.deck || []).map(re);
+    Object.keys(swap).forEach(old => {
+      if (p.loadout.gear[old]) { p.loadout.gear[swap[old]] = p.loadout.gear[old]; delete p.loadout.gear[old]; }
+      if (p.usage[old]) { p.usage[swap[old]] = (p.usage[swap[old]] || 0) + p.usage[old]; delete p.usage[old]; }
+    });
+  }
+
   p.unlocks = p.unlocks || {};
   p.unlocks.cards = p.unlocks.cards || [...STARTER];
   p.unlocks.enemies = p.unlocks.enemies || [];

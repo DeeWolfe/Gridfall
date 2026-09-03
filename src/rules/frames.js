@@ -29,6 +29,9 @@ export function seedFrame() {
   }
 }
 
+/** The unit a kit card bolts onto — its Frame, or the Fireteam — if it stands. */
+export const kitHost = id => G.units.find(u => u.id === id) || null;
+
 /** The one Frame standing on the board, or null. Only one may stand. */
 export const frameOnBoard = () => G.units.find(u => u.frame) || null;
 
@@ -49,8 +52,7 @@ export function frameGateText(cid) {
   if (!k) return null;
   if (k.chassis === 'proto' && frameOnBoard()) return 'One Frame on the board at a time';
   if (k.frameGear) {
-    const fr = frameOnBoard();
-    if (!fr || fr.id !== k.frameGear) return `${POOL[k.frameGear].n} must be on the board`;
+    if (!kitHost(k.frameGear)) return `${POOL[k.frameGear].n} must be on the board`;
   }
   return null;
 }
@@ -90,6 +92,15 @@ export function applyFrameGear(u, cid) {
     // A riposte is a TRAIT, not part of the weapon: Seven Blades answers
     // blows whatever it swings, and a Beam Saber adds its own on top.
     u.riposte = (POOL[u.id].riposte || 0) + (k.riposte || 0);
+    // A kit can rewrite what the body IS, not just what it swings: the
+    // Fireteam's Noble is a wall, Osiris arcs over walls, Shadow ignores
+    // plate, Majestic steadies the line. Each reads from the kit or the card.
+    const base = POOL[u.id];
+    u.blocker = !!(base.blocker || k.blocker);
+    u.pen = !!(base.pen || k.pen);
+    u.indirect = !!(base.indirect || k.indirect);
+    u.aura = base.aura || k.aura || 0;
+    u.choose = !!(base.choose || k.choose);
   } else {
     u.gearS.push(cid);
     if (k.boost) { u.boost = true; u.servo = true; }
@@ -106,6 +117,11 @@ function unmountWeapon(u) {
   u.dmg = k.dmg || 0;
   u.single = !!k.single;
   u.riposte = k.riposte || 0;
+  u.blocker = !!k.blocker;
+  u.pen = !!k.pen;
+  u.indirect = !!k.indirect;
+  u.aura = k.aura || 0;
+  u.choose = !!k.choose;
 }
 
 function unmountSupports(u) {

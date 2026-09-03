@@ -33,8 +33,8 @@ const calm = () => { A.G.enemies.length = 0; A.G.predict = []; A.G.held = []; };
 // Field Fabrication: tech +2 hull and repairs — and commons deploy 2 thin
 {
   start('skunkworks');
-  const t = A.mkUnit('rampart', 1, 1);
-  if (t.max !== A.POOL.rampart.hp + 2) F.push('Fabrication hull bonus missing: ' + t.max);
+  const t = A.mkUnit('firingstep', 1, 1);
+  if (t.max !== A.POOL.firingstep.hp + 2) F.push('Fabrication hull bonus missing: ' + t.max);
   const r = A.mkUnit('rifle', 2, 1);
   if (r.max !== A.POOL.rifle.hp - 2) F.push(`Thin Personnel missing — rifle deployed at ${r.max}`);
   const sc = A.mkUnit('scout', 3, 1);
@@ -107,7 +107,7 @@ const calm = () => { A.G.enemies.length = 0; A.G.predict = []; A.G.held = []; };
 
 // Quartermaster: an extra card every turn, and only eight in the manifest
 {
-  start('quartermaster', ['rifle', 'marks', 'wall', 'assassin', 'scout', 'medic', 'rampart', 'lancer']);
+  start('quartermaster', ['rifle', 'marks', 'wall', 'assassin', 'scout', 'medic', 'archer', 'lancer']);
   A.G.hand = [];
   calm();
   A.endTurn();

@@ -25,4 +25,8 @@ export const TGNAME = {
   cross3: "A cross centred three cells ahead",
   cone: "A flame cone — one cell ahead, then three across",
   window: "Two and three cells ahead — blind to the adjacent cell",
+  cross4: "A cross centred four cells ahead",
+  sweep5: "The cell either side and the three ahead",
+  rearvert3: "The column directly behind, across three lanes",
+  radius2: "Any hostile within two cells",
 };

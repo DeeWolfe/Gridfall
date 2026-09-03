@@ -29,28 +29,17 @@ clearBoard();
   if (!/adjacent/i.test(A.supportLabel(scout) || '')) F.push('scout label wrong');
 }
 
-// Relay buffs its column across lanes
+// Field Marshal buffs its column AND its lane, nothing else
 {
   clearBoard();
-  const relay = spawnUnit('relay', 2, 2);
+  const marshal = spawnUnit('marshal', 2, 2);
   const inCol = [spawnUnit('rifle', 0, 2), spawnUnit('rifle', 4, 2)];
-  const outside = spawnUnit('rifle', 3, 5);
-
-  const lit = new Set(A.supportTargets(relay));
-  if (!inCol.every(o => lit.has(cell(o)))) F.push('relay missed a column mate');
-  if (lit.has(cell(outside))) F.push('relay buffed outside its column');
-}
-
-// Herald buffs its lane
-{
-  clearBoard();
-  const herald = spawnUnit('herald', 3, 1);
-  const inLane = spawnUnit('rifle', 3, 5);
-  const outside = spawnUnit('rifle', 1, 1);
-
-  const lit = new Set(A.supportTargets(herald));
-  if (!lit.has(cell(inLane))) F.push('herald missed a lane mate');
-  if (lit.has(cell(outside))) F.push('herald buffed outside its lane');
+  const inLane = spawnUnit('rifle', 2, 5);
+  const outside = spawnUnit('rifle', 0, 5);
+  const lit = new Set(A.supportTargets(marshal));
+  if (!inCol.every(o => lit.has(cell(o)))) F.push('marshal missed a column mate');
+  if (!lit.has(cell(inLane))) F.push('marshal missed a lane mate');
+  if (lit.has(cell(outside))) F.push('marshal buffed outside lane and column');
 }
 
 // Medic heals only the unit directly ahead, and only personnel
@@ -58,7 +47,7 @@ clearBoard();
   clearBoard();
   const medic = spawnUnit('medic', 2, 1);
   const ahead = spawnUnit('rifle', 2, 2);
-  const techAhead = spawnUnit('rampart', 1, 2);
+  const techAhead = spawnUnit('firingstep', 1, 2);
 
   const lit = new Set(A.supportTargets(medic));
   if (!lit.has(cell(ahead))) F.push('medic missed the unit ahead');
@@ -69,7 +58,7 @@ clearBoard();
 {
   clearBoard();
   const techmed = spawnUnit('techmed', 2, 3);
-  const rampart = spawnUnit('rampart', 0, 3);
+  const rampart = spawnUnit('firingstep', 0, 3);
   const person = spawnUnit('rifle', 4, 3);
 
   const lit = new Set(A.supportTargets(techmed));
@@ -77,12 +66,12 @@ clearBoard();
   if (lit.has(cell(person))) F.push('tech medic targeted personnel');
 }
 
-// Scrambler paints its whole lane as influence
+// Pyre Emitter paints its whole lane as influence
 {
   clearBoard();
-  const scrambler = spawnUnit('scrambler', 1, 2);
+  const scrambler = spawnUnit('pyre', 1, 2);
   if (A.influenceCells(scrambler).length !== A.COLS) {
-    F.push(`scrambler influence should cover its ${A.COLS}-cell lane`);
+    F.push(`pyre influence should cover its ${A.COLS}-cell lane`);
   }
 }
 

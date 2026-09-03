@@ -16,7 +16,7 @@ const F = failures();
 
 const start = () => {
   const p = unlockAll(A.blankProfile('ST'),
-    ['rifle', 'marks', 'wall', 'duel', 'grapple', 'breach', 'requisition']);
+    ['rifle', 'marks', 'wall', 'duel', 'grapple', 'breach', 'refit']);
   A.enterProfile(p);
   A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0});
   stillAir();
@@ -34,7 +34,7 @@ const play = (cid, l, c) => {
 // --- the shape: seven tech cards, and no lead carries a call ---
 {
   const CALLS = Object.keys(A.POOL).filter(c => A.POOL[c].strat);
-  if (CALLS.length !== 7) F.push(`expected 7 call cards, found ${CALLS.length}`);
+  if (CALLS.length !== 6) F.push(`expected 6 call cards, found ${CALLS.length}`);
   CALLS.forEach(c => {
     if (A.POOL[c].t !== 'tech') F.push(`${c} is not a tech card`);
     if (!A.STRATAGEMS[A.POOL[c].strat]) F.push(`${c} names a call that does not exist`);
@@ -129,13 +129,5 @@ const play = (cid, l, c) => {
 }
 
 // --- Emergency Requisition through a full turn: +4 lands with the new points ---
-{
-  start();
-  play('requisition', 2, 0);
-  A.G.enemies.length = 0; A.G.predict = []; A.G.held = [];
-  A.endTurn();
-  if (A.G.dp !== A.MAXDP + 4) F.push('requisition paid ' + (A.G.dp - A.MAXDP) + ', expected 4');
-  console.log('requisition: +4 riding in with the next turn\'s points');
-}
 
 F.report('command calls: cards now, and every beat of the old contract holds');

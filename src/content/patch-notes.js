@@ -4,9 +4,17 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.30';
+export const VERSION = '2.31';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.31',
+    notes: [
+      'THE ROSTER REVIEW. Twelve slots in a deck means no two cards may do the same job, so thirteen more left — every one refunded in full: Pike Wall, Sentry Ronin, Backstop Battery, Thruster Ram, Drop Beacon, Supply Drone, Longshot, Herald, Relay, Reactor Core, Dynamo, Emergency Requisition and the Fireteam Zaku. The FORWARD BASE is the only thing that makes deploy points now: +1 every turn it stands, and it hurries cooldowns instead of repairing. Seventy-two cards.',
+      'NEW: THE FIRETEAM, a Specialist rifleman with four exclusive KIT cards that rewrite what it is — NOBLE (tower shield, blocks and ripostes), SHADOW (diagonal blades that ignore armour), OSIRIS (a long rifle that arcs over your walls to the deepest hostile) and MAJESTIC (a three-cell sweep that steadies everyone beside it). The SINGER: no weapon, and every hostile within two cells of her strikes 1 softer. And the lane fields became an ELEMENTAL SET: Pyre Emitter (fire — the lane burns each enemy phase), Cryo Projector (ice), Volt Coil (volt — strips armour) and Crystal Lens (crystal — amplifies fire through it).',
+      'REWORKS. The Bulwark is a two-section half wall filed down the column that your own guns shoot over — no shield, no blade, just steel. The Ashigaru Line files three down the column too. The Naginata sweeps the full circle the Samurai used to, and the Samurai cuts five: the cell either side and the three ahead. The Mortar fires a CROSS at range four. The Rearguard strikes the whole column behind it across three lanes. The Falconer\'s bird strikes anything within two cells. The Rampart is an EXO FRAME now — a heavy shield and an anchored rifle fed from an ammo backpack, firing twice a turn — and the Archer takes its starter slot. The Ashura\'s Crossing Cut became FATAL FURY: four blows on the hostile at contact. Aegis Knights lose their riposte; the Hecate ignores armour.',
+    ],
+  },
   {
     v: '2.30',
     notes: [

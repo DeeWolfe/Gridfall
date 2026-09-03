@@ -120,16 +120,14 @@ A.active.lead = 'ironbrand';
   A.active.loadout.gear = {};
 }
 
-// --- Bulwark (the Knight's heir) is a Common unit, and does not out-riposte the Specialist ---
+// --- Bulwark is a two-section parapet wall, Common, and no longer the Knight ---
 {
   const bulwark = A.POOL.bulwark;
   if (bulwark.t !== 'common') F.push('Bulwark is not a Common');
-  if (bulwark.tech) F.push('Bulwark is flagged Tech');
-  if (!bulwark.riposte) F.push('Bulwark did not inherit the Knight\'s riposte');
-  if (bulwark.riposte > A.POOL.aegis.riposte) {
-    F.push(`Bulwark ripostes for ${bulwark.riposte}, above the Specialist's ${A.POOL.aegis.riposte}`);
-  }
+  if (bulwark.riposte || bulwark.regen || bulwark.ab) F.push('Bulwark kept a shield, riposte or ability');
+  if (bulwark.squad !== 2 || bulwark.formation !== 'column') F.push('Bulwark is not two sections down the column');
   const u = A.mkUnit('bulwark', 2, 1);
+  if (!u.blocker || !u.parapet) F.push('a deployed Bulwark is not a parapet blocker');
   if (u.tech) F.push('a deployed Bulwark counts as Tech');
 }
 

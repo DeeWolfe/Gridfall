@@ -15,7 +15,7 @@ import {spawnUnit, spawnFoe, clearBoard, unlockAll, stillAir} from './support/fi
 const F = failures();
 
 const start = deck => {
-  const p = unlockAll(A.blankProfile('FD'), deck || ['rifle', 'demo', 'cryo', 'lens', 'degausser']);
+  const p = unlockAll(A.blankProfile('FD'), deck || ['rifle', 'demo', 'cryo', 'crystal', 'volt']);
   A.enterProfile(p);
   A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0});
   stillAir();
@@ -91,7 +91,7 @@ const start = deck => {
 {
   start();
   const shooter = spawnUnit('rifle', 2, 1);          // dmg 2, tg first
-  spawnUnit('lens', 2, 3);
+  spawnUnit('crystal', 2, 3);
   const beyond = spawnFoe('crawler', 2, 5, 99);
   A.fire(shooter, false);
   if (beyond.hp !== 99 - 4) F.push(`shot through the lens dealt ${99 - beyond.hp}, wanted 4`);
@@ -100,14 +100,14 @@ const start = deck => {
 {
   start();
   const shooter = spawnUnit('rifle', 2, 1);
-  spawnUnit('lens', 2, 4);
+  spawnUnit('crystal', 2, 4);
   const before = spawnFoe('crawler', 2, 3, 99);       // in FRONT of the lens
   A.fire(shooter, false);
   if (before.hp !== 99 - 2) F.push(`a shot that never crossed the lens dealt ${99 - before.hp}, wanted 2`);
   // And a lens in another lane amplifies nothing.
   clearBoard();
   const s2 = spawnUnit('rifle', 2, 1);
-  spawnUnit('lens', 1, 3);
+  spawnUnit('crystal', 1, 3);
   const e2 = spawnFoe('crawler', 2, 5, 99);
   A.fire(s2, false);
   if (e2.hp !== 99 - 2) F.push('a lens amplified fire in a lane it does not stand in');
@@ -117,7 +117,7 @@ const start = deck => {
 {
   start();
   const shooter = spawnUnit('rifle', 2, 1);
-  const lensU = spawnUnit('lens', 2, 4);
+  const lensU = spawnUnit('crystal', 2, 4);
   const cells = A.supportTargets(lensU);
   if (!cells.includes(shooter.lane * A.COLS + shooter.col)) F.push('lens support highlight misses the shooter behind it');
   if (!/Amplifying/.test(A.supportLabel(lensU) || '')) F.push('lens support label missing');
@@ -130,7 +130,7 @@ const start = deck => {
   spawnFoe('pylon', 2, 7, 99);                        // lanefloor 1 on top
   A.dmgEnemy(hulk, 5, 'test');
   if (hulk.hp !== 99 - 3) F.push(`floored hulk took ${99 - hulk.hp} of 5, wanted 3`);
-  spawnUnit('degausser', 2, 0);
+  spawnUnit('volt', 2, 0);
   A.dmgEnemy(hulk, 5, 'test');
   if (hulk.hp !== 99 - 3 - 5) F.push(`degaussed hulk took ${99 - hulk.hp - 3} of 5, wanted the full 5`);
   console.log('degausser: hulk behind a pylon took 3 floored, 5 degaussed');

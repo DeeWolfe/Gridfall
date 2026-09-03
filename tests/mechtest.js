@@ -1,10 +1,9 @@
 // The two war frames: the Ashura you deploy and the Oni that answers it.
 //
-// They are a matched pair built around the same idea — the board has a vertical
-// axis now. The Oni crosses lanes by choice and will always end up wherever the
-// line is thinnest; the Ashura is the card that covers three lanes at once and
-// can slide to meet it. If either half stops working the other stops meaning
-// anything, so they are guarded together.
+// They were built as a matched pair around the board's vertical axis. The Oni
+// still crosses lanes by choice toward the thinnest line; the Ashura became a
+// fist frame in v2.31 (one hostile at contact, Fatal Fury for four blows), so
+// its half of this file guards that, and the Oni's half is unchanged.
 import * as A from './support/api.js';
 import {failures} from './support/harness.js';
 import {spawnUnit, spawnFoe, clearBoard, unlockAll, stillAir} from './support/fixtures.js';
@@ -28,7 +27,8 @@ const start = deck => {
   if (!k) F.push('Ashura Frame is not in the pool');
   else {
     if (k.t !== 'special') F.push('the frame is not a Specialist');
-    if (k.tg !== 'vert3') F.push('the frame lost its three-lane sweep');
+    if (k.tg !== 'adj' || !k.single) F.push('the frame should punch one hostile at contact');
+    if (k.ab.n !== 'Fatal Fury') F.push('the frame\'s ability is not Fatal Fury');
     if (!k.ab) F.push('the frame has no ability');
     if (!k.blocker) F.push('a sixteen-hull frame that does not block a lane');
   }
@@ -37,46 +37,32 @@ const start = deck => {
   else if (!o.flank) F.push('the Oni carries no flank flag — it is just a Harrower');
 }
 
-// --- the sweep covers three lanes, one column ahead ---
+// --- the fists strike the one cell at contact ---
 {
   start();
   const u = spawnUnit('ashura', 2, 3);
-  const up = spawnFoe('crawler', 1, 4);
   const mid = spawnFoe('crawler', 2, 4);
-  const down = spawnFoe('crawler', 3, 4);
-  const wide = spawnFoe('crawler', 4, 4);          // two lanes out
-  const behind = spawnFoe('crawler', 2, 5);        // a column too far
+  const up = spawnFoe('crawler', 1, 4);
+  const far = spawnFoe('crawler', 2, 5);
   const hit = A.targetsFor(u).map(e => e.uid);
-  [['above', up], ['own lane', mid], ['below', down]].forEach(([where, e]) => {
-    if (!hit.includes(e.uid)) F.push(`the sweep missed the cell ${where}`);
-  });
-  if (hit.includes(wide.uid)) F.push('the sweep reached two lanes out');
-  if (hit.includes(behind.uid)) F.push('the sweep reached a second column');
-  console.log('Crossing sweep covers', hit.length, 'cells across three lanes');
+  if (!hit.includes(mid.uid)) F.push('the fists missed the hostile at contact');
+  if (hit.includes(up.uid) || hit.includes(far.uid)) F.push('the fists reached past contact');
 }
 
-// --- Crossing Cut slides toward the heavier side, then cuts ---
+// --- Fatal Fury: four blows on the hostile ahead, and nothing without one ---
 {
   start();
   const u = spawnUnit('ashura', 2, 3);
-  spawnFoe('crawler', 3, 4, 30);                   // one below
-  spawnFoe('crawler', 3, 5, 30);                   // and another behind it
+  const t = spawnFoe('crawler', 2, 4, 30);
   A.useAbility(u);
-  if (u.lane !== 3) F.push(`Crossing Cut did not slide toward the pressure (lane ${u.lane + 1})`);
-  if (u.cd <= 0) F.push('Crossing Cut did not go on cooldown');
-  const front = A.G.enemies.find(e => e.lane === 3 && e.col === 4);
-  if (!front || front.hp >= 30) F.push('Crossing Cut landed no damage after sliding');
-}
-
-// --- it does not slide into an occupied cell ---
-{
+  if (30 - t.hp !== 8) F.push(`Fatal Fury dealt ${30 - t.hp}, wanted 4 x 2`);
+  if (u.cd <= 0) F.push('Fatal Fury did not go on cooldown');
+  if (u.lane !== 2) F.push('the frame moved on its ability');
   start();
-  const u = spawnUnit('ashura', 2, 3);
-  spawnUnit('wall', 3, 3);
-  spawnUnit('wall', 1, 3);
-  spawnFoe('crawler', 3, 4, 30);
-  A.useAbility(u);
-  if (u.lane !== 2) F.push('Crossing Cut slid onto an occupied cell');
+  const u2 = spawnUnit('ashura', 2, 3);
+  const off = spawnFoe('crawler', 3, 4, 30);
+  A.useAbility(u2);
+  if (off.hp !== 30) F.push('Fatal Fury struck a hostile that was not at contact');
 }
 
 // --- the Oni crosses toward the thin lane on its own ---

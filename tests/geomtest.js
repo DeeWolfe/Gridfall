@@ -115,8 +115,11 @@ if (checked < 1000) F.push(`only ${checked} pairs checked — the fixture stoppe
   const CASES = [
     ['rifle', 'first', '0,1 0,2 0,3 0,4 0,5 0,6'],
     ['lancer', 'ahead3', '0,1 0,2 0,3'],
-    ['samurai', 'around', '-1,-1 -1,0 -1,1 0,-1 0,1 1,-1 1,0 1,1'],
-    ['mortar', 'blast4', '-1,3 -1,4 -1,5 0,3 0,4 0,5 1,3 1,4 1,5'],
+    ['naginata', 'around', '-1,-1 -1,0 -1,1 0,-1 0,1 1,-1 1,0 1,1'],
+    ['samurai', 'sweep5', '-1,0 -1,1 0,1 1,0 1,1'],
+    ['rearguard', 'rearvert3', '-1,-1 0,-1 1,-1'],
+    ['mortar', 'cross4', '-1,4 0,3 0,4 0,5 1,4'],
+    ['plasma', 'blast4', '-1,3 -1,4 -1,5 0,3 0,4 0,5 1,3 1,4 1,5'],
     ['archer', 'archer', '-1,-1 0,1 0,2 1,-1'],
   ];
   for (const [id, label, want] of CASES) {

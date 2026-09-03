@@ -137,7 +137,7 @@ function rawTiles(cid, k) {
   // legal target. frameGateText() above already guaranteed it is the right
   // Frame, so this cannot offer someone else's kit a home.
   if (k.frameGear) {
-    const fr = G.units.find(u => u.frame);
+    const fr = G.units.find(u => u.id === k.frameGear);
     if (fr) out.push(fr.lane * COLS + fr.col);
     return out;
   }

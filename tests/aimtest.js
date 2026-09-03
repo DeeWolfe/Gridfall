@@ -79,7 +79,7 @@ if (!foe) {
 });
 
 // Single-target cards do, and mkUnit must carry the flag that says so.
-['rifle', 'marks', 'archer', 'assassin', 'bulwark'].forEach(id => {
+['rifle', 'marks', 'archer', 'assassin', 'recoilless'].forEach(id => {
   if (!A.mkUnit(id, 2, 1).single) F.push(id + ' lost its single-target flag in mkUnit');
 });
 

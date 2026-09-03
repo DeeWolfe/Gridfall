@@ -53,10 +53,12 @@ const play = (cid, l, c) => {
     if (POOL[c].dp !== 5) F.push(`${c} costs ${POOL[c].dp} DP, spec says 5`);
     if (!POOL[c].dmg || POOL[c].tg === 'none') F.push(`${c} has no functional base weapon`);
   });
-  if (GEARCARDS.length !== 9) F.push(`expected 9 gear cards, found ${GEARCARDS.length}`);
+  // The Fireteam's kits ride the same mechanism; only the Frame kits are counted here.
+  const FRAMEKITS = GEARCARDS.filter(c => isProto(POOL[c].frameGear));
+  if (FRAMEKITS.length !== 9) F.push(`expected 9 Frame gear cards, found ${FRAMEKITS.length}`);
   GEARCARDS.forEach(c => {
     const k = POOL[c];
-    if (!isProto(k.frameGear)) F.push(`${c} points at a Frame that is not one`);
+    if (!POOL[k.frameGear]) F.push(`${c} points at a host that does not exist`);
     if (k.dp !== 1) F.push(`${c} costs ${k.dp} DP, spec says 1`);
     if (k.slot !== 'weapon' && k.slot !== 'support') F.push(`${c} has no slot`);
   });

@@ -62,7 +62,7 @@ const board = () => {
 // for. It goes through deploy(), so this proves the flag survives the call
 // chain rather than only working when the test calls drawCard() directly.
 {
-  for (const [id, extra] of [['recon', POOL.recon.draw], ['falconer', POOL.falconer.draw]]) {
+  for (const [id, extra] of [['recon', POOL.recon.draw]]) {
     const G = board();
     // A hand at the cap, and a reserve that cannot hand the card back — a
     // redraw of the card under test would otherwise look like a second play.

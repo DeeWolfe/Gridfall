@@ -210,7 +210,7 @@ function drawSel() {
         ${u.shield ? `<div><span>Shield</span><b style="color:var(--cyan)">${u.shield}</b></div>` : ''}
         ${incoming ? `<div><span>Incoming</span><b style="color:var(--mag)">${incoming}</b></div>` : ''}
       </div>
-      ${u.frame ? `<div class="selsupport">Loadout: ${[u.gearW, ...u.gearS].filter(Boolean)
+      ${(u.frame || u.gearW || u.gearS.length) ? `<div class="selsupport">Loadout: ${[u.gearW, ...u.gearS].filter(Boolean)
     .map(c => POOL[c].n).join(' · ') || 'base weapon, nothing fitted'}</div>` : ''}
       ${supportLabel(u) ? `<div class="selsupport">${supportLabel(u)}</div>` : ''}
       <div class="selfire ${g.length ? 'live' : 'dead'}">${verdict}</div>

@@ -119,9 +119,15 @@ function placeSquad(cid, l, c) {
     }
   }
   const spots = [[l, c]];
-  for (let dl = -1; dl <= 1 && spots.length < k.squad; dl++) {
-    for (let dc = -1; dc <= 1 && spots.length < k.squad; dc++) {
-      if (!dl && !dc) continue;
+  // A column formation files the bodies DOWN the same column — the lane
+  // above, the lane below, then two out — and never sideways. If the column
+  // is short, fewer stand; the card still lands.
+  const offsets = k.formation === 'column'
+    ? [[-1, 0], [1, 0], [-2, 0], [2, 0]]
+    : [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
+  for (const [dl, dc] of offsets) {
+    if (spots.length >= k.squad) break;
+    {
       const nl = l + dl;
       const nc = c + dc;
       if (nl < 0 || nl >= LANES || nc < 0 || nc >= COLS) continue;

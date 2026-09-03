@@ -7,7 +7,7 @@ import {spawnUnit, spawnFoe, clearBoard, unlockAll, stillAir} from './support/fi
 const F = failures();
 const G = () => A.G;
 
-A.enterProfile(unlockAll(A.blankProfile('CL'), ['assassin', 'wall', 'bulwark', 'rifle']));
+A.enterProfile(unlockAll(A.blankProfile('CL'), ['assassin', 'wall', 'bulwark', 'rifle', 'naginata']));
 A.launch(Object.keys(A.opRun().nodes)[0]);
   stillAir();
 
@@ -41,11 +41,11 @@ function clear() {
 // 2. a tough unit repels the drop and survives, wounded
 {
   clear();
-  const bulwark = spawnUnit('bulwark', 3, 7);   // 10 hull, 2 damage
+  const bulwark = spawnUnit('naginata', 3, 7);  // 8 hull, 2 damage
   const resolved = A.resolveSpawn('crawler', 3); // 3 hull, 2 damage
   if (G().enemies.length) F.push('crawler should have been destroyed on the drop');
-  if (!G().units.length) F.push('bulwark should have survived');
-  else if (G().units[0].hp >= bulwark.max) F.push('bulwark took no damage repelling the drop');
+  if (!G().units.length) F.push('naginata should have survived');
+  else if (G().units[0].hp >= bulwark.max) F.push('naginata took no damage repelling the drop');
   if (!resolved) F.push('a repelled drop should still count as resolved');
 }
 

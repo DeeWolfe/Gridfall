@@ -38,13 +38,13 @@ export {
 } from '../../src/rules/board.js';
 export {wave, laneScore, rollDoctrine, predictSpawns} from '../../src/rules/waves.js';
 export {mkUnit, buffOf, dmgPreview, leadBonus, packBonus} from '../../src/rules/units.js';
-export {seedFrame, frameReady, frameOnBoard, frameGateText, applyFrameGear, salvageFrame} from '../../src/rules/frames.js';
+export {seedFrame, frameReady, frameOnBoard, kitHost, frameGateText, applyFrameGear, salvageFrame} from '../../src/rules/frames.js';
 export {seedBoss, bossForOp, bossHp, dmgBoss, bossTick, bossWarnCells, bossSelThreat} from '../../src/rules/boss.js';
 export {BOSSDEF} from '../../src/content/bosses.js';
 export {pierceUnit} from '../../src/rules/combat.js';
 export {armCall, stratMarkers, resolveStratagem, resolveStratagemEnd, BREACH_HULL} from '../../src/rules/stratagems.js';
 export {laneJammed, laneFloor, laneAhead, geomFor, geomCells, candidatesFor, targetsFor} from '../../src/rules/targeting.js';
-export {dampenIn, dmgEnemy, blast, dmgUnit, fire, healPass, breachAt} from '../../src/rules/combat.js';
+export {dampenIn, hymnAt, dmgEnemy, blast, dmgUnit, fire, healPass, breachAt} from '../../src/rules/combat.js';
 export {useAbility, pierceTargets, doPierce} from '../../src/rules/abilities.js';
 export {moveTargets, doMove, doAttack, doAbility, swapTargets, doSwap} from '../../src/rules/actions.js';
 export {deploy} from '../../src/rules/deploy.js';

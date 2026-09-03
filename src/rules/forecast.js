@@ -5,11 +5,11 @@
 // two drift apart the board lies to the player about incoming damage, so any
 // change to hostile decision-making belongs in both.
 
-import {COLS} from '../state/constants.js';
+import {LANES, COLS} from '../state/constants.js';
 import {BEST} from '../content/hostiles.js';
 import {G} from '../state/session.js';
 import {unitAt, foeAt, civAt} from './board.js';
-import {dampenIn, chillFactor} from './combat.js';
+import {dampenIn, hymnAt, chillFactor} from './combat.js';
 import {eventStrikeMalus} from './events.js';
 import {bossSelThreat} from './boss.js';
 
@@ -57,7 +57,7 @@ export function forecastThreat() {
     } else if (target) {
       // Mirrors strike(): an I-Field swallows any hit that is not adjacent.
       if (target.ifield && target.col + target.size - 1 < e.col - 1) return;
-      hits[target.uid] = (hits[target.uid] || 0) + Math.max(1, raw - dampenIn(target.lane));
+      hits[target.uid] = (hits[target.uid] || 0) + Math.max(1, raw - dampenIn(target.lane) - hymnAt(e.lane, e.col));
     }
   });
 
@@ -209,7 +209,12 @@ export function supportTargets(u) {
 /** Cells where this unit suppresses the enemy. Rendered violet. */
 export function influenceCells(u) {
   const out = [];
-  if (u.dampen || u.chill || u.degauss) for (let c = 0; c < COLS; c++) out.push(u.lane * COLS + c);
+  if (u.dampen || u.chill || u.degauss || u.burnLane) for (let c = 0; c < COLS; c++) out.push(u.lane * COLS + c);
+  if (u.hymn) {
+    for (let l = u.lane - 2; l <= u.lane + 2; l++) for (let c = u.col - 2; c <= u.col + 2; c++) {
+      if (l >= 0 && l < LANES && c >= 0 && c < COLS && (l !== u.lane || c !== u.col)) out.push(l * COLS + c);
+    }
+  }
   return out;
 }
 
@@ -228,6 +233,8 @@ export function supportLabel(u) {
   }
   if (u.mine) return 'Armed — detonates on the first hostile to enter';
   if (u.dampen) return 'Damping hostile damage in this lane';
+  if (u.burnLane) return 'Burning every hostile in this lane each enemy phase';
+  if (u.hymn) return 'Singing — hostiles within two cells strike softer';
   if (u.chill) return 'Chilling this lane — hostiles advance at half speed';
   if (u.lensBoost) return `Amplifying friendly fire through this cell (+${u.lensBoost})`;
   if (u.degauss) return 'Stripping hostile armour in this lane';

@@ -12,7 +12,7 @@ import {G, active, nextUid} from '../state/session.js';
 import {randInt} from '../state/rng.js';
 import {unitAt, foeAt, civAt} from './board.js';
 import {buffOf, packBonus} from './units.js';
-import {dampenIn} from './combat.js';
+import {dampenIn, hymnAt} from './combat.js';
 import {clog} from './log.js';
 import {tapeEvent, tapeMark} from './tape.js';
 
@@ -29,7 +29,7 @@ export const mkFoe = (k, lane, col, hp) => {
  * @returns {{outcome:'repelled'|'mutual'|'landed', eHp:number, uHp:number}}
  */
 export function spawnClash(k, D, u) {
-  const eDmg = Math.max(1, (D.dmg || 0) - dampenIn(u.lane));
+  const eDmg = Math.max(1, (D.dmg || 0) - dampenIn(u.lane) - hymnAt(u.lane, u.col));
   const uDmg = Math.max(0, (u.dmg || 0) + (u.riposte || 0) + buffOf(u) + packBonus(u));
   const uNet = u.pen ? uDmg : Math.max(0, uDmg - (BEST[k].floor || 0));
 

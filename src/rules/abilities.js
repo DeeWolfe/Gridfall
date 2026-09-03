@@ -11,6 +11,9 @@ import {foeAt, unitAt, civAt} from './board.js';
 import {clog} from './log.js';
 import {tapeEvent} from './tape.js';
 
+const FURY_HITS = 4;
+const FURY_DMG = 2;
+
 const ABILITIES = {
   // Medic — Triage: patch every adjacent personnel unit instead of the one ahead.
   medic(u) {
@@ -74,22 +77,21 @@ const ABILITIES = {
     }
   },
 
-  // Ashura Frame — Crossing Cut: step into the heavier lane, then sweep the
-  // whole column in front across all three. The slide is the point: the
-  // hostiles this card exists to answer are the ones that step sideways.
+  // Ashura Frame — Fatal Fury: four fast blows on the hostile at contact.
+  // Less per hit than the heavy punch, more in total — and four separate
+  // hits, so plating that bleeds a point a blow bleeds four.
   ashura(u) {
-    const load = l => G.enemies.filter(e => e.lane === l && e.col > u.col).length;
-    const open = [u.lane - 1, u.lane + 1]
-      .filter(l => l >= 0 && l < LANES && !unitAt(l, u.col) && !foeAt(l, u.col));
-    const to = open.sort((a, b) => load(b) - load(a))[0];
-    const slid = to !== undefined && load(to) > load(u.lane);
-    if (slid) u.lane = to;
-
-    const cc = u.col + u.size;
-    const hit = G.enemies.filter(e => e.col === cc && Math.abs(e.lane - u.lane) <= 1);
-    hit.forEach(e => dmgEnemy(e, 6 + buffOf(u), 'Crossing Cut', u.pen));
-    clog(`<span class="g">Crossing Cut</span> — ${slid ? `slid into lane ${u.lane + 1} and cut ` : 'cut '}` +
-      `${hit.length} across three lanes.`, 'order');
+    const t = foeAt(u.lane, u.col + u.size);
+    if (!t) {
+      clog('Fatal Fury found nothing at contact.', 'order');
+      return;
+    }
+    let blows = 0;
+    for (let i = 0; i < FURY_HITS && t.hp > 0; i++) {
+      dmgEnemy(t, FURY_DMG + (i === 0 ? buffOf(u) : 0), 'Fatal Fury', u.pen);
+      blows++;
+    }
+    clog(`<span class="g">Fatal Fury</span> — ${blows} blow${blows > 1 ? 's' : ''} landed.`, 'order');
   },
 };
 

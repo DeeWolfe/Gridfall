@@ -19,25 +19,25 @@ import {POOL} from '../content/cards.js';
 // 撃 left with it when the card became gear — gear wears the procedural sigil.)
 const KANJI = {
   // scouts and skirmish troopers
-  scout: '目', recon: '鳥', pathfinder: '道', rifle: '銃', zaku: '双',
+  scout: '目', recon: '鳥', pathfinder: '道', rifle: '銃', singer: '歌',
   marks: '狙', archer: '弓', assassin: '影', kunoichi: '忍',
-  samurai: '侍', ronin: '浪', naginata: '薙', lancer: '槍', herald: '旗',
+  samurai: '侍', ronin: '浪', naginata: '薙', lancer: '槍',
   medic: '医', bulwark: '塁', outrider: '駆', cipher: '換',
-  engineer: '工', mortar: '臼', ashigaru: '兵', pikewall: '列', sentry: '討',
-  falconer: '隼', longshot: '遠', rearguard: '殿', banner: '幟', ember: '炎', recoilless: '筒',
+  engineer: '工', mortar: '臼', ashigaru: '兵',
+  falconer: '隼', rearguard: '殿', banner: '幟', ember: '炎', recoilless: '筒',
   // tech emplacements and devices
-  wall: '壁', supply: '糧', beacon: '灯', shield: '護',
-  relay: '波', techblade: '刃',
-  scrambler: '乱', fob: '営', mine: '罠', dynamo: '電',
-  rampart: '塞', piercer: '突', reactor: '核',
-  firingstep: '柵', backstop: '堤', demo: '爆', cryo: '凍', lens: '凸', degausser: '消',
+  wall: '壁', shield: '護', techblade: '刃', fob: '営', mine: '罠',
+  piercer: '突', firingstep: '柵', demo: '爆',
+  // the elemental set
+  pyre: '火', cryo: '凍', volt: '雷', crystal: '晶',
   // specialists
   aegis: '盾', techmed: '療', dragoon: '竜', railgun: '貫',
-  hell: '焔', plasma: '光', exo: '鎧', hecate: '砲', kessen: '斬', ram: '衝',
-  marshal: '将', ashura: '阿',
+  hell: '焔', plasma: '光', exo: '鎧', hecate: '砲', kessen: '斬', rampart: '塞',
+  marshal: '将', ashura: '阿', fireteam: '班',
+  noble: '貴', shadow: '陰', osiris: '冥', majestic: '威',
   // Command calls — the old lead stratagems, cards in the deck now.
   duel: '決', refit: '復', insertion: '潜', breach: '砕',
-  enfilade: '掃', grapple: '鎖', requisition: '徴',
+  enfilade: '掃', grapple: '鎖',
   // The Frame line and its closed kits of gear cards.
   whitedevil: '白', sevenblades: '七', heavyarms: '重',
   beamrifle: '射', beamsaber: '剣', booster: '翔',

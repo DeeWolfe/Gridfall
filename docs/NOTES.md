@@ -4768,3 +4768,40 @@ what Triage claimed to add).
   Backlog item 6, finally built.
 
 Before/after probe numbers are in the commit message for this entry.
+
+## v2.31 — the roster review
+
+The user went through every card in the v2.30 roster with one rule: with
+twelve slots, no two cards may do remotely the same thing. Their decisions,
+as applied:
+
+**Thirteen cuts (79 → 66), refunded by the v15 migration:** Pike Wall,
+Sentry Ronin, Backstop Battery, Thruster Ram, Drop Beacon, Supply Drone,
+Longshot, Herald, Relay, Reactor Core, Dynamo, Emergency Requisition,
+Fireteam Zaku. "Remove all other DP generating cards" — the Forward Base is
+now the only one (`dynamo: 1` on the base; the Dynamo code path is reused).
+
+**Nine new cards (66 → 72):** the Fireteam (Specialist rifleman) with four
+exclusive kits — Noble, Shadow, Osiris, Majestic — built on the Frame gear
+mechanism generalised to any host (`kitHost()`, and `applyFrameGear` now
+carries blocker / pen / indirect / aura / choose traits off the kit); the
+Singer (`hymn`: hostiles within two cells strike 1 softer, read from the
+ATTACKER's position, mirrored in the forecast and in spawn clashes); and the
+elemental set — Pyre Emitter (`burnLane`), Cryo Projector, Volt Coil, Crystal
+Lens — where three ids changed (scrambler→pyre, degausser→volt, lens→crystal)
+and the migration follows them through unlocks, deck, fitted gear and usage.
+
+**Reworks:** Bulwark → two-section parapet half wall (`squad: 2`,
+`formation: 'column'`, `parapet`); Ashigaru files down the column too
+(placeSquad's offsets are formation-aware); Naginata takes `around`, Samurai
+takes the new `sweep5`; Mortar `cross4`; Rearguard `rearvert3`; Falconer
+`radius2` with a pick, no draw; Rampart → twin-firing Exo Frame Specialist
+(Archer takes its starter slot); Ashura → `adj` fists + Fatal Fury (4 × 2);
+Aegis loses riposte; Hecate gains `pen`.
+
+**Not built:** "fog of war" was named on Falconer and Forward Base. The game
+has no fog-of-war system; both cards were built to their other half. If fog
+comes, these two are the first to read it.
+
+Kit and Singer designs, the Samurai's five cells and the Fatal Fury numbers
+are my drafts against one-line briefs — flagged as such in the reply.

@@ -115,8 +115,8 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
   if (A.G.boss.phase !== 2) F.push('shield collapse did not flip the phase');
 
   // Instant kills: the drop pod may not crush a boss.
-  p.loadout.gear.zaku = 'dropod';
-  const tiles = A.validTiles('zaku');
+  p.loadout.gear.ashigaru = 'dropod';
+  const tiles = A.validTiles('ashigaru');
   if (proxies().some(e => tiles.includes(e.lane * A.COLS + e.col))) {
     F.push('drop pod offered a boss cell to crush');
   }
@@ -725,7 +725,7 @@ const hit = (d, attacker) => A.dmgEnemy(proxies()[0], d, 'test', true, attacker)
     const d = BOSSDEF[k];
     for (let i = 0; i < 3; i++) {
       const q = unlockAll(A.blankProfile('R' + i),
-        ['rifle', 'marks', 'wall', 'medic', 'lancer', 'bulwark', 'assassin', 'sentry', 'samurai', 'archer', 'rampart', 'scout']);
+        ['rifle', 'marks', 'wall', 'medic', 'lancer', 'bulwark', 'assassin', 'naginata', 'samurai', 'archer', 'firingstep', 'scout']);
       q.op = d.op;
       A.enterProfile(q);
       A.launchSpec({node: null, op: d.op, type: 'boss', mod: 'none', reward: 40, boss: d.sub ? k : undefined});

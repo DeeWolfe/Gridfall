@@ -7,14 +7,14 @@
   "GROUND_FLOOR": 6,
   "HAND_CAP": 6,
   "DECKSIZE": 12,
-  "SAVE_VERSION": 14,
+  "SAVE_VERSION": 15,
   "STARTER": [
    "scout",
    "rifle",
    "marks",
    "wall",
    "medic",
-   "rampart",
+   "archer",
    "lancer",
    "bulwark",
    "assassin"
@@ -110,12 +110,12 @@
    "n": "Samurai",
    "t": "common",
    "dp": 3,
-   "hp": 8,
-   "price": 140,
+   "hp": 5,
+   "price": 150,
    "mob": 1,
-   "tg": "around",
-   "dmg": 2,
-   "d": "Cuts every cell around it, including behind."
+   "tg": "sweep5",
+   "dmg": 3,
+   "d": "One cut through five cells: the cell either side and the three ahead."
   },
   "marks": {
    "n": "Marksman",
@@ -149,30 +149,24 @@
    "hp": 3,
    "price": 130,
    "mob": 0,
-   "tg": "blast4",
+   "tg": "cross4",
    "dmg": 3,
    "indirect": 1,
-   "d": "Indirect fire. Cannot hit anything closer than its blast."
+   "d": "Indirect fire in a cross — three across and three deep, centred four cells out. Cannot hit anything closer."
   },
   "bulwark": {
    "n": "Bulwark",
    "t": "common",
-   "single": 1,
    "dp": 3,
-   "hp": 12,
+   "hp": 5,
    "price": 110,
    "mob": 1,
-   "tg": "adj",
-   "dmg": 2,
+   "tg": "none",
    "blocker": 1,
-   "regen": 1,
-   "ab": {
-    "n": "Brace",
-    "d": "Shield holds against two attacks this turn instead of one.",
-    "cd": 1
-   },
-   "d": "A one-cell shield that is itself the wall. Absorbs one attack per turn, regenerates, and answers whatever strikes it.",
-   "riposte": 2
+   "d": "A half-height hard wall in two sections, stacked down the column. Blocks the horde; your own guns shoot straight over it. No shield, no blade — just steel.",
+   "squad": 2,
+   "formation": "column",
+   "parapet": 1
   },
   "ronin": {
    "n": "Ronin",
@@ -188,13 +182,13 @@
   "naginata": {
    "n": "Naginata",
    "t": "common",
-   "dp": 2,
-   "hp": 5,
-   "price": 100,
+   "dp": 3,
+   "hp": 8,
+   "price": 140,
    "mob": 1,
-   "tg": "ahead2",
+   "tg": "around",
    "dmg": 2,
-   "d": "Polearm reach — it strikes the second cell as readily as the first."
+   "d": "Polearm reach in a full circle — every cell around it, including behind."
   },
   "kunoichi": {
    "n": "Kunoichi",
@@ -208,17 +202,6 @@
    "drop": 1,
    "d": "Deploys on any tile. Blind to whatever stands directly beside her."
   },
-  "herald": {
-   "n": "Herald",
-   "t": "common",
-   "dp": 2,
-   "hp": 5,
-   "price": 110,
-   "mob": 1,
-   "tg": "none",
-   "laneB": 1,
-   "d": "+1 damage to every friendly in the same lane."
-  },
   "wall": {
    "n": "Barricade",
    "t": "tech",
@@ -231,30 +214,6 @@
    "tech": 1,
    "d": "No weapon, no shield, no legs. Blocks the lane in both directions."
   },
-  "supply": {
-   "n": "Supply Drone",
-   "t": "tech",
-   "dp": 1,
-   "hp": 3,
-   "price": 95,
-   "mob": 0,
-   "tg": "none",
-   "dpGain": 2,
-   "tech": 1,
-   "d": "Drops a munitions pallet on landing: +2 deploy points immediately."
-  },
-  "beacon": {
-   "n": "Drop Beacon",
-   "t": "tech",
-   "dp": 2,
-   "hp": 5,
-   "price": 125,
-   "mob": 0,
-   "tg": "none",
-   "claim": 3,
-   "tech": 1,
-   "d": "Claims the three cells ahead of it the moment it lands."
-  },
   "shield": {
    "n": "Shield",
    "t": "tech",
@@ -264,18 +223,6 @@
    "attach": "shield",
    "tech": 1,
    "d": "Attach to a unit. Absorbs the next two incoming attacks entirely, then breaks."
-  },
-  "relay": {
-   "n": "Relay",
-   "t": "tech",
-   "dp": 2,
-   "hp": 5,
-   "price": 115,
-   "mob": 0,
-   "tg": "none",
-   "col": 1,
-   "tech": 1,
-   "d": "+1 damage to every friendly in its column, across all five lanes."
   },
   "techblade": {
    "n": "Tech Blade",
@@ -289,17 +236,17 @@
    "tech": 1,
    "d": "Hits across lanes without leaving its own."
   },
-  "scrambler": {
-   "n": "Scrambler",
+  "pyre": {
+   "n": "Pyre Emitter",
    "t": "tech",
    "dp": 2,
-   "hp": 8,
-   "price": 125,
+   "hp": 5,
+   "price": 150,
    "mob": 0,
    "tg": "none",
-   "dampen": 1,
    "tech": 1,
-   "d": "Every hostile in its lane deals 1 less damage. Does not stack with itself."
+   "d": "Fire. Every hostile in its lane burns for 1 at the start of each enemy phase while it stands. No weapon.",
+   "burnLane": 1
   },
   "aegis": {
    "n": "Aegis Knights",
@@ -315,7 +262,6 @@
    "dmg": 3,
    "blocker": 1,
    "regen": 1,
-   "riposte": 2,
    "ab": {
     "n": "Aegis Field",
     "d": "Every friendly in this lane gains a shield this turn.",
@@ -419,19 +365,6 @@
    },
    "d": "Twenty-four hull, an eight-damage hammer, and a charge that shatters whatever it collides with."
   },
-  "zaku": {
-   "n": "Fireteam Zaku",
-   "t": "common",
-   "dp": 1,
-   "hp": 3,
-   "price": 100,
-   "mob": 1,
-   "tg": "first",
-   "dmg": 1,
-   "single": 1,
-   "squad": 2,
-   "d": "Two bodies from one requisition."
-  },
   "cipher": {
    "n": "Cipher",
    "t": "common",
@@ -483,10 +416,10 @@
    "tg": "none",
    "tech": 1,
    "sustain": {
-    "repair": 2,
     "cooldown": 1
    },
-   "d": "Deploys on held ground. Adjacent friendlies repair and cool down faster. Immobile."
+   "d": "Deploys on held ground. Adjacent friendlies cool down a turn faster, and the base feeds you +1 deploy point every turn it stands. Immobile.",
+   "dynamo": 1
   },
   "mine": {
    "n": "Minefield",
@@ -513,21 +446,8 @@
    "dmg": 8,
    "single": 1,
    "recharge": 1,
-   "d": "Reaches any hostile on the board — tap one to pick its target, or it takes the deepest. Needs a turn to cycle after firing."
-  },
-  "dynamo": {
-   "n": "Dynamo",
-   "t": "common",
-   "single": 0,
-   "dp": 2,
-   "hp": 3,
-   "price": 110,
-   "mob": 0,
-   "tg": "none",
-   "dmg": 0,
-   "tech": 1,
-   "dynamo": 1,
-   "d": "+1 deploy point at the start of each turn while it stands, stacking to +2. No weapon."
+   "d": "Reaches any hostile on the board and ignores its armour — tap one to pick its target, or it takes the deepest. Needs a turn to cycle after firing.",
+   "pen": 1
   },
   "ashigaru": {
    "n": "Ashigaru Line",
@@ -540,58 +460,37 @@
    "tg": "first",
    "dmg": 1,
    "squad": 3,
-   "d": "Three spear-levies from one requisition."
-  },
-  "pikewall": {
-   "n": "Pike Wall",
-   "t": "common",
-   "dp": 2,
-   "hp": 8,
-   "price": 120,
-   "mob": 1,
-   "tg": "ahead2",
-   "dmg": 2,
-   "blocker": 1,
-   "d": "Braced spears that hold the ground they strike."
-  },
-  "sentry": {
-   "n": "Sentry Ronin",
-   "t": "common",
-   "single": 1,
-   "dp": 2,
-   "hp": 5,
-   "price": 100,
-   "mob": 1,
-   "tg": "adj",
-   "dmg": 2,
-   "riposte": 2,
-   "d": "Answers twice as hard as it is struck."
+   "d": "Three spear-levies from one requisition, filed down the column. Fewer stand if the column is short.",
+   "formation": "column"
   },
   "falconer": {
    "n": "Falconer",
    "t": "common",
    "dp": 2,
    "hp": 5,
-   "price": 90,
+   "price": 120,
    "mob": 1,
-   "tg": "first",
-   "dmg": 1,
-   "draw": 1,
-   "d": "Calls in one more card on deployment, and still carries a rifle."
+   "tg": "radius2",
+   "dmg": 2,
+   "d": "The falcon strikes any hostile within two cells, in any direction. Tap one to pick its prey.",
+   "single": 1,
+   "choose": 1
   },
   "rampart": {
    "n": "Rampart",
-   "t": "tech",
+   "t": "special",
    "single": 1,
-   "dp": 2,
-   "hp": 8,
-   "price": 100,
+   "dp": 4,
+   "hp": 12,
+   "price": 320,
    "mob": 0,
    "tg": "first",
-   "dmg": 2,
+   "dmg": 3,
    "blocker": 1,
-   "tech": 1,
-   "d": "Eight hull and a rifle. Holds a lane without shielding it — the anchored gun of the line."
+   "d": "An exo frame planted behind a heavy metal shield, feeding an anchored rifle from an ammo backpack. Fires twice a turn and never moves.",
+   "chassis": "exo",
+   "twin": 1,
+   "regen": 1
   },
   "piercer": {
    "n": "Piercer Turret",
@@ -607,18 +506,6 @@
    "tech": 1,
    "d": "Anchored railspike. Armour floors mean nothing to it; a blocker of yours still cuts the beam."
   },
-  "reactor": {
-   "n": "Reactor Core",
-   "t": "tech",
-   "dp": 3,
-   "hp": 2,
-   "price": 165,
-   "mob": 0,
-   "tg": "none",
-   "dpGain": 5,
-   "tech": 1,
-   "d": "A bigger pallet than the Supply Drone, on a thinner hull."
-  },
   "kessen": {
    "n": "Kessen Vanguard",
    "t": "special",
@@ -632,22 +519,6 @@
    "drop": 1,
    "d": "Deploys on any tile, including hostile ground. Eight damage to one adjacent hostile — a duellist, not a wall."
   },
-  "ram": {
-   "n": "Thruster Ram",
-   "t": "special",
-   "chassis": "exo",
-   "single": 1,
-   "dp": 4,
-   "hp": 8,
-   "price": 310,
-   "mob": 1,
-   "tg": "adj",
-   "dmg": 5,
-   "blocker": 1,
-   "charge": 3,
-   "push": 1,
-   "d": "Charges, then holds the ground it takes instead of riding through it."
-  },
   "marshal": {
    "n": "Field Marshal",
    "t": "special",
@@ -660,18 +531,6 @@
    "col": 1,
    "d": "Buffs its lane and its column at once."
   },
-  "longshot": {
-   "n": "Longshot",
-   "t": "common",
-   "dp": 3,
-   "hp": 3,
-   "price": 160,
-   "mob": 1,
-   "tg": "furthest",
-   "indirect": 1,
-   "dmg": 2,
-   "d": "Reaches the furthest hostile in the lane, through anything in the way."
-  },
   "rearguard": {
    "n": "Rearguard",
    "t": "common",
@@ -680,20 +539,9 @@
    "hp": 5,
    "price": 150,
    "mob": 1,
-   "tg": "rear",
+   "tg": "rearvert3",
    "dmg": 3,
-   "d": "Faces the wrong way on purpose. Strikes behind it at any range — the only ranged answer to something already past your line."
-  },
-  "backstop": {
-   "n": "Backstop Battery",
-   "t": "tech",
-   "dp": 3,
-   "hp": 0,
-   "price": 260,
-   "tech": 1,
-   "instant": 1,
-   "homestrike": 5,
-   "d": "One volley across both home columns, every lane at once. Fired once, then spent."
+   "d": "Faces the wrong way on purpose. Strikes the column directly behind it across all three lanes — the answer to something already past your line."
   },
   "demo": {
    "n": "Demo Charge",
@@ -717,10 +565,10 @@
    "tg": "none",
    "tech": 1,
    "chill": 1,
-   "d": "Every hostile in its lane advances at half speed while it stands. No weapon."
+   "d": "Ice. Every hostile in its lane advances at half speed while it stands. No weapon."
   },
-  "lens": {
-   "n": "Resonance Lens",
+  "crystal": {
+   "n": "Crystal Lens",
    "t": "tech",
    "dp": 2,
    "hp": 5,
@@ -729,10 +577,10 @@
    "tg": "none",
    "tech": 1,
    "lensBoost": 2,
-   "d": "Friendly fire that passes through its cell lands 2 harder. No weapon of its own."
+   "d": "Crystal. Friendly fire that passes through its cell lands 2 harder. No weapon of its own."
   },
-  "degausser": {
-   "n": "Field Degausser",
+  "volt": {
+   "n": "Volt Coil",
    "t": "tech",
    "dp": 2,
    "hp": 5,
@@ -741,7 +589,7 @@
    "tg": "none",
    "tech": 1,
    "degauss": 1,
-   "d": "Hostiles in its lane lose their armour — damage floors are stripped while it stands."
+   "d": "Volt. Hostiles in its lane lose their armour — the surge strips damage floors while it stands."
   },
   "ashura": {
    "n": "Ashura Frame",
@@ -751,15 +599,16 @@
    "hp": 18,
    "price": 430,
    "mob": 1,
-   "tg": "vert3",
+   "tg": "adj",
    "dmg": 5,
    "blocker": 1,
    "ab": {
-    "n": "Crossing Cut",
-    "d": "Slide one lane toward the heavier side and cut every hostile in the column ahead for 6.",
+    "n": "Fatal Fury",
+    "d": "Four blows on the hostile ahead, 2 each — 8 in all, one after another.",
     "cd": 2
    },
-   "d": "A four-armed war frame. The scythes sweep the column ahead across three lanes at once, so nothing gets past it by stepping sideways."
+   "d": "A four-armed war frame with modified fist weapons. One heavy blow at contact, or four fast ones when the fury takes it.",
+   "single": 1
   },
   "whitedevil": {
    "n": "White Devil",
@@ -982,16 +831,6 @@
    "strat": "grapple",
    "d": "A command call. Pick a lane: at the start of next turn, every hostile in it is dragged two cells back toward their own edge."
   },
-  "requisition": {
-   "n": "Emergency Requisition",
-   "t": "tech",
-   "dp": 1,
-   "hp": 0,
-   "price": 190,
-   "tech": 1,
-   "strat": "requisition",
-   "d": "A command call. +4 deploy points when it lands at the start of next turn."
-  },
   "banner": {
    "n": "Banner Bearer",
    "t": "common",
@@ -1042,6 +881,88 @@
    "dmg": 5,
    "backblast": 1,
    "d": "A shoulder-fired tube with a dead zone: blind to the cell in front of it, five damage into the two beyond. The backblast costs whoever stands directly behind it 1 hull on every shot."
+  },
+  "singer": {
+   "n": "Singer",
+   "t": "common",
+   "dp": 2,
+   "hp": 3,
+   "price": 130,
+   "mob": 1,
+   "tg": "none",
+   "hymn": 1,
+   "d": "No weapon. Her song reaches two cells in every direction, and every hostile inside it strikes 1 softer."
+  },
+  "fireteam": {
+   "n": "Fireteam",
+   "t": "special",
+   "single": 1,
+   "dp": 4,
+   "hp": 8,
+   "price": 300,
+   "mob": 1,
+   "tg": "first",
+   "dmg": 3,
+   "d": "A better rifleman: 8 hull, 3 damage down the lane, and a body that re-specs mid-sortie. Four exclusive kit cards — Noble, Shadow, Osiris, Majestic — each rewrite what it is for."
+  },
+  "noble": {
+   "n": "Noble",
+   "t": "tech",
+   "dp": 1,
+   "hp": 0,
+   "price": 170,
+   "frameGear": "fireteam",
+   "slot": "weapon",
+   "tg": "adj",
+   "dmg": 5,
+   "single": 1,
+   "blocker": 1,
+   "riposte": 2,
+   "tech": 1,
+   "d": "Tower shield and shortsword. The Fireteam becomes the wall: blocks the lane, cuts at contact for 5, answers every blow with 2."
+  },
+  "shadow": {
+   "n": "Shadow",
+   "t": "tech",
+   "dp": 1,
+   "hp": 0,
+   "price": 170,
+   "frameGear": "fireteam",
+   "slot": "weapon",
+   "tg": "diag",
+   "dmg": 5,
+   "pen": 1,
+   "tech": 1,
+   "d": "Blades in the dark. The Fireteam strikes all four diagonals for 5 and slips between armour plates — floors mean nothing."
+  },
+  "osiris": {
+   "n": "Osiris",
+   "t": "tech",
+   "dp": 1,
+   "hp": 0,
+   "price": 180,
+   "frameGear": "fireteam",
+   "slot": "weapon",
+   "tg": "furthest",
+   "dmg": 5,
+   "single": 1,
+   "indirect": 1,
+   "tech": 1,
+   "d": "The long rifle. The Fireteam reaches the deepest hostile in its lane for 5, arcing over your own walls."
+  },
+  "majestic": {
+   "n": "Majestic",
+   "t": "tech",
+   "dp": 1,
+   "hp": 0,
+   "price": 180,
+   "frameGear": "fireteam",
+   "slot": "weapon",
+   "tg": "ahead3",
+   "dmg": 3,
+   "aura": 1,
+   "tech": 1,
+   "d": "The officer’s kit. The Fireteam sweeps the three cells ahead for 3 and steadies everyone beside it: +1 damage to adjacent friendlies."
   }
  },
  "gear": {
@@ -2711,7 +2632,11 @@
   "sweep": "Every cell in the two columns directly ahead",
   "cross3": "A cross centred three cells ahead",
   "cone": "A flame cone — one cell ahead, then three across",
-  "window": "Two and three cells ahead — blind to the adjacent cell"
+  "window": "Two and three cells ahead — blind to the adjacent cell",
+  "cross4": "A cross centred four cells ahead",
+  "sweep5": "The cell either side and the three ahead",
+  "rearvert3": "The column directly behind, across three lanes",
+  "radius2": "Any hostile within two cells"
  },
  "emptyProfile": {
   "version": 5,
@@ -2731,7 +2656,7 @@
     "marks",
     "wall",
     "medic",
-    "rampart",
+    "archer",
     "lancer",
     "bulwark",
     "assassin"
@@ -2746,7 +2671,7 @@
     "marks",
     "wall",
     "medic",
-    "rampart",
+    "archer",
     "lancer",
     "bulwark",
     "assassin"

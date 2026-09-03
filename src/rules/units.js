@@ -68,6 +68,10 @@ export function mkUnit(cid, l, c) {
     techBuff: k.techBuff || null,
     sustain: k.sustain || null,
     dampen: k.dampen || 0,
+    // Pyre Emitter: every hostile in the lane burns for this each enemy phase.
+    burnLane: k.burnLane || 0,
+    // Singer: hostiles within two cells of her strike this much softer.
+    hymn: k.hymn || 0,
     chill: k.chill || 0,
     lensBoost: k.lensBoost || 0,
     degauss: !!k.degauss,
@@ -98,7 +102,7 @@ export function mkUnit(cid, l, c) {
     // Shoulder Cannon. It was a card that landed on a unit mid-mission; as
     // gear it is chosen at the armoury instead, so the second shot is a
     // property of the unit from the moment it deploys.
-    twin: !!(g && g.twin),
+    twin: !!k.twin || !!(g && g.twin),
     // Gear can grant an ability of its own (the Arm-Mounted Blade's thrust);
     // a card's printed ability wins if it somehow has both.
     ab: k.ab || (g && g.ab) || null,

@@ -20,6 +20,12 @@ import {tapeEvent} from './tape.js';
  * is honoured, which it was not while this read a flat 1. */
 export const dampenIn = l => G.units.reduce((m, o) => (o.lane === l && o.dampen > m ? o.dampen : m), 0);
 
+/** The Singer's hymn: a hostile standing within two cells of her strikes
+ * softer. Reads the ATTACKER's position, so it is where the horde stands
+ * that matters, not where it hits. Two Singers do not stack. */
+export const hymnAt = (lane, col) => (lane === undefined || col === undefined ? 0
+  : G.units.reduce((m, o) => (o.hymn > m && Math.max(Math.abs(o.lane - lane), Math.abs(o.col - col)) <= 2 ? o.hymn : m), 0));
+
 /** A Cryo Projector halves every hostile's advance in its lane. Does not stack. */
 export const chillFactor = l => (G.units.some(o => o.chill && o.lane === l) ? 0.5 : 1);
 
@@ -173,7 +179,7 @@ export function dmgUnit(u, d, src, attacker) {
   // Firebrand's Exposed: her whole line takes +1. Added before the Scrambler's
   // shave so damping still buys exactly one point back.
   if (leadOf().con && leadOf().con.n === 'Exposed') d += 1;
-  d = Math.max(1, d - dampenIn(u.lane));
+  d = Math.max(1, d - dampenIn(u.lane) - (attacker ? hymnAt(attacker.lane, attacker.col) : 0));
 
   if (u.riposte && attacker && attacker.hp > 0) {
     dmgEnemy(attacker, u.riposte, u.n + ' riposte', false);

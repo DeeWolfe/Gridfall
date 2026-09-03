@@ -147,6 +147,26 @@ function geomBase(u) {
       const centre = front + 4;
       return G.enemies.filter(e => Math.abs(e.lane - L) <= 1 && Math.abs(e.col - centre) <= 1);
     }
+    // Mortar: a cross centred four cells out — the centre, one either side,
+    // one nearer and one further. Indirect, so nothing of yours cuts it.
+    case 'cross4': {
+      const cc = front + 4;
+      return G.enemies.filter(e =>
+        (e.lane === L && Math.abs(e.col - cc) <= 1) ||
+        (Math.abs(e.lane - L) === 1 && e.col === cc));
+    }
+    // Samurai: one cut through the cell either side and the three ahead.
+    case 'sweep5':
+      return G.enemies.filter(e =>
+        (Math.abs(e.lane - L) === 1 && e.col === u.col) ||
+        (Math.abs(e.lane - L) <= 1 && e.col === front + 1));
+    // Rearguard: the column directly behind, across all three lanes.
+    case 'rearvert3':
+      return G.enemies.filter(e => e.col === u.col - 1 && Math.abs(e.lane - L) <= 1);
+    // Falconer: the bird reaches anything within two cells, any direction.
+    case 'radius2':
+      return G.enemies.filter(e => Math.max(Math.abs(e.lane - L), Math.abs(e.col - u.col)) <= 2 &&
+        !(e.lane === L && e.col === u.col));
     case 'around':
       return G.enemies.filter(e => Math.abs(e.lane - L) <= 1 && Math.abs(e.col - u.col) <= 1 &&
         !(e.lane === L && e.col === u.col));
@@ -275,6 +295,23 @@ export function geomCells(u, at) {
     case 'range3': if (!cutTo(front + 2)) add(L, front + 3); break;
     case 'blast4':
       for (let l = L - 1; l <= L + 1; l++) for (let c = front + 3; c <= front + 5; c++) add(l, c);
+      break;
+    case 'cross4': {
+      const cc = front + 4;
+      add(L, cc - 1); add(L, cc); add(L, cc + 1); add(L - 1, cc); add(L + 1, cc);
+      break;
+    }
+    case 'sweep5':
+      add(L - 1, col); add(L + 1, col);
+      for (let l = L - 1; l <= L + 1; l++) add(l, front + 1);
+      break;
+    case 'rearvert3':
+      for (let l = L - 1; l <= L + 1; l++) add(l, col - 1);
+      break;
+    case 'radius2':
+      for (let l = L - 2; l <= L + 2; l++) for (let c = col - 2; c <= col + 2; c++) {
+        if (l !== L || c !== col) add(l, c);
+      }
       break;
     case 'around':
       for (let l = L - 1; l <= L + 1; l++) for (let c = col - 1; c <= col + 1; c++) {

@@ -99,7 +99,7 @@ function reserveCards(ids) {
     // onto a machine — different shopping lists, different shelves.
     if (t === 'tech') {
       return sub(TIERNAME.tech, sortCards(inTier.filter(c => !POOL[c].frameGear)))
-        + sub('Proto Frame Tech', sortCards(inTier.filter(c => POOL[c].frameGear)));
+        + sub('Kit Tech', sortCards(inTier.filter(c => POOL[c].frameGear)));
     }
     return sub(TIERNAME[t], sortCards(inTier));
   }).join('');
@@ -206,11 +206,14 @@ function squadPanel() {
   const fielded = active.loadout.frame;
   // Gear whose Frame is not the fielded one is a blank card for the whole
   // mission — say so here, before the mission finds out.
-  const strays = deck.filter(c => POOL[c].frameGear && POOL[c].frameGear !== fielded);
+  // A kit is stranded when its host is not coming: a Frame kit whose Frame
+  // is not in the slot, a Fireteam kit with no Fireteam in the twelve.
+  const strays = deck.filter(c => POOL[c].frameGear && (POOL[POOL[c].frameGear].chassis === 'proto'
+    ? POOL[c].frameGear !== fielded : !deck.includes(POOL[c].frameGear)));
   const orphan = strays.length
     ? `<div class="bar"><div style="color:var(--gold)"><b style="color:var(--gold)">⚠</b>
-        ${strays.map(c => POOL[c].n).join(', ')} — ${strays.length > 1 ? 'their Frames are' : 'its Frame is'} not in the Frame slot</div>
-        <div style="color:var(--dim);font-size:0.6875rem">Frame gear is dead in hand unless its own machine is fielded and on the board</div></div>`
+        ${strays.map(c => POOL[c].n).join(', ')} — ${strays.length > 1 ? 'their Frames are' : 'its Frame is'} not coming</div>
+        <div style="color:var(--dim);font-size:0.6875rem">A kit is dead in hand unless the body it fits is on the board</div></div>`
     : '';
   // A deck that breaks the active lead's rules must be obvious HERE, at the
   // build table — not discovered as a dead card at deploy or a refusal at
@@ -406,12 +409,13 @@ function achievementList() {
   const frameSorties = protos.reduce((a, c) => a + (usage[c] || 0), 0);
   const gearIds = Object.keys(POOL).filter(c => POOL[c].frameGear);
   const gearFitted = gearIds.reduce((a, c) => a + (usage[c] || 0), 0);
-  const kitDone = protos.some(f => gearIds.filter(c => POOL[c].frameGear === f)
+  const hosts = [...new Set(gearIds.map(c => POOL[c].frameGear))];
+  const kitDone = hosts.some(f => gearIds.filter(c => POOL[c].frameGear === f)
     .every(c => active.unlocks.cards.includes(c))) ? 1 : 0;
   const callIds = Object.keys(POOL).filter(c => POOL[c].strat);
   const callsMade = callIds.reduce((a, c) => a + (usage[c] || 0), 0);
   const callsDistinct = callIds.filter(c => (usage[c] || 0) > 0).length;
-  const fieldKit = ['demo', 'cryo', 'lens', 'degausser']
+  const fieldKit = ['demo', 'cryo', 'crystal', 'volt']
     .filter(c => active.unlocks.cards.includes(c)).length;
 
   return [

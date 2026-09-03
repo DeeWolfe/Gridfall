@@ -8,7 +8,7 @@ import {spawnUnit, spawnFoe, clearBoard, unlockAll} from './support/fixtures.js'
 const F = failures();
 
 const start = () => {
-  A.enterProfile(unlockAll(A.blankProfile('EV'), ['rifle', 'marks', 'wall', 'medic', 'rampart', 'dynamo']));
+  A.enterProfile(unlockAll(A.blankProfile('EV'), ['rifle', 'marks', 'wall', 'medic', 'techblade', 'fob']));
   A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0});
   clearBoard();
   A.G.eventNext = null;
@@ -45,14 +45,14 @@ const start = () => {
 // C: the overclock arms Tech only, and the preview matches the shot
 {
   start();
-  const t = spawnUnit('rampart', 1, 2);
+  const t = spawnUnit('techblade', 1, 2);
   const r = spawnUnit('rifle', 3, 2);
   A.G.event = 'overclock';
-  if (A.dmgPreview(t) !== A.POOL.rampart.dmg + 1) F.push('overclock preview missing on Tech');
+  if (A.dmgPreview(t) !== A.POOL.techblade.dmg + 1) F.push('overclock preview missing on Tech');
   if (A.dmgPreview(r) !== A.POOL.rifle.dmg) F.push('overclock leaked onto personnel');
   const foe = spawnFoe('crawler', 1, 3, 10);   // no armour floor in the way
   A.fire(t, false);
-  if (10 - foe.hp !== A.POOL.rampart.dmg + 1) F.push('overclocked shot did not match its preview');
+  if (10 - foe.hp !== A.POOL.techblade.dmg + 1) F.push('overclocked shot did not match its preview');
   A.G.event = null;
 }
 
@@ -93,13 +93,13 @@ const start = () => {
 // F: the Dynamo hums — +1 each, capped at +2, silent once destroyed
 {
   start();
-  spawnUnit('dynamo', 0, 1);
+  spawnUnit('fob', 0, 1);
   A.endTurn();
   if (A.G.dp !== A.MAXDP + 1) F.push('one Dynamo should pay +1: ' + A.G.dp);
   clearBoard();
-  spawnUnit('dynamo', 0, 1);
-  spawnUnit('dynamo', 1, 1);
-  spawnUnit('dynamo', 2, 1);
+  spawnUnit('fob', 0, 1);
+  spawnUnit('fob', 1, 1);
+  spawnUnit('fob', 2, 1);
   A.G.event = null; A.G.eventNext = null;
   A.endTurn();
   if (A.G.dp !== A.MAXDP + 2) F.push('three Dynamos should cap at +2: ' + A.G.dp);
@@ -107,7 +107,7 @@ const start = () => {
   A.G.event = null; A.G.eventNext = null;
   A.endTurn();
   if (A.G.dp !== A.MAXDP) F.push('a dead Dynamo kept paying');
-  const d = A.mkUnit('dynamo', 2, 1);
+  const d = A.mkUnit('fob', 2, 1);
   if (d.dmg || d.tg !== 'none') F.push('the Dynamo grew a weapon');
 }
 

@@ -66,8 +66,8 @@ export function playerPhase() {
     if (u.sustain) {
       G.units.forEach(o => {
         if (o.uid === u.uid || Math.abs(o.lane - u.lane) + Math.abs(o.col - u.col) !== 1) return;
-        if (o.hp < o.max) o.hp = Math.min(o.max, o.hp + u.sustain.repair);
-        for (let i = 0; i < u.sustain.cooldown; i++) if (o.cd > 1) o.cd--;
+        if (u.sustain.repair && o.hp < o.max) o.hp = Math.min(o.max, o.hp + u.sustain.repair);
+        for (let i = 0; i < (u.sustain.cooldown || 0); i++) if (o.cd > 1) o.cd--;
       });
     }
   });
@@ -348,6 +348,12 @@ function controlledUnitsAct() {
 /** Step 3. Each hostile either moves or attacks — never both in one turn. */
 export function enemyPhase() {
   const chorus = G.enemies.some(e => BEST[e.k].aura) ? 1 : 0;
+  // Pyre Emitters: the lane burns before the horde moves. One point each,
+  // strongest emitter in the lane if there are two, dead hostiles never act.
+  for (let l = 0; l < LANES; l++) {
+    const burn = G.units.reduce((m, o) => (o.lane === l && o.burnLane > m ? o.burnLane : m), 0);
+    if (burn) [...G.enemies].filter(e => e.lane === l).forEach(e => dmgEnemy(e, burn, 'Pyre Emitter'));
+  }
   [...G.enemies].forEach(e => {
     const wasCol = e.col;
     const wasLane = e.lane;
@@ -683,7 +689,7 @@ export function endTurn() {
   const dynamos = Math.min(2, G.units.filter(u => u.dynamo).length);
   if (dynamos) {
     G.dp += dynamos;
-    clog(`<span class="g">Dynamo</span> — +${dynamos} deploy point${dynamos > 1 ? 's' : ''} generated.`, 'order');
+    clog(`<span class="g">Forward Base</span> — +${dynamos} deploy point${dynamos > 1 ? 's' : ''} generated.`, 'order');
   }
   if (G.event === 'supply') G.dp += 2;
   if (G.event === 'bombard') bombardStrike();

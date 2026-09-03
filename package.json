@@ -1,6 +1,6 @@
 {
   "name": "gridfall",
-  "version": "2.30.0",
+  "version": "2.31.0",
   "description": "Gridfall — a lane-defence tactics game. ES modules, no runtime dependencies.",
   "type": "module",
   "license": "MIT",
