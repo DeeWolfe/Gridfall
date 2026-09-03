@@ -4879,3 +4879,7 @@ Shadow gets `drop`. The v2.33.1 spent list now holds Frame gear only: Fireteam a
 ## v2.34.2
 
 Osiris: `drop` out, `boost` in (the Thruster Pack's two-cell straight stride, now readable off a card at mkUnit). Move or fire, not both — that stays the Jetpack's.
+
+## v2.35 — one of each Fireteam, omni teams, sight 1
+
+`recycleLineCard(u)` in deck.js is called from all six unit-destruction sites (combat ×2, boss, phases ×2, spawn): a lost `line` card goes back into `G.deck` at a random depth unless another copy stands or it is already in deck/hand. drawCard's reshuffle excludes standing teams; frameGateText gates a team card whose team is on the field. The four teams carry `omni`; sight 1 except Osiris (3).

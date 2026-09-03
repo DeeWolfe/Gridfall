@@ -57,6 +57,8 @@ export function frameGateText(cid) {
   const k = POOL[cid];
   if (!k) return null;
   if (k.chassis === 'proto' && frameOnBoard()) return 'One Frame on the board at a time';
+  // One of each Fireteam at a time: the card waits while its team stands.
+  if (k.line && G.units.some(u => u.id === cid)) return `${k.n} is already on the field`;
   if (k.frameGear && !kitHost(k.frameGear)) return `${POOL[k.frameGear].n} must be on the board`;
   if (k.fits && !hostFor(k)) return 'A Fireteam must be on the board';
   return null;

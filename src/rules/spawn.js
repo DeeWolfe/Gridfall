@@ -10,6 +10,7 @@ import {COLS} from '../state/constants.js';
 import {BEST} from '../content/hostiles.js';
 import {G, active, nextUid} from '../state/session.js';
 import {randInt} from '../state/rng.js';
+import {recycleLineCard} from './deck.js';
 import {unitAt, foeAt, civAt} from './board.js';
 import {buffOf, packBonus} from './units.js';
 import {dampenIn, hymnAt} from './combat.js';
@@ -69,6 +70,7 @@ function dropFight(k, D, u) {
   const name = u.n;
   G.units = G.units.filter(x => x.uid !== u.uid);
   G.lost++;
+  recycleLineCard(u);
 
   if (r.outcome === 'mutual') {
     clog(`<span class="d">${D.n}</span> and your <span class="g">${name}</span> destroyed each other on the drop.`, 'loss');

@@ -478,7 +478,7 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'ordnance']
   const drawn = [];
   for (let i = 0; i < 12; i++) { if (A.drawCard(true)) drawn.push(A.G.hand[A.G.hand.length - 1]); }
   if (!drawn.includes('camo') || !drawn.includes('ordnance')) F.push('Fireteam abilities did not cycle back with the reserve');
-  if (!drawn.includes('ftnoble')) F.push('the Fireteam itself did not cycle back');
+  if (drawn.includes('ftnoble')) F.push('a standing Fireteam cycled back while on the field');
   // Field Refit hands a displaced FRAME gear back — and it is in play again.
   // (A Fireteam's stripped ability is lost; Refit reads "your Frame".)
   A.active.lead = 'fieldrefit';
@@ -541,6 +541,42 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'ordnance']
   if (m.includes(3 * A.COLS + 1)) F.push('Osiris strode diagonally');
   spawnUnit('wall', 2, 1);
   if (A.moveTargets(o).includes(2 * A.COLS + 2)) F.push('Osiris strode through a wall');
+}
+
+
+// --- one of each team: out of the pile while standing, back in the deck when lost ---
+{
+  start(['ftnoble', 'ftshadow', 'rifle', 'marks', 'wall', 'medic']);
+  A.G.hand = ['ftnoble'];
+  A.G.deck = [];
+  A.G.dp = 20;
+  A.deploy('ftnoble', 2, 1);
+  const noble = A.G.units.find(u => u.id === 'ftnoble');
+  A.G.hand.push('ftnoble');                       // suppose it were drawn anyway
+  if (!A.frameGateText('ftnoble')) F.push('a standing team\'s card should be gated');
+  if (A.validTiles('ftnoble').length) F.push('a standing team\'s card was offered tiles');
+  A.G.hand = [];
+  const drawn = [];
+  for (let i = 0; i < 10; i++) { if (A.drawCard(true)) drawn.push(A.G.hand[A.G.hand.length - 1]); }
+  if (drawn.includes('ftnoble')) F.push('a standing team cycled back into the draw pile');
+  if (!drawn.includes('ftshadow')) F.push('a team not on the field should still cycle');
+  A.dmgUnit(noble, 99, 'test');
+  if (A.G.units.some(u => u.id === 'ftnoble')) F.push('the team did not die');
+  if (!A.G.deck.includes('ftnoble')) F.push('a lost team did not return to the deck');
+  if (A.G.hand.includes('ftnoble')) F.push('a lost team went to the hand, not the deck');
+  const before = A.G.deck.length;
+  A.dmgUnit({...noble, uid: -1, hp: 1, id: 'ftnoble', line: 'fireteam', n: 'x', lane: 0, col: 0, att: {}}, 99, 'test');
+  if (A.G.deck.filter(c => c === 'ftnoble').length !== 1) F.push('a lost team was returned twice');
+  void before;
+  // teams face either way; sight is one cell unless the card says otherwise
+  clearBoard();
+  const maj = spawnUnit('ftmajestic', 2, 3);
+  const behind = spawnFoe('crawler', 2, 2, 10);
+  const ahead = spawnFoe('crawler', 2, 4, 10);
+  const g = A.geomFor(maj);
+  if (!g.includes(behind) || !g.includes(ahead)) F.push('Majestic does not fight facing either way');
+  if (A.POOL.ftnoble.sight !== 1 || A.POOL.ftshadow.sight !== 1 || A.POOL.ftmajestic.sight !== 1) F.push('teams should see one cell');
+  if (A.POOL.ftosiris.sight !== 3) F.push('Osiris should keep its three-cell sight');
 }
 
 F.report('balancetest');

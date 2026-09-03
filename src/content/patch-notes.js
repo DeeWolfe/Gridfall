@@ -4,9 +4,15 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.34.2';
+export const VERSION = '2.35';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.35',
+    notes: [
+      'ONE OF EACH FIRETEAM. While a team stands, its card is out of the draw pile — no second Noble behind the first. Lose the team and the card goes straight back into the deck at a random depth, ready to be drawn again. Different teams still stand side by side. Every Fireteam FIGHTS FACING EITHER WAY: Noble cuts on both sides, Majestic sweeps ahead or behind, Osiris reaches the deepest hostile in either direction. And the teams see ONE cell in the fog, except Osiris, whose hunters keep three.',
+    ],
+  },
   {
     v: '2.34.2',
     notes: [

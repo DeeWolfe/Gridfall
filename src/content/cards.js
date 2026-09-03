@@ -884,7 +884,9 @@ export const POOL = {
     dmg: 3,
     blocker: 1,
     riposte: 2,
-    d: "The team that holds. Blocks the lane, cuts for 3 at contact and answers every blow with 2. Any armour ability fits it.",
+    d: "The team that holds. Blocks the lane, cuts for 3 at contact on either side and answers every blow with 2. Fights facing either way. Any armour ability fits it.",
+    omni: 1,
+    sight: 1,
   },
   ftosiris: {
     n: "Fireteam Osiris",
@@ -898,8 +900,9 @@ export const POOL = {
     tg: "furthest",
     dmg: 5,
     sight: 3,
-    d: "The hunters. Fast: two cells in a straight line where others take one, and they reach the deepest hostile in the lane for 5. They see three cells. Fragile once found.",
+    d: "The hunters. Fast: two cells in a straight line where others take one, and they reach the deepest hostile in the lane for 5, ahead or behind. They see three cells. Fragile once found.",
     boost: 1,
+    omni: 1,
   },
   ftmajestic: {
     n: "Fireteam Majestic",
@@ -912,7 +915,9 @@ export const POOL = {
     tg: "ahead3",
     dmg: 3,
     aura: 1,
-    d: "Line Spartans. Sweep the three cells ahead for 3 and steady everyone beside them: +1 damage to adjacent friendlies.",
+    d: "Line Spartans. Sweep the three cells ahead — or behind — for 3 and steady everyone beside them: +1 damage to adjacent friendlies. Fights facing either way.",
+    omni: 1,
+    sight: 1,
   },
   ftshadow: {
     n: "Fireteam Shadow",
@@ -927,6 +932,8 @@ export const POOL = {
     pen: 1,
     d: "Quiet work. Deploys on any tile, including hostile ground. Blades on all four diagonals for 5, and armour means nothing to them. The Fireteam that answers plate.",
     drop: 1,
+    omni: 1,
+    sight: 1,
   },
   camo: {
     n: "Active Camo",

@@ -3113,7 +3113,9 @@ const POOL = {
     dmg: 3,
     blocker: 1,
     riposte: 2,
-    d: "The team that holds. Blocks the lane, cuts for 3 at contact and answers every blow with 2. Any armour ability fits it.",
+    d: "The team that holds. Blocks the lane, cuts for 3 at contact on either side and answers every blow with 2. Fights facing either way. Any armour ability fits it.",
+    omni: 1,
+    sight: 1,
   },
   ftosiris: {
     n: "Fireteam Osiris",
@@ -3127,8 +3129,9 @@ const POOL = {
     tg: "furthest",
     dmg: 5,
     sight: 3,
-    d: "The hunters. Fast: two cells in a straight line where others take one, and they reach the deepest hostile in the lane for 5. They see three cells. Fragile once found.",
+    d: "The hunters. Fast: two cells in a straight line where others take one, and they reach the deepest hostile in the lane for 5, ahead or behind. They see three cells. Fragile once found.",
     boost: 1,
+    omni: 1,
   },
   ftmajestic: {
     n: "Fireteam Majestic",
@@ -3141,7 +3144,9 @@ const POOL = {
     tg: "ahead3",
     dmg: 3,
     aura: 1,
-    d: "Line Spartans. Sweep the three cells ahead for 3 and steady everyone beside them: +1 damage to adjacent friendlies.",
+    d: "Line Spartans. Sweep the three cells ahead — or behind — for 3 and steady everyone beside them: +1 damage to adjacent friendlies. Fights facing either way.",
+    omni: 1,
+    sight: 1,
   },
   ftshadow: {
     n: "Fireteam Shadow",
@@ -3156,6 +3161,8 @@ const POOL = {
     pen: 1,
     d: "Quiet work. Deploys on any tile, including hostile ground. Blades on all four diagonals for 5, and armour means nothing to them. The Fireteam that answers plate.",
     drop: 1,
+    omni: 1,
+    sight: 1,
   },
   camo: {
     n: "Active Camo",
@@ -5168,6 +5175,8 @@ function frameGateText(cid) {
   const k = POOL[cid];
   if (!k) return null;
   if (k.chassis === 'proto' && frameOnBoard()) return 'One Frame on the board at a time';
+  // One of each Fireteam at a time: the card waits while its team stands.
+  if (k.line && G.units.some(u => u.id === cid)) return `${k.n} is already on the field`;
   if (k.frameGear && !kitHost(k.frameGear)) return `${POOL[k.frameGear].n} must be on the board`;
   if (k.fits && !hostFor(k)) return 'A Fireteam must be on the board';
   return null;
@@ -5676,6 +5685,54 @@ function predictSpawns() {
     load[lane] = (load[lane] || 0) + 1;
     G.predict.push({lane, k});
   });
+}
+
+/* ==== src/rules/deck.js ============================================= */
+// The 12-card deck: drawing, and cycling the reserve when it runs dry.
+
+/**
+ * Draw one card. An empty deck reshuffles from the loadout, minus whatever is
+ * already in hand — so cycling never hands you a duplicate of a card you hold.
+ *
+ * `force` is the card-effect exemption. The turn draw stops at HAND_CAP so the
+ * tray stays one row; a card you spent DP on to draw is not going to no-op
+ * because of a layout rule, so Recon and Falconer pass it. Nothing is lost
+ * when the cap holds a draw — the card stays on top of the deck for next turn.
+ *
+ * @param {boolean} [force] bypass the hand cap (card effects only)
+ * @returns {boolean} whether a card actually moved
+ */
+/**
+ * A Fireteam is one card and one team: while it stands it is out of the draw
+ * pile, and when it is lost the card goes straight back into the deck at a
+ * random depth — not the hand, not the discard, the deck — so the next cycle
+ * is not needed to see it again.
+ */
+function recycleLineCard(u) {
+  if (!u || !u.line || !G || !G.deck) return;
+  if (!active || !active.loadout.deck.includes(u.id)) return;
+  if (G.deck.includes(u.id) || G.hand.includes(u.id)) return;
+  if (G.units.some(o => o.id === u.id)) return;           // another copy still stands
+  G.deck.splice(Math.floor(Math.random() * (G.deck.length + 1)), 0, u.id);
+  clog(`<span class="t">${POOL[u.id].n}</span> — the card returns to the deck.`, 'info');
+}
+
+function drawCard(force) {
+  if (!force && G.hand.length >= HAND_CAP) return false;
+  if (!G.deck.length) {
+    // ...and minus Frame gear already played this mission — a kit on its
+    // machine would only come back as a dead duplicate. Fireteam abilities
+    // are not on this list: they cycle like the teams they fit.
+    // ...and minus any Fireteam that is standing on the field right now — one
+    // of each team at a time; it comes back the moment the team is lost.
+    const back = active.loadout.deck.filter(c => POOL[c] && !G.hand.includes(c) && !(G.spent || []).includes(c)
+      && !(POOL[c].line && G.units.some(u => u.id === c)));
+    if (!back.length) return false;
+    G.deck = shuffle([...back]);
+    clog('<span class="t">Reserve cycled</span> — fresh requisition available.', 'info');
+  }
+  G.hand.push(G.deck.pop());
+  return true;
 }
 
 /* ==== src/rules/events.js =========================================== */
@@ -6611,6 +6668,7 @@ function dmgUnit(u, d, src, attacker) {
     G.lost++;
     clog(`<span class="d">${src}</span> destroyed your ${u.n}.`, 'loss');
     salvageFrame(u);
+    recycleLineCard(u);
   }
 }
 
@@ -6634,6 +6692,7 @@ function pierceUnit(u, d, src) {
     G.lost++;
     clog(`<span class="d">${src}</span> destroyed your ${u.n}.`, 'loss');
     salvageFrame(u);
+    recycleLineCard(u);
   } else {
     clog(`<span class="d">${src}</span> — ${d} into ${u.n}, past any shield.`, 'info');
   }
@@ -6800,6 +6859,7 @@ function dropFight(k, D, u) {
   const name = u.n;
   G.units = G.units.filter(x => x.uid !== u.uid);
   G.lost++;
+  recycleLineCard(u);
 
   if (r.outcome === 'mutual') {
     clog(`<span class="d">${D.n}</span> and your <span class="g">${name}</span> destroyed each other on the drop.`, 'loss');
@@ -7061,6 +7121,7 @@ function crushCell(l, c, who) {
     G.units = G.units.filter(x => x.uid !== u.uid);
     G.lost++;
     clog(`<span class="d">${who}</span> rolled over your ${u.n} — crushed.`, 'loss');
+    recycleLineCard(u);
   }
   const f = foeAt(l, c);
   if (f && !f.boss) G.enemies = G.enemies.filter(x => x.uid !== f.uid);
@@ -9274,7 +9335,8 @@ function statRows(id) {
     k.frameGear ? ['Fits', `${POOL[k.frameGear].n} only — played onto it while it stands`] : null,
     k.fits ? ['Fits', 'Any Fireteam — played onto it while it stands'] : null,
     k.slot === 'armor' ? ['Slot', 'Armour ability — one carried at a time, the new one replaces the last'] : null,
-    k.line ? ['Line', 'Fireteam — any armour ability fits it'] : null,
+    k.line ? ['Line', 'Fireteam — one of each on the field; the card leaves the deck while the team stands and returns when it is lost'] : null,
+    (k.omni && !k.chassis) ? ['Facing', 'Fights facing either way'] : null,
     isProto(id) ? ['Stride', 'Moves and still fires or uses its ability the same turn'] : null,
     k.camo ? ['Cloak', 'Hostiles cannot target it until the turn it fires'] : null,
     k.jet ? ['Jump', 'Any open held tile within two cells, then fires'] : null,
@@ -12180,8 +12242,9 @@ function moveTargets(u) {
   if (!u.mob || u.stun || u.acted || u.moved) return [];
   const out = [];
   const steps = [[0, 1], [0, -1], [1, 0], [-1, 0]];
-  // An omni machine steps diagonally too — a fencer's footwork, not a tank's.
-  if (u.omni) steps.push([1, 1], [1, -1], [-1, 1], [-1, -1]);
+  // An omni MACHINE steps diagonally too — a fencer's footwork, not a tank's.
+  // A Fireteam fights facing either way but walks like infantry.
+  if (u.omni && u.frame) steps.push([1, 1], [1, -1], [-1, 1], [-1, -1]);
   steps.forEach(([dl, dc]) => {
     const nl = u.lane + dl;
     const nc = u.col + dc;
@@ -12301,36 +12364,6 @@ function doAbility(u) {
   u.acted = true;
   setMover(null);
   hooks.invalidate();
-}
-
-/* ==== src/rules/deck.js ============================================= */
-// The 12-card deck: drawing, and cycling the reserve when it runs dry.
-
-/**
- * Draw one card. An empty deck reshuffles from the loadout, minus whatever is
- * already in hand — so cycling never hands you a duplicate of a card you hold.
- *
- * `force` is the card-effect exemption. The turn draw stops at HAND_CAP so the
- * tray stays one row; a card you spent DP on to draw is not going to no-op
- * because of a layout rule, so Recon and Falconer pass it. Nothing is lost
- * when the cap holds a draw — the card stays on top of the deck for next turn.
- *
- * @param {boolean} [force] bypass the hand cap (card effects only)
- * @returns {boolean} whether a card actually moved
- */
-function drawCard(force) {
-  if (!force && G.hand.length >= HAND_CAP) return false;
-  if (!G.deck.length) {
-    // ...and minus Frame gear already played this mission — a kit on its
-    // machine would only come back as a dead duplicate. Fireteam abilities
-    // are not on this list: they cycle like the teams they fit.
-    const back = active.loadout.deck.filter(c => POOL[c] && !G.hand.includes(c) && !(G.spent || []).includes(c));
-    if (!back.length) return false;
-    G.deck = shuffle([...back]);
-    clog('<span class="t">Reserve cycled</span> — fresh requisition available.', 'info');
-  }
-  G.hand.push(G.deck.pop());
-  return true;
 }
 
 /* ==== src/rules/deploy.js =========================================== */
@@ -12625,6 +12658,7 @@ function playerPhase() {
       G.units = G.units.filter(x => x.uid !== u.uid);
       G.lost++;
       clog(`<span class="d">Stim Injector</span> burned out your ${u.n}.`, 'loss');
+      recycleLineCard(u);
     }
   });
 }
@@ -13069,6 +13103,7 @@ function burrowErupt() {
     G.units = G.units.filter(x => x.uid !== u.uid);
     G.lost++;
     clog(`<span class="d">The ground opens under ${u.n}</span> — swallowed whole.`, 'loss');
+    recycleLineCard(u);
   }
   G.enemies.push(mkFoe('burrower', l, c, BEST.burrower.hp));
   clog(`<span style="color:var(--violet)">Burrow Breach</span> — a burrower claws up at lane ${l + 1}.`, 'loss');
@@ -15813,9 +15848,15 @@ function openPanel(key, quiet) {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.34.2';
+const VERSION = '2.35';
 
 const PATCH_NOTES = [
+  {
+    v: '2.35',
+    notes: [
+      'ONE OF EACH FIRETEAM. While a team stands, its card is out of the draw pile — no second Noble behind the first. Lose the team and the card goes straight back into the deck at a random depth, ready to be drawn again. Different teams still stand side by side. Every Fireteam FIGHTS FACING EITHER WAY: Noble cuts on both sides, Majestic sweeps ahead or behind, Osiris reaches the deepest hostile in either direction. And the teams see ONE cell in the fog, except Osiris, whose hunters keep three.',
+    ],
+  },
   {
     v: '2.34.2',
     notes: [

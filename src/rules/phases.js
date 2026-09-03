@@ -19,7 +19,7 @@ import {fire, healPass, dmgUnit, dmgEnemy, breachAt, chillFactor} from './combat
 import {eventTick, eventStrikeMalus} from './events.js';
 import {wave, rollDoctrine, predictSpawns, laneScore} from './waves.js';
 import {spawnPhase, mkFoe} from './spawn.js';
-import {drawCard} from './deck.js';
+import {drawCard, recycleLineCard} from './deck.js';
 import {finish, winWhy} from './mission.js';
 import {clog} from './log.js';
 import {tapeBegin, tapeEnd, tapeMark, tapeEvent} from './tape.js';
@@ -80,6 +80,7 @@ export function playerPhase() {
       G.units = G.units.filter(x => x.uid !== u.uid);
       G.lost++;
       clog(`<span class="d">Stim Injector</span> burned out your ${u.n}.`, 'loss');
+      recycleLineCard(u);
     }
   });
 }
@@ -524,6 +525,7 @@ function burrowErupt() {
     G.units = G.units.filter(x => x.uid !== u.uid);
     G.lost++;
     clog(`<span class="d">The ground opens under ${u.n}</span> — swallowed whole.`, 'loss');
+    recycleLineCard(u);
   }
   G.enemies.push(mkFoe('burrower', l, c, BEST.burrower.hp));
   clog(`<span style="color:var(--violet)">Burrow Breach</span> — a burrower claws up at lane ${l + 1}.`, 'loss');

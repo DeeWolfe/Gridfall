@@ -17,6 +17,7 @@ import {BEST} from '../content/hostiles.js';
 import {BOSSDEF} from '../content/bosses.js';
 import {G, active, nextUid} from '../state/session.js';
 import {randInt, shuffle} from '../state/rng.js';
+import {recycleLineCard} from './deck.js';
 import {hooks} from '../state/hooks.js';
 import {unitAt, foeAt, civAt} from './board.js';
 import {dmgUnit, pierceUnit} from './combat.js';
@@ -202,6 +203,7 @@ function crushCell(l, c, who) {
     G.units = G.units.filter(x => x.uid !== u.uid);
     G.lost++;
     clog(`<span class="d">${who}</span> rolled over your ${u.n} — crushed.`, 'loss');
+    recycleLineCard(u);
   }
   const f = foeAt(l, c);
   if (f && !f.boss) G.enemies = G.enemies.filter(x => x.uid !== f.uid);

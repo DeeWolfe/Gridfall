@@ -19,8 +19,9 @@ export function moveTargets(u) {
   if (!u.mob || u.stun || u.acted || u.moved) return [];
   const out = [];
   const steps = [[0, 1], [0, -1], [1, 0], [-1, 0]];
-  // An omni machine steps diagonally too — a fencer's footwork, not a tank's.
-  if (u.omni) steps.push([1, 1], [1, -1], [-1, 1], [-1, -1]);
+  // An omni MACHINE steps diagonally too — a fencer's footwork, not a tank's.
+  // A Fireteam fights facing either way but walks like infantry.
+  if (u.omni && u.frame) steps.push([1, 1], [1, -1], [-1, 1], [-1, -1]);
   steps.forEach(([dl, dc]) => {
     const nl = u.lane + dl;
     const nc = u.col + dc;

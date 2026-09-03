@@ -6,6 +6,7 @@ import {BEST} from '../content/hostiles.js';
 import {G, active, nextUid} from '../state/session.js';
 import {unitAt, foeAt, civAt, scorched} from './board.js';
 import {buffOf, leadBonus, packBonus} from './units.js';
+import {recycleLineCard} from './deck.js';
 import {leadOf} from '../save/progression.js';
 import {targetsFor, laneFloor} from './targeting.js';
 import {eventTechBonus} from './events.js';
@@ -216,6 +217,7 @@ export function dmgUnit(u, d, src, attacker) {
     G.lost++;
     clog(`<span class="d">${src}</span> destroyed your ${u.n}.`, 'loss');
     salvageFrame(u);
+    recycleLineCard(u);
   }
 }
 
@@ -239,6 +241,7 @@ export function pierceUnit(u, d, src) {
     G.lost++;
     clog(`<span class="d">${src}</span> destroyed your ${u.n}.`, 'loss');
     salvageFrame(u);
+    recycleLineCard(u);
   } else {
     clog(`<span class="d">${src}</span> — ${d} into ${u.n}, past any shield.`, 'info');
   }
