@@ -4840,3 +4840,7 @@ the forecast skips hidden hostiles; the board hides them and marks fogged
 cells with 霧. Spawn markers are hidden under fog like Blackout.
 
 The Halo names and roles are the user's; the ability numbers are my drafts.
+
+## v2.32.1
+
+The Shigure Forge rename was an accident; the Frame Engineer is KAEDE again, callsign CHIEF, as before. The Spartan's callsign is MASTER CHIEF, so the two share the word.

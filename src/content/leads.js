@@ -109,8 +109,8 @@ export const LEADS = {
     con: {n: "Rushed Assembly", d: "Your Frame deploys with half hull."},
   },
   fieldrefit: {
-    n: "SHIGURE FORGE",
-    call: "FORGE",
+    n: "KAEDE",
+    call: "CHIEF",
     role: "Frame Engineer",
     col: "#ff9d4d",
     bio: "Rebuilds a loadout mid-sortie the way other people change their mind. Considers a fixed configuration a failure of imagination.",
