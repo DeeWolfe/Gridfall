@@ -106,9 +106,30 @@ export function leadBan(id) {
   if (!k) return null;
   const lead = leadOf();
   if (lead.banTier && k.t === lead.banTier) return lead.con.n;
-  // No Frame: the Master Chief fields no Proto Frame, seeded or not.
-  if (lead.con && lead.con.n === 'No Frame' && k.chassis === 'proto') return lead.con.n;
   return null;
+}
+
+/**
+ * Build-table rules a deck can break as a whole, not card by card: the
+ * one-line rule (a deck fields the Fireteam line or the Frame line, never
+ * both) and Lone Spartan (the Master Chief carries one Fireteam). Read by
+ * the Squad page and by the launch guard, so a broken deck is refused at
+ * the door with the same words it was warned with.
+ * @returns {{n:string, d:string}[]}
+ */
+export function deckProblems(deck = active && active.loadout ? active.loadout.deck : [],
+  frame = active && active.loadout ? active.loadout.frame : null) {
+  const out = [];
+  const teams = (deck || []).filter(c => POOL[c] && POOL[c].line === 'fireteam');
+  if (teams.length && frame && POOL[frame]) {
+    out.push({n: 'One line per deck',
+      d: `${teams.map(c => POOL[c].n).join(', ')} and the ${POOL[frame].n} — a deck fields the Fireteam line or the Frame line, not both. Drop the teams or empty the Frame slot.`});
+  }
+  const lead = leadOf();
+  if (lead.con && lead.con.n === 'Lone Spartan' && teams.length > 1) {
+    out.push({n: 'Lone Spartan', d: `${lead.call} carries one Fireteam, never two — ${teams.map(c => POOL[c].n).join(' and ')} cannot both ride.`});
+  }
+  return out;
 }
 
 /** The active profile's team lead, defaulting to Ironbrand. */

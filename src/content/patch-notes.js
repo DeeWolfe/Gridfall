@@ -4,9 +4,16 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.32.1';
+export const VERSION = '2.33';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.33',
+    notes: [
+      'ONE LINE PER DECK. A deck fields the Fireteam line or the Frame line, never both: put a Fireteam in the twelve and the Frame slot must be empty, or the launch door refuses you with the same words the Squad page warned you with. MASTER CHIEF trades No Frame for LONE SPARTAN — one Fireteam in the deck, never two; the team you field is the only team you have. Spartan Company still pays the line a point cheaper.',
+      'SAVED DECKS have their own tab beside Deck on the Squad page: every preset with its cards, its line, and whether it is the one you are running, with Load and Delete on each and Save current deck below.',
+    ],
+  },
   {
     v: '2.32',
     notes: [

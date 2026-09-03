@@ -130,6 +130,9 @@ export const LEADS = {
       n: "Spartan Company",
       d: "Your Fireteam and every card that fits it cost 1 less deploy point, minimum 1.",
     },
-    con: {n: "No Frame", d: "You cannot field a Proto Frame. The Frame slot stays empty."},
+    con: {
+      n: "Lone Spartan",
+      d: "One Fireteam in the deck, never two. The team you field is the only team you have.",
+    },
   },
 };

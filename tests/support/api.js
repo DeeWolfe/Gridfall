@@ -7,7 +7,7 @@
 
 export {blankProfile, migrate, loadAll, saveAll, commit, initProfiles} from '../../src/save/profile.js';
 export {store, KEY} from '../../src/save/store.js';
-export {rankName, ago, vetOf, gearOf, costOf, leadOf, leadUnlocked, leadGateText, cardName, deckCapOf, leadBan, isProto} from '../../src/save/progression.js';
+export {rankName, ago, vetOf, gearOf, costOf, leadOf, leadUnlocked, leadGateText, cardName, deckCapOf, leadBan, isProto, deckProblems} from '../../src/save/progression.js';
 
 export {POOL} from '../../src/content/cards.js';
 export {GEAR} from '../../src/content/gear.js';

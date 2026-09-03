@@ -14,7 +14,7 @@ import {G, active, setG, MAPDEF, clearSelection} from '../state/session.js';
 import {shuffle, randInt, chance} from '../state/rng.js';
 import {hooks} from '../state/hooks.js';
 import {commit} from '../save/profile.js';
-import {deckCapOf, leadOf} from '../save/progression.js';
+import {deckCapOf, leadOf, deckProblems} from '../save/progression.js';
 import {held, heldEnemyHalf, crystalsHeld, breachAllowance, ENDGAME_TURNS} from './board.js';
 import {wave, rollDoctrine, predictSpawns} from './waves.js';
 import {opRun, genRun, opComplete} from './run.js';
@@ -82,6 +82,12 @@ export function launchSpec(nd) {
   if (deck.length > deckCapOf()) {
     hooks.notify('Deck over limit', `${leadOf().call} fields at most ${deckCapOf()} cards — ` +
       `your deck holds ${deck.length}. Trim it in Squad or change leads.`);
+    return false;
+  }
+  // The one-line rule and Lone Spartan: warned on the Squad page, refused here.
+  const broken = deckProblems(deck, active.loadout.frame);
+  if (broken.length) {
+    hooks.notify(broken[0].n, broken[0].d);
     return false;
   }
 

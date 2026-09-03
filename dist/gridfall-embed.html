@@ -3514,7 +3514,10 @@ const LEADS = {
       n: "Spartan Company",
       d: "Your Fireteam and every card that fits it cost 1 less deploy point, minimum 1.",
     },
-    con: {n: "No Frame", d: "You cannot field a Proto Frame. The Frame slot stays empty."},
+    con: {
+      n: "Lone Spartan",
+      d: "One Fireteam in the deck, never two. The team you field is the only team you have.",
+    },
   },
 };
 
@@ -3681,9 +3684,30 @@ function leadBan(id) {
   if (!k) return null;
   const lead = leadOf();
   if (lead.banTier && k.t === lead.banTier) return lead.con.n;
-  // No Frame: the Master Chief fields no Proto Frame, seeded or not.
-  if (lead.con && lead.con.n === 'No Frame' && k.chassis === 'proto') return lead.con.n;
   return null;
+}
+
+/**
+ * Build-table rules a deck can break as a whole, not card by card: the
+ * one-line rule (a deck fields the Fireteam line or the Frame line, never
+ * both) and Lone Spartan (the Master Chief carries one Fireteam). Read by
+ * the Squad page and by the launch guard, so a broken deck is refused at
+ * the door with the same words it was warned with.
+ * @returns {{n:string, d:string}[]}
+ */
+function deckProblems(deck = active && active.loadout ? active.loadout.deck : [],
+  frame = active && active.loadout ? active.loadout.frame : null) {
+  const out = [];
+  const teams = (deck || []).filter(c => POOL[c] && POOL[c].line === 'fireteam');
+  if (teams.length && frame && POOL[frame]) {
+    out.push({n: 'One line per deck',
+      d: `${teams.map(c => POOL[c].n).join(', ')} and the ${POOL[frame].n} — a deck fields the Fireteam line or the Frame line, not both. Drop the teams or empty the Frame slot.`});
+  }
+  const lead = leadOf();
+  if (lead.con && lead.con.n === 'Lone Spartan' && teams.length > 1) {
+    out.push({n: 'Lone Spartan', d: `${lead.call} carries one Fireteam, never two — ${teams.map(c => POOL[c].n).join(' and ')} cannot both ride.`});
+  }
+  return out;
 }
 
 /** The active profile's team lead, defaulting to Ironbrand. */
@@ -4581,9 +4605,7 @@ function clog(html, cat) {
 function seedFrame() {
   const id = active && active.loadout ? active.loadout.frame : null;
   G.frame = null;
-  // No Frame (Master Chief): the slot may hold a machine, but it never flies.
-  const noFrame = leadOf().con && leadOf().con.n === 'No Frame';
-  if (id && isProto(id) && POOL[id] && !noFrame) {
+  if (id && isProto(id) && POOL[id]) {
     G.hand.push(id);
     G.frame = {k: id};
   }
@@ -8229,6 +8251,12 @@ function launchSpec(nd) {
   if (deck.length > deckCapOf()) {
     hooks.notify('Deck over limit', `${leadOf().call} fields at most ${deckCapOf()} cards — ` +
       `your deck holds ${deck.length}. Trim it in Squad or change leads.`);
+    return false;
+  }
+  // The one-line rule and Lone Spartan: warned on the Squad page, refused here.
+  const broken = deckProblems(deck, active.loadout.frame);
+  if (broken.length) {
+    hooks.notify(broken[0].n, broken[0].d);
     return false;
   }
 
@@ -14959,6 +14987,7 @@ function renderPanelHint(key, h) {
 
 const TIERS = ['common', 'special', 'tech'];
 let dbTab = 'cards';
+let squadTab = 'deck';
 let recTab = 'field';
 
 const cardGrid = (ids, mode) => `<div class="cgrid">${ids.map(c => cardEl(c, mode)).join('')}</div>`;
@@ -15151,23 +15180,32 @@ function squadPanel() {
     ? `<div class="bar"><div style="color:var(--red)"><b style="color:var(--red)">⚠</b>
         ${leadOf().call} fields at most ${deckCapOf()} cards — trim ${deck.length - deckCapOf()} to deploy</div></div>`
     : '';
+  const rules = deckProblems(deck, fielded).map(p =>
+    `<div class="bar"><div style="color:var(--red)"><b style="color:var(--red)">⚠</b> ${p.n}</div>
+        <div style="color:var(--dim);font-size:0.6875rem">${p.d}</div></div>`).join('');
   const banned = deck.filter(c => leadBan(c));
   const refused = banned.length
     ? `<div class="bar"><div style="color:var(--red)"><b style="color:var(--red)">⚠</b>
         ${leadOf().call} will not field ${banned.map(c => POOL[c].n).join(', ')}</div>
         <div style="color:var(--dim);font-size:0.6875rem">${leadOf().con.n} — these stay dead in hand until you swap them or the lead</div></div>`
     : '';
+  const tabs = `<div class="tabs">
+     <button class="tab${squadTab === 'deck' ? ' on' : ''}" data-sqtab="deck">Deck</button>
+     <button class="tab${squadTab === 'saved' ? ' on' : ''}" data-sqtab="saved">Saved decks${(active.presets || []).length ? ` · ${active.presets.length}` : ''}</button></div>`;
+  if (squadTab === 'saved') {
+    return `<div class="sect">Team lead — answers to you</div>${leadCardHTML()}
+   ${leadTilesHTML('squad')}${tabs}${savedDecksTab()}`;
+  }
   return `<div class="sect">Team lead — answers to you</div>${leadCardHTML()}
-   ${leadTilesHTML('squad')}
+   ${leadTilesHTML('squad')}${tabs}
    <div class="sect">Deck</div>
    <div class="bar"><div><b${deck.length > deckCapOf() ? ' style="color:var(--red)"' : ''}>${deck.length}</b> / ${deckCapOf()} in deck ·
        <b style="color:var(--cyan)">${Object.keys(active.loadout.gear).length}</b> geared ·
        <b style="color:var(--violet)">${fielded ? 1 : 0}</b> / 1 Proto Frame</div>
      <div style="color:var(--dim);font-size:0.6875rem">Tap any card to enlarge it — inspect, fit gear, add or remove</div></div>
-   ${orphan}${over}${refused}
+   ${orphan}${over}${rules}${refused}
    <div class="sect">Active deck</div>
    ${deck.length ? cardGrid(deck, 'gear') : cardGridEmpty('Empty.')}
-   ${presetRow()}
    ${deckFrame()}
    <div class="sect">Reserve — ${reserve.length}</div>
    ${squadControls()}
@@ -15177,23 +15215,33 @@ function squadPanel() {
 }
 
 /**
- * Saved decks. A preset is the twelve plus the Frame slot under a name — a
- * Fireteam deck, a Frame deck, a gun line — swapped in with one tap. Cards
- * the profile no longer owns are dropped on load rather than refused.
+ * Saved decks — its own tab beside Deck. A preset is the twelve plus the
+ * Frame slot under a name: a Fireteam deck, a Frame deck, a gun line,
+ * swapped in with one tap. Cards the profile no longer owns are dropped on
+ * load rather than refused, and a loaded deck is checked against the same
+ * rules the Deck tab warns about.
  */
 const PRESET_CAP = 6;
-function presetRow() {
+function savedDecksTab() {
   const list = active.presets || [];
   const deck = active.loadout.deck;
-  const tiles = list.map((p, i) => {
-    const same = p.deck.length === deck.length && p.deck.every(c => deck.includes(c)) && (p.frame || null) === (active.loadout.frame || null);
-    return `<span class="preset${same ? ' on' : ''}">
-      <button class="mini${same ? ' on' : ''}" data-preset-load="${i}" title="Load this deck">${p.n}</button>
-      <button class="mini x" data-preset-del="${i}" title="Delete">✕</button></span>`;
+  const live = p => p.deck.length === deck.length && p.deck.every(c => deck.includes(c)) && (p.frame || null) === (active.loadout.frame || null);
+  const lineOf = p => p.deck.some(c => POOL[c] && POOL[c].line === 'fireteam') ? 'Fireteam line'
+    : p.frame && POOL[p.frame] ? `Frame line · ${POOL[p.frame].n}` : '';
+  const rows = list.map((p, i) => {
+    const names = p.deck.filter(c => POOL[c]).map(c => POOL[c].n).join(' · ');
+    const probs = deckProblems(p.deck, p.frame);
+    return `<div class="bar preset${live(p) ? ' on' : ''}">
+      <div><b style="color:var(--gold)">${p.n}</b> <span style="color:var(--dim)">· ${p.deck.length} cards${lineOf(p) ? ' · ' + lineOf(p) : ''}${live(p) ? ' · <span style="color:var(--green)">active</span>' : ''}</span></div>
+      <div style="color:var(--dim);font-size:0.6875rem">${names || 'Empty.'}</div>
+      ${probs.length ? `<div style="color:var(--red);font-size:0.6875rem">⚠ ${probs[0].n}</div>` : ''}
+      <div class="presets"><button class="mini" data-preset-load="${i}">Load</button><button class="mini x" data-preset-del="${i}">Delete</button></div></div>`;
   }).join('');
   return `<div class="sect">Saved decks — ${list.length} / ${PRESET_CAP}</div>
-   <div class="bar presets">${tiles || '<span style="color:var(--dim)">None yet.</span>'}
-     ${list.length < PRESET_CAP && deck.length ? '<button class="mini gold" data-preset-save>Save current deck</button>' : ''}</div>`;
+   ${rows || '<div class="bar"><div style="color:var(--dim)">None yet. Build a deck on the Deck tab, then save it here.</div></div>'}
+   <div class="bar presets">${list.length < PRESET_CAP && deck.length
+    ? '<button class="mini gold" data-preset-save>Save current deck</button>'
+    : `<span style="color:var(--dim)">${deck.length ? 'Six is the shelf. Delete one to save another.' : 'The active deck is empty.'}</span>`}</div>`;
 }
 
 function quartermasterPanel() {
@@ -15596,6 +15644,7 @@ function openPanel(key, quiet) {
   each('[data-gearfit]', el => focusGear(el.dataset.gearfit, false, true));
   // Both arrangement choices live on the profile, so they survive the panel
   // closing, the session ending and the record moving to another device.
+  each('[data-sqtab]', el => { squadTab = el.dataset.sqtab; openPanel('squad', true); });
   each('[data-preset-save]', () => {
     const n = (active.presets || []).length + 1;
     ask('Save deck', 'Name this deck. It saves the twelve and the Frame slot as they stand.', name => {
@@ -15728,9 +15777,16 @@ function openPanel(key, quiet) {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.32.1';
+const VERSION = '2.33';
 
 const PATCH_NOTES = [
+  {
+    v: '2.33',
+    notes: [
+      'ONE LINE PER DECK. A deck fields the Fireteam line or the Frame line, never both: put a Fireteam in the twelve and the Frame slot must be empty, or the launch door refuses you with the same words the Squad page warned you with. MASTER CHIEF trades No Frame for LONE SPARTAN — one Fireteam in the deck, never two; the team you field is the only team you have. Spartan Company still pays the line a point cheaper.',
+      'SAVED DECKS have their own tab beside Deck on the Squad page: every preset with its cards, its line, and whether it is the one you are running, with Load and Delete on each and Save current deck below.',
+    ],
+  },
   {
     v: '2.32',
     notes: [

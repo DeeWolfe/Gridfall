@@ -4844,3 +4844,14 @@ The Halo names and roles are the user's; the ability numbers are my drafts.
 ## v2.32.1
 
 The Shigure Forge rename was an accident; the Frame Engineer is KAEDE again, callsign CHIEF, as before. The Spartan's callsign is MASTER CHIEF, so the two share the word.
+
+## v2.33 — one line per deck, Lone Spartan, saved-decks tab
+
+`deckProblems(deck, frame)` in progression.js is the single source for the
+build-table rules: the one-line rule (Fireteam cards + a fielded Frame) and
+Lone Spartan (Master Chief, two Fireteams). The Squad page renders each as a
+red bar, the launch guard in mission.js refuses on the first one with the
+same title, and the saved-decks tab flags a preset that would break them.
+Master Chief's No Frame con (and its leadBan/seedFrame hooks) are gone —
+the global rule covers it. Saved decks moved from a row under the deck to a
+`squadTab` beside Deck.

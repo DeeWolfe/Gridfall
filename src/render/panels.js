@@ -11,7 +11,7 @@ import {LEADS} from '../content/leads.js';
 import {active, profiles, setActive} from '../state/session.js';
 import {store} from '../save/store.js';
 import {commit, migrate, saveAll} from '../save/profile.js';
-import {rankName, costOf, vetOf, leadUnlocked, deckCapOf, leadBan, leadOf} from '../save/progression.js';
+import {rankName, costOf, vetOf, leadUnlocked, deckCapOf, leadBan, leadOf, deckProblems} from '../save/progression.js';
 import {genRun} from '../rules/run.js';
 import {purchasePack, PACK_PRICE} from '../rules/packs.js';
 import {$, attr, show, markSwipe} from './dom.js';
@@ -32,6 +32,7 @@ import {replayIntros} from './codec.js';
 
 const TIERS = ['common', 'special', 'tech'];
 let dbTab = 'cards';
+let squadTab = 'deck';
 let recTab = 'field';
 
 const cardGrid = (ids, mode) => `<div class="cgrid">${ids.map(c => cardEl(c, mode)).join('')}</div>`;
@@ -224,23 +225,32 @@ function squadPanel() {
     ? `<div class="bar"><div style="color:var(--red)"><b style="color:var(--red)">⚠</b>
         ${leadOf().call} fields at most ${deckCapOf()} cards — trim ${deck.length - deckCapOf()} to deploy</div></div>`
     : '';
+  const rules = deckProblems(deck, fielded).map(p =>
+    `<div class="bar"><div style="color:var(--red)"><b style="color:var(--red)">⚠</b> ${p.n}</div>
+        <div style="color:var(--dim);font-size:0.6875rem">${p.d}</div></div>`).join('');
   const banned = deck.filter(c => leadBan(c));
   const refused = banned.length
     ? `<div class="bar"><div style="color:var(--red)"><b style="color:var(--red)">⚠</b>
         ${leadOf().call} will not field ${banned.map(c => POOL[c].n).join(', ')}</div>
         <div style="color:var(--dim);font-size:0.6875rem">${leadOf().con.n} — these stay dead in hand until you swap them or the lead</div></div>`
     : '';
+  const tabs = `<div class="tabs">
+     <button class="tab${squadTab === 'deck' ? ' on' : ''}" data-sqtab="deck">Deck</button>
+     <button class="tab${squadTab === 'saved' ? ' on' : ''}" data-sqtab="saved">Saved decks${(active.presets || []).length ? ` · ${active.presets.length}` : ''}</button></div>`;
+  if (squadTab === 'saved') {
+    return `<div class="sect">Team lead — answers to you</div>${leadCardHTML()}
+   ${leadTilesHTML('squad')}${tabs}${savedDecksTab()}`;
+  }
   return `<div class="sect">Team lead — answers to you</div>${leadCardHTML()}
-   ${leadTilesHTML('squad')}
+   ${leadTilesHTML('squad')}${tabs}
    <div class="sect">Deck</div>
    <div class="bar"><div><b${deck.length > deckCapOf() ? ' style="color:var(--red)"' : ''}>${deck.length}</b> / ${deckCapOf()} in deck ·
        <b style="color:var(--cyan)">${Object.keys(active.loadout.gear).length}</b> geared ·
        <b style="color:var(--violet)">${fielded ? 1 : 0}</b> / 1 Proto Frame</div>
      <div style="color:var(--dim);font-size:0.6875rem">Tap any card to enlarge it — inspect, fit gear, add or remove</div></div>
-   ${orphan}${over}${refused}
+   ${orphan}${over}${rules}${refused}
    <div class="sect">Active deck</div>
    ${deck.length ? cardGrid(deck, 'gear') : cardGridEmpty('Empty.')}
-   ${presetRow()}
    ${deckFrame()}
    <div class="sect">Reserve — ${reserve.length}</div>
    ${squadControls()}
@@ -250,23 +260,33 @@ function squadPanel() {
 }
 
 /**
- * Saved decks. A preset is the twelve plus the Frame slot under a name — a
- * Fireteam deck, a Frame deck, a gun line — swapped in with one tap. Cards
- * the profile no longer owns are dropped on load rather than refused.
+ * Saved decks — its own tab beside Deck. A preset is the twelve plus the
+ * Frame slot under a name: a Fireteam deck, a Frame deck, a gun line,
+ * swapped in with one tap. Cards the profile no longer owns are dropped on
+ * load rather than refused, and a loaded deck is checked against the same
+ * rules the Deck tab warns about.
  */
 const PRESET_CAP = 6;
-function presetRow() {
+function savedDecksTab() {
   const list = active.presets || [];
   const deck = active.loadout.deck;
-  const tiles = list.map((p, i) => {
-    const same = p.deck.length === deck.length && p.deck.every(c => deck.includes(c)) && (p.frame || null) === (active.loadout.frame || null);
-    return `<span class="preset${same ? ' on' : ''}">
-      <button class="mini${same ? ' on' : ''}" data-preset-load="${i}" title="Load this deck">${p.n}</button>
-      <button class="mini x" data-preset-del="${i}" title="Delete">✕</button></span>`;
+  const live = p => p.deck.length === deck.length && p.deck.every(c => deck.includes(c)) && (p.frame || null) === (active.loadout.frame || null);
+  const lineOf = p => p.deck.some(c => POOL[c] && POOL[c].line === 'fireteam') ? 'Fireteam line'
+    : p.frame && POOL[p.frame] ? `Frame line · ${POOL[p.frame].n}` : '';
+  const rows = list.map((p, i) => {
+    const names = p.deck.filter(c => POOL[c]).map(c => POOL[c].n).join(' · ');
+    const probs = deckProblems(p.deck, p.frame);
+    return `<div class="bar preset${live(p) ? ' on' : ''}">
+      <div><b style="color:var(--gold)">${p.n}</b> <span style="color:var(--dim)">· ${p.deck.length} cards${lineOf(p) ? ' · ' + lineOf(p) : ''}${live(p) ? ' · <span style="color:var(--green)">active</span>' : ''}</span></div>
+      <div style="color:var(--dim);font-size:0.6875rem">${names || 'Empty.'}</div>
+      ${probs.length ? `<div style="color:var(--red);font-size:0.6875rem">⚠ ${probs[0].n}</div>` : ''}
+      <div class="presets"><button class="mini" data-preset-load="${i}">Load</button><button class="mini x" data-preset-del="${i}">Delete</button></div></div>`;
   }).join('');
   return `<div class="sect">Saved decks — ${list.length} / ${PRESET_CAP}</div>
-   <div class="bar presets">${tiles || '<span style="color:var(--dim)">None yet.</span>'}
-     ${list.length < PRESET_CAP && deck.length ? '<button class="mini gold" data-preset-save>Save current deck</button>' : ''}</div>`;
+   ${rows || '<div class="bar"><div style="color:var(--dim)">None yet. Build a deck on the Deck tab, then save it here.</div></div>'}
+   <div class="bar presets">${list.length < PRESET_CAP && deck.length
+    ? '<button class="mini gold" data-preset-save>Save current deck</button>'
+    : `<span style="color:var(--dim)">${deck.length ? 'Six is the shelf. Delete one to save another.' : 'The active deck is empty.'}</span>`}</div>`;
 }
 
 function quartermasterPanel() {
@@ -669,6 +689,7 @@ export function openPanel(key, quiet) {
   each('[data-gearfit]', el => focusGear(el.dataset.gearfit, false, true));
   // Both arrangement choices live on the profile, so they survive the panel
   // closing, the session ending and the record moving to another device.
+  each('[data-sqtab]', el => { squadTab = el.dataset.sqtab; openPanel('squad', true); });
   each('[data-preset-save]', () => {
     const n = (active.presets || []).length + 1;
     ask('Save deck', 'Name this deck. It saves the twelve and the Frame slot as they stand.', name => {

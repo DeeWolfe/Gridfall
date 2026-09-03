@@ -448,4 +448,25 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'ordnance']
   if (mv.unlocks.cards.includes('fireteam')) F.push('the old Fireteam survived migration');
 }
 
+
+// --- one line per deck: warned at the table, refused at the door ---
+{
+  const p = unlockAll(A.blankProfile('LINE'), ['ftnoble', 'rifle', 'marks', 'wall', 'medic', 'lancer']);
+  p.unlocks.cards.push('whitedevil');
+  p.loadout.frame = 'whitedevil';
+  A.enterProfile(p);
+  const probs = A.deckProblems();
+  if (!probs.some(x => x.n === 'One line per deck')) F.push('a Fireteam deck with a Frame in the slot was not flagged');
+  let said = null;
+  const prev = A.hooks.notify;
+  A.setHooks({notify: (t, m) => { said = t; }});
+  const launched = A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0});
+  A.setHooks({notify: prev});
+  if (launched !== false || said !== 'One line per deck') F.push(`a clashing deck launched (${launched}, ${said})`);
+  p.loadout.frame = null;
+  A.enterProfile(p);
+  if (A.deckProblems().length) F.push('emptying the Frame slot should clear the clash');
+  if (A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0}) === false) F.push('a clean Fireteam deck was refused');
+}
+
 F.report('balancetest');

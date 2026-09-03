@@ -131,19 +131,18 @@ const calm = () => { A.G.enemies.length = 0; A.G.predict = []; A.G.held = []; };
 
 // The Code and Field Refit — the two Frame leads — live in frametest,
 // beside the machinery their trades act on.
-// Spartan Company: the Fireteam line is a point cheaper; No Frame: the slot never flies
+// Spartan Company: the Fireteam line is a point cheaper; Lone Spartan: one team in the deck
 {
   start('masterchief', ['ftnoble', 'camo', 'rifle', 'marks', 'wall', 'medic', 'lancer', 'archer']);
   if (A.costOf('ftnoble') !== A.POOL.ftnoble.dp - 1) F.push(`Spartan Company priced Fireteam Noble at ${A.costOf('ftnoble')}`);
   if (A.costOf('camo') !== 1) F.push('a 1 DP ability must floor at 1');
   if (A.costOf('rifle') !== A.POOL.rifle.dp) F.push('Spartan Company leaked onto a Rifleman');
-  if (!A.leadBan('whitedevil')) F.push('No Frame did not refuse a Proto Frame');
-  A.active.loadout.frame = 'whitedevil';
-  A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0});
-  if (A.G.hand.includes('whitedevil') || A.frameReady()) F.push('No Frame still seeded the machine');
-  A.active.loadout.frame = null;
+  if (A.deckProblems(['ftnoble', 'rifle'], null).length) F.push('one team under Lone Spartan should be clean');
+  const two = A.deckProblems(['ftnoble', 'ftshadow', 'rifle'], null);
+  if (!two.some(p => p.n === 'Lone Spartan')) F.push('Lone Spartan let two Fireteams ride');
   start('ironbrand');
   if (A.costOf('ftnoble') !== A.POOL.ftnoble.dp) F.push('Spartan Company applied under another lead');
+  if (A.deckProblems(['ftnoble', 'ftshadow', 'rifle'], null).length) F.push('Lone Spartan applied under another lead');
 }
 
 F.report('lead pros and cons: every trade holds, nothing leaks between leads');
