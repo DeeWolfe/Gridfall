@@ -98,6 +98,9 @@ for (const opKey of Object.keys(A.OPS)) {
   A.G.ter[l][c] = 'e';                          // tile lost
   A.endTurn(); calm();
   if (A.G.uplinkHeld !== 0) F.push('losing the tile did not reset the charge');
+  // A wall on the tile: a fresh spawn fast enough to reach column 4 in one
+  // enemy phase could otherwise flip it on the winning turn — the flake.
+  A.G.units.push(A.mkUnit('wall', l, c));
   A.G.ter[l][c] = 'p';
   A.endTurn(); calm(); A.G.ter[l][c] = 'p';
   A.endTurn(); calm(); A.G.ter[l][c] = 'p';
