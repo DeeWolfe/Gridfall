@@ -14,7 +14,7 @@ import {VET} from '../content/ranks.js';
 import {hooks} from '../state/hooks.js';
 import {unitAt, foeAt, civAt} from './board.js';
 import {mkUnit} from './units.js';
-import {applyFrameGear, hostFor} from './frames.js';
+import {applyFrameGear} from './frames.js';
 import {armCall} from './stratagems.js';
 import {fire, blast, healPass, dmgEnemy} from './combat.js';
 import {clog} from './log.js';
@@ -173,7 +173,7 @@ export function deploy(cid, l, c) {
     // A kit lands on its host — validTiles only ever offers the host's cell,
     // so the unit under (l, c) is the machine or the team this kit fits.
     const fr = unitAt(l, c);
-    if (!fr || fr !== hostFor(k)) return;
+    if (!fr || !(k.frameGear ? fr.id === k.frameGear : fr.line === k.fits)) return;
     // A kit is spent the moment it is played: fitted, later stripped, or
     // called in — none of those come back through the reserve.
     G.spent = G.spent || [];

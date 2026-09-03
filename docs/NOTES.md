@@ -4867,3 +4867,7 @@ User could not find the Prism. genRun() types nodes once and stores them in `p.o
 ## v2.33.3 — one-line rule shelved
 
 User's call after weighing both sides: remove the one-line rule until testing says otherwise. `deckProblems()` stays as the hook (Squad page and launch guard still read it) but returns nothing. Master Chief's con is No Frame again, with its `leadBan` and `seedFrame` hooks restored; Lone Spartan is gone.
+
+## v2.34 — Fireteams stack, Frames stride
+
+User's call: no field limit on Fireteams (the line gate in frameGateText is gone; validTiles offers every standing team of the line for a `fits` card, and deploy checks the tapped cell's line). Proto Frames get `servo` at mkUnit — move then fire or use the ability in one turn — as the buff, with stats held; the fallback if the stride is not enough is hull/damage.

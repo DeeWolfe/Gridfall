@@ -5167,8 +5167,6 @@ function frameGateText(cid) {
   const k = POOL[cid];
   if (!k) return null;
   if (k.chassis === 'proto' && frameOnBoard()) return 'One Frame on the board at a time';
-  // A line deploys one team at a time, the way the Frames fly one machine.
-  if (k.line && G.units.some(u => u.line === k.line)) return 'One Fireteam on the board at a time';
   if (k.frameGear && !kitHost(k.frameGear)) return `${POOL[k.frameGear].n} must be on the board`;
   if (k.fits && !hostFor(k)) return 'A Fireteam must be on the board';
   return null;
@@ -5500,9 +5498,14 @@ function rawTiles(cid, k) {
   // Gear lands on the machine itself: the standing Frame's cell is the one
   // legal target. frameGateText() above already guaranteed it is the right
   // Frame, so this cannot offer someone else's kit a home.
-  if (k.frameGear || k.fits) {
+  if (k.frameGear) {
     const fr = hostFor(k);
     if (fr) out.push(fr.lane * COLS + fr.col);
+    return out;
+  }
+  // An armour ability fits any standing team of its line — every one is a target.
+  if (k.fits) {
+    G.units.filter(u => u.line === k.fits).forEach(u => out.push(u.lane * COLS + u.col));
     return out;
   }
 
@@ -5858,7 +5861,9 @@ function mkUnit(cid, l, c) {
     tech: !!k.tech,
     regen: !!k.regen,
     riposte: k.riposte || 0,
-    servo: !!(g && g.servo),
+    // A Proto Frame moves and still acts in the same turn — the machine's
+    // stride is not its whole turn. Servo gear grants the same to anyone.
+    servo: !!(g && g.servo) || k.chassis === 'proto',
     // Shoulder Cannon. It was a card that landed on a unit mid-mission; as
     // gear it is chosen at the armoury instead, so the second shot is a
     // property of the unit from the moment it deploys.
@@ -9267,7 +9272,8 @@ function statRows(id) {
     k.frameGear ? ['Fits', `${POOL[k.frameGear].n} only — played onto it while it stands`] : null,
     k.fits ? ['Fits', 'Any Fireteam — played onto it while it stands'] : null,
     k.slot === 'armor' ? ['Slot', 'Armour ability — one carried at a time, the new one replaces the last'] : null,
-    k.line ? ['Line', 'Fireteam — one on the board at a time; any armour ability fits it'] : null,
+    k.line ? ['Line', 'Fireteam — any armour ability fits it'] : null,
+    isProto(id) ? ['Stride', 'Moves and still fires or uses its ability the same turn'] : null,
     k.camo ? ['Cloak', 'Hostiles cannot target it until the turn it fires'] : null,
     k.jet ? ['Jump', 'Any open held tile within two cells, then fires'] : null,
     k.ordnance ? ['Call', `${k.ordnance} to every hostile in the Fireteam’s lane, then spent`] : null,
@@ -12483,7 +12489,7 @@ function deploy(cid, l, c) {
     // A kit lands on its host — validTiles only ever offers the host's cell,
     // so the unit under (l, c) is the machine or the team this kit fits.
     const fr = unitAt(l, c);
-    if (!fr || fr !== hostFor(k)) return;
+    if (!fr || !(k.frameGear ? fr.id === k.frameGear : fr.line === k.fits)) return;
     // A kit is spent the moment it is played: fitted, later stripped, or
     // called in — none of those come back through the reserve.
     G.spent = G.spent || [];
@@ -15800,9 +15806,15 @@ function openPanel(key, quiet) {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.33.3';
+const VERSION = '2.34';
 
 const PATCH_NOTES = [
+  {
+    v: '2.34',
+    notes: [
+      'FIRETEAMS STACK. The one-on-the-field limit is gone: field Noble and Shadow side by side, and an armour ability fits whichever standing team you play it onto. PROTO FRAMES STRIDE: a Frame moves and still fires or uses its ability in the same turn, every turn — the machine\'s step is no longer its whole turn. Stats are unchanged; if the stride is not enough, hull and damage are the next lever.',
+    ],
+  },
   {
     v: '2.33.3',
     notes: [

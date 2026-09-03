@@ -169,9 +169,14 @@ function rawTiles(cid, k) {
   // Gear lands on the machine itself: the standing Frame's cell is the one
   // legal target. frameGateText() above already guaranteed it is the right
   // Frame, so this cannot offer someone else's kit a home.
-  if (k.frameGear || k.fits) {
+  if (k.frameGear) {
     const fr = hostFor(k);
     if (fr) out.push(fr.lane * COLS + fr.col);
+    return out;
+  }
+  // An armour ability fits any standing team of its line — every one is a target.
+  if (k.fits) {
+    G.units.filter(u => u.line === k.fits).forEach(u => out.push(u.lane * COLS + u.col));
     return out;
   }
 

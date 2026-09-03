@@ -304,7 +304,7 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'ordnance']
   if (!A.MODS.fog) F.push('no Fog of War modifier');
 }
 
-// --- one team at a time; abilities need a team; the new one strips the last ---
+// --- teams stack on the field; abilities need a team and fit any of them; the new one strips the last ---
 {
   start(['ftnoble', 'ftshadow', 'camo', 'jetpack', 'lock', 'rifle']);
   A.G.hand = ['ftnoble', 'ftshadow', 'camo', 'jetpack', 'lock'];
@@ -313,8 +313,11 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'ordnance']
   A.deploy('ftnoble', 2, 1);
   const team = A.hostFor(A.POOL.camo);
   if (!team || team.id !== 'ftnoble') F.push('Fireteam Noble did not stand as a kit host');
-  if (!A.frameGateText('ftshadow')) F.push('a second Fireteam should wait while one stands');
-  if (A.validTiles('ftshadow').length) F.push('a second Fireteam was offered tiles');
+  if (A.frameGateText('ftshadow')) F.push('a second Fireteam was gated — there is no field limit');
+  if (!A.validTiles('ftshadow').length) F.push('a second Fireteam was offered no tiles');
+  A.deploy('ftshadow', 3, 1);
+  if (A.validTiles('camo').length !== 2) F.push(`an ability should target every standing team, offered ${A.validTiles('camo').length}`);
+  A.G.units = A.G.units.filter(u => u.id !== 'ftshadow');
   if (A.frameGateText('camo')) F.push('Active Camo still gated with a team standing');
   A.deploy('camo', 2, 1);
   if (!team.camo || !team.cloaked) F.push('Active Camo did not cloak the team');
@@ -503,6 +506,26 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'ordnance']
   const m = A.migrate(p);
   if (m.ops.sunderglass.nodes.n5.type !== 'boss') F.push('an old Sunderglass run still ends in Extraction');
   if (m.ops.sunderglass.nodes.n5.reward !== 100 || m.ops.sunderglass.cleared[0] !== 'n1') F.push('retyping the final node disturbed the rest of the run');
+}
+
+
+// --- a Proto Frame moves and still acts in the same turn ---
+{
+  start();
+  const wd = spawnUnit('whitedevil', 2, 1);
+  wd.fresh = false; wd.acted = false; wd.moved = false;
+  if (!wd.servo) F.push('a Proto Frame should carry servo stride');
+  const to = A.moveTargets(wd).find(i => i % A.COLS === 2 && Math.floor(i / A.COLS) === 2);
+  if (to === undefined) F.push('the Frame had no forward step');
+  else {
+    A.doMove(wd, 2, 2);
+    if (wd.acted) F.push('moving spent the Frame\'s action');
+    const foe = spawnFoe('crawler', 2, 3, 10);
+    A.doAttack(wd, foe);
+    if (foe.hp === 10) F.push('the Frame could not fire after moving');
+  }
+  const r = spawnUnit('rifle', 0, 1);
+  if (r.servo) F.push('servo stride leaked onto a Rifleman');
 }
 
 F.report('balancetest');

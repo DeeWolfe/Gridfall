@@ -4,9 +4,15 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.33.3';
+export const VERSION = '2.34';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.34',
+    notes: [
+      'FIRETEAMS STACK. The one-on-the-field limit is gone: field Noble and Shadow side by side, and an armour ability fits whichever standing team you play it onto. PROTO FRAMES STRIDE: a Frame moves and still fires or uses its ability in the same turn, every turn — the machine\'s step is no longer its whole turn. Stats are unchanged; if the stride is not enough, hull and damage are the next lever.',
+    ],
+  },
   {
     v: '2.33.3',
     notes: [

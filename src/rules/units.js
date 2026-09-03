@@ -107,7 +107,9 @@ export function mkUnit(cid, l, c) {
     tech: !!k.tech,
     regen: !!k.regen,
     riposte: k.riposte || 0,
-    servo: !!(g && g.servo),
+    // A Proto Frame moves and still acts in the same turn — the machine's
+    // stride is not its whole turn. Servo gear grants the same to anyone.
+    servo: !!(g && g.servo) || k.chassis === 'proto',
     // Shoulder Cannon. It was a card that landed on a unit mid-mission; as
     // gear it is chosen at the armoury instead, so the second shot is a
     // property of the unit from the moment it deploys.

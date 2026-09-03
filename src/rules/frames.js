@@ -57,8 +57,6 @@ export function frameGateText(cid) {
   const k = POOL[cid];
   if (!k) return null;
   if (k.chassis === 'proto' && frameOnBoard()) return 'One Frame on the board at a time';
-  // A line deploys one team at a time, the way the Frames fly one machine.
-  if (k.line && G.units.some(u => u.line === k.line)) return 'One Fireteam on the board at a time';
   if (k.frameGear && !kitHost(k.frameGear)) return `${POOL[k.frameGear].n} must be on the board`;
   if (k.fits && !hostFor(k)) return 'A Fireteam must be on the board';
   return null;
