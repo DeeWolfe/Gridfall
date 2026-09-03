@@ -2,9 +2,9 @@
 
 import {POOL} from '../content/cards.js';
 import {GEAR} from '../content/gear.js';
+import {STRATAGEMS} from '../content/stratagems.js';
 import {BEST} from '../content/hostiles.js';
 import {LEADS} from '../content/leads.js';
-import {STRATAGEMS} from '../content/stratagems.js';
 import {TGNAME} from '../content/targeting-names.js';
 import {TIERNAME, VET} from '../content/ranks.js';
 import {active, setSel, setMover} from '../state/session.js';
@@ -67,6 +67,11 @@ function statRows(id) {
     k.pristine ? ['Pristine bonus', '+' + k.pristine + ' damage at full hull'] : null,
     k.claim ? ['On deployment', 'Claims ' + k.claim + ' tiles ahead'] : null,
     k.instant ? ['Type', 'Instant — no body left behind'] : null,
+    k.strat ? ['Call', STRATAGEMS[k.strat].now
+      ? 'Lands at the END of the turn you play it, after the horde moves'
+      : 'Resolves at the START of your next turn — a full turn of prediction'] : null,
+    k.strat ? ['Aim', {friendly: 'Tap one of your units', lane: 'Tap any cell to name the lane',
+      column: 'Tap any cell to name the column', none: 'Any held tile — no target'}[STRATAGEMS[k.strat].target]] : null,
     k.gain ? ['Deploy points', `+${k.gain} this turn`] : null,
     k.draw ? ['Cards called in', '+' + k.draw] : null,
     k.homestrike ? ['Home volley', `${k.homestrike} to every hostile in your two home columns`] : null,
@@ -88,6 +93,7 @@ function cardChips(id) {
   if (k.indirect || (g && g.indirect)) out.push(['hot', 'Indirect']);
   if (g && g.rearsight) out.push(['hot', 'Rear guard']);
   if (k.instant) out.push(['gold', 'Instant']);
+  if (k.strat) out.push(['gold', 'Command call']);
   if (k.drop) out.push(['', 'Any tile']);
   if (k.blocker) out.push(['', 'Blocker']);
   if (!out.length) return '';
@@ -388,7 +394,6 @@ export function focusGear(gi, viewOnly, fit) {
 export function focusLead(k, ctx) {
   const L = LEADS[k];
   if (!L) return;
-  const def = L.stratagem ? STRATAGEMS[L.stratagem] : null;
   const open = leadUnlocked(k);
   const assigned = ((active.lead && LEADS[active.lead]) ? active.lead : 'ironbrand') === k;
   const price = leadPrice(k);
@@ -407,7 +412,6 @@ export function focusLead(k, ctx) {
       <div class="ftxt">${L.bio}</div>
       ${L.passive ? `<div class="fab"><b>Passive · ${L.passive.n}</b>${L.passive.d}</div>` : ''}
       ${L.con ? `<div class="fab down"><b>Cost · ${L.con.n}</b>${L.con.d}</div>` : ''}
-      ${def ? `<div class="fab"><b>Stratagem · ${def.n} · ${def.dp} DP</b>${def.d} Once per mission; ${def.now ? 'lands at the end of the turn you call it' : 'resolves at the start of the following turn'}.</div>` : ''}
       <div class="fstats"><div class="fstat"><span class="k">Status</span>
         <span class="v">${assigned ? 'Assigned' : open ? 'On the roster' : leadGateText(k)}</span></div></div>
     </div><div class="facts">${acts}</div>`;

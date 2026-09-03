@@ -15,6 +15,7 @@ import {hooks} from '../state/hooks.js';
 import {unitAt, foeAt, civAt} from './board.js';
 import {mkUnit} from './units.js';
 import {applyFrameGear} from './frames.js';
+import {armCall} from './stratagems.js';
 import {fire, blast, healPass, dmgEnemy} from './combat.js';
 import {clog} from './log.js';
 import {drawCard} from './deck.js';
@@ -149,6 +150,13 @@ export function deploy(cid, l, c) {
   // An instant shares consume() with everything else, so it bills its deploy
   // points, logs a promotion and clears the selection by the same path.
   if (k.instant) { playInstant(cid, l, c); return consume(cid); }
+
+  // A command call arms and is spent — no body, no tile taken. The tap that
+  // played it names the target: a unit, a lane, a column.
+  if (k.strat) {
+    armCall(cid, l, c);
+    return consume(cid);
+  }
 
   if (k.frameGear) {
     // Gear bolts onto the standing Frame — validTiles only ever offers its

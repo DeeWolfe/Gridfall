@@ -14,10 +14,16 @@ const F = failures();
 const start = () => {
   const p = unlockAll(A.blankProfile('BR'), ['rifle', 'marks', 'wall', 'medic']);
   A.enterProfile(p);
-  p.lead = 'firebrand';                            // carries Breaching Charge
   A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0});
   stillAir();
   clearBoard();
+};
+
+/** Play the call card at (l, c) — the card path, hand and points included. */
+const play = (cid, l, c) => {
+  if (!A.G.hand.includes(cid)) A.G.hand.push(cid);
+  A.G.dp = 30;
+  A.deploy(cid, l, c);
 };
 
 // A: kills at or below the threshold, spares above, leaves other columns alone
@@ -27,7 +33,7 @@ const start = () => {
   const tough = spawnFoe('hulk', 2, 5, A.BREACH_HULL + 1);     // just over
   const bystander = spawnFoe('crawler', 3, 6, 3);              // other column
   const kills = A.G.kills;
-  A.playStratagem({col: 5});
+  play('breach', 0, 5);
   A.resolveStratagemEnd();
   if (A.G.enemies.some(e => e.uid === weak.uid)) F.push('at-threshold hostile survived');
   if (!A.G.enemies.some(e => e.uid === tough.uid)) F.push('over-threshold hostile died');
@@ -40,7 +46,7 @@ const start = () => {
   start();
   spawnUnit('wall', 2, 3);                         // friendly blocker in the lane
   const dugIn = spawnFoe('spitter', 2, 6, 5);
-  A.playStratagem({col: 6});
+  play('breach', 0, 6);
   A.resolveStratagemEnd();
   if (A.G.enemies.length) F.push('a blocker shielded the target from the charge');
 }
@@ -50,7 +56,7 @@ const start = () => {
   start();
   // A hulk reduces incoming damage by 1, but a wounded one still dies.
   const wounded = spawnFoe('hulk', 0, 4, 6);
-  A.playStratagem({col: 4});
+  play('breach', 0, 4);
   A.resolveStratagemEnd();
   if (A.G.enemies.length) F.push('armour floor blunted the breaching charge');
 }
@@ -60,14 +66,14 @@ const start = () => {
 {
   start();
   const doomed = spawnFoe('crawler', 1, 5, 3);
-  A.playStratagem({col: 5});
+  play('breach', 0, 5);
   if (!A.G.enemies.some(e => e.uid === doomed.uid)) F.push('the charge fired the instant it was called');
   A.resolveStratagem();                            // the long beat: not its beat
   if (!A.G.enemies.some(e => e.uid === doomed.uid)) F.push('the charge fired on the start-of-turn tick');
-  if (!A.G.strat.armed) F.push('the start-of-turn tick disarmed a call it did not fire');
+  if (!A.G.calls.length) F.push('the start-of-turn tick disarmed a call it did not fire');
   A.resolveStratagemEnd();
   if (A.G.enemies.some(e => e.uid === doomed.uid)) F.push('the charge did not land at the end of the turn');
-  if (A.G.strat.armed) F.push('the call stayed armed after it landed');
+  if (A.G.calls.length) F.push('the call stayed armed after it landed');
   A.resolveStratagemEnd();                         // must be inert now
 }
 
@@ -79,18 +85,18 @@ const start = () => {
   start();
   const doomed = spawnFoe('crawler', 1, 4, 3);
   const kills = A.G.kills;
-  A.playStratagem({col: 2});                       // two cells ahead of it
+  play('breach', 0, 2);                       // two cells ahead of it
   A.endTurn();
   if (A.G.enemies.some(e => e.uid === doomed.uid)) F.push('the charge missed the cell it walked into');
   if (A.G.kills !== kills + 1) F.push(`the charge was counted ${A.G.kills - kills} times`);
-  if (A.G.strat.armed) F.push('a call survived the turn that fired it');
+  if (A.G.calls.length) F.push('a call survived the turn that fired it');
 }
 
 // F: aiming where it stands, rather than where it is going, hits nothing
 {
   start();
   const walker = spawnFoe('crawler', 1, 4, 3);
-  A.playStratagem({col: 4});
+  play('breach', 0, 4);
   A.endTurn();
   if (!A.G.enemies.some(e => e.uid === walker.uid)) {
     F.push('the charge hit a cell the target had already left — the beat is gone');

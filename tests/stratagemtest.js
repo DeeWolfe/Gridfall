@@ -1,115 +1,141 @@
-// The stratagem class: seeded outside the deck, once per mission, costs DP,
-// resolves at the start of the FOLLOWING turn with a marker in between.
+// Command calls: the old lead stratagems, deck cards now.
+//
+// What must stay true across the conversion:
+//   - a call is a tech CARD: bought, drawn, held, billed through costOf;
+//   - playing one arms it — nothing resolves on the tap (the prediction beat);
+//   - long-beat calls fire at the START of the next turn, the demolition
+//     pair at the END of the turn they are played;
+//   - several calls can be in the air at once, each on its own beat;
+//   - the armed calls telegraph on the board;
+//   - no team lead carries a stratagem any more.
 import * as A from './support/api.js';
 import {failures} from './support/harness.js';
-import {spawnUnit, clearBoard, unlockAll, stillAir} from './support/fixtures.js';
+import {spawnUnit, spawnFoe, clearBoard, unlockAll, stillAir} from './support/fixtures.js';
 
 const F = failures();
 
-const start = (lead, deck) => {
-  const p = unlockAll(A.blankProfile('ST'), deck || ['rifle', 'marks', 'wall', 'medic']);
+const start = () => {
+  const p = unlockAll(A.blankProfile('ST'),
+    ['rifle', 'marks', 'wall', 'duel', 'grapple', 'breach', 'requisition']);
   A.enterProfile(p);
-  p.lead = lead;
   A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0});
   stillAir();
+  clearBoard();
+  A.G.predict = [];
+  A.G.held = [];
+  A.G.dp = 30;
+};
+/** Play a call card at (l, c), pushing it into hand first. */
+const play = (cid, l, c) => {
+  if (!A.G.hand.includes(cid)) A.G.hand.push(cid);
+  A.deploy(cid, l, c);
 };
 
-// A: seeded by the lead, outside the deck; leads without one seed nothing
+// --- the shape: seven tech cards, and no lead carries a call ---
 {
-  start('coronet');
-  if (!A.G.strat || A.G.strat.k !== 'requisition') F.push('no stratagem seeded for Coronet');
-  if (A.G.deck.length + A.G.hand.length !== 4) F.push('the call leaked into the deck or hand');
-  start('ironbrand');
-  if (A.G.strat) F.push('Ironbrand seeded a stratagem he does not carry');
+  const CALLS = Object.keys(A.POOL).filter(c => A.POOL[c].strat);
+  if (CALLS.length !== 7) F.push(`expected 7 call cards, found ${CALLS.length}`);
+  CALLS.forEach(c => {
+    if (A.POOL[c].t !== 'tech') F.push(`${c} is not a tech card`);
+    if (!A.STRATAGEMS[A.POOL[c].strat]) F.push(`${c} names a call that does not exist`);
+  });
+  Object.keys(A.LEADS).forEach(k => {
+    if (A.LEADS[k].stratagem) F.push(`${k} still carries a stratagem`);
+  });
+  console.log('shape: 7 call cards, tech tier, no lead carries one');
 }
 
-// B: costs DP, refuses when broke, once per mission
+// --- a call is billed and consumed like a card, and arms rather than fires ---
 {
-  start('loneedge');                              // Duel Protocol, 3 DP
-  clearBoard();
-  const u = spawnUnit('rifle', 2, 1);
-  A.G.dp = 2;
-  if (A.playStratagem({uid: u.uid})) F.push('played the call without the DP for it');
-  A.G.dp = 6;
-  if (!A.playStratagem({uid: u.uid})) F.push('could not play an affordable call');
-  if (A.G.dp !== 3) F.push('DP not billed, have ' + A.G.dp);
-  if (!A.G.strat.played) F.push('call not marked spent');
-  if (A.playStratagem({uid: u.uid})) F.push('played the one call twice');
+  start();
+  const foe = spawnFoe('crawler', 2, 5, 30);
+  const dpBefore = A.G.dp;
+  play('grapple', 2, 0);
+  if (A.G.dp !== dpBefore - A.costOf('grapple')) F.push('the call did not bill its points');
+  if (A.G.hand.includes('grapple')) F.push('the call card was not consumed');
+  if (foe.col !== 5) F.push('grapple fired on the tap instead of arming');
+  if (A.G.calls.length !== 1) F.push('nothing armed');
+  if (!A.stratMarkers().length) F.push('an armed call paints no telegraph');
+  A.resolveStratagem();
+  if (foe.col !== 7) F.push(`grapple did not land on the long beat (col ${foe.col})`);
+  if (A.G.calls.length) F.push('a fired call stayed armed');
+  console.log('arm-then-fire: billed, consumed, telegraphed, landed on the long beat');
 }
 
-// C: armed between turns — the marker shows — and it resolves NEXT turn
+// --- the demolition pair takes the short beat, and only the short beat ---
 {
-  start('loneedge');
-  clearBoard();
-  const u = spawnUnit('rifle', 2, 1);
-  A.playStratagem({uid: u.uid});
-  if (!A.G.strat.armed) F.push('call did not arm');
-  if (!A.stratMarkers().includes(2 * A.COLS + 1)) F.push('no marker on the duelist');
-  if (u.dueled) F.push('effect resolved the turn it was played');
-  A.G.enemies.length = 0; A.G.predict = []; A.G.held = [];
-  A.endTurn();
-  if (!u.dueled) F.push('duel did not resolve at the start of the next turn');
-  if (A.G.strat.armed) F.push('armed state not cleared after resolution');
-  if (A.stratMarkers().length) F.push('marker survived resolution');
-  // and it expires after one full turn
-  A.G.enemies.length = 0; A.G.predict = []; A.G.held = [];
-  A.endTurn();
-  if (u.dueled) F.push('duel effect never expired');
+  start();
+  const low = spawnFoe('crawler', 1, 4, A.BREACH_HULL);
+  const high = spawnFoe('hulk', 3, 4, A.BREACH_HULL + 1);
+  play('breach', 0, 4);
+  A.resolveStratagem();
+  if (!A.G.enemies.some(e => e.uid === low.uid)) F.push('breach fired on the LONG beat');
+  A.resolveStratagemEnd();
+  if (A.G.enemies.some(e => e.uid === low.uid)) F.push('breach spared a hostile at the threshold');
+  if (!A.G.enemies.some(e => e.uid === high.uid)) F.push('breach killed above the threshold');
+  console.log('breaching charge: end-of-turn beat, threshold honest');
 }
 
-// D: the duelist hits +4 and cannot be hurt while it holds
+// --- Enfilade Charge: the same demolition, along a lane ---
 {
-  start('loneedge');
-  clearBoard();
-  const u = spawnUnit('rifle', 2, 1, {dueled: true});
-  // rifle dmg 2, +4 duel, +3 Lone Edge while isolated
-  if (A.dmgPreview(u) !== A.POOL.rifle.dmg + 4 + 3) {
-    F.push('duel damage bonus wrong: ' + A.dmgPreview(u));
+  start();
+  const inLane = spawnFoe('crawler', 2, 1, 5);
+  const inLane2 = spawnFoe('crawler', 2, 7, 5);
+  const tough = spawnFoe('hulk', 2, 4, A.BREACH_HULL + 4);
+  const other = spawnFoe('crawler', 3, 4, 5);
+  play('enfilade', 2, 6);
+  A.resolveStratagemEnd();
+  if (A.G.enemies.some(e => e.uid === inLane.uid || e.uid === inLane2.uid)) {
+    F.push('enfilade left the lane standing');
   }
+  if (!A.G.enemies.some(e => e.uid === tough.uid)) F.push('enfilade killed above the threshold');
+  if (!A.G.enemies.some(e => e.uid === other.uid)) F.push('enfilade crossed lanes');
+  console.log('enfilade charge: the whole lane swept, threshold and lanes honest');
+}
+
+// --- two calls in the air at once, each on its own beat ---
+{
+  start();
+  const dragged = spawnFoe('crawler', 1, 4, 30);
+  const swept = spawnFoe('crawler', 3, 6, 5);
+  play('grapple', 1, 0);
+  play('breach', 0, 6);
+  if (A.G.calls.length !== 2) F.push('two calls did not queue');
+  A.resolveStratagemEnd();
+  if (A.G.enemies.some(e => e.uid === swept.uid)) F.push('queued breach missed its beat');
+  if (dragged.col !== 4) F.push('the short beat fired the long-beat call');
+  A.resolveStratagem();
+  if (dragged.col !== 6) F.push('queued grapple missed its beat');
+  console.log('two calls queued: each fired on its own beat');
+}
+
+// --- Duel Protocol: card on a friendly; +4, untouchable, expires ---
+{
+  start();
+  const u = spawnUnit('rifle', 2, 1);
+  const tiles = A.validTiles('duel');
+  if (!tiles.includes(2 * A.COLS + 1)) F.push('duel does not offer the friendly');
+  if (tiles.length !== 1) F.push('duel offered ground with no one on it');
+  play('duel', 2, 1);
+  if (u.dueled) F.push('duel marked the unit before its beat');
+  A.resolveStratagem();
+  if (!u.dueled) F.push('duel never landed');
+  if (A.dmgPreview(u) !== A.POOL.rifle.dmg + 4) F.push('duel bonus wrong: ' + A.dmgPreview(u));
   A.dmgUnit(u, 5, 'test');
-  if (u.hp !== u.max) F.push('duelist took damage while protected');
+  if (u.hp !== u.max) F.push('the duelist took damage while protected');
+  A.resolveStratagem();
+  if (u.dueled) F.push('the duel never expired');
+  console.log('duel protocol: aimed at a unit, +4 and untouchable for exactly one turn');
 }
 
-// E: Field Refit restores every Tech unit at resolution
+// --- Emergency Requisition through a full turn: +4 lands with the new points ---
 {
-  start('skunkworks');
-  clearBoard();
-  const t1 = spawnUnit('turret', 1, 1);
-  const t2 = spawnUnit('wall', 3, 1);
-  const r = spawnUnit('rifle', 2, 1);
-  t1.hp = 1; t2.hp = 2; r.hp = 1;
-  A.playStratagem(null);
+  start();
+  play('requisition', 2, 0);
   A.G.enemies.length = 0; A.G.predict = []; A.G.held = [];
   A.endTurn();
-  // Fabrication also repairs 1/turn — full restore means AT max, so check that.
-  if (t1.hp !== t1.max || t2.hp !== t2.max) F.push('refit left tech units damaged');
-  if (r.hp >= r.max) F.push('refit healed a non-tech unit to full');
+  if (A.G.dp !== A.MAXDP + 4) F.push('requisition paid ' + (A.G.dp - A.MAXDP) + ', expected 4');
+  console.log('requisition: +4 riding in with the next turn\'s points');
 }
 
-// F: Silent Insertion opens any tile for the next three deployments
-{
-  start('quietstep');
-  A.playStratagem(null);
-  A.G.enemies.length = 0; A.G.predict = []; A.G.held = [];
-  A.endTurn();
-  if (A.G.freeDrop !== 3) F.push('insertion did not charge three drops');
-  const tiles = A.validTiles('rifle');
-  if (!tiles.includes(1 * A.COLS + 6)) F.push('hostile ground not opened by insertion');
-  const hand = [...A.G.hand];
-  const cid = hand.find(x => x === 'rifle') || hand[0];
-  A.G.dp = 6;
-  A.deploy(cid, 1, 6);
-  if (A.G.freeDrop !== 2) F.push('deployment did not spend an insertion charge');
-}
-
-// G: Emergency Requisition pays +4 DP on resolution
-{
-  start('coronet');
-  A.playStratagem(null);
-  A.G.enemies.length = 0; A.G.predict = []; A.G.held = [];
-  A.endTurn();
-  // Coronet's Standing Reserve (+2) refreshes underneath the call's +4.
-  if (A.G.dp !== A.MAXDP + 2 + 4) F.push('requisition paid ' + (A.G.dp - A.MAXDP - 2) + ', expected 4');
-}
-
-F.report('stratagems: all checks pass');
+F.report('command calls: cards now, and every beat of the old contract holds');

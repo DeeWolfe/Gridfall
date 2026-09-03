@@ -35,6 +35,9 @@ const KANJI = {
   aegis: '盾', biomed: '命', techmed: '療', dragoon: '竜', railgun: '貫',
   hell: '焔', plasma: '光', exo: '鎧', hecate: '砲', kessen: '斬', ram: '衝',
   marshal: '将', ashura: '阿',
+  // Command calls — the old lead stratagems, cards in the deck now.
+  duel: '決', refit: '復', insertion: '潜', breach: '砕',
+  enfilade: '掃', grapple: '鎖', requisition: '徴',
   // The Frame line and its closed kits of gear cards.
   whitedevil: '白', sevenblades: '七', heavyarms: '重',
   beamrifle: '射', beamsaber: '剣', booster: '翔',

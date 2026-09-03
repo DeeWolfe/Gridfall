@@ -941,7 +941,7 @@
   },
   "beamrifle": {
    "n": "Beam Rifle",
-   "t": "special",
+   "t": "tech",
    "dp": 1,
    "hp": 0,
    "price": 180,
@@ -950,11 +950,12 @@
    "d": "White Devil only. Replaces the vulcans: 5 damage to the first hostile in the lane.",
    "tg": "first",
    "dmg": 5,
-   "single": 1
+   "single": 1,
+   "tech": 1
   },
   "beamsaber": {
    "n": "Beam Saber",
-   "t": "special",
+   "t": "tech",
    "dp": 1,
    "hp": 0,
    "price": 200,
@@ -963,22 +964,24 @@
    "d": "White Devil only. Replaces the vulcans: 7 damage at contact, and it strikes back at whatever hits it.",
    "tg": "adj",
    "dmg": 7,
-   "riposte": 3
+   "riposte": 3,
+   "tech": 1
   },
   "booster": {
    "n": "Thruster Pack",
-   "t": "special",
+   "t": "tech",
    "dp": 1,
    "hp": 0,
    "price": 170,
    "frameGear": "whitedevil",
    "slot": "support",
    "d": "White Devil only. It moves up to two cells, and may move and fire in the same turn.",
-   "boost": 1
+   "boost": 1,
+   "tech": 1
   },
   "greatsword": {
    "n": "Crystal Greatsword",
-   "t": "special",
+   "t": "tech",
    "dp": 1,
    "hp": 0,
    "price": 200,
@@ -986,11 +989,12 @@
    "slot": "weapon",
    "d": "Seven Blades only. Replaces the arm blade: 5 damage across all three cells directly ahead.",
    "tg": "vert3",
-   "dmg": 5
+   "dmg": 5,
+   "tech": 1
   },
   "longsword": {
    "n": "Crystal Longsword",
-   "t": "special",
+   "t": "tech",
    "dp": 1,
    "hp": 0,
    "price": 180,
@@ -998,22 +1002,24 @@
    "slot": "weapon",
    "d": "Seven Blades only. Replaces the arm blade: 4 damage at exactly two cells out. Reach without closing.",
    "tg": "range2",
-   "dmg": 4
+   "dmg": 4,
+   "tech": 1
   },
   "resonator": {
    "n": "Resonance Core",
-   "t": "special",
+   "t": "tech",
    "dp": 1,
    "hp": 0,
    "price": 190,
    "frameGear": "sevenblades",
    "slot": "support",
    "d": "Seven Blades only. +1 damage for every hostile standing adjacent to the frame.",
-   "resonate": 1
+   "resonate": 1,
+   "tech": 1
   },
   "lasergatling": {
    "n": "Laser Gatling",
-   "t": "special",
+   "t": "tech",
    "dp": 1,
    "hp": 0,
    "price": 180,
@@ -1021,11 +1027,12 @@
    "slot": "weapon",
    "d": "Heavy Arms only. Replaces the ballistic gatling: 3 damage to both forward diagonals, two cells deep — nothing in the centre.",
    "tg": "wings",
-   "dmg": 3
+   "dmg": 3,
+   "tech": 1
   },
   "missilegatling": {
    "n": "Missile Gatling",
-   "t": "special",
+   "t": "tech",
    "dp": 1,
    "hp": 0,
    "price": 190,
@@ -1033,18 +1040,90 @@
    "slot": "weapon",
    "d": "Heavy Arms only. Replaces the ballistic gatling: 3 damage in a cross of warheads centred three cells out.",
    "tg": "cross3",
-   "dmg": 3
+   "dmg": 3,
+   "tech": 1
   },
   "ammohopper": {
    "n": "Ammo Hopper",
-   "t": "special",
+   "t": "tech",
    "dp": 1,
    "hp": 0,
    "price": 200,
    "frameGear": "heavyarms",
    "slot": "support",
    "d": "Heavy Arms only. The gatling fires a second time every turn.",
-   "twin": 1
+   "twin": 1,
+   "tech": 1
+  },
+  "duel": {
+   "n": "Duel Protocol",
+   "t": "tech",
+   "dp": 3,
+   "hp": 0,
+   "price": 220,
+   "tech": 1,
+   "strat": "duel",
+   "d": "A command call. Mark one of your units: at the start of next turn it fights alone — +4 damage, untouchable until your turn after."
+  },
+  "refit": {
+   "n": "Field Restoration",
+   "t": "tech",
+   "dp": 2,
+   "hp": 0,
+   "price": 190,
+   "tech": 1,
+   "strat": "refit",
+   "d": "A command call. At the start of next turn, every Tech unit you control is restored to full hull."
+  },
+  "insertion": {
+   "n": "Silent Insertion",
+   "t": "tech",
+   "dp": 2,
+   "hp": 0,
+   "price": 240,
+   "tech": 1,
+   "strat": "insertion",
+   "d": "A command call. At the start of next turn, your next three deployments may land on any tile, held or not."
+  },
+  "breach": {
+   "n": "Breaching Charge",
+   "t": "tech",
+   "dp": 3,
+   "hp": 0,
+   "price": 260,
+   "tech": 1,
+   "strat": "breach",
+   "d": "A command call. Pick a column: at the end of this turn, once the horde has moved, every hostile in it at or below 8 hull is destroyed."
+  },
+  "enfilade": {
+   "n": "Enfilade Charge",
+   "t": "tech",
+   "dp": 3,
+   "hp": 0,
+   "price": 260,
+   "tech": 1,
+   "strat": "enfilade",
+   "d": "A command call. Pick a lane: at the end of this turn, once the horde has moved, every hostile in it at or below 8 hull is destroyed."
+  },
+  "grapple": {
+   "n": "Grapple Net",
+   "t": "tech",
+   "dp": 2,
+   "hp": 0,
+   "price": 200,
+   "tech": 1,
+   "strat": "grapple",
+   "d": "A command call. Pick a lane: at the start of next turn, every hostile in it is dragged two cells back toward their own edge."
+  },
+  "requisition": {
+   "n": "Emergency Requisition",
+   "t": "tech",
+   "dp": 1,
+   "hp": 0,
+   "price": 190,
+   "tech": 1,
+   "strat": "requisition",
+   "d": "A command call. +4 deploy points when it lands at the start of next turn."
   }
  },
  "gear": {
@@ -1552,8 +1631,7 @@
     "d": "Your deck may hold only 9 cards."
    },
    "dpMod": 2,
-   "deckCap": 9,
-   "stratagem": "requisition"
+   "deckCap": 9
   },
   "coldwire": {
    "n": "SABLE",
@@ -1584,8 +1662,7 @@
    "con": {
     "n": "No Formation",
     "d": "A unit with a friendly adjacent deals -1 damage."
-   },
-   "stratagem": "duel"
+   }
   },
   "skunkworks": {
    "n": "KUDELIA",
@@ -1600,8 +1677,7 @@
    "con": {
     "n": "Thin Personnel",
     "d": "Common units deploy with -2 hull."
-   },
-   "stratagem": "refit"
+   }
   },
   "quietstep": {
    "n": "ALLENBY",
@@ -1617,8 +1693,7 @@
     "n": "No Rear Line",
     "d": "You cannot deploy in the two rearmost columns."
    },
-   "minCol": 2,
-   "stratagem": "insertion"
+   "minCol": 2
   },
   "firebrand": {
    "n": "CAGALLI",
@@ -1633,8 +1708,7 @@
    "con": {
     "n": "Exposed",
     "d": "All your units take +1 damage."
-   },
-   "stratagem": "breach"
+   }
   },
   "riptide": {
    "n": "YAZAN",
@@ -1650,8 +1724,7 @@
     "n": "Light Supply",
     "d": "-2 deploy points every turn."
    },
-   "dpMod": -2,
-   "stratagem": "grapple"
+   "dpMod": -2
   },
   "quartermaster": {
    "n": "BRANT",
@@ -2791,7 +2864,7 @@
    "d": "One unit gains +4 damage and takes no damage until your next turn."
   },
   "refit": {
-   "n": "Field Refit",
+   "n": "Field Restoration",
    "dp": 2,
    "target": "none",
    "d": "Every Tech unit you control is restored to full hull."
@@ -2820,6 +2893,13 @@
    "dp": 0,
    "target": "none",
    "d": "+4 deploy points when the call lands."
+  },
+  "enfilade": {
+   "n": "Enfilade Charge",
+   "dp": 3,
+   "target": "lane",
+   "d": "Destroy every hostile in the chosen lane that is at or below 8 hull. Lands at the end of the turn you call it, once the horde has moved.",
+   "now": 1
   }
  },
  "leadUnlocks": {

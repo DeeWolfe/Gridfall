@@ -9,6 +9,7 @@ import {POOL} from '../content/cards.js';
 import {BEST} from '../content/hostiles.js';
 import {G} from '../state/session.js';
 import {gearOf, leadOf, leadBan} from '../save/progression.js';
+import {STRATAGEMS} from '../content/stratagems.js';
 import {frameGateText} from './frames.js';
 
 /** Your unit covering this cell — units may be two cells wide. */
@@ -76,9 +77,9 @@ export function validTiles(cid) {
   if (frameGateText(cid)) return [];
   const tiles = rawTiles(cid, k);
   // Quietstep's No Rear Line: nothing that lands a body may land in the two
-  // rearmost columns. Ground-target instants, attachments and gear are not bodies.
+  // rearmost columns. Instants, attachments, gear and calls are not bodies.
   const minCol = leadOf().minCol || 0;
-  if (!minCol || k.instant || k.attach || k.frameGear) return tiles;
+  if (!minCol || k.instant || k.attach || k.frameGear || k.strat) return tiles;
   return tiles.filter(i => i % COLS >= minCol);
 }
 
@@ -110,6 +111,25 @@ function rawTiles(cid, k) {
   // Attachments go onto one of your units that does not already carry one.
   if (k.attach) {
     G.units.forEach(u => { if (!u.att[k.attach]) out.push(u.lane * COLS + u.col); });
+    return out;
+  }
+
+  // A command call aims at the board, not at ground you own. A banded call
+  // (a lane, a column) takes any open cell to name its line; a friendly call
+  // takes one of your units; a target-less call reads like an instant.
+  if (k.strat) {
+    const def = STRATAGEMS[k.strat];
+    if (def.target === 'friendly') {
+      G.units.forEach(u => out.push(u.lane * COLS + u.col));
+    } else if (def.target === 'lane' || def.target === 'column') {
+      for (let l = 0; l < LANES; l++) for (let c = 0; c < COLS; c++) {
+        if (G.ter[l][c] !== 'x') out.push(l * COLS + c);
+      }
+    } else {
+      for (let l = 0; l < LANES; l++) for (let c = 0; c < COLS; c++) {
+        if (G.ter[l][c] === 'p') out.push(l * COLS + c);
+      }
+    }
     return out;
   }
 

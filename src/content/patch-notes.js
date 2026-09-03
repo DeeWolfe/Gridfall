@@ -4,9 +4,16 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.26';
+export const VERSION = '2.27';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.27',
+    notes: [
+      'THE COMMAND CALLS LEFT THE LEADS. All six stratagems — Duel Protocol, Field Restoration, Silent Insertion, Breaching Charge, Grapple Net, Emergency Requisition — are TECH CARDS now: bought at the Quartermaster, shuffled into your deck, drawn and paid for like everything else. The beat that defines them is untouched: playing one is a prediction, not an undo. It arms on the tap — a unit, a lane, a column — telegraphs on the board, and lands on its own clock: most at the start of your NEXT turn, the demolition charges at the end of this one, after the horde has moved. And with the deck able to hold several, calls can stack in the air at once, each landing on its own beat.',
+      'BREACHING CHARGE HAS A SISTER. The ENFILADE CHARGE sweeps a LANE the way the Breaching Charge sweeps a column — every hostile in it at or below 8 hull, destroyed at the end of the turn you call it. Two demolition lines, two axes; the horde has to respect both. And the Frame kits filed under the right shelf at last: all nine gear cards are TECH now, not Specialists — which also means Coldwire\'s No Requisition no longer touches them, for whatever good gear does a commander who cannot field the machine it fits.',
+    ],
+  },
   {
     v: '2.26',
     notes: [

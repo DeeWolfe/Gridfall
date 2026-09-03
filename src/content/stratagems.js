@@ -10,7 +10,7 @@ export const STRATAGEMS = {
     d: "One unit gains +4 damage and takes no damage until your next turn.",
   },
   refit: {
-    n: "Field Refit",
+    n: "Field Restoration",
     dp: 2,
     target: "none",
     d: "Every Tech unit you control is restored to full hull.",
@@ -39,5 +39,12 @@ export const STRATAGEMS = {
     dp: 0,
     target: "none",
     d: "+4 deploy points when the call lands.",
+  },
+  enfilade: {
+    n: "Enfilade Charge",
+    dp: 3,
+    target: "lane",
+    d: "Destroy every hostile in the chosen lane that is at or below 8 hull. Lands at the end of the turn you call it, once the horde has moved.",
+    now: 1,
   },
 };

@@ -4561,6 +4561,47 @@ Pilot era's failure mode, gone). The spec's open question — is losing a
 kitted Frame correctly brutal or unplayable — is Graham's to answer in
 real hands.
 
+## v2.27 — command calls are cards (user's direction)
+
+"Remove all stratagems ability from team leads and convert them to tech
+cards. for breaching charge, make a horizontal version as well. for the
+weapons for frames, they should be tech if not gear."
+
+**The conversion.** Every lead's `stratagem` field is gone (leadtest
+guards the badge shows no CALL tag). The six calls are tech cards
+(`strat: '<key>'`, dp from the old def floored at 1, priced 190-260) and
+a seventh joins them: `enfilade`, the lane-axis Breaching Charge. The
+`refit` stratagem was renamed **Field Restoration** — its old name,
+Field Refit, is Kaede's lead passive now and two things must not share
+it. Pool 78→85.
+
+**The engine kept its soul.** stratagems.js still owns the prediction
+contract — arm on play, telegraph, land on the long beat (start of next
+turn) or the demolition pair's short beat (end of this one). What
+changed: `G.strat` (one seeded slot) became `G.calls` (a queue), so
+several calls ride the air at once, each firing on its own beat;
+`armCall(cid, l, c)` is the card's deploy branch, deriving the target
+from the tap (unit / lane / column / none); seedStratagem, stratReady,
+canPlayStratagem, playStratagem are deleted. validTiles gained a strat
+branch (friendly → unit cells, banded → any open cell, none → held
+tiles), exempt from Quietstep's minCol like the other non-bodies.
+
+**UI deleted with them:** the stratSel state and its whole flow — the
+offdeck call tile, the board-as-target-picker, the drawSel call panel,
+the badge's CALL READY/SPENT tag — plus their orphaned CSS. A call now
+plays exactly like a card because it IS one; the focus card carries
+Call/Aim rows and a "Command call" chip. `G.leadUsed` (the old
+once-per-mission latch) retired.
+
+**Gear re-tier:** the nine frameGear cards are t 'tech' (+tech flag).
+Side effect noted in the patch notes: Coldwire's banTier no longer
+catches them (harmless — she can't field the Frames they fit).
+
+stratagemtest rewritten for the card contract (shape, arm-then-fire,
+both beats, enfilade, a two-call queue, duel, requisition);
+grapple/breach harnesses moved onto the card path; kanji 決復潜砕掃鎖徴
+and seven call tokens for the coverage guards.
+
 ## Card backlog — the next pass
 
 Not built. Recorded here so the next card batch starts from a list rather than a

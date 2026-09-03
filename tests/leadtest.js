@@ -69,10 +69,10 @@ A.launch(firstNode());
   if (u.hp > u.max) F.push('repair overhealed past max');
 }
 
-// --- Coronet's call is once per mission, and the badge says so ---
+// --- Coronet's Lean Manifest bites at the door; no lead seeds a call ---
 A.active.lead = 'coronet';
 {
-  // His Lean Manifest bites first: the full twelve is refused at the door.
+  // The full twelve is refused before the mission starts.
   if (A.launch(firstNode()) !== false) F.push('Coronet accepted a 12-card deck');
 }
 const fullDeck = [...A.active.loadout.deck];
@@ -80,21 +80,14 @@ A.active.loadout.deck = fullDeck.slice(0, 9);
 A.launch(firstNode());
   stillAir();
 {
-  if (!A.G.strat || A.G.strat.k !== 'requisition') F.push('Coronet mission did not seed his stratagem');
-  if (A.G.strat.played) F.push('the call should start unspent');
+  // The calls are deck cards now — a mission opens with nothing armed and
+  // the lead badge carries no CALL tag for anyone.
+  if (A.G.calls.length) F.push('a mission opened with a call already armed');
   drawAll();
-  const badge = get('leadbadge');
-  if (!badge._html.includes('READY')) F.push('badge should show CALL READY while unspent');
-  A.G.strat.played = true;
-  drawAll();
-  if (!badge._html.includes('SPENT')) F.push('badge should show SPENT once called');
+  const badge = get('leadbadge')._html;
+  if (badge.includes('READY') || badge.includes('SPENT')) F.push('the lead badge still shows a call tag');
 }
 A.active.lead = 'ironbrand';
-drawAll();
-{
-  const badge = get('leadbadge')._html;
-  if (badge.includes('READY') || badge.includes('SPENT')) F.push('a lead without a stratagem should show no call tag');
-}
 
 // --- Drop Pod gear: crushes a Common hostile, cannot touch a Specialist ---
 {

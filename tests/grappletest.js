@@ -11,10 +11,16 @@ const F = failures();
 const start = () => {
   const p = unlockAll(A.blankProfile('GR'), ['rifle', 'marks', 'wall', 'medic']);
   A.enterProfile(p);
-  p.lead = 'riptide';                              // carries Grapple Net
   A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0});
   stillAir();
   clearBoard();
+};
+
+/** Play the call card at (l, c) — the card path, hand and points included. */
+const play = (cid, l, c) => {
+  if (!A.G.hand.includes(cid)) A.G.hand.push(cid);
+  A.G.dp = 30;
+  A.deploy(cid, l, c);
 };
 
 // A: a clear lane drags everything two cells back; other lanes untouched
@@ -23,7 +29,7 @@ const start = () => {
   const a = spawnFoe('crawler', 2, 3, 30);
   const b = spawnFoe('crawler', 2, 6, 30);
   const c = spawnFoe('crawler', 3, 3, 30);
-  A.playStratagem({lane: 2});
+  play('grapple', 2, 0);
   A.resolveStratagem();
   if (a.col !== 5) F.push('mid-lane drag wrong: ' + a.col);
   if (b.col !== A.COLS - 1) F.push('edge-bound drag not clamped: ' + b.col);
@@ -36,7 +42,7 @@ const start = () => {
   spawnUnit('wall', 1, 5);
   const near = spawnFoe('crawler', 1, 3, 30);
   const edge = spawnFoe('crawler', 1, 7, 30);
-  A.playStratagem({lane: 1});
+  play('grapple', 1, 0);
   A.resolveStratagem();
   if (edge.col !== 7) F.push('edge hostile moved off the board: ' + edge.col);
   if (near.col !== 4) F.push('drag passed through a unit: ' + near.col);
@@ -49,7 +55,7 @@ const start = () => {
   start();
   const front = spawnFoe('crawler', 4, 5, 30);
   const back = spawnFoe('crawler', 4, 6, 30);
-  A.playStratagem({lane: 4});
+  play('grapple', 4, 0);
   A.resolveStratagem();
   if (back.col !== 7) F.push('rear of the file should reach the edge: ' + back.col);
   if (front.col !== 6) F.push('front of the file should stop behind it: ' + front.col);

@@ -36,9 +36,6 @@ export const setMover = u => { mover = u; };
 export let foeSel = null;
 export const setFoeSel = e => { foeSel = e; };
 
-/** True while the mission's stratagem is selected and awaiting a target. */
-export let stratSel = false;
-export const setStratSel = v => { stratSel = !!v; };
 
 /** Unit aiming a cell-targeted ability (Piercing Thrust), or null. */
 export let abAim = null;
@@ -67,6 +64,5 @@ export function clearSelection() {
   sel = null;
   mover = null;
   foeSel = null;
-  stratSel = false;
   abAim = null;
 }

@@ -42,7 +42,7 @@ export {seedFrame, frameReady, frameOnBoard, frameGateText, applyFrameGear, salv
 export {seedBoss, bossForOp, bossHp, dmgBoss, bossTick, bossWarnCells, bossSelThreat} from '../../src/rules/boss.js';
 export {BOSSDEF} from '../../src/content/bosses.js';
 export {pierceUnit} from '../../src/rules/combat.js';
-export {seedStratagem, stratReady, canPlayStratagem, playStratagem, stratMarkers, resolveStratagem, resolveStratagemEnd, BREACH_HULL} from '../../src/rules/stratagems.js';
+export {armCall, stratMarkers, resolveStratagem, resolveStratagemEnd, BREACH_HULL} from '../../src/rules/stratagems.js';
 export {laneJammed, laneFloor, laneAhead, geomFor, geomCells, candidatesFor, targetsFor} from '../../src/rules/targeting.js';
 export {dampenIn, dmgEnemy, blast, dmgUnit, fire, healPass, breachAt} from '../../src/rules/combat.js';
 export {useAbility, pierceTargets, doPierce} from '../../src/rules/abilities.js';

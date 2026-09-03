@@ -13,9 +13,8 @@ import {DOCTRINE} from '../content/doctrines.js';
 import {BOSSDEF} from '../content/bosses.js';
 import {bossHp, bossWarnCells, PIECE_GLYPH, PIECE_NAME} from '../rules/boss.js';
 import {TGNAME} from '../content/targeting-names.js';
-import {G, active, sel, mover, foeSel, replaying, stratSel, logOpen, abAim, setSel, setMover, setFoeSel, setStratSel, setLogOpen, setAbAim} from '../state/session.js';
-import {STRATAGEMS} from '../content/stratagems.js';
-import {stratReady, canPlayStratagem, playStratagem, stratMarkers} from '../rules/stratagems.js';
+import {G, active, sel, mover, foeSel, replaying, logOpen, abAim, setSel, setMover, setFoeSel, setLogOpen, setAbAim} from '../state/session.js';
+import {stratMarkers} from '../rules/stratagems.js';
 import {frameOnBoard, frameGateText} from '../rules/frames.js';
 import {costOf, gearOf, vetOf, isProto, leadOf, leadBan, cardName} from '../save/progression.js';
 import {unitAt, foeAt, civAt, held, scorched, validTiles, breachAllowance} from '../rules/board.js';
@@ -72,27 +71,19 @@ function confirmAbort() {
     ok => { if (ok) leaveCombat(); }, {ok: 'Abort'});
 }
 
-/** The team-lead badge: passive on tap, and the stratagem's state at a glance. */
+/** The team-lead badge: the pro and con, one tap away. */
 function drawLeadBadge() {
   const L = leadOf();
   const badge = $('leadbadge');
-  const def = L.stratagem ? STRATAGEMS[L.stratagem] : null;
-  const ready = !!(def && G.strat && !G.strat.played && !G.over);
-
   badge.innerHTML = `${portrait(active.lead || 'ironbrand')}
-    <span class="lbname">${L.call}</span>
-    ${def ? `<span class="lbtag${ready ? ' ready' : ''}">${ready ? 'CALL READY' : 'SPENT'}</span>` : ''}`;
-  badge.className = 'leadbadge' + (ready ? ' ready' : '');
+    <span class="lbname">${L.call}</span>`;
+  badge.className = 'leadbadge';
   badge.style.borderColor = L.col;
 
   badge.onclick = () => {
     const lines = [];
     if (L.passive) lines.push(`<b>Passive · ${L.passive.n}</b> — ${L.passive.d}`);
     if (L.con) lines.push(`<b>Cost · ${L.con.n}</b> — ${L.con.d}`);
-    if (def) {
-      lines.push(`<b>Stratagem · ${def.n}</b> — ${def.d}` +
-        (ready ? '<br>Play it from your hand.' : '<br>Already called this mission.'));
-    }
     notify(L.call + ' · ' + L.role, lines.join('<br><br>') || L.bio);
   };
 }
@@ -104,15 +95,6 @@ export function drawActions() {
   primary.disabled = false;
   secondary.disabled = false;
 
-  if (stratSel) {
-    primary.className = 'btn danger';
-    primary.textContent = 'Cancel call';
-    primary.onclick = () => { setStratSel(false); drawAll(); };
-    secondary.className = 'btn ghost';
-    secondary.textContent = 'Hold';
-    secondary.onclick = () => { setStratSel(false); drawAll(); };
-    return;
-  }
   if (sel) {
     primary.className = 'btn danger';
     primary.textContent = 'Cancel placement';
@@ -156,26 +138,6 @@ export function drawActions() {
 function drawSel() {
   const el = $('selinfo');
   el.hidden = false;
-
-  if (stratSel) {
-    const def = stratReady();
-    if (!def) { setStratSel(false); }
-    else {
-      const how = def.target === 'friendly' ? 'Tap one of your units to mark the duelist.'
-        : def.target === 'lane' ? 'Tap any cell to choose the lane.'
-          : def.target === 'column' ? 'Tap any cell to choose the column.'
-            : 'No target needed — commit the call.';
-      el.innerHTML = `<div class="selhead"><b style="color:var(--violet)">${def.n}</b>
-          <span class="hpbadge">${def.dp} DP</span></div>
-        <div class="abline">${def.d}</div>
-        <div class="selfire live">${STRATAGEMS[G.strat.k].now
-          ? 'Lands at the END of this turn.' : 'Resolves at the START of your next turn.'} ${how}</div>
-        ${def.target === 'none' ? '<div class="selacts"><button class="mini" data-callstrat="1">Call it in</button></div>' : ''}`;
-      const b = el.querySelector('[data-callstrat]');
-      if (b) b.onclick = () => { sfx('confirm'); playStratagem(null); setStratSel(false); drawAll(); };
-      return;
-    }
-  }
 
   if (mover) {
     const u = mover;
@@ -399,7 +361,6 @@ export function drawBoard() {
   const swaps = mover ? swapTargets(mover) : [];
   const threat = forecastThreat();
   const marks = new Set(stratMarkers());
-  const stratDef = stratSel ? stratReady() : null;
 
   // Gold = will be struck if this unit fires; aimable = may be locked onto.
   const willHit = new Set();
@@ -461,8 +422,6 @@ export function drawBoard() {
     if (swaps.includes(i)) cls += ' swaptgt';
     if (pierceCells.has(i)) cls += ' piercetgt';
     if (marks.has(i)) cls += ' stratmark';
-    if (stratDef && (stratDef.target === 'lane' || stratDef.target === 'column' ||
-      (stratDef.target === 'friendly' && unitAt(l, c)))) cls += ' strattgt';
     if (mover && mover.lane === l && mover.col === c) cls += ' movesel';
     if (inRange.has(i)) cls += ' inrange';
     if (foeInfl.has(i)) cls += ' foeinfl';
@@ -557,22 +516,6 @@ export function drawBoard() {
         cell.onclick = () => notify(`${EVENTS.burrow.icon} ${EVENTS.burrow.n}`,
           `${EVENTS.burrow.d}<br><br>This tile is the one marked — whatever is left standing here when it opens falls through with it.`);
       }
-    }
-
-    // A selected stratagem turns the whole board into its target picker.
-    if (stratDef) {
-      const u = unitAt(l, c);
-      if (stratDef.target === 'friendly' && u) {
-        cell.onclick = () => { sfx('confirm'); playStratagem({uid: u.uid}); setStratSel(false); drawAll(); };
-      } else if (stratDef.target === 'lane') {
-        cell.onclick = () => { sfx('confirm'); playStratagem({lane: l}); setStratSel(false); drawAll(); };
-      } else if (stratDef.target === 'column') {
-        cell.onclick = () => { sfx('confirm'); playStratagem({col: c}); setStratSel(false); drawAll(); };
-      } else {
-        cell.onclick = () => { setStratSel(false); drawAll(); };
-      }
-      board.appendChild(cell);
-      continue;
     }
 
     // Placement, movement and swaps win over whatever the occupant wired up.
@@ -746,27 +689,6 @@ export function drawHand() {
   // and the tray says so with a gap instead of asking the player to remember.
   let offdeck = null;
 
-  // The lead's one call rides at the front of the hand, outside the deck.
-  const def = stratReady();
-  if (def) {
-    const el = document.createElement('div');
-    const cant = !canPlayStratagem() || G.over || replaying;
-    el.className = 'hc strat' + (cant ? ' poor' : '') + (stratSel ? ' sel' : '');
-    el.innerHTML = `<div class="hart"><div class="stratmark-art">⬡</div></div>
-      <div class="n">${def.n}</div>`;
-    el.title = def.n + ' — ' + def.d +
-      (def.now ? ' Lands at the end of this turn.' : ' Resolves at the start of your next turn.');
-    el.onclick = () => {
-      if (cant) return;
-      sfx(stratSel ? 'tap' : 'select');
-      setSel(null);
-      setMover(null);
-      setStratSel(!stratSel);
-      drawAll();
-    };
-    h.appendChild(el);
-    offdeck = el;
-  }
 
   // Only worth a divider when there is something on the other side of it.
   if (offdeck && G.hand.length) offdeck.classList.add('railend');
@@ -805,7 +727,6 @@ export function drawHand() {
       sfx(sel === cid ? 'tap' : 'select');
       setSel(sel === cid ? null : cid);
       setMover(null);
-      setStratSel(false);
       drawAll();
     };
     h.appendChild(el);
@@ -818,7 +739,7 @@ export function drawHand() {
   h.classList.remove('spill');
   if (h.scrollWidth > h.clientWidth + 1) h.classList.add('spill');
 
-  if (!G.hand.length && !def) {
+  if (!G.hand.length) {
     h.innerHTML = '<div style="font-size:0.6875rem;color:var(--dim)">Hand empty — hold with what is on the board.</div>';
   }
 }

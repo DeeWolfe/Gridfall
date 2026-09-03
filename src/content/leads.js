@@ -21,7 +21,6 @@ export const LEADS = {
     con: {n: "Lean Manifest", d: "Your deck may hold only 9 cards."},
     dpMod: 2,
     deckCap: 9,
-    stratagem: "requisition",
   },
   coldwire: {
     n: "SABLE",
@@ -41,7 +40,6 @@ export const LEADS = {
     bio: "Works alone by preference and by reputation. Squads assigned to him learn quickly to give him room.",
     passive: {n: "Lone Edge", d: "A unit with no friendly in an adjacent cell deals +3 damage."},
     con: {n: "No Formation", d: "A unit with a friendly adjacent deals -1 damage."},
-    stratagem: "duel",
   },
   skunkworks: {
     n: "KUDELIA",
@@ -54,7 +52,6 @@ export const LEADS = {
       d: "Tech units deploy with +2 hull and repair 1 hull every turn.",
     },
     con: {n: "Thin Personnel", d: "Common units deploy with -2 hull."},
-    stratagem: "refit",
   },
   quietstep: {
     n: "ALLENBY",
@@ -68,7 +65,6 @@ export const LEADS = {
     },
     con: {n: "No Rear Line", d: "You cannot deploy in the two rearmost columns."},
     minCol: 2,
-    stratagem: "insertion",
   },
   firebrand: {
     n: "CAGALLI",
@@ -78,7 +74,6 @@ export const LEADS = {
     bio: "Walked away from a military pedigree to fight at the line. Argues with command, never with her squad.",
     passive: {n: "Firebrand", d: "All your units deal +1 damage."},
     con: {n: "Exposed", d: "All your units take +1 damage."},
-    stratagem: "breach",
   },
   riptide: {
     n: "YAZAN",
@@ -89,7 +84,6 @@ export const LEADS = {
     passive: {n: "Riptide", d: "Your units may move and fire in the same turn."},
     con: {n: "Light Supply", d: "-2 deploy points every turn."},
     dpMod: -2,
-    stratagem: "grapple",
   },
   quartermaster: {
     n: "BRANT",

@@ -1,7 +1,6 @@
 // The hold: the between-missions home screen.
 
 import {LEADS} from '../content/leads.js';
-import {STRATAGEMS} from '../content/stratagems.js';
 import {LEADGATES} from '../content/lead-unlocks.js';
 import {OPS} from '../content/operations.js';
 import {active, MAPDEF, setMapdef} from '../state/session.js';
@@ -60,7 +59,6 @@ export function foldRoster(scope, then) {
 export function leadCardHTML() {
   const id = (active.lead && LEADS[active.lead]) ? active.lead : 'ironbrand';
   const L = LEADS[id];
-  const def = L.stratagem ? STRATAGEMS[L.stratagem] : null;
   const pulse = rosterPulse;
   rosterPulse = false;
 
@@ -74,7 +72,6 @@ export function leadCardHTML() {
       <div class="leadbio">${L.bio}</div>
       ${L.passive ? `<div class="leadperk"><b>Passive · ${L.passive.n}</b>${L.passive.d}</div>` : ''}
       ${L.con ? `<div class="leadperk down"><b>Cost · ${L.con.n}</b>${L.con.d}</div>` : ''}
-      ${def ? `<div class="leadperk strat"><b>Stratagem · ${def.n} · ${def.dp} DP</b>${def.d} Once per mission; ${def.now ? 'lands at the end of the turn you call it' : 'resolves at the start of the following turn'}.</div>` : ''}
     </div></div>`;
 }
 
@@ -89,8 +86,7 @@ export function leadTilesHTML(mode, ctx) {
   const grid = `<div class="leadgrid">${Object.keys(LEADS).map((k, i) => {
     const o = LEADS[k];
     const open = leadUnlocked(k);
-    const def = o.stratagem ? STRATAGEMS[o.stratagem] : null;
-    const perk = [o.passive ? '◈ ' + o.passive.n : '', o.con ? '▽ ' + o.con.n : '', def ? '⬡ ' + def.n : '']
+    const perk = [o.passive ? '◈ ' + o.passive.n : '', o.con ? '▽ ' + o.con.n : '']
       .filter(Boolean).join(' · ');
     const foot = mode === 'shop'
       ? (open ? (LEADGATES[k] ? 'Owned' : 'Standard issue') : leadPrice(k) + ' cr')
