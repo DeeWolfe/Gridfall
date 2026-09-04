@@ -1,12 +1,19 @@
 # Gridfall: Zanshin Protocol — mechanics spec
 
-Extracted from the reference build. Numbers here match `gridfall-data.json`; that file is the source of truth.
+The systems, not the numbers. Per-card, per-hostile and per-lead numbers live
+in `reference/gridfall-data.json`, which is the source of truth and is what
+`tools/gen-content.js` builds `src/content/` from. This document describes the
+rules those numbers feed, and is kept free of copied stat tables on purpose.
 
 ## Board and economy
 
 - **5 lanes x 8 columns.** Columns 0-2 start yours, 5-7 hostile, 3-4 neutral.
-- **6 deploy points per turn**, flat. Unspent points are lost.
-- **Deck: 12 cards, no duplicates.** Opening hand 5, draw 2 per turn, reshuffles when empty.
+- **6 deploy points per turn**, +1 on a boss mission, shifted by the lead's
+  `dpMod` (Coronet +2, Riptide -2) and floored at 1. Unspent points are lost.
+- **Deck: 12 cards, no duplicates**, or fewer under a lead that runs a short
+  manifest (`deckCap`). Opening hand 5; the turn draw is 2, plus the
+  Quartermaster's `drawBonus`, and stops at a hand of 6 — card effects that
+  call in cards ignore that cap on purpose. The reserve reshuffles when empty.
 - **Last-Stand Protocol.** Each lane carries one grid charge: the first hostile to cross that lane's line is destroyed along with every hostile in the lane (kills and quota progress from the purge do not count), and the charge is spent. **One breach past a spent lane loses.** Holding fewer than 6 tiles also loses.
 - Tiles flip to whoever ends the turn on them. You may only deploy on tiles you hold.
 
@@ -22,103 +29,56 @@ Extracted from the reference build. Numbers here match `gridfall-data.json`; tha
 
 ## Cards
 
-### Common (23)
+The pool is 85 cards across three tiers — 25 Common, 41 Tech, 19 Specialist.
+Per-card numbers live in `reference/gridfall-data.json` and are surfaced in
+the game's own Collection screen; they are deliberately not copied here,
+because a copy goes stale and the data cannot.
 
-| Card | DP | Hull | Targeting | Notes |
-|---|---|---|---|---|
-| Scout | 1 | 3 | — | — |
-| Dynamo | 2 | 3 | — | +1 DP each turn while it stands, stacking to +2. Tech, unarmed. |
-| Recon Lark | 1 | 2 | — | — |
-| Pathfinder | 1 | 4 | First hostile in lane | single-target |
-| Vanguard | 3 | 7 | Adjacent cell | single-target |
-| Rifleman | 2 | 5 | First hostile in lane | single-target |
-| Medic | 2 | 3 | — | heals the four adjacent cells, ability: Triage |
-| Fireteam Zaku | 1 | 3 | First hostile in lane | single-target, two bodies from one card |
-| Cipher | 2 | 3 | First hostile in lane | single-target, may trade places with any friendly anywhere (uses its action) |
-| Engineer | 2 | 4 | — | Tech unit directly ahead: +2 damage and repairs 2/turn |
-| Outrider | 3 | 5 | Adjacent cell | single-target, charges up to 2 cells forward, drives survivors back a cell |
-| Archer | 2 | 4 | Two ahead plus both rear diagonals | single-target |
-| Assassin | 2 | 3 | One adjacent hostile | single-target, deploys anywhere |
-| Samurai | 3 | 7 | All eight surrounding cells | — |
-| Marksman | 3 | 4 | Furthest hostile in lane | single-target |
-| Lancer | 3 | 4 | Three cells ahead | — |
-| Mortar | 3 | 3 | 3x3 at exactly range 4 | indirect |
-| Bulwark | 3 | 10 | Adjacent cell | single-target, blocks lane, shield regen, ability: Brace |
-| Knight | 3 | 9 | Adjacent cell | single-target, blocks lane, shield regen, riposte 1 |
-| Ronin | 3 | 6 | The cell ahead and the cell behind | — |
-| Naginata | 2 | 5 | Both cells one and two ahead | — |
-| Kunoichi | 2 | 3 | The four diagonals only | deploys anywhere |
-| Herald | 2 | 4 | — | — |
+A card is one of six shapes, and its data fields say which:
 
-### Tech (14)
+| Shape | Marked by | Behaviour |
+|---|---|---|
+| Unit | `hp` | Lands a body on a held tile, takes the cell, fires by its `tg` geometry |
+| Instant | `instant` | Resolves and is gone — no body, no tile taken |
+| Command call | `strat` | Arms a marked effect that lands this turn's end or next turn's start |
+| Attachment | `attach` | Rides on a standing unit rather than taking a cell of its own |
+| Frame kit | `frameGear` | Re-specs one named Proto Frame's weapon or support slot |
+| Fireteam kit | `fits` | An armour ability that fits any standing team of that line |
 
-| Card | DP | Hull | Targeting | Notes |
-|---|---|---|---|---|
-| Barricade | 1 | 12 | — | blocks lane |
-| Supply Drone | 1 | 3 | — | — |
-| Drop Beacon | 2 | 4 | — | — |
-| Supply Cache | 1 | — | — | instant |
-| Shield | 1 | — | — | attachment |
-| Shoulder Cannon | 2 | — | — | attachment |
-| Turret | 2 | 8 | First hostile in lane | single-target |
-| Relay | 2 | 4 | — | — |
-| Tech Blade | 2 | 6 | Three cells vertically, one column ahead | — |
-| Pulse Emitter | 2 | 5 | All eight surrounding cells | — |
-| Scrambler | 2 | 6 | — | — |
-| Lance Battery | 3 | 7 | Exactly three cells ahead | single-target |
-| Forward Base | 3 | 10 | — | held ground in column 3+ only; adjacent friendlies repair 2/turn and cool down faster (never to zero) |
-| Minefield | 1 | 1 | — | any ground in column 3+; 6 damage to the first hostile in, then spent; steers the horde away |
+Every card carries `dp` (deploy cost), `t` (tier) and `price` (credits at the
+Quartermaster). A unit adds `tg` (its firing geometry — see `targeting.js`
+for the named patterns and `geomCells()` for the cells each one lights).
 
-### Specialist (9)
+### Veterancy
 
-| Card | DP | Hull | Targeting | Notes |
-|---|---|---|---|---|
-| Aegis Knights | 5 | 18 | Adjacent cell | single-target, blocks lane, shield regen, riposte 2, ability: Aegis Field |
-| Bio Medic | 4 | 4 | — | — |
-| Tech Medic | 4 | 4 | — | ability: Full Restore |
-| Orbital Dragoon | 4 | 5 | Exactly two cells ahead | single-target, ability: Thruster Leap |
-| Rail Sniper | 5 | 4 | Every hostile in the lane | — |
-| Hell Jumpers | 4 | 5 | All eight surrounding cells | deploys anywhere |
-| Plasma Artillerist | 5 | 3 | 3x3 at exactly range 4 | indirect |
-| Exo Juggernaut | 5 | 20 | Adjacent cell | single-target, blocks lane, ability: Hammer Charge |
-| Hecate Platform | 5 | 4 | Furthest hostile on the board | single-target, ignores lanes and blockers, needs a turn to cycle between shots |
+Every deployment of a card counts, for the life of the profile: Standard at 0,
+Veteran at 10, Elite at 30, Legend at 75. Rank is cosmetic recognition of use,
+not a stat buff — it colours the card and its board token.
 
 ## Gear
 
-One slot per card, bought with salvage.
+One slot per card, bought with credits at the Quartermaster. Exactly one copy
+of each piece exists per profile: fitting a piece strips it off whatever was
+wearing it. 24 pieces, grouped by dominant stat into Offense, Defense and
+Utility on the fitting surface.
 
-| Gear | Cost | Effect |
-|---|---|---|
-| Extended Barrel | 45 sv | +1 damage to this unit. |
-| Reactive Plating | 40 sv | +3 hull. |
-| Servo Legs | 80 sv | May move AND fire in the same turn. |
-| Targeting Uplink | 60 sv | Ignores hostile armour floors. |
-| Field Kit | 75 sv | Costs 1 less deploy point, minimum 1. |
-| Coolant Core | 90 sv | Ability cooldowns are 1 turn shorter, minimum 1. |
-| Phase Cloak | 105 sv | The first killing blow leaves it at 1 hull instead. Once per deployment. |
-| Ablative Weave | 70 sv | +1 shield capacity. Stacks with regenerating shields. |
-| Drop Pod | 110 sv | May deploy straight onto a hostile below Specialist tier, crushing it on landing and holding the cell. |
-| Stim Injector | 70 sv | +2 damage. The unit loses 1 hull every turn it lives — it can burn out entirely. |
-| I-Field | 90 sv | Immune to any strike that arcs in from beyond the adjacent cell. |
+Two exclusivity rules, both enforced in one predicate (`gearFits()`) so
+neither surface can enforce it while the other forgets:
+
+- A Proto Frame wears no armoury gear — its kit is cards, not pieces.
+- A piece bound to a card (`frame`, `team`) or a line (`fits`) goes nowhere
+  else, and a card with no body (kit, call, instant, attachment) has no slot.
 
 ## Hostiles
 
-| Hostile | Tier | Hull | Damage | Threat | Speed | Behaviour |
-|---|---|---|---|---|---|---|
-| Crawler | Common | 3 | 2 | 1 | 2 | Cheap, fast, endless. Moves two cells a turn and floods whatever lane you leave open. |
-| Breacher | Common | 7 | 4 | 3 | 1 | Prioritises Tech over personnel. Punishes Barricade and Turret spam. |
-| Spitter | Common | 5 | 3 | 3 | 1 | Stops at range four and fires down the lane. Outranges most of your roster. Punishes turtling. |
-| Burrower | Common | 5 | 3 | 3 | 1 | Emerges mid-board, behind your front line. Punishes over-committing forward. |
-| Hulk | Common | 14 | 6 | 4 | 0.5 | Slow, heavy, reduces all incoming damage by 1. Punishes chip damage. |
-| Spore Node | Tech | 10 | — | 4 | immobile | Immobile emplacement. Releases a Crawler every two turns and holds its tile until destroyed. |
-| Bulwark Pylon | Tech | 12 | — | 5 | immobile | Immobile emplacement. +1 damage floor to every hostile in its lane. |
-| Jammer | Tech | 8 | — | 4 | immobile | Immobile emplacement. Blocks all indirect fire in its lane. Shuts off Mortar and Artillerist entirely. |
-| Harrower | Specialist | 12 | 6 | 7 | 1.5 | Tunnels straight past blockers. Barricades and Bulwarks do not stop it. |
-| Chorus | Specialist | 14 | — | 8 | immobile | Immobile at the far edge. +1 damage to every hostile on the board. Kill it first — if you can reach it. |
-| Sovereign | Specialist | 40 | 8 | 10 | 0.5 | Moves every other turn. Every tile it crosses becomes hostile ground permanently. |
-| Husk | Common | 6 | 2 | 2 | 1 | Falls apart when destroyed - two Crawlers crawl out of the wreck. |
-| Mender | Tech | 8 | - | 4 | 1 | Unarmed. Advances with the horde and knits 2 hull into the most wounded hostile in its lane each turn. |
-| Screamer | Specialist | 10 | 4 | 7 | 1 | Its death sends every hostile on the board one step forward - time the kill. |
+30 hostile types across the same three tiers, plus 10 bosses. Each carries
+`hp`, `dmg`, `threat` (its cost against a wave's budget), `spd` (cells per
+turn; 0 is an emplacement, 0.5 moves every other turn) and a behaviour flag
+or two — `jam` (blocks indirect fire in its lane), `floor` (reduces every hit
+it takes), `burrow`, `split`, `mend`, and so on. Numbers live in the data.
+
+A hostile does one thing a turn: it moves **or** it attacks, never both.
+
 
 ## Command
 
@@ -127,25 +87,64 @@ answers to you; your rank ladder is Acting Commander through Marshal.
 
 ## Team leads
 
-| Lead | Role | Perk | Stratagem | Unlock |
-|---|---|---|---|---|
-| VALE "IRONBRAND" | Line Commander | **Hardened Frames** Every unit deploys with +1 hull. | - | free |
-| KESTREL "WILDFIRE" | Strike Officer | - | **Emergency Requisition** (0 DP) +4 deploy points when the call lands. | free |
-| SABLE "COLDWIRE" | Field Engineer | **Nanite Weave** All units repair 1 hull per turn. | - | free |
-| GRAHAM "LONE EDGE" | Frontline Duelist | **Lone Edge** A unit with no adjacent friendly deals +2. | **Duel Protocol** (3 DP) One unit: +4 damage and untouchable for a turn. | 420 cr |
-| KUDELIA "SKUNKWORKS" | R&D Officer | **Field Fabrication** Tech deploys +2 hull, repairs 1/turn. | **Field Refit** (2 DP) Every Tech unit restored to full hull. | 420 cr |
-| ALLENBY "QUIETSTEP" | Infiltrator | **Quietstep** Cards that land on hostile ground cost 1 less, min 1. | **Silent Insertion** (2 DP) Next three deployments land anywhere. | 450 cr |
-| CAGALLI "FIREBRAND" | Saboteur | **Firebrand** +2 DP on any turn after you lost a unit. | **Breaching Charge** (3 DP) Destroy every hostile in a column at or below 8 hull. Ignores blockers. | 480 cr |
-| YAZAN "RIPTIDE" | Skirmisher | **Riptide** Units that repositioned take 1 less damage. | **Grapple Net** (2 DP) Drag every hostile in a lane two cells back. | 380 cr |
+Twelve leads, and from v2.25 every one of them is a trade: a passive that
+bends a rule your way and a con that bends one against you. Ironbrand is the
+free default and the only lead with no con. The rest are Quartermaster goods,
+recruited with credits.
 
-### Stratagems
+The roster, its perks and its prices live in `gridfall-data.json` under
+`leads`. What matters to the code is that **a lead's rules key off its id,
+never off the display name of its perk** (`leadIs('ironbrand')`, not
+`leadOf().passive.n === 'Hardened Armour'`) — perk prose is prose, and
+rewording it must not switch a rule off.
 
-A stratagem is a card, not a button: seeded into the mission at start (outside
-the deck), one per mission, costs DP. Playing it commits the call; the effect
-resolves at the **start of the following turn**, with the affected cells
-marked in between - a prediction, not an undo. Coronet's General Advance is
-shelved: it breaks the one-action-per-unit rule everything else rests on.
-Unlockable leads are Quartermaster goods, recruited with credits.
+Three cons are structural rather than numeric, and each is enforced at the
+door as well as in the rules: a banned tier (`banTier`), a deck ceiling
+(`deckCap`), a rearmost-column lockout (`minCol`), and the Master Chief's
+No Frame, which empties the Frame slot entirely.
+
+## Frames
+
+A Proto Frame is a prototype the deck commits to: it rides its own loadout
+slot rather than a deck slot, is **seeded into the opening hand at launch**
+(outside the deck, so a reshuffle never deals it again), and runs a closed kit
+of 1 DP gear cards no other unit may wear. One Frame stands at a time.
+
+Three chassis — the White Devil, the Seven Blades, the Heavy Arms — each with
+its own kit. A kit card is either a **weapon** (replaces the chassis's base
+weapon: its geometry, its damage, its traits) or a **support** (rides
+alongside the weapon). Every kit card is spent the moment it is played, so a
+reshuffle never deals a dead kit into your hand.
+
+Two leads are built around the line: Bushido returns a destroyed Frame and its
+kit to hand, 2 DP cheaper for its next deployment, at the cost of fielding it
+at half hull; Kaede swaps kit freely and heals 3 hull a swap, at the cost of
+carrying one piece at a time.
+
+## The Fireteam line
+
+Four named teams, each a squad in one cell that fights facing either way. One
+of each may stand at a time, and while a team stands **its card leaves the
+deck entirely**, returning to a random position in the reserve when the team
+is lost — so the line cycles rather than flooding. Six armour abilities fit
+any standing team, one carried at a time (two under the Kit Rack), each one
+use a mission.
+
+## Bosses
+
+Ten bosses, one per operation ending plus the Crownring guard set. A boss is a
+multi-cell body with shared hull, a shield, and phases that flip at hull
+thresholds; each carries a telegraphed attack pattern drawn on the board a
+turn ahead. Boss missions run a turn clock rather than a wave count.
+
+## Command calls
+
+A command call is a card, not a button: seeded into the mission at start
+(outside the deck), one per mission, costs DP. Playing it commits the call —
+the effect resolves at the **start of the following turn** (or this turn's
+end, for the calls marked `now`), with the affected cells marked in between.
+A prediction, not an undo.
+
 
 ## Missions
 
@@ -159,6 +158,7 @@ Unlockable leads are Quartermaster goods, recruited with credits.
 | Extraction | 6 | Short and heavy. Survive to extraction. Reserved for the final node of every operation. |
 | Establish Uplink | 7 | A marked relay tile in the neutral band. Hold it three turns IN A ROW - losing it resets the charge. |
 | Eradication Blitz | 6 | Destroy nine hostiles before the wave count runs out. |
+| Boss | 18 | A single multi-cell body with phases. Turn clock, not a wave count. |
 
 ## Campaign map structure
 
@@ -166,7 +166,7 @@ Nodes carry a role. The `start` node is always Defend Stronghold and the
 `final` node is always Extraction - clearing it completes the operation and
 rerolls the map; side objectives not collected by then are forfeit. `side`
 nodes are optional bonus objectives: they draw from the objective pool
-(Crystals, Specimens, Uplink, Blitz) and pay 1.5x reward plus extra salvage.
+(Crystals, Specimens, Uplink, Blitz) and pay 1.5x reward plus a flat bonus.
 A node may also carry `req`, a gate: it stays locked - whatever adjacency
 says - until the named nodes are cleared, with its `reqText` shown on the
 map ("Power offline - reset the Power Junction in the Deep Shaft").
@@ -175,7 +175,7 @@ Two more node/operation fields: `type` pins a node's mission type instead of
 rolling it (an Archive that is always an Uplink, a rescue that is always
 Civilians; a pinned `side` node may sit outside the usual side pool), and an
 operation-level `heat` (1-3) adds that much threat to every wave's budget
-and pays +25% credits and +heat salvage per point; a node-level `heat`
+and pays +25% credits per point; a node-level `heat`
 overrides it (Shallowhelm's mandatory Crystals hold runs at 1, not 3).
 `lore` on a node prefixes its map briefing line.
 
@@ -221,10 +221,9 @@ mirrored in forecastThreat/dmgPreview - the previews never lie.
 Every hostile chip carries an intent badge for the coming turn, computed by
 `enemyIntent()` (a strict mirror of `actHostile()`): ⚔n strike for n, ▸/▸▸
 advance (fractional speeds show banked steps), ✚ mend, ✱ spawn, … hold. Each
-hostile type also carries a fixed glyph (▪ Crawler, ⬢ Hulk, ◣ Breacher, ◆
-Spitter, ⋒ Burrower, ✱ Spore, ⌁ Jammer, ▣ Pylon, ✠ Harrower, ✚ Mender, ◍
-Husk, ◉ Screamer, ≋ Chorus, ♚ Sovereign) shown on its chip and in the
-incoming strip.
+hostile type also carries a fixed glyph, shown on its chip and in the incoming
+strip (▪ Crawler, ⬢ Hulk, ◣ Breacher, ◆ Spitter, ✠ Harrower, ♚ Sovereign, and
+so on for all thirty) — see `FOE_GLYPH` in `src/render/combat.js`.
 
 ## Modifiers
 
@@ -233,8 +232,13 @@ incoming strip.
 | Nest | Emplacements from wave one. |
 | Blackout | No wave preview and no spawn markers. |
 | Hull breach | The top lane is impassable. |
-| Salvage | Each kill refunds 1 deploy point. |
+| Scavenge | Each kill refunds 1 deploy point. |
 | Swarm | Crawler counts doubled. |
+| Crumbling Ground | Every couple of turns one open tile collapses for good. |
+| Fog of War | The middle and far ground are hidden. Units see one cell around them; scopes see two; scouts, the Falconer, the Forward Base and Osiris see three; a Recon Lark lifts it for a turn. |
+
+An operation's first node always rolls `none`: a modifier on the opening
+mission decides the run before the player has a deck on the board.
 
 ## Enemy doctrines
 
@@ -268,7 +272,7 @@ Shields absorb one blow each. Riposte adds to your side. Armour floors reduce wh
 | Onslaught | One per 5 waves survived |
 | Bought at the Quartermaster - 100 cr | Standard, ~1 in 8 upgrades to Specialist |
 
-Three items offered, keep one. Standard packs draw Commons and Tech only - Specialists come from specialist packs or the shop. One slot guarantees an unowned card while any remains; the other slots may draw duplicates, offered as field promotions (+12 deployments toward that card's next rank). Once cards run out the guaranteed slot degrades to unowned gear, then promotions, then salvage. The pack never opens empty.
+Three items offered, keep one. Standard packs draw Commons and Tech only - Specialists come from specialist packs or the shop. One slot guarantees an unowned card while any remains; the other slots may draw duplicates, offered as field promotions (+12 deployments toward that card's next rank). Once cards run out the guaranteed slot degrades to unowned gear, then promotions, then raw credits. The pack never opens empty.
 
 ## Modes
 
@@ -278,9 +282,11 @@ Three items offered, keep one. Standard packs draw Commons and Tech only - Speci
 
 ## Save schema
 
+`SAVE_VERSION` is 20. A fresh profile:
+
 ```json
 {
-  "version": 4,
+  "version": 20,
   "id": "pmtapjx9y",
   "callsign": "CALLSIGN",
   "created": 1787785879606,
@@ -288,8 +294,7 @@ Three items offered, keep one. Standard packs draw Commons and Tech only - Speci
   "progress": {
     "rank": 1,
     "xp": 0,
-    "credits": 300,
-    "salvage": 120
+    "credits": 420
   },
   "unlocks": {
     "cards": [
@@ -298,18 +303,61 @@ Three items offered, keep one. Standard packs draw Commons and Tech only - Speci
       "marks",
       "wall",
       "medic",
-      "turret",
+      "archer",
       "lancer",
       "bulwark",
       "assassin"
     ],
     "enemies": [],
-    "gear": []
+    "gear": [],
+    "leads": [],
+    "schemes": [
+      "standard"
+    ]
   },
   "loadout": {
     "deck": [
       "scout",
-...
+      "rifle",
+      "marks",
+      "wall",
+      "medic",
+      "archer",
+      "lancer",
+      "bulwark",
+      "assassin"
+    ],
+    "gear": {},
+    "scheme": "standard",
+    "frame": null
+  },
+  "stats": {
+    "deployments": 0,
+    "held": 0,
+    "lost": 0,
+    "breaches": 0,
+    "kills": 0,
+    "unitsLost": 0
+  },
+  "ship": "ANVIL-7",
+  "lead": "ironbrand",
+  "usage": {},
+  "op": "ironveil",
+  "ops": {},
+  "mode": "campaign",
+  "ironman": false,
+  "gaunt": null,
+  "bests": {
+    "onslaught": 0,
+    "gauntlet": 0
+  },
+  "settings": {}
+}
 ```
 
-`migrate()` runs on every load regardless of version, fills missing fields, resets unknown operations, and strips cards and gear that no longer exist.
+`migrate()` runs on every load regardless of version, fills missing fields,
+resets unknown operations, and strips cards and gear that no longer exist —
+so a save written by any earlier build still opens. Each numbered step is
+kept for as long as saves at that version could still exist in the wild; a
+new step is added only when a change alters the shape of the save, not
+merely its balance numbers.

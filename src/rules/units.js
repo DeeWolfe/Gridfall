@@ -2,7 +2,7 @@
 
 import {POOL} from '../content/cards.js';
 import {G, nextUid} from '../state/session.js';
-import {gearOf, leadOf, cardName} from '../save/progression.js';
+import {gearOf, leadIs, cardName} from '../save/progression.js';
 import {eventTechBonus} from './events.js';
 
 /** Buffs stack but are capped, so a Scout/Relay/Herald stack cannot run away. */
@@ -16,17 +16,15 @@ const MAX_BUFF = 2;
 export function mkUnit(cid, l, c) {
   const k = POOL[cid];
   const g = gearOf(cid);
-  const lead = leadOf();
-  const hardened = lead.passive && lead.passive.n === 'Hardened Armor' && k.hp ? 1 : 0;
-  const fabricated = lead.passive && lead.passive.n === 'Field Fabrication' && k.tech && k.hp ? 2 : 0;
+  const hardened = leadIs('ironbrand') && k.hp ? 1 : 0;
+  const fabricated = leadIs('skunkworks') && k.tech && k.hp ? 2 : 0;
   // Skunkworks' trade: the machines get the workshop, the infantry gets thin
   // rations. Floored at 1 so a Scout is fragile rather than stillborn.
-  const thinned = lead.passive && lead.passive.n === 'Field Fabrication'
-    && k.t === 'common' && k.hp ? -2 : 0;
+  const thinned = leadIs('skunkworks') && k.t === 'common' && k.hp ? -2 : 0;
   let hp = Math.max(1, k.hp + (g && g.hp ? g.hp : 0) + hardened + fabricated + thinned);
   // Salvage Rights' Rushed Assembly: the machine that always comes back is
   // never built whole. Rounded up, so a 15-hull frame fields at 8, not 7.
-  if (lead.con && lead.con.n === 'Rushed Assembly' && k.chassis === 'proto') {
+  if (leadIs('salvagerights') && k.chassis === 'proto') {
     hp = Math.max(1, Math.ceil(hp / 2));
   }
   // Mjolnir Plating grants the regenerating shield a card can also print.
@@ -70,7 +68,7 @@ export function mkUnit(cid, l, c) {
     backblast: k.backblast || 0,
     // Pile Bunker Blade: the second cell in a two-deep thrust takes half.
     falloff: !!k.falloff,
-    // Guardian Field / Core Booster: an aura and a mobility grant, both read
+    // Guardian Field / Maneuver Thrusters: an aura and a mobility grant, read
     // off the fitted support rather than the base card.
     auraShield: false,
     mobGrant: false,
@@ -190,17 +188,16 @@ export function buffOf(u) {
  */
 export function leadBonus(u) {
   let b = u.dueled ? 4 : 0;
-  const lead = leadOf();
   // Lone Edge cuts both ways now: the duelist alone hits +3, and standing in
   // formation costs 1 — the lead is a bias to build around, not a bonus.
-  if (lead.passive && lead.passive.n === 'Lone Edge') {
+  if (leadIs('loneedge')) {
     const alone = !G.units.some(o =>
       o.uid !== u.uid && Math.abs(o.lane - u.lane) + Math.abs(o.col - u.col) === 1);
     b += alone ? 3 : -1;
   }
   // Firebrand: everything hits harder. Everything. (The other half of the
   // trade lives in dmgUnit — her units take +1 too.)
-  if (lead.passive && lead.passive.n === 'Firebrand') b += 1;
+  if (leadIs('firebrand')) b += 1;
   return b;
 }
 

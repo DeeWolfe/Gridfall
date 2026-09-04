@@ -4,9 +4,16 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.38.5';
+export const VERSION = '2.38.6';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.38.6',
+    notes: [
+      'HOUSE STYLE. Armour is spelled one way across the whole game now — ARMOUR LOCK and Ironbrand\'s HARDENED ARMOUR were the last two holdouts. Nothing about either changed but the spelling.',
+      'Devil\'s Drive and Maneuver Thrusters read as kit from this world rather than borrowing another one\'s name. Same rules, same numbers.',
+    ],
+  },
   {
     v: '2.38.5',
     notes: [

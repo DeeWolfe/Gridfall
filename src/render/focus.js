@@ -9,7 +9,7 @@ import {TGNAME} from '../content/targeting-names.js';
 import {TIERNAME, VET} from '../content/ranks.js';
 import {active, setSel, setMover, G} from '../state/session.js';
 import {commit} from '../save/profile.js';
-import {costOf, gearOf, vetOf, gearFits, isProto, CHASSIS_NAME, leadUnlocked, leadPrice, leadGateText, cardName, deckCapOf, leadBan} from '../save/progression.js';
+import {costOf, gearOf, vetOf, gearFits, isProto, CHASSIS_NAME, leadUnlocked, leadPrice, leadGateText, cardName, deckCapOf} from '../save/progression.js';
 import {$, attr} from './dom.js';
 import {sigil, artFor, portrait, bokehLayer} from './art.js';
 import {notify} from './dialog.js';
@@ -42,6 +42,10 @@ export function closeFocus() {
 function statRows(id) {
   const k = POOL[id];
   const g = gearOf(id);
+  // The cost badge above already prints the live number. This row only earns
+  // its place by saying WHY that number differs from the one on the card.
+  const costNote = (G && G.salvageDiscount && G.salvageDiscount[id]) ? 'salvaged — 2 off this deployment'
+    : (g && g.dp) ? 'geared' : null;
   return [
     isProto(id) ? ['Frame', 'Seeded into your opening hand — outside the deck, one per mission'] : null,
     k.frameGear ? ['Fits', `${POOL[k.frameGear].n} only — played onto it while it stands`] : null,
@@ -60,8 +64,7 @@ function statRows(id) {
     (g && g.recover) ? ['Beacon', 'Lost, the card returns to your hand instead of the deck'] : null,
     k.reveal ? ['Recon', 'Lifts the fog across the whole board until the end of the turn'] : null,
     k.frameGear ? [k.slot === 'weapon' ? 'Slot' : 'Slot', k.slot === 'weapon' ? 'Weapon — replaces the base weapon' : 'Support — rides alongside the weapon'] : null,
-    // Only worth a row when the geared cost differs from the printed one.
-    (g && g.dp) ? ['Deploy cost', costOf(id) + ' DP (geared)'] : null,
+    costNote ? ['Deploy cost', `${costOf(id)} DP (${costNote})`] : null,
     (k.hp && g && g.hp) ? ['Hull', k.hp + ' +' + g.hp] : null,
     // An instant never lands, so it has no footprint to report.
     (!k.instant && (k.size > 1 || k.attach)) ? ['Footprint', k.size > 1 ? k.size + ' cells' : 'Attachment'] : null,

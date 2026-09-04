@@ -3,7 +3,7 @@
 // Cooldowns are set on use and tick down in the player phase; a Coolant Core
 // shortens them by a turn, never below one.
 
-import {LANES, COLS} from '../state/constants.js';
+import {COLS} from '../state/constants.js';
 import {G} from '../state/session.js';
 import {buffOf} from './units.js';
 import {dmgEnemy} from './combat.js';
@@ -13,12 +13,12 @@ import {tapeEvent} from './tape.js';
 
 // Fireteam armour abilities — dispatched on the kit's key, not the card id.
 const ARMOUR = {
-  // Armor Lock: nothing gets through this turn, and nothing gets out.
+  // Armour Lock: nothing gets through this turn, and nothing gets out.
   lock(u) {
     u.locked = true;
     u.acted = true;
     u.moved = true;
-    clog(`<span class="g">Armor Lock</span> — ${u.n} locked down.`, 'order');
+    clog(`<span class="g">Armour Lock</span> — ${u.n} locked down.`, 'order');
   },
   // Drop Shield: a bubble over the four neighbours, one charge each.
   bubble(u) {

@@ -46,7 +46,6 @@ export function gearOf(id) {
  * behaviour cannot drift apart.
  */
 export const isProto = id => !!(POOL[id] && POOL[id].chassis === 'proto');
-export const isExo = id => !!(POOL[id] && POOL[id].chassis === 'exo');
 export const CHASSIS_NAME = {proto: 'Proto Frame', exo: 'Exo Frame'};
 
 /**
@@ -91,12 +90,10 @@ export function costOf(id) {
   if (!k) return 99;
   const g = gearOf(id);
   // Quietstep: anything that lands on hostile ground goes in a point cheaper.
-  const infiltrator = leadOf().passive && leadOf().passive.n === 'Quietstep' &&
-    (k.drop || k.anyGround || (g && g.crush)) ? 1 : 0;
+  const infiltrator = leadIs('quietstep') && (k.drop || k.anyGround || (g && g.crush)) ? 1 : 0;
   // Spartan Company: the Fireteam line — the team itself and anything that
   // fits it — goes in a point cheaper under the Master Chief.
-  const spartan = leadOf().passive && leadOf().passive.n === 'Spartan Company' &&
-    (k.line === 'fireteam' || k.fits === 'fireteam') ? 1 : 0;
+  const spartan = leadIs('masterchief') && (k.line === 'fireteam' || k.fits === 'fireteam') ? 1 : 0;
   // The Code: a salvaged Frame is already built — fielding it again costs
   // less than building one from nothing. One-time, spent alongside the card.
   const salvaged = (G && G.salvageDiscount && G.salvageDiscount[id]) || 0;
@@ -116,7 +113,7 @@ export function leadBan(id) {
   const lead = leadOf();
   if (lead.banTier && k.t === lead.banTier) return lead.con.n;
   // No Frame: the Master Chief fields no Proto Frame, seeded or not.
-  if (lead.con && lead.con.n === 'No Frame' && k.chassis === 'proto') return lead.con.n;
+  if (leadIs('masterchief') && k.chassis === 'proto') return lead.con.n;
   return null;
 }
 
@@ -143,6 +140,17 @@ export function deckProblems(deck = active && active.loadout ? active.loadout.de
 export function leadOf() {
   return LEADS[(active && active.lead) || 'ironbrand'] || LEADS.ironbrand;
 }
+
+/**
+ * Is `key` the lead in command?
+ *
+ * Every rule a lead bends used to be matched on the display name of its
+ * perk, which quietly made those strings load-bearing: rewording a perk, or
+ * even correcting its spelling, switched the rule off with nothing to catch
+ * it. The id is the stable key, so that is what the rules ask for; the prose
+ * above stays prose.
+ */
+export const leadIs = key => LEADS[(active && active.lead) || ''] ? active.lead === key : key === 'ironbrand';
 
 /**
  * Is this lead available to the active profile? The starting three carry no

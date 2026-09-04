@@ -359,7 +359,7 @@ export const OPS = {
       ["n1", "n10"],
       ["n2", "n12"],
     ],
-    lore: "Once a year the Concordat factions meet under one roof to keep the alliance stitched together. This year, mid-session, something went wrong. City defenses disarmed, and four faction honor guards went non-responsive in their check-ins. Four hijacked ceremonial Proto Frames holding the wings, and the thing in the chamber that studied it all. Start at the concourse. Take the wings. Then take the center.",
+    lore: "Once a year the Concordat factions meet under one roof to keep the alliance stitched together. This year, mid-session, something went wrong. City defenses disarmed, and four faction honor guards went non-responsive in their check-ins. Four hijacked ceremonial Proto Frames holding the wings, and the thing in the chamber that studied it all. Start at the concourse. Take the wings. Then take the centre.",
     eventBias: "bombard",
     intro: {
       freq: "96.40",

@@ -975,7 +975,7 @@
    "d": "Armour ability. The Fireteam cannot be targeted by hostiles until the turn it fires, and cloaks again at the start of each of your turns."
   },
   "lock": {
-   "n": "Armor Lock",
+   "n": "Armour Lock",
    "t": "tech",
    "dp": 1,
    "hp": 0,
@@ -984,7 +984,7 @@
    "slot": "armor",
    "tech": 1,
    "ab": {
-    "n": "Armor Lock",
+    "n": "Armour Lock",
     "d": "The Fireteam takes no damage this turn and cannot move or fire.",
     "cd": 3,
     "key": "lock"
@@ -1085,7 +1085,7 @@
    "frameGear": "whitedevil",
    "slot": "support",
    "tech": 1,
-   "d": "Barbatos's trade: the White Devil hits harder the more damaged it is — +1 below three-quarters hull, +2 below half, +3 below a quarter. No cost to fit, no ceiling on how far it's been ground down.",
+   "d": "A wounded animal's bargain: the White Devil hits harder the more damaged it is — +1 below three-quarters hull, +2 below half, +3 below a quarter. No cost to fit, no ceiling on how far it's been ground down.",
    "berserk": 1
   },
   "pilebunker": {
@@ -1154,7 +1154,7 @@
    "slot": "support",
    "mobGrant": 1,
    "tech": 1,
-   "d": "An external booster pack, bolted on the way Gundam's own auxiliary flight units carry a machine that was never built to move. The Heavy Arms may move — the engineer's answer when the lane the turret is camping stops being the lane that matters."
+   "d": "An external booster pack, bolted onto a machine that was never built to move. The Heavy Arms may move — the engineer's answer when the lane the turret is camping stops being the lane that matters."
   }
  },
  "gear": {
@@ -1573,7 +1573,7 @@
    "dmg": 2,
    "threat": 2,
    "spd": 2,
-   "d": "Human. Unarmored, fast, and utterly certain. Runs straight down the lane at whatever the chapel points it at.",
+   "d": "Human. Unarmoured, fast, and utterly certain. Runs straight down the lane at whatever the chapel points it at.",
    "counter": "They die like anyone else. The problem is how many of them agree with each other."
   },
   "lector": {
@@ -1673,7 +1673,7 @@
    "col": "#4de8ff",
    "bio": "Held the Sundering Gate for nine days with a company of forty. Believes armour is a philosophy.",
    "passive": {
-    "n": "Hardened Armor",
+    "n": "Hardened Armour",
     "d": "Every unit you deploy arrives with +1 hull."
    }
   },
@@ -2641,7 +2641,7 @@
      "n12"
     ]
    ],
-   "lore": "Once a year the Concordat factions meet under one roof to keep the alliance stitched together. This year, mid-session, something went wrong. City defenses disarmed, and four faction honor guards went non-responsive in their check-ins. Four hijacked ceremonial Proto Frames holding the wings, and the thing in the chamber that studied it all. Start at the concourse. Take the wings. Then take the center.",
+   "lore": "Once a year the Concordat factions meet under one roof to keep the alliance stitched together. This year, mid-session, something went wrong. City defenses disarmed, and four faction honor guards went non-responsive in their check-ins. Four hijacked ceremonial Proto Frames holding the wings, and the thing in the chamber that studied it all. Start at the concourse. Take the wings. Then take the centre.",
    "eventBias": "bombard",
    "intro": {
     "freq": "96.40",
@@ -3319,7 +3319,7 @@
     "beats": [
      {
       "say": [
-       "Commander. The delegations are out — your escort work bought the alliance its lives. A new target has shown itself at the center hall.",
+       "Commander. The delegations are out — your escort work bought the alliance its lives. A new target has shown itself at the centre hall.",
        "In addition, there's a big number showing up as well. We are designating it: THE ENVOY."
       ],
       "reply": "I bet there's more to it than just this Envoy."
@@ -3577,7 +3577,7 @@
       "reply": "Bringing all of them. Out."
      }
     ],
-    "close": "Channel closed. Third guard: THE STORMGUARD. Redundancy is armor.",
+    "close": "Channel closed. Third guard: THE STORMGUARD. Redundancy is armour.",
     "go": "Begin descent"
    },
    "plate": 1,

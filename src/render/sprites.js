@@ -24,7 +24,6 @@
 // Map legend:  . empty   o outline   b body   s shade   w weapon
 //              g gold    W white     v visor glint   G gold glint   f flame
 
-import {POOL} from '../content/cards.js';
 
 // Outline ink and the two "faction identity" accents are pulled to the
 // exact hex the rest of the UI uses for the same idea — --deep (card and

@@ -9,7 +9,7 @@ export const LEADS = {
     role: "Line Commander",
     col: "#4de8ff",
     bio: "Held the Sundering Gate for nine days with a company of forty. Believes armour is a philosophy.",
-    passive: {n: "Hardened Armor", d: "Every unit you deploy arrives with +1 hull."},
+    passive: {n: "Hardened Armour", d: "Every unit you deploy arrives with +1 hull."},
   },
   coronet: {
     n: "TREIZE",

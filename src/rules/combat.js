@@ -7,7 +7,7 @@ import {G, active, nextUid} from '../state/session.js';
 import {unitAt, foeAt, civAt, scorched} from './board.js';
 import {buffOf, leadBonus, packBonus, berserkBonus} from './units.js';
 import {recycleLineCard} from './deck.js';
-import {leadOf} from '../save/progression.js';
+import {leadIs} from '../save/progression.js';
 import {targetsFor, laneFloor} from './targeting.js';
 import {eventTechBonus} from './events.js';
 import {dmgBoss} from './boss.js';
@@ -179,12 +179,12 @@ export function blast(l, c, d, src) {
 export function dmgUnit(u, d, src, attacker) {
   // Firebrand's Exposed: her whole line takes +1. Added before the Scrambler's
   // shave so damping still buys exactly one point back.
-  if (leadOf().con && leadOf().con.n === 'Exposed') d += 1;
+  if (leadIs('firebrand')) d += 1;
   d = Math.max(1, d - dampenIn(u.lane) - (attacker ? hymnAt(attacker.lane, attacker.col) : 0));
 
-  // Armor Lock: the blow lands on nothing at all — not even a riposte.
+  // Armour Lock: the blow lands on nothing at all — not even a riposte.
   if (u.locked) {
-    clog(`<span class="g">Armor Lock</span> holds — ${u.n} takes nothing.`, 'info');
+    clog(`<span class="g">Armour Lock</span> holds — ${u.n} takes nothing.`, 'info');
     return;
   }
   if (u.riposte && attacker && attacker.hp > 0) {

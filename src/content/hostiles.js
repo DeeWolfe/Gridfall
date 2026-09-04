@@ -239,7 +239,7 @@ export const BEST = {
     dmg: 2,
     threat: 2,
     spd: 2,
-    d: "Human. Unarmored, fast, and utterly certain. Runs straight down the lane at whatever the chapel points it at.",
+    d: "Human. Unarmoured, fast, and utterly certain. Runs straight down the lane at whatever the chapel points it at.",
     counter: "They die like anyone else. The problem is how many of them agree with each other.",
   },
   lector: {

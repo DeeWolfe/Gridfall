@@ -5012,3 +5012,50 @@ text on the lead itself ("d" on salvagerights.passive) now says so.
 Test: frametest.js, alongside the existing "The Code" block — confirms
 `costOf('whitedevil')` drops by 2 after the salvaged wreck comes home,
 and returns to normal the moment the card is redeployed.
+
+## v2.38.6 — code and consistency pass
+
+**The one real bug this pass found, and it was latent.** Every rule a lead
+bends was matched on the DISPLAY NAME of its perk — `leadOf().passive.n ===
+'Hardened Armor'` and sixteen more like it across six files. That made perk
+prose load-bearing: rewording a passive, or merely correcting its spelling,
+switched its rule off silently. Correcting "Hardened Armor" to the house
+"Armour" would have quietly cost Ironbrand its +1 hull with nothing to catch
+it. All seventeen now key off the lead id via a new `leadIs(key)` in
+progression.js, and passivetest.js carries a guard that rewords every perk
+and con in the roster and asserts the trades all still hold — verified to
+fail against the old string-matching code before it was kept.
+
+Dead code: `isExo` (exported, never called anywhere), five unused imports
+(`frameOnBoard`/`isProto` in render/combat, `POOL` in sprites, `leadBan` in
+focus, `LANES` in abilities), and two `const lead = leadOf()` locals left
+stranded in units.js once their readers moved to `leadIs`.
+
+The `G` import focus.js gained in v2.38.5 was unused — the salvage discount
+had no visible explanation anywhere. It now folds into the existing "Deploy
+cost" row, which says WHY the live cost differs from the printed one
+("geared" or "salvaged — 2 off this deployment") instead of only "(geared)".
+
+Text: armour is spelled one way now (Armour Lock, Hardened Armour,
+unarmoured, "redundancy is armour"), and centre likewise. Devil's Drive and
+Maneuver Thrusters no longer name Gundam or Barbatos in their card text —
+the inspiration stays, the other franchise's proper nouns don't belong in
+this world's prose. Comments naming the "Core Booster" now use the card's
+actual name.
+
+**docs/SPEC.md was the worst drift in the repo.** It opened by claiming its
+numbers matched the data and then listed 46 cards (there are 85), 12
+hostiles (30), 11 gear pieces priced in a salvage currency retired back in
+v2.26, and a lead table from before the v2.25 pro/con rework listing a lead
+that no longer exists and a stratagem column that stopped being a lead
+feature in v2.27. The save schema showed version 4 against a live
+SAVE_VERSION of 20.
+
+Rather than re-copy tables that will drift again, the copied stat tables are
+gone: SPEC.md is the systems now, with per-entity numbers left to the JSON
+that already calls itself the source of truth. Sections that only existed in
+the code — Frames, the Fireteam line, bosses, veterancy — are written up for
+the first time; missions gained the boss row, modifiers gained Scavenge's
+rename plus Crumbling Ground and Fog of War, and the save block is generated
+from a live `blankProfile()`. Every file and symbol the doc now points at
+was checked to exist.

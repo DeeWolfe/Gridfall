@@ -16,7 +16,7 @@
 
 import {POOL} from '../content/cards.js';
 import {G, active} from '../state/session.js';
-import {isProto, leadOf, cardName, gearOf} from '../save/progression.js';
+import {isProto, leadIs, cardName, gearOf} from '../save/progression.js';
 import {clog} from './log.js';
 
 /** Seed the loadout's Frame into the opening hand, outside the deck. */
@@ -24,7 +24,7 @@ export function seedFrame() {
   const id = active && active.loadout ? active.loadout.frame : null;
   G.frame = null;
   // No Frame (Master Chief): the slot may hold a machine, but it never flies.
-  const noFrame = leadOf().con && leadOf().con.n === 'No Frame';
+  const noFrame = leadIs('masterchief');
   if (id && isProto(id) && POOL[id] && !noFrame) {
     G.hand.push(id);
     G.frame = {k: id};
@@ -73,7 +73,7 @@ export function frameGateText(cid) {
  */
 export function applyFrameGear(u, cid) {
   const k = POOL[cid];
-  const refit = leadOf().passive && leadOf().passive.n === 'Field Refit';
+  const refit = leadIs('fieldrefit');
   const carried = [u.gearW, ...u.gearS].filter(Boolean);
 
   // Single Mount: everything already carried comes off — and back to hand,
@@ -153,7 +153,7 @@ export function applyFrameGear(u, cid) {
     if (k.resonate) u.resonate = (u.resonate || 0) + k.resonate;
     // Guardian Field: a standing aura, refreshed each turn in phases.js.
     if (k.auraShield) u.auraShield = true;
-    // Core Booster: an anchored chassis may move once this is fitted.
+    // Maneuver Thrusters: an anchored chassis may move once this is fitted.
     if (k.mobGrant) { u.mob = true; u.mobGrant = true; }
     // Devil's Drive: added to the gear-damage pool AND applied immediately,
     // so it lands whether the weapon was fitted before or after this.
@@ -200,7 +200,7 @@ function unmountSupports(u) {
  */
 export function salvageFrame(u) {
   if (!u.frame) return;
-  if (!(leadOf().passive && leadOf().passive.n === 'The Code')) return;
+  if (!leadIs('salvagerights')) return;
   const back = [u.id, u.gearW, ...u.gearS].filter(Boolean);
   back.forEach(c => G.hand.push(c));
   G.spent = (G.spent || []).filter(c => !back.includes(c));

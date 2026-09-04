@@ -2042,7 +2042,7 @@ const OPS = {
       ["n1", "n10"],
       ["n2", "n12"],
     ],
-    lore: "Once a year the Concordat factions meet under one roof to keep the alliance stitched together. This year, mid-session, something went wrong. City defenses disarmed, and four faction honor guards went non-responsive in their check-ins. Four hijacked ceremonial Proto Frames holding the wings, and the thing in the chamber that studied it all. Start at the concourse. Take the wings. Then take the center.",
+    lore: "Once a year the Concordat factions meet under one roof to keep the alliance stitched together. This year, mid-session, something went wrong. City defenses disarmed, and four faction honor guards went non-responsive in their check-ins. Four hijacked ceremonial Proto Frames holding the wings, and the thing in the chamber that studied it all. Start at the concourse. Take the wings. Then take the centre.",
     eventBias: "bombard",
     intro: {
       freq: "96.40",
@@ -3177,7 +3177,7 @@ const POOL = {
     d: "Armour ability. The Fireteam cannot be targeted by hostiles until the turn it fires, and cloaks again at the start of each of your turns.",
   },
   lock: {
-    n: "Armor Lock",
+    n: "Armour Lock",
     t: "tech",
     dp: 1,
     hp: 0,
@@ -3186,7 +3186,7 @@ const POOL = {
     slot: "armor",
     tech: 1,
     ab: {
-      n: "Armor Lock",
+      n: "Armour Lock",
       d: "The Fireteam takes no damage this turn and cannot move or fire.",
       cd: 3,
       key: "lock",
@@ -3287,7 +3287,7 @@ const POOL = {
     frameGear: "whitedevil",
     slot: "support",
     tech: 1,
-    d: "Barbatos's trade: the White Devil hits harder the more damaged it is — +1 below three-quarters hull, +2 below half, +3 below a quarter. No cost to fit, no ceiling on how far it's been ground down.",
+    d: "A wounded animal's bargain: the White Devil hits harder the more damaged it is — +1 below three-quarters hull, +2 below half, +3 below a quarter. No cost to fit, no ceiling on how far it's been ground down.",
     berserk: 1,
   },
   pilebunker: {
@@ -3356,7 +3356,7 @@ const POOL = {
     slot: "support",
     mobGrant: 1,
     tech: 1,
-    d: "An external booster pack, bolted on the way Gundam's own auxiliary flight units carry a machine that was never built to move. The Heavy Arms may move — the engineer's answer when the lane the turret is camping stops being the lane that matters.",
+    d: "An external booster pack, bolted onto a machine that was never built to move. The Heavy Arms may move — the engineer's answer when the lane the turret is camping stops being the lane that matters.",
   },
 };
 
@@ -3538,7 +3538,7 @@ const LEADS = {
     role: "Line Commander",
     col: "#4de8ff",
     bio: "Held the Sundering Gate for nine days with a company of forty. Believes armour is a philosophy.",
-    passive: {n: "Hardened Armor", d: "Every unit you deploy arrives with +1 hull."},
+    passive: {n: "Hardened Armour", d: "Every unit you deploy arrives with +1 hull."},
   },
   coronet: {
     n: "TREIZE",
@@ -3766,7 +3766,6 @@ function gearOf(id) {
  * behaviour cannot drift apart.
  */
 const isProto = id => !!(POOL[id] && POOL[id].chassis === 'proto');
-const isExo = id => !!(POOL[id] && POOL[id].chassis === 'exo');
 const CHASSIS_NAME = {proto: 'Proto Frame', exo: 'Exo Frame'};
 
 /**
@@ -3811,12 +3810,10 @@ function costOf(id) {
   if (!k) return 99;
   const g = gearOf(id);
   // Quietstep: anything that lands on hostile ground goes in a point cheaper.
-  const infiltrator = leadOf().passive && leadOf().passive.n === 'Quietstep' &&
-    (k.drop || k.anyGround || (g && g.crush)) ? 1 : 0;
+  const infiltrator = leadIs('quietstep') && (k.drop || k.anyGround || (g && g.crush)) ? 1 : 0;
   // Spartan Company: the Fireteam line — the team itself and anything that
   // fits it — goes in a point cheaper under the Master Chief.
-  const spartan = leadOf().passive && leadOf().passive.n === 'Spartan Company' &&
-    (k.line === 'fireteam' || k.fits === 'fireteam') ? 1 : 0;
+  const spartan = leadIs('masterchief') && (k.line === 'fireteam' || k.fits === 'fireteam') ? 1 : 0;
   // The Code: a salvaged Frame is already built — fielding it again costs
   // less than building one from nothing. One-time, spent alongside the card.
   const salvaged = (G && G.salvageDiscount && G.salvageDiscount[id]) || 0;
@@ -3836,7 +3833,7 @@ function leadBan(id) {
   const lead = leadOf();
   if (lead.banTier && k.t === lead.banTier) return lead.con.n;
   // No Frame: the Master Chief fields no Proto Frame, seeded or not.
-  if (lead.con && lead.con.n === 'No Frame' && k.chassis === 'proto') return lead.con.n;
+  if (leadIs('masterchief') && k.chassis === 'proto') return lead.con.n;
   return null;
 }
 
@@ -3863,6 +3860,17 @@ function deckProblems(deck = active && active.loadout ? active.loadout.deck : []
 function leadOf() {
   return LEADS[(active && active.lead) || 'ironbrand'] || LEADS.ironbrand;
 }
+
+/**
+ * Is `key` the lead in command?
+ *
+ * Every rule a lead bends used to be matched on the display name of its
+ * perk, which quietly made those strings load-bearing: rewording a perk, or
+ * even correcting its spelling, switched the rule off with nothing to catch
+ * it. The id is the stable key, so that is what the rules ask for; the prose
+ * above stays prose.
+ */
+const leadIs = key => LEADS[(active && active.lead) || ''] ? active.lead === key : key === 'ironbrand';
 
 /**
  * Is this lead available to the active profile? The starting three carry no
@@ -4166,7 +4174,7 @@ const BOSSDEF = {
       from: {n: "Hikaru", r: "CC Liaison"},
       beats: [
         {
-          say: ["Commander. The delegations are out — your escort work bought the alliance its lives. A new target has shown itself at the center hall.", "In addition, there's a big number showing up as well. We are designating it: THE ENVOY."],
+          say: ["Commander. The delegations are out — your escort work bought the alliance its lives. A new target has shown itself at the centre hall.", "In addition, there's a big number showing up as well. We are designating it: THE ENVOY."],
           reply: "I bet there's more to it than just this Envoy.",
         },
         {
@@ -4368,7 +4376,7 @@ const BOSSDEF = {
           reply: "Bringing all of them. Out.",
         },
       ],
-      close: "Channel closed. Third guard: THE STORMGUARD. Redundancy is armor.",
+      close: "Channel closed. Third guard: THE STORMGUARD. Redundancy is armour.",
       go: "Begin descent",
     },
     plate: 1,
@@ -5101,7 +5109,7 @@ const BEST = {
     dmg: 2,
     threat: 2,
     spd: 2,
-    d: "Human. Unarmored, fast, and utterly certain. Runs straight down the lane at whatever the chapel points it at.",
+    d: "Human. Unarmoured, fast, and utterly certain. Runs straight down the lane at whatever the chapel points it at.",
     counter: "They die like anyone else. The problem is how many of them agree with each other.",
   },
   lector: {
@@ -5328,7 +5336,7 @@ function seedFrame() {
   const id = active && active.loadout ? active.loadout.frame : null;
   G.frame = null;
   // No Frame (Master Chief): the slot may hold a machine, but it never flies.
-  const noFrame = leadOf().con && leadOf().con.n === 'No Frame';
+  const noFrame = leadIs('masterchief');
   if (id && isProto(id) && POOL[id] && !noFrame) {
     G.hand.push(id);
     G.frame = {k: id};
@@ -5377,7 +5385,7 @@ function frameGateText(cid) {
  */
 function applyFrameGear(u, cid) {
   const k = POOL[cid];
-  const refit = leadOf().passive && leadOf().passive.n === 'Field Refit';
+  const refit = leadIs('fieldrefit');
   const carried = [u.gearW, ...u.gearS].filter(Boolean);
 
   // Single Mount: everything already carried comes off — and back to hand,
@@ -5457,7 +5465,7 @@ function applyFrameGear(u, cid) {
     if (k.resonate) u.resonate = (u.resonate || 0) + k.resonate;
     // Guardian Field: a standing aura, refreshed each turn in phases.js.
     if (k.auraShield) u.auraShield = true;
-    // Core Booster: an anchored chassis may move once this is fitted.
+    // Maneuver Thrusters: an anchored chassis may move once this is fitted.
     if (k.mobGrant) { u.mob = true; u.mobGrant = true; }
     // Devil's Drive: added to the gear-damage pool AND applied immediately,
     // so it lands whether the weapon was fitted before or after this.
@@ -5504,7 +5512,7 @@ function unmountSupports(u) {
  */
 function salvageFrame(u) {
   if (!u.frame) return;
-  if (!(leadOf().passive && leadOf().passive.n === 'The Code')) return;
+  if (!leadIs('salvagerights')) return;
   const back = [u.id, u.gearW, ...u.gearS].filter(Boolean);
   back.forEach(c => G.hand.push(c));
   G.spent = (G.spent || []).filter(c => !back.includes(c));
@@ -6068,17 +6076,15 @@ const MAX_BUFF = 2;
 function mkUnit(cid, l, c) {
   const k = POOL[cid];
   const g = gearOf(cid);
-  const lead = leadOf();
-  const hardened = lead.passive && lead.passive.n === 'Hardened Armor' && k.hp ? 1 : 0;
-  const fabricated = lead.passive && lead.passive.n === 'Field Fabrication' && k.tech && k.hp ? 2 : 0;
+  const hardened = leadIs('ironbrand') && k.hp ? 1 : 0;
+  const fabricated = leadIs('skunkworks') && k.tech && k.hp ? 2 : 0;
   // Skunkworks' trade: the machines get the workshop, the infantry gets thin
   // rations. Floored at 1 so a Scout is fragile rather than stillborn.
-  const thinned = lead.passive && lead.passive.n === 'Field Fabrication'
-    && k.t === 'common' && k.hp ? -2 : 0;
+  const thinned = leadIs('skunkworks') && k.t === 'common' && k.hp ? -2 : 0;
   let hp = Math.max(1, k.hp + (g && g.hp ? g.hp : 0) + hardened + fabricated + thinned);
   // Salvage Rights' Rushed Assembly: the machine that always comes back is
   // never built whole. Rounded up, so a 15-hull frame fields at 8, not 7.
-  if (lead.con && lead.con.n === 'Rushed Assembly' && k.chassis === 'proto') {
+  if (leadIs('salvagerights') && k.chassis === 'proto') {
     hp = Math.max(1, Math.ceil(hp / 2));
   }
   // Mjolnir Plating grants the regenerating shield a card can also print.
@@ -6122,7 +6128,7 @@ function mkUnit(cid, l, c) {
     backblast: k.backblast || 0,
     // Pile Bunker Blade: the second cell in a two-deep thrust takes half.
     falloff: !!k.falloff,
-    // Guardian Field / Core Booster: an aura and a mobility grant, both read
+    // Guardian Field / Maneuver Thrusters: an aura and a mobility grant, read
     // off the fitted support rather than the base card.
     auraShield: false,
     mobGrant: false,
@@ -6242,17 +6248,16 @@ function buffOf(u) {
  */
 function leadBonus(u) {
   let b = u.dueled ? 4 : 0;
-  const lead = leadOf();
   // Lone Edge cuts both ways now: the duelist alone hits +3, and standing in
   // formation costs 1 — the lead is a bias to build around, not a bonus.
-  if (lead.passive && lead.passive.n === 'Lone Edge') {
+  if (leadIs('loneedge')) {
     const alone = !G.units.some(o =>
       o.uid !== u.uid && Math.abs(o.lane - u.lane) + Math.abs(o.col - u.col) === 1);
     b += alone ? 3 : -1;
   }
   // Firebrand: everything hits harder. Everything. (The other half of the
   // trade lives in dmgUnit — her units take +1 too.)
-  if (lead.passive && lead.passive.n === 'Firebrand') b += 1;
+  if (leadIs('firebrand')) b += 1;
   return b;
 }
 
@@ -6923,12 +6928,12 @@ function blast(l, c, d, src) {
 function dmgUnit(u, d, src, attacker) {
   // Firebrand's Exposed: her whole line takes +1. Added before the Scrambler's
   // shave so damping still buys exactly one point back.
-  if (leadOf().con && leadOf().con.n === 'Exposed') d += 1;
+  if (leadIs('firebrand')) d += 1;
   d = Math.max(1, d - dampenIn(u.lane) - (attacker ? hymnAt(attacker.lane, attacker.col) : 0));
 
-  // Armor Lock: the blow lands on nothing at all — not even a riposte.
+  // Armour Lock: the blow lands on nothing at all — not even a riposte.
   if (u.locked) {
-    clog(`<span class="g">Armor Lock</span> holds — ${u.n} takes nothing.`, 'info');
+    clog(`<span class="g">Armour Lock</span> holds — ${u.n} takes nothing.`, 'info');
     return;
   }
   if (u.riposte && attacker && attacker.hp > 0) {
@@ -9634,6 +9639,10 @@ function closeFocus() {
 function statRows(id) {
   const k = POOL[id];
   const g = gearOf(id);
+  // The cost badge above already prints the live number. This row only earns
+  // its place by saying WHY that number differs from the one on the card.
+  const costNote = (G && G.salvageDiscount && G.salvageDiscount[id]) ? 'salvaged — 2 off this deployment'
+    : (g && g.dp) ? 'geared' : null;
   return [
     isProto(id) ? ['Frame', 'Seeded into your opening hand — outside the deck, one per mission'] : null,
     k.frameGear ? ['Fits', `${POOL[k.frameGear].n} only — played onto it while it stands`] : null,
@@ -9652,8 +9661,7 @@ function statRows(id) {
     (g && g.recover) ? ['Beacon', 'Lost, the card returns to your hand instead of the deck'] : null,
     k.reveal ? ['Recon', 'Lifts the fog across the whole board until the end of the turn'] : null,
     k.frameGear ? [k.slot === 'weapon' ? 'Slot' : 'Slot', k.slot === 'weapon' ? 'Weapon — replaces the base weapon' : 'Support — rides alongside the weapon'] : null,
-    // Only worth a row when the geared cost differs from the printed one.
-    (g && g.dp) ? ['Deploy cost', costOf(id) + ' DP (geared)'] : null,
+    costNote ? ['Deploy cost', `${costOf(id)} DP (${costNote})`] : null,
     (k.hp && g && g.hp) ? ['Hull', k.hp + ' +' + g.hp] : null,
     // An instant never lands, so it has no footprint to report.
     (!k.instant && (k.size > 1 || k.attach)) ? ['Footprint', k.size > 1 ? k.size + ' cells' : 'Attachment'] : null,
@@ -12382,12 +12390,12 @@ function fireCall({k, target}) {
 
 // Fireteam armour abilities — dispatched on the kit's key, not the card id.
 const ARMOUR = {
-  // Armor Lock: nothing gets through this turn, and nothing gets out.
+  // Armour Lock: nothing gets through this turn, and nothing gets out.
   lock(u) {
     u.locked = true;
     u.acted = true;
     u.moved = true;
-    clog(`<span class="g">Armor Lock</span> — ${u.n} locked down.`, 'order');
+    clog(`<span class="g">Armour Lock</span> — ${u.n} locked down.`, 'order');
   },
   // Drop Shield: a bubble over the four neighbours, one charge each.
   bubble(u) {
@@ -12614,7 +12622,7 @@ function doMove(u, l, c) {
   u.moved = true;
   // Riptide's whole passive is Servo Legs for everyone: the move does not
   // spend the action, so the unit still fires this turn.
-  const skirmish = leadOf().passive && leadOf().passive.n === 'Riptide';
+  const skirmish = leadIs('riptide');
   if (!u.servo && !skirmish) u.acted = true;
   clog(`${u.n} repositioned${!u.acted ? ' — it can still fire' : ''}.`, 'order');
   setMover(!u.acted ? u : null);
@@ -12939,8 +12947,8 @@ function playerPhase() {
     tapeMark('fire');            // one frame per unit that actually did something
   });
 
-  const nanites = leadOf().passive && leadOf().passive.n === 'Nanite Weave';
-  const fabrication = leadOf().passive && leadOf().passive.n === 'Field Fabrication';
+  const nanites = leadIs('coldwire');
+  const fabrication = leadIs('skunkworks');
   G.units.forEach(u => {
     u.acted = false;
     u.moved = false;
@@ -16303,9 +16311,16 @@ function openPanel(key, quiet) {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.38.5';
+const VERSION = '2.38.6';
 
 const PATCH_NOTES = [
+  {
+    v: '2.38.6',
+    notes: [
+      'HOUSE STYLE. Armour is spelled one way across the whole game now — ARMOUR LOCK and Ironbrand\'s HARDENED ARMOUR were the last two holdouts. Nothing about either changed but the spelling.',
+      'Devil\'s Drive and Maneuver Thrusters read as kit from this world rather than borrowing another one\'s name. Same rules, same numbers.',
+    ],
+  },
   {
     v: '2.38.5',
     notes: [

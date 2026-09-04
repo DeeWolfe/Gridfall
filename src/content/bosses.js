@@ -207,7 +207,7 @@ export const BOSSDEF = {
       from: {n: "Hikaru", r: "CC Liaison"},
       beats: [
         {
-          say: ["Commander. The delegations are out — your escort work bought the alliance its lives. A new target has shown itself at the center hall.", "In addition, there's a big number showing up as well. We are designating it: THE ENVOY."],
+          say: ["Commander. The delegations are out — your escort work bought the alliance its lives. A new target has shown itself at the centre hall.", "In addition, there's a big number showing up as well. We are designating it: THE ENVOY."],
           reply: "I bet there's more to it than just this Envoy.",
         },
         {
@@ -409,7 +409,7 @@ export const BOSSDEF = {
           reply: "Bringing all of them. Out.",
         },
       ],
-      close: "Channel closed. Third guard: THE STORMGUARD. Redundancy is armor.",
+      close: "Channel closed. Third guard: THE STORMGUARD. Redundancy is armour.",
       go: "Begin descent",
     },
     plate: 1,

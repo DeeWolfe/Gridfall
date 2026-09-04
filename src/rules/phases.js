@@ -13,7 +13,7 @@ import {BEST} from '../content/hostiles.js';
 import {G, active, nextUid, clearSelection, replaying} from '../state/session.js';
 import {hooks} from '../state/hooks.js';
 import {randInt} from '../state/rng.js';
-import {leadOf} from '../save/progression.js';
+import {leadOf, leadIs} from '../save/progression.js';
 import {unitAt, foeAt, civAt, held, heldEnemyHalf, crystalsHeld, scorched, breachAllowance, ENDGAME_TURNS} from './board.js';
 import {fire, healPass, dmgUnit, dmgEnemy, breachAt, chillFactor} from './combat.js';
 import {eventTick, eventStrikeMalus} from './events.js';
@@ -38,8 +38,8 @@ export function playerPhase() {
     tapeMark('fire');            // one frame per unit that actually did something
   });
 
-  const nanites = leadOf().passive && leadOf().passive.n === 'Nanite Weave';
-  const fabrication = leadOf().passive && leadOf().passive.n === 'Field Fabrication';
+  const nanites = leadIs('coldwire');
+  const fabrication = leadIs('skunkworks');
   G.units.forEach(u => {
     u.acted = false;
     u.moved = false;

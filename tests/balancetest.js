@@ -333,7 +333,7 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'xgrenade']
   A.G.ter[4][3] = 'n';
   if (A.moveTargets(team).includes(4 * A.COLS + 3)) F.push('Jetpack landed on ground not held');
   A.deploy('lock', 2, 1);
-  if (team.jet || team.servo) F.push('Armor Lock did not strip the Jetpack');
+  if (team.jet || team.servo) F.push('Armour Lock did not strip the Jetpack');
   if (!team.ab || team.ab.key !== 'lock') F.push('Armor Lock did not grant its ability');
   if (A.frameReady()) F.push('a Fireteam is not a Frame and must not be seeded');
 }

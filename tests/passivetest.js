@@ -148,4 +148,37 @@ const calm = () => { A.G.enemies.length = 0; A.G.predict = []; A.G.held = []; };
   if (A.leadBan('whitedevil')) F.push('No Frame applied under another lead');
 }
 
+// Perk prose is prose: a lead's rules key off its id, never off the wording
+// of its passive or con. Until v2.38.6 every one of them matched a display
+// string, so correcting a perk's spelling silently switched its rule off —
+// exactly what happened when "Hardened Armor" became "Hardened Armour". Reword
+// every perk in the roster and the trades must all still hold.
+{
+  const backup = JSON.parse(JSON.stringify(A.LEADS));
+  Object.values(A.LEADS).forEach(L => {
+    if (L.passive) { L.passive.n = 'Reworded Perk'; L.passive.d = 'Reworded.'; }
+    if (L.con) { L.con.n = 'Reworded Cost'; L.con.d = 'Reworded.'; }
+  });
+
+  start('ironbrand');
+  if (A.mkUnit('rifle', 2, 1).max !== A.POOL.rifle.hp + 1) F.push('Hardened Armour is keyed to its wording');
+
+  start('skunkworks');
+  if (A.mkUnit('rifle', 2, 1).max !== A.POOL.rifle.hp - 2) F.push('Thin Personnel is keyed to its wording');
+
+  start('firebrand');
+  if (A.dmgPreview(spawnUnit('rifle', 2, 1)) !== A.POOL.rifle.dmg + 1) F.push('Firebrand is keyed to its wording');
+
+  start('quietstep');
+  if (A.costOf('assassin') !== A.POOL.assassin.dp - 1) F.push('Quietstep is keyed to its wording');
+
+  start('masterchief', ['ftnoble', 'rifle', 'marks', 'wall']);
+  if (A.costOf('ftnoble') !== A.POOL.ftnoble.dp - 1) F.push('Spartan Company is keyed to its wording');
+  if (!A.leadBan('whitedevil')) F.push('No Frame is keyed to its wording');
+
+  Object.keys(backup).forEach(k => { A.LEADS[k] = backup[k]; });
+  start('ironbrand');
+  if (A.mkUnit('rifle', 2, 1).max !== A.POOL.rifle.hp + 1) F.push('the reworded roster was not restored');
+}
+
 F.report('lead pros and cons: every trade holds, nothing leaks between leads');

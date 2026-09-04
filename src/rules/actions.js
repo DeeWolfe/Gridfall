@@ -6,7 +6,7 @@
 // letting a unit move and then still fire.
 
 import {COLS} from '../state/constants.js';
-import {leadOf} from '../save/progression.js';
+import {leadIs} from '../save/progression.js';
 import {G, setMover} from '../state/session.js';
 import {cellPassable, unitAt, foeAt, civAt} from './board.js';
 import {fire} from './combat.js';
@@ -77,7 +77,7 @@ export function doMove(u, l, c) {
   u.moved = true;
   // Riptide's whole passive is Servo Legs for everyone: the move does not
   // spend the action, so the unit still fires this turn.
-  const skirmish = leadOf().passive && leadOf().passive.n === 'Riptide';
+  const skirmish = leadIs('riptide');
   if (!u.servo && !skirmish) u.acted = true;
   clog(`${u.n} repositioned${!u.acted ? ' — it can still fire' : ''}.`, 'order');
   setMover(!u.acted ? u : null);

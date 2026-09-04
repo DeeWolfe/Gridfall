@@ -948,7 +948,7 @@ export const POOL = {
     d: "Armour ability. The Fireteam cannot be targeted by hostiles until the turn it fires, and cloaks again at the start of each of your turns.",
   },
   lock: {
-    n: "Armor Lock",
+    n: "Armour Lock",
     t: "tech",
     dp: 1,
     hp: 0,
@@ -957,7 +957,7 @@ export const POOL = {
     slot: "armor",
     tech: 1,
     ab: {
-      n: "Armor Lock",
+      n: "Armour Lock",
       d: "The Fireteam takes no damage this turn and cannot move or fire.",
       cd: 3,
       key: "lock",
@@ -1058,7 +1058,7 @@ export const POOL = {
     frameGear: "whitedevil",
     slot: "support",
     tech: 1,
-    d: "Barbatos's trade: the White Devil hits harder the more damaged it is — +1 below three-quarters hull, +2 below half, +3 below a quarter. No cost to fit, no ceiling on how far it's been ground down.",
+    d: "A wounded animal's bargain: the White Devil hits harder the more damaged it is — +1 below three-quarters hull, +2 below half, +3 below a quarter. No cost to fit, no ceiling on how far it's been ground down.",
     berserk: 1,
   },
   pilebunker: {
@@ -1127,6 +1127,6 @@ export const POOL = {
     slot: "support",
     mobGrant: 1,
     tech: 1,
-    d: "An external booster pack, bolted on the way Gundam's own auxiliary flight units carry a machine that was never built to move. The Heavy Arms may move — the engineer's answer when the lane the turret is camping stops being the lane that matters.",
+    d: "An external booster pack, bolted onto a machine that was never built to move. The Heavy Arms may move — the engineer's answer when the lane the turret is camping stops being the lane that matters.",
   },
 };
