@@ -225,9 +225,6 @@ function squadPanel() {
     ? `<div class="bar"><div style="color:var(--red)"><b style="color:var(--red)">⚠</b>
         ${leadOf().call} fields at most ${deckCapOf()} cards — trim ${deck.length - deckCapOf()} to deploy</div></div>`
     : '';
-  const rules = deckProblems(deck, fielded).map(p =>
-    `<div class="bar"><div style="color:var(--red)"><b style="color:var(--red)">⚠</b> ${p.n}</div>
-        <div style="color:var(--dim);font-size:0.6875rem">${p.d}</div></div>`).join('');
   const banned = deck.filter(c => leadBan(c));
   const refused = banned.length
     ? `<div class="bar"><div style="color:var(--red)"><b style="color:var(--red)">⚠</b>
@@ -248,7 +245,7 @@ function squadPanel() {
        <b style="color:var(--cyan)">${Object.keys(active.loadout.gear).length}</b> geared ·
        <b style="color:var(--violet)">${fielded ? 1 : 0}</b> / 1 Proto Frame</div>
      <div style="color:var(--dim);font-size:0.6875rem">Tap any card to enlarge it — inspect, fit gear, add or remove</div></div>
-   ${orphan}${over}${rules}${refused}
+   ${orphan}${over}${refused}
    <div class="sect">Active deck</div>
    ${deck.length ? cardGrid(deck, 'gear') : cardGridEmpty('Empty.')}
    ${deckFrame()}

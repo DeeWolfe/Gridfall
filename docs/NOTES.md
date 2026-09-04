@@ -5237,3 +5237,69 @@ column 1. A breach on the home column is one you can only absorb.
   ship faceless. That is what they are for; 防 (ward) and a shield token.
 - GROUND_FLOOR is still dead. If damage should ever be a real lever, that is
   the condition to make bite — units dying would have to cost ground.
+
+## v2.39.1 — a UI audit, and the guard that was asleep
+
+Asked to find UI to simplify, so the first move was to look for what is dead
+or duplicated rather than what could be redesigned.
+
+### The bug behind the bug
+
+`cssdup` exists to catch a selector declared twice at top level — the guard
+was written after a duplicate `#combat` display rule pinned a screen
+permanently visible while all 39 playability checks passed. It reported
+"none" on every run of its life.
+
+It never stripped CSS comments. A selector with a comment above it was
+counted as `"/* ===== veterancy ===== */\n.pips"` — a key of its own — so any
+duplicate where either copy was documented was invisible. This stylesheet
+comments nearly everything, so the guard was inert almost everywhere.
+
+With comments stripped it immediately found three, one of them live:
+`.pips` was serving both the card veterancy diamonds (`position:absolute;
+bottom:2px; right:3px`) and the objective panel's progress dots
+(`display:flex`). The cascade merged them, so the objective's dots were
+absolutely positioned and rode the nearest positioned ancestor — `.scr`,
+which is fixed and full-screen — to the bottom-right corner of combat.
+
+That is precisely the failure `.rqpips` was renamed to avoid, and the comment
+recording that rename is four hundred lines above the collision. The
+objective dots are `.opips` now, with the reason written next to them.
+
+### Also removed
+
+- `.pnrow` and friends — the Pilot's callsign field. The Pilot was retired in
+  v2.26.
+- `.hc.railend` and its `::after`, plus the branch that applied them:
+  `drawHand`'s `offdeck` has been a hardcoded `null`, so the divider between
+  what you brought and what the deck dealt has never once drawn.
+- The Squad page's deck-rules warning bar. `deckProblems()` has returned `[]`
+  unconditionally since v2.33.3; the hook stays, the dead markup does not.
+- `.protomark`, `.isself`, `.orderdest`, `.supcount`, `.lbtag`,
+  `.leadbadge.ready` — styles nothing emits.
+- Five empty `@media` blocks and a comment whose rule had gone.
+- `#boot` was declared twice, sections apart. One rule now.
+
+1,429 characters of stylesheet, and `html` joins `body` on the intentional
+list — both split a base rule from the fluid-scale section on purpose.
+
+### What was NOT changed, and why
+
+The structural finding is that the two screens a player actually works in are
+the two with no navigation:
+
+| panel         | markup  | tiles | sections |
+|---------------|---------|-------|----------|
+| quartermaster | 145,554 | 132   | 7        |
+| squad         |  90,215 |  98   | 7        |
+| database      |  34,383 |   0   | 3 + tabs |
+
+The Database is the Quartermaster's read-only twin and it has tabs. The shop
+does not, and it is four times the size. Squad runs seventeen stacked blocks
+and shows the Frame slot twice — once as the fielded card under the deck,
+once as the full picker below the reserve. Both are defensible as written
+(the comments argue for each), but neither has ever been measured against
+the other.
+
+Left alone deliberately: that is a design change, not a cleanup, and it is
+the designer's call which shape it takes.

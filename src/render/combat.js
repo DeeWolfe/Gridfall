@@ -692,7 +692,7 @@ function drawObjective(host) {
   const met = b.total > 0 && b.done >= b.total;
   let prog = '';
   if (b.total > 0 && b.total <= 5) {
-    prog = `<span class="pips">${Array.from({length: b.total}, (_, i) =>
+    prog = `<span class="opips">${Array.from({length: b.total}, (_, i) =>
       `<i class="${i < b.done ? 'on' : ''}"></i>`).join('')}</span>`;
   } else if (b.total > 0) {
     prog = `<span class="obar"><span style="width:${Math.min(100, b.done / b.total * 100)}%"></span></span>`;
@@ -737,15 +737,6 @@ export function drawHand() {
   paintHandCount();
   const h = $('hcards');
   h.innerHTML = '';
-  // The last tile the deck did not deal. Everything in front of it — the
-  // lead's call, the Proto Frame — is something you brought rather than drew,
-  // and the tray says so with a gap instead of asking the player to remember.
-  let offdeck = null;
-
-
-  // Only worth a divider when there is something on the other side of it.
-  if (offdeck && G.hand.length) offdeck.classList.add('railend');
-
   G.hand.forEach((cid, index) => {
     const k = POOL[cid];
     const cost = costOf(cid);

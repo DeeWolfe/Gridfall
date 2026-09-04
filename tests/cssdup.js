@@ -10,11 +10,20 @@ const F = failures();
 const {body, css} = pageParts(builtPage());
 
 // Selectors that are genuinely declared more than once, by design.
-const INTENTIONAL = ['body', '.deploy', '.deploy h2', '.deploy .sub', '.gcard', '.gart',
+const INTENTIONAL = ['body', 'html', '.deploy', '.deploy h2', '.deploy .sub', '.gcard', '.gart',
   '.fcard', '.fart', '.fart svg', '.facts', '.portlabel'];
 
 // Media blocks legitimately redeclare selectors; keyframes are not selectors.
+//
+// Comments come out FIRST, and that is the whole guard. Without it a selector
+// with a comment above it is counted as "/* ... *\/\n.pips" rather than as
+// ".pips" — a key of its own — so any duplicate where either copy is
+// documented was invisible. This stylesheet comments nearly everything, so
+// the guard passed vacuously for its whole life and let a real `.pips`
+// collision ship: the objective's progress dots inherited `position:absolute`
+// from the veterancy pips and rode off to the corner of the screen.
 const topLevel = css
+  .replace(/\/\*[\s\S]*?\*\//g, '')
   .replace(/@media[^{]*\{(?:[^{}]|\{[^}]*\})*\}/g, '')
   .replace(/@keyframes[^{]*\{(?:[^{}]|\{[^}]*\})*\}/g, '');
 

@@ -4,9 +4,16 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.39';
+export const VERSION = '2.39.1';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.39.1',
+    notes: [
+      "THE OBJECTIVE'S PROGRESS DOTS SIT WHERE THEY BELONG. They shared a class name with the veterancy diamonds on a card, inherited that rule's absolute positioning, and rode off to the corner of the combat screen instead of sitting under the objective they were counting. Every mission with a countable goal — crystals, specimens, the uplink, the purge, the extraction — had its progress readout in the wrong place.",
+      'Housekeeping behind it: a stylesheet rule for the retired Pilot\'s callsign field, a hand divider whose code had been switched off for good, five empty layout blocks and a handful of styles nothing has worn in months are all gone.',
+    ],
+  },
   {
     v: '2.39',
     notes: [
