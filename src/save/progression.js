@@ -73,6 +73,8 @@ export function gearFits(id, gi) {
   // Line gear (the Fireteam weapons) fits only that line; a Frame-bound piece
   // fits only its Frame.
   if (g.fits && k.line !== g.fits) return false;
+  // A team-bound weapon fits its own team and no other.
+  if (g.team && id !== g.team) return false;
   if (g.frame && id !== g.frame) return false;
   return !isProto(id);
 }

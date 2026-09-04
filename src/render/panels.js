@@ -301,13 +301,14 @@ function quartermasterPanel() {
     const owned = active.unlocks.gear.includes(gi);
     const affordable = active.progress.credits >= g.cost;
     const needsFrame = (g.frame && !active.unlocks.cards.includes(g.frame))
-      || (g.fits && !active.unlocks.cards.some(c => POOL[c] && POOL[c].line === g.fits));
+      || (g.team && !active.unlocks.cards.includes(g.team))
+      || (g.fits && !g.team && !active.unlocks.cards.some(c => POOL[c] && POOL[c].line === g.fits));
     const foot = owned ? '<div class="gfoot own">Owned</div>'
-      : needsFrame ? `<div class="gfoot no">Needs ${g.frame ? POOL[g.frame].n : 'a Fireteam'}</div>`
+      : needsFrame ? `<div class="gfoot no">Needs ${g.frame ? POOL[g.frame].n : g.team ? POOL[g.team].n : 'a Fireteam'}</div>`
         : `<div class="gfoot ${affordable ? 'buy' : 'no'}">${g.cost} cr</div>`;
     return `<button class="gcard t-tech${owned ? ' owned' : (affordable && !needsFrame) ? '' : ' cant'}" data-gear="${gi}"
        title="${attr(g.n + ' — ' + g.cost + ' cr\n' + g.d +
-         (g.frame ? '\nFits the ' + POOL[g.frame].n + ' and nothing else.' : g.fits ? '\nFits any Fireteam and nothing else.' : ''))}">
+         (g.frame ? '\nFits the ' + POOL[g.frame].n + ' and nothing else.' : g.team ? '\nFits ' + POOL[g.team].n + ' and nothing else.' : g.fits ? '\nFits any Fireteam and nothing else.' : ''))}">
        <div class="inkmark">${sigil(gi, 'tech')}</div>
        <div class="tn">${g.n}</div>${foot}</button>`;
   };
@@ -321,7 +322,7 @@ function quartermasterPanel() {
        <div style="color:var(--dim);font-size:0.6875rem">Buy the Frame first — a weapon with no Frame does nothing</div></div>
      <div class="cgrid">${frameGear.map(gearTile).join('')}</div>` : '') +
     (lineGear.length ? `<div class="sect" style="color:var(--violet)">Fireteam weapons</div>
-     <div class="bar"><div>Each one fits any Fireteam and replaces the team's own gun — chosen at the hold, carried all mission</div>
+     <div class="bar"><div>Four are bound to their team, the Shotgun fits any — each replaces the team's own gun, chosen at the hold, carried all mission</div>
        <div style="color:var(--dim);font-size:0.6875rem">One gear per card: a team with a weapon carries nothing else from the armoury</div></div>
      <div class="cgrid">${lineGear.map(gearTile).join('')}</div>` : '');
 

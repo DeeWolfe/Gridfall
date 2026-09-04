@@ -4915,3 +4915,7 @@ Fireteams carry `parapet` at mkUnit: the five beam walks in targeting.js pass th
 ## v2.37.4
 
 User's call: Fireteam armour cards are one use a mission again (the v2.34.1 exception is gone). deploy.js marks every `fits` card spent, the grenade included; drawCard skips the spent list.
+
+## v2.37.5
+
+Gear `team` binding: sniper→Osiris, gravhammer→Noble, rocket→Majestic, esword→Shadow; shotgun universal. gearFits and the shop tiles read it.

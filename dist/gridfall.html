@@ -3403,7 +3403,8 @@ const GEAR = {
     fits: "fireteam",
     tg: "blast3",
     dmg: 3,
-    d: "Fireteam weapon. A rocket into the 3×3 centred three cells ahead, 3 to everything in it. Direct fire — a wall of yours directly in front cuts it.",
+    d: "Majestic's weapon. A rocket into the 3×3 centred three cells ahead, 3 to everything in it. Direct fire — a wall of yours directly in front cuts it.",
+    team: "ftmajestic",
   },
   shotgun: {
     n: "Shotgun",
@@ -3412,7 +3413,7 @@ const GEAR = {
     fits: "fireteam",
     tg: "sweep",
     dmg: 2,
-    d: "Fireteam weapon. Both columns ahead across three lanes, six cells for 2. Close work; nothing beyond two cells.",
+    d: "Any Fireteam's weapon. Both columns ahead across three lanes, six cells for 2. Close work; nothing beyond two cells.",
   },
   sniper: {
     n: "Sniper Rifle",
@@ -3424,7 +3425,8 @@ const GEAR = {
     single: 1,
     pen: 1,
     recharge: 1,
-    d: "Fireteam weapon. The furthest hostile in the lane for 8, armour ignored — then a turn to cycle. One shot every other turn.",
+    d: "Osiris's weapon. The furthest hostile in the lane for 8, armour ignored — then a turn to cycle. One shot every other turn.",
+    team: "ftosiris",
   },
   esword: {
     n: "Energy Sword",
@@ -3435,7 +3437,8 @@ const GEAR = {
     dmg: 8,
     single: 1,
     choose: 1,
-    d: "Fireteam weapon. One adjacent hostile of your choice, any side, for 8. Nothing at range.",
+    d: "Shadow's weapon. One adjacent hostile of your choice, any side, for 8. Nothing at range.",
+    team: "ftshadow",
   },
   gravhammer: {
     n: "Gravity Hammer",
@@ -3445,7 +3448,8 @@ const GEAR = {
     tg: "around",
     dmg: 3,
     push: 1,
-    d: "Fireteam weapon. Every cell around the team for 3, and survivors are driven back a cell. Slow, wide, and it moves the line.",
+    d: "Noble's weapon. Every cell around the team for 3, and survivors are driven back a cell. The wall that moves the line.",
+    team: "ftnoble",
   },
 };
 
@@ -3716,6 +3720,8 @@ function gearFits(id, gi) {
   // Line gear (the Fireteam weapons) fits only that line; a Frame-bound piece
   // fits only its Frame.
   if (g.fits && k.line !== g.fits) return false;
+  // A team-bound weapon fits its own team and no other.
+  if (g.team && id !== g.team) return false;
   if (g.frame && id !== g.frame) return false;
   return !isProto(id);
 }
@@ -9779,6 +9785,7 @@ function gearFitList(gi) {
     const line = GEAR[gi].fits;
     return `<div class="fab"><b>Linked card</b><span style="color:var(--dim)">${bound
       ? `This is a ${POOL[bound].n} weapon. It fits nothing else, and the ${POOL[bound].n} is not in your deck.`
+      : GEAR[gi].team ? `This is ${POOL[GEAR[gi].team].n}'s weapon. It fits nothing else, and that team is not in your deck.`
       : line ? 'This is a Fireteam weapon. It fits any Fireteam, and no Fireteam is in your deck.'
         : 'No card in the deck can carry gear yet.'}</span></div>`;
   }
@@ -15464,13 +15471,14 @@ function quartermasterPanel() {
     const owned = active.unlocks.gear.includes(gi);
     const affordable = active.progress.credits >= g.cost;
     const needsFrame = (g.frame && !active.unlocks.cards.includes(g.frame))
-      || (g.fits && !active.unlocks.cards.some(c => POOL[c] && POOL[c].line === g.fits));
+      || (g.team && !active.unlocks.cards.includes(g.team))
+      || (g.fits && !g.team && !active.unlocks.cards.some(c => POOL[c] && POOL[c].line === g.fits));
     const foot = owned ? '<div class="gfoot own">Owned</div>'
-      : needsFrame ? `<div class="gfoot no">Needs ${g.frame ? POOL[g.frame].n : 'a Fireteam'}</div>`
+      : needsFrame ? `<div class="gfoot no">Needs ${g.frame ? POOL[g.frame].n : g.team ? POOL[g.team].n : 'a Fireteam'}</div>`
         : `<div class="gfoot ${affordable ? 'buy' : 'no'}">${g.cost} cr</div>`;
     return `<button class="gcard t-tech${owned ? ' owned' : (affordable && !needsFrame) ? '' : ' cant'}" data-gear="${gi}"
        title="${attr(g.n + ' — ' + g.cost + ' cr\n' + g.d +
-         (g.frame ? '\nFits the ' + POOL[g.frame].n + ' and nothing else.' : g.fits ? '\nFits any Fireteam and nothing else.' : ''))}">
+         (g.frame ? '\nFits the ' + POOL[g.frame].n + ' and nothing else.' : g.team ? '\nFits ' + POOL[g.team].n + ' and nothing else.' : g.fits ? '\nFits any Fireteam and nothing else.' : ''))}">
        <div class="inkmark">${sigil(gi, 'tech')}</div>
        <div class="tn">${g.n}</div>${foot}</button>`;
   };
@@ -15484,7 +15492,7 @@ function quartermasterPanel() {
        <div style="color:var(--dim);font-size:0.6875rem">Buy the Frame first — a weapon with no Frame does nothing</div></div>
      <div class="cgrid">${frameGear.map(gearTile).join('')}</div>` : '') +
     (lineGear.length ? `<div class="sect" style="color:var(--violet)">Fireteam weapons</div>
-     <div class="bar"><div>Each one fits any Fireteam and replaces the team's own gun — chosen at the hold, carried all mission</div>
+     <div class="bar"><div>Four are bound to their team, the Shotgun fits any — each replaces the team's own gun, chosen at the hold, carried all mission</div>
        <div style="color:var(--dim);font-size:0.6875rem">One gear per card: a team with a weapon carries nothing else from the armoury</div></div>
      <div class="cgrid">${lineGear.map(gearTile).join('')}</div>` : '');
 
@@ -15991,9 +15999,15 @@ function openPanel(key, quiet) {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.37.4';
+const VERSION = '2.37.5';
 
 const PATCH_NOTES = [
+  {
+    v: '2.37.5',
+    notes: [
+      'WEAPONS FIND THEIR TEAMS. The Sniper Rifle is Osiris\'s, the Gravity Hammer is Noble\'s, the Rocket Launcher is Majestic\'s, the Energy Sword is Shadow\'s — each fits its own team and nothing else. The Shotgun fits any Fireteam.',
+    ],
+  },
   {
     v: '2.37.4',
     notes: [

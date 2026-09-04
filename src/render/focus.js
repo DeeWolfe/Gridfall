@@ -364,6 +364,7 @@ function gearFitList(gi) {
     const line = GEAR[gi].fits;
     return `<div class="fab"><b>Linked card</b><span style="color:var(--dim)">${bound
       ? `This is a ${POOL[bound].n} weapon. It fits nothing else, and the ${POOL[bound].n} is not in your deck.`
+      : GEAR[gi].team ? `This is ${POOL[GEAR[gi].team].n}'s weapon. It fits nothing else, and that team is not in your deck.`
       : line ? 'This is a Fireteam weapon. It fits any Fireteam, and no Fireteam is in your deck.'
         : 'No card in the deck can carry gear yet.'}</span></div>`;
   }

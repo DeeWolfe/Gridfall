@@ -4,9 +4,15 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.37.4';
+export const VERSION = '2.37.5';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.37.5',
+    notes: [
+      'WEAPONS FIND THEIR TEAMS. The Sniper Rifle is Osiris\'s, the Gravity Hammer is Noble\'s, the Rocket Launcher is Majestic\'s, the Energy Sword is Shadow\'s — each fits its own team and nothing else. The Shotgun fits any Fireteam.',
+    ],
+  },
   {
     v: '2.37.4',
     notes: [

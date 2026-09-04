@@ -632,17 +632,25 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'xgrenade']
 // --- five Fireteam weapons in the armoury: fit any team, nothing else, and replace the gun ---
 {
   const WEAPONS = ['rocket', 'shotgun', 'sniper', 'esword', 'gravhammer'];
+  const BOUND = {sniper: 'ftosiris', gravhammer: 'ftnoble', rocket: 'ftmajestic', esword: 'ftshadow'};
   WEAPONS.forEach(id => {
     if (A.POOL[id]) F.push(`${id} is still a card`);
     const g = A.GEAR[id];
     if (!g || g.fits !== 'fireteam' || !g.tg) F.push(`${id} is not a Fireteam weapon gear`);
-    if (!A.gearFits('ftnoble', id)) F.push(`${id} does not fit a Fireteam`);
     if (A.gearFits('rifle', id) || A.gearFits('whitedevil', id)) F.push(`${id} fits something that is not a Fireteam`);
+    if (BOUND[id]) {
+      if (g.team !== BOUND[id]) F.push(`${id} should be bound to ${BOUND[id]}`);
+      if (!A.gearFits(BOUND[id], id)) F.push(`${id} does not fit its own team`);
+      TEAMS.filter(t => t !== BOUND[id]).forEach(t => { if (A.gearFits(t, id)) F.push(`${id} fits ${t}, which is not its team`); });
+    } else {
+      if (g.team) F.push(`${id} should be universal`);
+      TEAMS.forEach(t => { if (!A.gearFits(t, id)) F.push(`${id} should fit ${t}`); });
+    }
   });
   if (!A.TGNAME.blast3) F.push('blast3 has no name');
   const p = unlockAll(A.blankProfile('ARM'), ['ftosiris', 'ftnoble', 'rifle', 'marks', 'wall', 'medic']);
   p.unlocks.gear.push('sniper', 'gravhammer', 'rocket');
-  p.loadout.gear = {ftosiris: 'sniper', ftnoble: 'gravhammer'};
+  p.loadout.gear = {ftosiris: 'sniper', ftnoble: 'gravhammer'};   // each on its own team
   A.enterProfile(p);
   A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0});
   clearBoard();
@@ -655,8 +663,8 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'xgrenade']
   nb.fresh = false; nb.acted = false;
   A.fire(nb, false);
   if (foe.hp !== 7 || foe.col !== 3) F.push(`the hammer dealt ${10 - foe.hp} and left the crawler at ${foe.col}, wanted 3 and a push to 3`);
-  p.loadout.gear.ftnoble = 'rocket';
-  const rk = A.mkUnit('ftnoble', 2, 1);
+  p.loadout.gear.ftmajestic = 'rocket';
+  const rk = A.mkUnit('ftmajestic', 2, 1);
   const cells = new Set(A.geomCells(rk));
   if (cells.size !== 9 || !cells.has(2 * A.COLS + 4)) F.push('rocket blast is not the 3x3 centred three out');
   const old = A.blankProfile('WPN'); old.version = 18; old.unlocks.cards = ['scout', 'sniper', 'rocket']; old.progress.credits = 0;

@@ -138,7 +138,8 @@ export const GEAR = {
     fits: "fireteam",
     tg: "blast3",
     dmg: 3,
-    d: "Fireteam weapon. A rocket into the 3×3 centred three cells ahead, 3 to everything in it. Direct fire — a wall of yours directly in front cuts it.",
+    d: "Majestic's weapon. A rocket into the 3×3 centred three cells ahead, 3 to everything in it. Direct fire — a wall of yours directly in front cuts it.",
+    team: "ftmajestic",
   },
   shotgun: {
     n: "Shotgun",
@@ -147,7 +148,7 @@ export const GEAR = {
     fits: "fireteam",
     tg: "sweep",
     dmg: 2,
-    d: "Fireteam weapon. Both columns ahead across three lanes, six cells for 2. Close work; nothing beyond two cells.",
+    d: "Any Fireteam's weapon. Both columns ahead across three lanes, six cells for 2. Close work; nothing beyond two cells.",
   },
   sniper: {
     n: "Sniper Rifle",
@@ -159,7 +160,8 @@ export const GEAR = {
     single: 1,
     pen: 1,
     recharge: 1,
-    d: "Fireteam weapon. The furthest hostile in the lane for 8, armour ignored — then a turn to cycle. One shot every other turn.",
+    d: "Osiris's weapon. The furthest hostile in the lane for 8, armour ignored — then a turn to cycle. One shot every other turn.",
+    team: "ftosiris",
   },
   esword: {
     n: "Energy Sword",
@@ -170,7 +172,8 @@ export const GEAR = {
     dmg: 8,
     single: 1,
     choose: 1,
-    d: "Fireteam weapon. One adjacent hostile of your choice, any side, for 8. Nothing at range.",
+    d: "Shadow's weapon. One adjacent hostile of your choice, any side, for 8. Nothing at range.",
+    team: "ftshadow",
   },
   gravhammer: {
     n: "Gravity Hammer",
@@ -180,6 +183,7 @@ export const GEAR = {
     tg: "around",
     dmg: 3,
     push: 1,
-    d: "Fireteam weapon. Every cell around the team for 3, and survivors are driven back a cell. Slow, wide, and it moves the line.",
+    d: "Noble's weapon. Every cell around the team for 3, and survivors are driven back a cell. The wall that moves the line.",
+    team: "ftnoble",
   },
 };
