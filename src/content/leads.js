@@ -122,7 +122,7 @@ export const LEADS = {
   },
   masterchief: {
     n: "JOHN-117",
-    call: "MASTER CHIEF",
+    call: "MASTER SPARTAN",
     role: "Spartan",
     col: "#6f8f3a",
     bio: "Says less than any officer in the service and is obeyed faster. Has never once asked what the odds were.",

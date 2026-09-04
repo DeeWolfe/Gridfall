@@ -5134,3 +5134,22 @@ Note on the previous entry: the earlier "chief" was KAEDE, callsign CHIEF,
 not JOHN-117 / MASTER CHIEF. Master Chief's Spartan Company and No Frame
 were trimmed on that misreading. Both trims are accurate and stand, but
 they were not what was asked for.
+
+## v2.38.8 — JOHN-117 is MASTER SPARTAN
+
+A display rename, nothing more. `call` in the lead data goes from
+"MASTER CHIEF" to "MASTER SPARTAN"; the id stays `masterchief`, because
+that is what every rule keys off (`leadIs('masterchief')` in costOf,
+leadBan and seedFrame) and what a save stores in `p.lead` and
+`unlocks.leads`. Renaming the id would have needed a migration and bought
+nothing — the whole point of the v2.38.6 leadIs refactor is that display
+strings are free to change.
+
+Prose in the code and in SPEC.md follows the new name so the comments and
+the roster agree. The patch notes below v2.38.8 keep the old callsign:
+they are a record of what shipped when, not a description of the current
+build.
+
+Side effect worth having: KAEDE's callsign is CHIEF, so the roster no
+longer carries both a CHIEF and a MASTER CHIEF — which is exactly the
+collision that made "chief" ambiguous two commits ago.

@@ -4,9 +4,15 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.38.7';
+export const VERSION = '2.38.8';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.38.8',
+    notes: [
+      "JOHN-117 ANSWERS TO MASTER SPARTAN. The twelfth lead's callsign changes and nothing else does — same officer, same price at the Quartermaster, same SPARTAN COMPANY and NO FRAME. Anyone who has recruited him keeps him.",
+    ],
+  },
   {
     v: '2.38.7',
     notes: [

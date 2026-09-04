@@ -100,7 +100,7 @@ rewording it must not switch a rule off.
 
 Three cons are structural rather than numeric, and each is enforced at the
 door as well as in the rules: a banned tier (`banTier`), a deck ceiling
-(`deckCap`), a rearmost-column lockout (`minCol`), and the Master Chief's
+(`deckCap`), a rearmost-column lockout (`minCol`), and the Master Spartan's
 No Frame, which empties the Frame slot entirely.
 
 ## Frames
