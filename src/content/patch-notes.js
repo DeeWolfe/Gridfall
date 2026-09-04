@@ -4,9 +4,15 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.38.6';
+export const VERSION = '2.38.7';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.38.7',
+    notes: [
+      "THE CODE SAYS WHAT IT DOES. The salvage discount was written as '2 DP cheaper — once', which read as though only the first wreck came home cheap. It never worked that way: the Ace Pilot may run the loop all mission, and every Frame recovered redeploys 2 DP cheaper. What the 2 does not do is pile up — lose the machine three times and it is still 2 off, not 6. Wording only; the rule is unchanged.",
+    ],
+  },
   {
     v: '2.38.6',
     notes: [

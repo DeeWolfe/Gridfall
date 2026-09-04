@@ -217,20 +217,47 @@ const play = (cid, l, c) => {
   console.log('the code: half hull out, machine and kit recovered on death');
 }
 
-// --- The Code: the salvaged machine redeploys 2 DP cheaper, once ---
+// --- The Code: 2 DP off every salvage, and never more than 2 ---
+//
+// The two halves of the rule pull opposite ways and both matter. The Ace
+// Pilot may work the loop as many times as the mission allows — every wreck
+// recovered comes back cheaper, not just the first. But the discount is a
+// flat 2 off the next deployment, so a Frame lost three times redeploys at
+// 2 off, not 6: it is assigned, never accumulated, and spent on redeploy.
 {
   start('whitedevil', 'salvagerights');
   const base = A.costOf('whitedevil');
-  const u = play('whitedevil', 2, 1);
-  u.shield = 0;
-  A.dmgUnit(u, 99, 'test');
-  const discounted = A.costOf('whitedevil');
-  if (discounted !== Math.max(1, base - 2)) {
-    F.push(`salvage discount wrong: ${discounted}, wanted ${Math.max(1, base - 2)}`);
+  const wreck = () => {
+    const u = A.G.units.find(x => x.id === 'whitedevil');
+    u.shield = 0;
+    A.dmgUnit(u, 99, 'test');
+  };
+
+  // Three full loops: each death discounts the next deployment by exactly 2,
+  // and each deployment spends it back to the printed cost.
+  for (let round = 1; round <= 3; round++) {
+    play('whitedevil', 2, 1);
+    if (A.costOf('whitedevil') !== base) F.push(`round ${round}: deploying should spend the discount`);
+    wreck();
+    if (A.costOf('whitedevil') !== Math.max(1, base - 2)) {
+      F.push(`round ${round}: salvage should take 2 off, got ${A.costOf('whitedevil')}`);
+    }
+    if (!A.G.hand.includes('whitedevil')) F.push(`round ${round}: the wreck did not come home`);
   }
-  play('whitedevil', 2, 1);
-  if (A.costOf('whitedevil') !== base) F.push('salvage discount did not clear on redeploy');
-  console.log('the code: salvaged machine redeploys 2 DP cheaper, once');
+
+  // And it does not accumulate: salvaging again over a discount already owed
+  // re-states 2, it does not add to it.
+  const held = A.G.units.find(x => x.id === 'whitedevil')
+    || A.mkUnit('whitedevil', 2, 1);
+  A.salvageFrame(held);
+  A.salvageFrame(held);
+  if (A.G.salvageDiscount.whitedevil !== 2) {
+    F.push(`the discount stacked to ${A.G.salvageDiscount.whitedevil}`);
+  }
+  if (A.costOf('whitedevil') !== Math.max(1, base - 2)) {
+    F.push(`stacked salvages priced the frame at ${A.costOf('whitedevil')}`);
+  }
+  console.log('the code: 2 DP off every salvage, repeatable, never stacking');
 }
 
 // --- Field Refit: swap freely, one mount, heals 3, costs no action ---

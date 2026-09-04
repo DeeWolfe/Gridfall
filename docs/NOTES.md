@@ -5059,3 +5059,24 @@ the first time; missions gained the boss row, modifiers gained Scavenge's
 rename plus Crumbling Ground and Fog of War, and the save block is generated
 from a live `blankProfile()`. Every file and symbol the doc now points at
 was checked to exist.
+
+## v2.38.7 — The Code: repeatable, never stacking
+
+User clarified the intent of the v2.38.5 salvage discount: the Ace Pilot may
+work the loop as many times as a mission allows, and every wreck recovered
+redeploys 2 DP cheaper — but the 2 must never accumulate.
+
+The code already did exactly this, by construction rather than by intent:
+`salvageFrame()` ASSIGNS `G.salvageDiscount[u.id] = 2` (never `+=`), and
+`consume()` deletes the entry on redeploy, so each fresh death re-grants a
+flat 2. Verified rather than assumed — the frametest block now runs three
+full death/redeploy loops asserting 2 off each time and full price after
+each deployment, then salvages twice over an unspent discount to assert it
+re-states 2 instead of adding. Both halves were checked against deliberately
+broken code first: `+= 2` fails with "the discount stacked to 6", and
+dropping the `consume()` clear fails rounds 2 and 3.
+
+What WAS wrong was the wording. The passive read "redeploys 2 DP cheaper —
+once", which reads as though only the first wreck comes home cheap. It now
+says "Every wreck you bring home, though the 2 never stacks." Text only; no
+rule changed.
