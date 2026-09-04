@@ -84,11 +84,12 @@ export function dmgEnemy(e, d, src, pen, attacker) {
 }
 
 /**
- * A hostile crossing the line. Each lane carries one Last-Stand charge: the
- * first breach in a lane fires the defense grid instead of counting — the
- * breacher and every hostile in the lane are destroyed (through dmgEnemy, so
- * kills, quotas, splits and screams all resolve normally) and the lane goes
- * naked. Breaches in a spent lane count against the mission's allowance.
+ * A hostile crossing the line. A lane holding a Last-Stand charge — bought
+ * and played there as a Last-Stand Protocol card, never issued free — fires
+ * the defence grid instead of counting the breach: the breacher and every
+ * hostile in the lane are destroyed (through dmgEnemy, so kills, quotas,
+ * splits and screams all resolve normally) and the lane goes naked again.
+ * A breach in an unarmed lane counts against the mission's allowance.
  */
 export function breachAt(e, how) {
   G.enemies = G.enemies.filter(x => x.uid !== e.uid);

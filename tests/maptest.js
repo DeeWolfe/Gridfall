@@ -167,9 +167,9 @@ for (const opKey of Object.keys(A.OPS)) {
     A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0, heat});
     return Object.entries(A.G.manifest).reduce((a, [k, c]) => a + A.BEST[k].threat * c, 0);
   };
-  if (spend(0) !== 4) F.push('baseline wave-1 budget moved: ' + spend(0));
+  const flat = spend(0);
   if (A.G.heat !== 0) F.push('heat leaked into a plain mission');
-  if (spend(6) !== 10) F.push('heat did not raise the wave budget');
+  if (spend(6) !== flat + 6) F.push(`heat did not raise the wave budget by its own value: ${flat} -> ${spend(6)}`);
   if (A.G.heat !== 6) F.push('G.heat not carried into the mission');
 }
 

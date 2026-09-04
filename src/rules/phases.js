@@ -509,7 +509,9 @@ function spawnResearchTeam() {
  */
 function pickBurrowTile() {
   const open = [];
-  for (let l = 0; l < LANES; l++) for (let c = 0; c < COLS; c++) {
+  // Never the home column: a breach on the last line of defence is a breach
+  // you cannot answer, only absorb. Every other tile you hold is fair game.
+  for (let l = 0; l < LANES; l++) for (let c = 1; c < COLS; c++) {
     if (G.ter[l][c] === 'p') open.push([l, c]);
   }
   if (!open.length) { G.burrowAt = null; return; }

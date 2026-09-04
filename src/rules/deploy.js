@@ -68,6 +68,15 @@ function playInstant(cid, l, c) {
     G.ter[l][c] = 'x';
     done.push(`lane ${l + 1}, col ${c + 1} cratered — impassable for good`);
   }
+  // Last-Stand Protocol: the defence grid is bought a lane at a time now.
+  // Re-arming a lane that already holds a charge is legal and wasteful, so
+  // say which it was rather than silently eating the card.
+  if (k.grid) {
+    done.push(G.gridCharge[l]
+      ? `lane ${l + 1} was already armed — the charge is replaced`
+      : `the defence grid is armed in lane ${l + 1}`);
+    G.gridCharge[l] = 1;
+  }
   if (k.gain) { G.dp += k.gain; done.push(`+${k.gain} DP`); }
   if (k.homestrike) done.push(homeStrike(k));
   if (k.draw) {

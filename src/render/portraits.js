@@ -27,7 +27,7 @@ const KANJI = {
   falconer: '隼', rearguard: '殿', banner: '幟', ember: '炎', recoilless: '筒',
   // tech emplacements and devices
   wall: '壁', shield: '護', techblade: '刃', fob: '営', mine: '罠',
-  piercer: '突', firingstep: '柵', demo: '爆',
+  piercer: '突', firingstep: '柵', demo: '爆', laststand: '防',
   // the elemental set
   pyre: '火', cryo: '凍', volt: '雷', crystal: '晶',
   // specialists

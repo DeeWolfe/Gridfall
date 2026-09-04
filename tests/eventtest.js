@@ -1,6 +1,6 @@
-// The fun patch: field events run on the marker promise contract, each lane's
-// Last-Stand charge answers its first breach, the Dynamo pays for greed, and
-// every hostile's intent badge tells the truth about its next move.
+// The fun patch: field events run on the marker promise contract, a lane's
+// bought Last-Stand charge answers its next breach, the Dynamo pays for
+// greed, and every hostile's intent badge tells the truth about its move.
 import * as A from './support/api.js';
 import {failures} from './support/harness.js';
 import {spawnUnit, spawnFoe, clearBoard, unlockAll} from './support/fixtures.js';
@@ -61,17 +61,21 @@ const start = () => {
   start();
   const spent = m => Object.entries(m).reduce((a, [k, c]) => a + A.BEST[k].threat * c, 0);
   A.G.event = null;
-  if (spent(A.wave(1)) !== 4) F.push('baseline wave-1 budget moved: ' + spent(A.wave(1)));
+  // The wave ramp is a balance number that moves; +2 for a surge is the rule.
+  const flat = spent(A.wave(1));
   A.G.event = 'surge';
-  if (spent(A.wave(1)) !== 6) F.push('Hive Surge did not add +2 threat');
+  if (spent(A.wave(1)) !== flat + 2) F.push(`Hive Surge did not add +2 threat: ${flat} -> ${spent(A.wave(1))}`);
   A.G.event = 'calm';
   if (Object.keys(A.wave(1)).length) F.push('Dead Air still spawned hostiles');
   A.G.event = null;
 }
 
-// E: the Last-Stand charge — first breach sweeps the lane, second one counts
+// E: the Last-Stand charge — an armed lane sweeps, an unarmed one counts.
+// The charge is bought now (Last-Stand Protocol), so the guard arms it by
+// hand where it used to inherit one free per lane.
 {
   start();
+  A.G.gridCharge[2] = 1;
   const runner = spawnFoe('crawler', 2, 0, 3);
   spawnFoe('breacher', 2, 5, 6);                 // bystander in the same lane
   spawnFoe('crawler', 3, 5, 3);                  // different lane — untouched
@@ -129,6 +133,36 @@ const start = () => {
   spawnUnit('wall', 4, 4);
   const m2 = spawnFoe('mender', 4, 5, 8);
   if (A.enemyIntent(m2).k !== 'hold') F.push('a blocked unarmed hostile should read hold');
+}
+
+// F: Last-Stand Protocol — the grid is a card you buy and place, not a
+// freebie. No lane starts armed; the card arms exactly the lane it is played
+// into; and a breach in an unarmed lane counts, which is the whole point of
+// making it cost something.
+{
+  start();
+  if (A.G.gridCharge.some(c => c)) F.push('a lane started with a free Last-Stand charge');
+
+  A.G.hand.push('laststand');
+  A.G.dp = 9;
+  const tiles = A.validTiles('laststand');
+  const cell = tiles.find(i => Math.floor(i / A.COLS) === 1);
+  if (cell === undefined) {
+    F.push('Last-Stand Protocol offered no tile in lane 2');
+  } else {
+    A.deploy('laststand', 1, cell % A.COLS);
+    if (!A.G.gridCharge[1]) F.push('the card did not arm the lane it was played into');
+    if (A.G.gridCharge.filter(c => c).length !== 1) F.push('the card armed a lane it was not played into');
+    if (A.G.hand.includes('laststand')) F.push('the card was not spent');
+  }
+
+  // The armed lane eats its breach; a bare lane does not.
+  clearBoard();
+  spawnFoe('crawler', 1, 0, 3);
+  spawnFoe('crawler', 3, 0, 3);
+  A.enemyPhase();
+  if (A.G.breaches !== 1) F.push(`expected exactly the unarmed lane to breach, got ${A.G.breaches}`);
+  if (A.G.gridCharge[1]) F.push('the armed lane kept its charge after firing');
 }
 
 F.report('events, charges, dynamo, intents: all checks pass');

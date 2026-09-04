@@ -358,7 +358,9 @@ function markBreaches(want) {
   let tries = 0;
   while (B.marks.length < want && tries++ < 40) {
     const l = randInt(LANES);
-    const c = randInt(COLS);
+    // Column 0 is off limits, same as the Burrow Breach event: the home line
+    // is answered by holding it, not by eating a breach you never saw coming.
+    const c = 1 + randInt(COLS - 1);
     if (G.ter[l][c] === 'x') continue;
     if (foeAt(l, c)) continue;
     if (B.marks.some(m => m.l === l && m.c === c)) continue;

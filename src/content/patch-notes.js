@@ -4,9 +4,18 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.38.8';
+export const VERSION = '2.39';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.39',
+    notes: [
+      "THE LAST-STAND GRID IS A CARD NOW. Every lane used to carry a free charge — five of them a mission, each one cancelling a breach AND sweeping every hostile out of that lane. They fired barely once a mission, but they fired exactly when you were about to lose, and they were quietly holding the whole difficulty curve up. LAST-STAND PROTOCOL is a 2 DP tech card at the Quartermaster: play it into a lane and that lane is covered. No lane is covered until you cover it.",
+      "THE HORDE HITS HARDER. Every armed hostile takes a point of damage with it — a Breacher swings 5, a Spitter and a Burrower 4, a Hulk and a Harrower 7, an Oni 6. The Crawler is untouched, because it is the one that arrives in numbers, and the Sovereign was already at the top of the ladder.",
+      "AND ARRIVES IN SLIGHTLY SMALLER NUMBERS. The wave ramp eases from 1.5 threat a wave to 1.3. The old budget was tuned against five free saves a mission; with those gone, the volume of bodies comes down to meet it. The measured net effect is still a markedly harder game — the balance bot's win rate goes from 68% to 50% — but the pressure is in what each body does to you rather than how many of them there are.",
+      "THE GROUND NO LONGER OPENS ON YOUR LAST LINE. Burrow Breach and the bosses' breach marks never pick your home column now. A breach on the line you are defending with is one you can only absorb, never answer; anywhere else you hold is still fair game.",
+    ],
+  },
   {
     v: '2.38.8',
     notes: [

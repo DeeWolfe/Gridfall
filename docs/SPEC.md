@@ -14,7 +14,7 @@ rules those numbers feed, and is kept free of copied stat tables on purpose.
   manifest (`deckCap`). Opening hand 5; the turn draw is 2, plus the
   Quartermaster's `drawBonus`, and stops at a hand of 6 — card effects that
   call in cards ignore that cap on purpose. The reserve reshuffles when empty.
-- **Last-Stand Protocol.** Each lane carries one grid charge: the first hostile to cross that lane's line is destroyed along with every hostile in the lane (kills and quota progress from the purge do not count), and the charge is spent. **One breach past a spent lane loses.** Holding fewer than 6 tiles also loses.
+- **Last-Stand Protocol.** A *card*, not an entitlement: no lane starts armed. Play it (2 DP, tech, instant) onto a held tile and that lane holds a grid charge — the next hostile to cross its line is destroyed along with every hostile in the lane (kills and quota progress from the purge do not count), and the charge is spent. **One breach in an unarmed lane loses.** Holding fewer than 6 tiles also loses, though in practice the breach is what ends missions.
 - Tiles flip to whoever ends the turn on them. You may only deploy on tiles you hold.
 
 ## Turn order
@@ -150,7 +150,7 @@ A prediction, not an undo.
 
 | Type | Waves | Objective |
 |---|---|---|
-| Defend Stronghold | 8 | Hold the line through every wave. Each lane's grid charge absorbs one breach - after that, one body through ends it. |
+| Defend Stronghold | 8 | Hold the line through every wave. Nothing absorbs a breach unless you bought and placed a Last-Stand Protocol in that lane. |
 | Protect Civilians | 7 | Three civilian pods sit on your ground. Lose all three and the operation fails. |
 | Acquire Specimens | 7 | Destroy the marked hostile type to fill the quota. |
 | Fight for Crystals | 6 | Four crystal nodes on the field. Hold three when the last wave clears. |

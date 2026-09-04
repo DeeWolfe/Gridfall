@@ -495,11 +495,10 @@ export function drawBoard() {
 
     let marker = c === COLS - 1 && spawnLanes[l]
       ? `<span class="spawnmark">◀${spawnLanes[l] > 1 ? spawnLanes[l] : ''}</span>` : '';
-    // The lane's Last-Stand charge, standing (bright) or spent (dark).
-    if (c === 0 && G.gridCharge) {
-      marker += `<span class="gridpip${G.gridCharge[l] ? '' : ' spent'}" title="${G.gridCharge[l]
-        ? 'Last-Stand charge armed — the first breach in this lane fires the grid instead of counting'
-        : 'Charge spent — breaches in this lane now count'}">⛨</span>`;
+    // A lane's Last-Stand charge, if one has been played into it. Unarmed is
+    // the resting state now, so it draws nothing — the pip means "bought".
+    if (c === 0 && G.gridCharge && G.gridCharge[l]) {
+      marker += '<span class="gridpip" title="Last-Stand charge armed — the next breach in this lane fires the grid instead of counting">⛨</span>';
     }
 
     const u = unitAt(l, c);

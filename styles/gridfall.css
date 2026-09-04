@@ -781,7 +781,6 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
 /* Last-Stand charges on the home column: armed glows, spent goes dark. */
 .gridpip{position:absolute;left:1px;top:50%;transform:translateY(-50%);font-size:0.7188rem;
   color:var(--cyan);text-shadow:0 0 7px rgba(77,232,255,.8);z-index:1;pointer-events:none}
-.gridpip.spent{color:#3a3564;text-shadow:none;opacity:.8}
 /* Field-event chips in the incoming strip. */
 .incp.evt{color:var(--violet);border-color:var(--violet);box-shadow:0 0 12px -4px var(--violet);cursor:pointer}
 .incp.evtnext{color:var(--dim);border-color:var(--line2);cursor:pointer}

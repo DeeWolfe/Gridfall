@@ -34,8 +34,16 @@ export function wave(t) {
 
   // Hot operations (op-level `heat`) run every wave over budget, and a Hive
   // Surge event runs this one wave heavier still.
+  //
+  // The ramp is 1.3 a wave, down from 1.5. The Last-Stand grid used to be
+  // issued free — five charges, one a lane, each cancelling a breach AND
+  // sweeping the lane — and the wave budget was tuned against that safety
+  // net. With the grid bought a lane at a time (Last-Stand Protocol) the net
+  // is gone unless you pay for it, so the volume of bodies comes down to meet
+  // it. Measured on the balance bot: the net's removal alone took the win
+  // rate from 68% to 42%; this puts it back at 50%.
   let budget = Math.round(2 + (G.heat || 0) + (G.event === 'surge' ? 2 : 0)
-    + t * (G.endless ? 1.9 : 1.5));
+    + t * (G.endless ? 1.9 : 1.3));
   const pool = ['crawler'];
   if (t >= 2) pool.push('hulk', 'breacher', 'husk');
   if (t >= 3) pool.push('spitter', 'burrower');

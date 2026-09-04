@@ -6,7 +6,7 @@ export const MISSIONS = {
   stronghold: {
     n: "Defend Stronghold",
     waves: 8,
-    d: "Hold the line through every wave. Each lane's grid charge absorbs one breach — after that, one body through ends it.",
+    d: "Hold the line through every wave. Nothing stops a breach unless you have armed that lane with a Last-Stand Protocol.",
   },
   civilians: {
     n: "Civilian Extract",

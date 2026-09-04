@@ -5175,3 +5175,65 @@ reversal that never reached anyone's save.
 
 Both ids are untouched, as before: `masterchief` and `fieldrefit` are what
 leadIs(), p.lead and unlocks.leads key off.
+
+## v2.39 — the Last-Stand grid becomes a card
+
+### The measurement that started it
+
+The report was that non-boss content plays too easy. Measured first, three
+levers, 30 missions per type per config against the balance bot:
+
+| config                    | all |
+|---------------------------|-----|
+| baseline                  | 68–71% |
+| hostile damage x1.5       | 67% |
+| +2 threat every wave      | 57% |
+| Last-Stand grid removed   | 45% |
+
+Two things came out of that. The bot is described in its own header as "a
+FLOOR, not a measurement of how the game plays in human hands" — and it was
+clearing 87% of Strongholds. And a fifty percent damage buff across the
+entire bestiary bought four points, which is nothing.
+
+The reason is structural. Across 240 missions the loss reasons were 27
+breaches and the rest objective failures: **"Ground lost — no viable
+deployment line" never fired once.** Losing units does not lose missions.
+You redeploy at 6 DP a turn, so damage costs tempo, not the game; its only
+route to a defeat is the ground floor, which is dead content.
+
+What did gate the game was the Last-Stand grid: five charges, one a lane,
+each cancelling a breach AND sweeping the lane. They fired 0.65 times a
+mission on average — rare, but always at the exact moment you would
+otherwise have lost. One mechanic, twenty-six points of win rate.
+
+### What shipped
+
+The grid is bought a lane at a time. `gridCharge` initialises to zeros and
+LAST-STAND PROTOCOL (`laststand`, tech, 2 DP, 170 cr) is an instant with a
+`grid: 1` flag that arms the lane it lands in. `breachAt` is untouched — it
+already only asked whether the lane held a charge, so the whole sweep,
+kill-rollback and boss-exemption path is the same code.
+
+Damage: +1 to every armed non-boss hostile except the Crawler (the volume
+unit, and it doubles under Swarm) and the Sovereign (already top of the
+ladder).
+
+Waves: ramp 1.5 → 1.3. Removing the net alone took the bot from 68% to 42%,
+which overshot; the ramp puts it at 50%. That is the number to re-measure
+against if any of this moves again.
+
+Burrows: `pickBurrowTile` and the bosses' `markBreaches` both start at
+column 1. A breach on the home column is one you can only absorb.
+
+### Notes for next time
+
+- The bot cannot buy Last-Stand Protocol — it plays STARTER decks — so 50%
+  is the floor with the safety net unavailable. A human who drafts the card
+  should sit well above it.
+- Two guards asserted absolute wave budgets (`!== 4`, `!== 6`, `!== 10`) and
+  broke on the ramp change. They asserted the delta after: heat adds its own
+  value, a surge adds 2. The ramp is a balance number and will move again.
+- The art and pixel coverage guards both caught the new card before it could
+  ship faceless. That is what they are for; 防 (ward) and a shield token.
+- GROUND_FLOOR is still dead. If damage should ever be a real lever, that is
+  the condition to make bite — units dying would have to cost ground.
