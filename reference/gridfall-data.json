@@ -1812,7 +1812,7 @@
    "bio": "Fights every sortie as a private duel. Has lost more machines than anyone in the service and walked away from all of them.",
    "passive": {
     "n": "The Code",
-    "d": "When your Frame is destroyed, it returns to your hand along with every gear that was attached."
+    "d": "When your Frame is destroyed, it returns to your hand along with every gear that was attached, and redeploys 2 DP cheaper — once."
    },
    "con": {
     "n": "Rushed Assembly",
