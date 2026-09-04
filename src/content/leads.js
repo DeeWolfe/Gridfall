@@ -110,7 +110,7 @@ export const LEADS = {
   },
   fieldrefit: {
     n: "KAEDE",
-    call: "CHIEF",
+    call: "AKI-KAZE",
     role: "Frame Engineer",
     col: "#ff9d4d",
     bio: "Rebuilds a loadout mid-sortie the way other people change their mind. Considers a fixed configuration a failure of imagination.",
@@ -122,7 +122,7 @@ export const LEADS = {
   },
   masterchief: {
     n: "JOHN-117",
-    call: "MASTER SPARTAN",
+    call: "MASTER CHIEF",
     role: "Spartan",
     col: "#6f8f3a",
     bio: "Says less than any officer in the service and is obeyed faster. Has never once asked what the odds were.",

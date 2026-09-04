@@ -5153,3 +5153,25 @@ build.
 Side effect worth having: KAEDE's callsign is CHIEF, so the roster no
 longer carries both a CHIEF and a MASTER CHIEF — which is exactly the
 collision that made "chief" ambiguous two commits ago.
+
+## v2.38.8, corrected — KAEDE is AKI-KAZE, JOHN-117 is MASTER CHIEF again
+
+The rename in the entry above is reverted: JOHN-117's callsign is MASTER
+CHIEF as it always was, and every code comment and SPEC.md line that
+followed it back to "Master Spartan" is restored. KAEDE takes the new
+callsign instead — AKI-KAZE, 秋風, autumn wind, which sits with the rest
+of the game's Japanese register better than a second Chief did.
+
+Cased AKI-KAZE to match the roster: every callsign in LEADS is upper case
+(IRONBRAND, LONE EDGE, QUARTERMASTER), and the UI prints `call` verbatim,
+so a title-case entry would have been the one lower-case tile on the
+board.
+
+The v2.38.8 patch note was REWRITTEN rather than followed by a v2.38.9
+undoing it. That version had been public for minutes, and the net change
+a commander sees between 2.38.7 and 2.38.8 is exactly one renamed lead —
+so the changelog now says that, instead of documenting a rename and its
+reversal that never reached anyone's save.
+
+Both ids are untouched, as before: `masterchief` and `fieldrefit` are what
+leadIs(), p.lead and unlocks.leads key off.

@@ -92,7 +92,7 @@ export function costOf(id) {
   // Quietstep: anything that lands on hostile ground goes in a point cheaper.
   const infiltrator = leadIs('quietstep') && (k.drop || k.anyGround || (g && g.crush)) ? 1 : 0;
   // Spartan Company: the Fireteam line — the team itself and anything that
-  // fits it — goes in a point cheaper under the Master Spartan.
+  // fits it — goes in a point cheaper under the Master Chief.
   const spartan = leadIs('masterchief') && (k.line === 'fireteam' || k.fits === 'fireteam') ? 1 : 0;
   // The Code: a salvaged Frame is already built — fielding it again costs
   // less than building one from nothing. One-time, spent alongside the card.
@@ -112,7 +112,7 @@ export function leadBan(id) {
   if (!k) return null;
   const lead = leadOf();
   if (lead.banTier && k.t === lead.banTier) return lead.con.n;
-  // No Frame: the Master Spartan fields no Proto Frame, seeded or not.
+  // No Frame: the Master Chief fields no Proto Frame, seeded or not.
   if (leadIs('masterchief') && k.chassis === 'proto') return lead.con.n;
   return null;
 }
@@ -120,7 +120,7 @@ export function leadBan(id) {
 /**
  * Build-table rules a deck can break as a whole, not card by card: the
  * one-line rule (a deck fields the Fireteam line or the Frame line, never
- * both) and Lone Spartan (the Master Spartan carries one Fireteam). Read by
+ * both) and Lone Spartan (the Master Chief carries one Fireteam). Read by
  * the Squad page and by the launch guard, so a broken deck is refused at
  * the door with the same words it was warned with.
  * @returns {{n:string, d:string}[]}
@@ -130,7 +130,7 @@ export function deckProblems(deck = active && active.loadout ? active.loadout.de
   // The one-line rule (Fireteam line or Frame line, never both) and Lone
   // Spartan lived here in v2.33 and were shelved in v2.33.3 pending play
   // testing: twelve slots already make a mixed deck a bad deck, and the
-  // Master Spartan's No Frame covers his own. The hook stays — the Squad page
+  // Master Chief's No Frame covers his own. The hook stays — the Squad page
   // and the launch guard still read it — so a rule can come back as one line.
   void deck; void frame;
   return [];

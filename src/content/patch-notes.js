@@ -10,7 +10,7 @@ export const PATCH_NOTES = [
   {
     v: '2.38.8',
     notes: [
-      "JOHN-117 ANSWERS TO MASTER SPARTAN. The twelfth lead's callsign changes and nothing else does — same officer, same price at the Quartermaster, same SPARTAN COMPANY and NO FRAME. Anyone who has recruited him keeps him.",
+      "KAEDE ANSWERS TO AKI-KAZE. The Frame Engineer's callsign changes and nothing else does — same officer, same price at the Quartermaster, same FIELD REFIT and SINGLE MOUNT. Anyone who has recruited her keeps her, and JOHN-117 is MASTER CHIEF as he always was.",
     ],
   },
   {

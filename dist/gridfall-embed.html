@@ -3639,7 +3639,7 @@ const LEADS = {
   },
   fieldrefit: {
     n: "KAEDE",
-    call: "CHIEF",
+    call: "AKI-KAZE",
     role: "Frame Engineer",
     col: "#ff9d4d",
     bio: "Rebuilds a loadout mid-sortie the way other people change their mind. Considers a fixed configuration a failure of imagination.",
@@ -3651,7 +3651,7 @@ const LEADS = {
   },
   masterchief: {
     n: "JOHN-117",
-    call: "MASTER SPARTAN",
+    call: "MASTER CHIEF",
     role: "Spartan",
     col: "#6f8f3a",
     bio: "Says less than any officer in the service and is obeyed faster. Has never once asked what the odds were.",
@@ -3809,7 +3809,7 @@ function costOf(id) {
   // Quietstep: anything that lands on hostile ground goes in a point cheaper.
   const infiltrator = leadIs('quietstep') && (k.drop || k.anyGround || (g && g.crush)) ? 1 : 0;
   // Spartan Company: the Fireteam line — the team itself and anything that
-  // fits it — goes in a point cheaper under the Master Spartan.
+  // fits it — goes in a point cheaper under the Master Chief.
   const spartan = leadIs('masterchief') && (k.line === 'fireteam' || k.fits === 'fireteam') ? 1 : 0;
   // The Code: a salvaged Frame is already built — fielding it again costs
   // less than building one from nothing. One-time, spent alongside the card.
@@ -3829,7 +3829,7 @@ function leadBan(id) {
   if (!k) return null;
   const lead = leadOf();
   if (lead.banTier && k.t === lead.banTier) return lead.con.n;
-  // No Frame: the Master Spartan fields no Proto Frame, seeded or not.
+  // No Frame: the Master Chief fields no Proto Frame, seeded or not.
   if (leadIs('masterchief') && k.chassis === 'proto') return lead.con.n;
   return null;
 }
@@ -3837,7 +3837,7 @@ function leadBan(id) {
 /**
  * Build-table rules a deck can break as a whole, not card by card: the
  * one-line rule (a deck fields the Fireteam line or the Frame line, never
- * both) and Lone Spartan (the Master Spartan carries one Fireteam). Read by
+ * both) and Lone Spartan (the Master Chief carries one Fireteam). Read by
  * the Squad page and by the launch guard, so a broken deck is refused at
  * the door with the same words it was warned with.
  * @returns {{n:string, d:string}[]}
@@ -3847,7 +3847,7 @@ function deckProblems(deck = active && active.loadout ? active.loadout.deck : []
   // The one-line rule (Fireteam line or Frame line, never both) and Lone
   // Spartan lived here in v2.33 and were shelved in v2.33.3 pending play
   // testing: twelve slots already make a mixed deck a bad deck, and the
-  // Master Spartan's No Frame covers his own. The hook stays — the Squad page
+  // Master Chief's No Frame covers his own. The hook stays — the Squad page
   // and the launch guard still read it — so a rule can come back as one line.
   void deck; void frame;
   return [];
@@ -5332,7 +5332,7 @@ function clog(html, cat) {
 function seedFrame() {
   const id = active && active.loadout ? active.loadout.frame : null;
   G.frame = null;
-  // No Frame (Master Spartan): the slot may hold a machine, but it never flies.
+  // No Frame (Master Chief): the slot may hold a machine, but it never flies.
   const noFrame = leadIs('masterchief');
   if (id && isProto(id) && POOL[id] && !noFrame) {
     G.hand.push(id);
@@ -16314,7 +16314,7 @@ const PATCH_NOTES = [
   {
     v: '2.38.8',
     notes: [
-      "JOHN-117 ANSWERS TO MASTER SPARTAN. The twelfth lead's callsign changes and nothing else does — same officer, same price at the Quartermaster, same SPARTAN COMPANY and NO FRAME. Anyone who has recruited him keeps him.",
+      "KAEDE ANSWERS TO AKI-KAZE. The Frame Engineer's callsign changes and nothing else does — same officer, same price at the Quartermaster, same FIELD REFIT and SINGLE MOUNT. Anyone who has recruited her keeps her, and JOHN-117 is MASTER CHIEF as he always was.",
     ],
   },
   {
