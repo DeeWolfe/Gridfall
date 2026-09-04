@@ -4,9 +4,15 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.39.3';
+export const VERSION = '2.39.4';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.39.4',
+    notes: [
+      "LAST-STAND PROTOCOL SAYS WHAT IT DOES. The card ended 'One charge, one lane', which read as one use for the whole mission. It never worked that way — the charge is spent when it fires, and the card cycles back through the reserve like any other, so one copy can arm several lanes over a mission. Wording only; the rule is unchanged.",
+    ],
+  },
   {
     v: '2.39.3',
     notes: [

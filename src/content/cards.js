@@ -545,7 +545,7 @@ export const POOL = {
     tech: 1,
     instant: 1,
     grid: 1,
-    d: "Arms the defence grid in one lane. The next hostile to cross the line there is destroyed with everything else in that lane, and the breach does not count. One charge, one lane.",
+    d: "Arms the defence grid in one lane. The next hostile to cross the line there is destroyed with everything else in that lane, and the breach does not count. The charge is spent when it fires.",
   },
   cryo: {
     n: "Cryo Projector",
