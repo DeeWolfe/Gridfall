@@ -7,7 +7,7 @@ import {LEADS} from '../content/leads.js';
 import {LEADGATES} from '../content/lead-unlocks.js';
 import {RANKS, VET} from '../content/ranks.js';
 import {DECKSIZE} from '../state/constants.js';
-import {active} from '../state/session.js';
+import {active, G} from '../state/session.js';
 
 export const rankName = r => RANKS[Math.min(r - 1, RANKS.length - 1)];
 
@@ -97,7 +97,10 @@ export function costOf(id) {
   // fits it — goes in a point cheaper under the Master Chief.
   const spartan = leadOf().passive && leadOf().passive.n === 'Spartan Company' &&
     (k.line === 'fireteam' || k.fits === 'fireteam') ? 1 : 0;
-  return Math.max(1, k.dp + (g && g.dp ? g.dp : 0) - infiltrator - spartan);
+  // The Code: a salvaged Frame is already built — fielding it again costs
+  // less than building one from nothing. One-time, spent alongside the card.
+  const salvaged = (G && G.salvageDiscount && G.salvageDiscount[id]) || 0;
+  return Math.max(1, k.dp + (g && g.dp ? g.dp : 0) - infiltrator - spartan - salvaged);
 }
 
 /** Deck ceiling under the active lead — Coronet and Quartermaster run short. */

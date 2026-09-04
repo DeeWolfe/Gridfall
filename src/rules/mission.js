@@ -112,7 +112,7 @@ export function launchSpec(nd) {
     civ: [], crystals: [], quota: 0, quotaK: null, quotaHit: 0,
     civGoal: 0, extracts: 0,
     uplinkAt: null, uplinkHeld: 0,
-    calls: [], frame: null, freeDrop: 0,
+    calls: [], frame: null, freeDrop: 0, salvageDiscount: {},
     gridCharge: Array(LANES).fill(1), event: null, eventNext: null,
     predict: [], held: [], result: null,
   });

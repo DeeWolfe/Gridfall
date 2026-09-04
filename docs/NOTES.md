@@ -4995,3 +4995,22 @@ using" directions from the earlier design conversation, not the
 "decouples the con from player choice" direction; Single Mount is
 unchanged, and a player who never swaps still sees nothing from either
 half of Kaede's kit. Left as-is per the user's explicit build request.
+
+## v2.38.5 — The Code: salvage discount on redeploy
+
+A Frame Bushido's "The Code" returns to hand now redeploys 2 DP cheaper,
+one time. `salvageFrame(u)` in frames.js sets `G.salvageDiscount[u.id] = 2`
+alongside the existing hand-recovery; `costOf(id)` in progression.js reads
+it as a fourth discount term next to Quietstep/Spartan Company. `consume()`
+in deploy.js deletes the entry the instant the card is actually redeployed
+(win or lose), so it never lingers to undercut a fresh copy drawn later —
+and `launchSpec()` in mission.js seeds `salvageDiscount: {}` on the G-state
+so the map exists before anything tries to read it. Read this session as
+"since the Frame is already built, fielding it again shouldn't cost what
+building one from nothing does" — the request that prompted it referenced
+a pilot system that left the game back in v2.26, so this is my best
+interpretation of the ask, not a restored mechanic.
+
+Test: frametest.js, alongside the existing "The Code" block — confirms
+`costOf('whitedevil')` drops by 2 after the salvaged wreck comes home,
+and returns to normal the moment the card is redeployed.

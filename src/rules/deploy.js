@@ -32,6 +32,9 @@ function consume(cid) {
   if (after > before) clog(`<span class="g">${k.n} promoted to ${VET[after].n}.</span>`, 'info');
 
   G.dp -= costOf(cid);
+  // A salvage discount is spent the instant the card redeploys, win or lose —
+  // it never lingers to undercut a normal copy drawn later.
+  if (G.salvageDiscount && G.salvageDiscount[cid]) delete G.salvageDiscount[cid];
   G.hand.splice(G.hand.indexOf(cid), 1);
   clearSelection();
   hooks.invalidate();

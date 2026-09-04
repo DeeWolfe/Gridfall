@@ -217,6 +217,22 @@ const play = (cid, l, c) => {
   console.log('the code: half hull out, machine and kit recovered on death');
 }
 
+// --- The Code: the salvaged machine redeploys 2 DP cheaper, once ---
+{
+  start('whitedevil', 'salvagerights');
+  const base = A.costOf('whitedevil');
+  const u = play('whitedevil', 2, 1);
+  u.shield = 0;
+  A.dmgUnit(u, 99, 'test');
+  const discounted = A.costOf('whitedevil');
+  if (discounted !== Math.max(1, base - 2)) {
+    F.push(`salvage discount wrong: ${discounted}, wanted ${Math.max(1, base - 2)}`);
+  }
+  play('whitedevil', 2, 1);
+  if (A.costOf('whitedevil') !== base) F.push('salvage discount did not clear on redeploy');
+  console.log('the code: salvaged machine redeploys 2 DP cheaper, once');
+}
+
 // --- Field Refit: swap freely, one mount, heals 3, costs no action ---
 {
   start('whitedevil', 'fieldrefit');

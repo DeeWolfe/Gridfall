@@ -7,7 +7,7 @@ import {BEST} from '../content/hostiles.js';
 import {LEADS} from '../content/leads.js';
 import {TGNAME} from '../content/targeting-names.js';
 import {TIERNAME, VET} from '../content/ranks.js';
-import {active, setSel, setMover} from '../state/session.js';
+import {active, setSel, setMover, G} from '../state/session.js';
 import {commit} from '../save/profile.js';
 import {costOf, gearOf, vetOf, gearFits, isProto, CHASSIS_NAME, leadUnlocked, leadPrice, leadGateText, cardName, deckCapOf, leadBan} from '../save/progression.js';
 import {$, attr} from './dom.js';

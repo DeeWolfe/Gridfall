@@ -204,6 +204,10 @@ export function salvageFrame(u) {
   const back = [u.id, u.gearW, ...u.gearS].filter(Boolean);
   back.forEach(c => G.hand.push(c));
   G.spent = (G.spent || []).filter(c => !back.includes(c));
+  // A salvaged Frame is already built — fielding it again costs 2 less,
+  // spent the moment the card is redeployed.
+  G.salvageDiscount = G.salvageDiscount || {};
+  G.salvageDiscount[u.id] = 2;
   clog(`<span class="g">The Code</span> — ${cardName(u.id)} recovered to hand` +
     (back.length > 1 ? ' with its gear' : '') + '.', 'order');
 }

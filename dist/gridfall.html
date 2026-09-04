@@ -3824,7 +3824,10 @@ function costOf(id) {
   // fits it — goes in a point cheaper under the Master Chief.
   const spartan = leadOf().passive && leadOf().passive.n === 'Spartan Company' &&
     (k.line === 'fireteam' || k.fits === 'fireteam') ? 1 : 0;
-  return Math.max(1, k.dp + (g && g.dp ? g.dp : 0) - infiltrator - spartan);
+  // The Code: a salvaged Frame is already built — fielding it again costs
+  // less than building one from nothing. One-time, spent alongside the card.
+  const salvaged = (G && G.salvageDiscount && G.salvageDiscount[id]) || 0;
+  return Math.max(1, k.dp + (g && g.dp ? g.dp : 0) - infiltrator - spartan - salvaged);
 }
 
 /** Deck ceiling under the active lead — Coronet and Quartermaster run short. */
@@ -5512,6 +5515,10 @@ function salvageFrame(u) {
   const back = [u.id, u.gearW, ...u.gearS].filter(Boolean);
   back.forEach(c => G.hand.push(c));
   G.spent = (G.spent || []).filter(c => !back.includes(c));
+  // A salvaged Frame is already built — fielding it again costs 2 less,
+  // spent the moment the card is redeployed.
+  G.salvageDiscount = G.salvageDiscount || {};
+  G.salvageDiscount[u.id] = 2;
   clog(`<span class="g">The Code</span> — ${cardName(u.id)} recovered to hand` +
     (back.length > 1 ? ' with its gear' : '') + '.', 'order');
 }
@@ -8663,7 +8670,7 @@ function launchSpec(nd) {
     civ: [], crystals: [], quota: 0, quotaK: null, quotaHit: 0,
     civGoal: 0, extracts: 0,
     uplinkAt: null, uplinkHeld: 0,
-    calls: [], frame: null, freeDrop: 0,
+    calls: [], frame: null, freeDrop: 0, salvageDiscount: {},
     gridCharge: Array(LANES).fill(1), event: null, eventNext: null,
     predict: [], held: [], result: null,
   });
@@ -12699,6 +12706,9 @@ function consume(cid) {
   if (after > before) clog(`<span class="g">${k.n} promoted to ${VET[after].n}.</span>`, 'info');
 
   G.dp -= costOf(cid);
+  // A salvage discount is spent the instant the card redeploys, win or lose —
+  // it never lingers to undercut a normal copy drawn later.
+  if (G.salvageDiscount && G.salvageDiscount[cid]) delete G.salvageDiscount[cid];
   G.hand.splice(G.hand.indexOf(cid), 1);
   clearSelection();
   hooks.invalidate();
@@ -16300,9 +16310,15 @@ function openPanel(key, quiet) {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.38.4';
+const VERSION = '2.38.5';
 
 const PATCH_NOTES = [
+  {
+    v: '2.38.5',
+    notes: [
+      "THE CODE PAYS OFF THE REBUILD. A Frame Bushido brings home from the wreck redeploys 2 DP cheaper — the machine and its kit are already built, so fielding them again shouldn't cost what building one from nothing does. One-time: the discount is spent the moment the card goes back down, so it never undercuts a fresh copy later in the mission.",
+    ],
+  },
   {
     v: '2.38.4',
     notes: [

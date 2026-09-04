@@ -4,9 +4,15 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.38.4';
+export const VERSION = '2.38.5';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.38.5',
+    notes: [
+      "THE CODE PAYS OFF THE REBUILD. A Frame Bushido brings home from the wreck redeploys 2 DP cheaper — the machine and its kit are already built, so fielding them again shouldn't cost what building one from nothing does. One-time: the discount is spent the moment the card goes back down, so it never undercuts a fresh copy later in the mission.",
+    ],
+  },
   {
     v: '2.38.4',
     notes: [
