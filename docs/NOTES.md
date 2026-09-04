@@ -5080,3 +5080,37 @@ What WAS wrong was the wording. The passive read "redeploys 2 DP cheaper —
 once", which reads as though only the first wreck comes home cheap. It now
 says "Every wreck you bring home, though the 2 never stacks." Text only; no
 rule changed.
+
+## Master Chief and Bushido: shorter perk text
+
+Two perks had grown long enough to stand out against the rest of the roster —
+177 and 78 characters where the median lead perk is around forty. Both were
+trimmed without touching a rule.
+
+THE CODE (Bushido). "When your Frame is destroyed, it returns to your hand
+along with every gear that was attached, and redeploys 2 DP cheaper. Every
+wreck you bring home, though the 2 never stacks." became "Your destroyed
+Frame returns to hand with its gear and redeploys 2 DP cheaper. Every wreck,
+never more than 2." Both halves of the v2.38.7 clarification survive — the
+loop repeats, the discount does not accumulate — in 109 characters instead
+of 177.
+
+SPARTAN COMPANY (Master Chief). "Your Fireteam and every card that fits it
+cost 1 less deploy point, minimum 1." became "Fireteam cards cost 1 less
+deploy point, minimum 1." The clause that went is not a rule the player can
+observe: `costOf()` clamps at 1, and every `fits: fireteam` card — Active
+Camo, Armour Lock, Jetpack, Drop Shield, Hologram, X-Grenade — already costs
+exactly 1 DP. The discount applies to them and is clamped away every time.
+The four Fireteam squads at 4 DP are the only cards the perk moves.
+
+NO FRAME. "You cannot field a Proto Frame. The Frame slot stays empty."
+became "You cannot field a Proto Frame." The second sentence restated the
+first: the Frame slot only ever accepts a Proto chassis (`panels.js` filters
+every Frame picker on `chassis === 'proto'`; the four exo cards are ordinary
+deck cards), so banning Proto Frames is what an empty slot means.
+
+No version bump and no patch note. The rules are identical, and v2.38.7's
+note already spells out The Code's discount for players — a second entry
+saying the sentence got shorter would be noise. Perk prose is safe to reword
+because v2.38.6 moved every lead rule onto `leadIs(id)`; passivetest guards
+that by rewording the entire roster and re-checking the trades.

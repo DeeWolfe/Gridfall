@@ -1812,7 +1812,7 @@
    "bio": "Fights every sortie as a private duel. Has lost more machines than anyone in the service and walked away from all of them.",
    "passive": {
     "n": "The Code",
-    "d": "When your Frame is destroyed, it returns to your hand along with every gear that was attached, and redeploys 2 DP cheaper. Every wreck you bring home, though the 2 never stacks."
+    "d": "Your destroyed Frame returns to hand with its gear and redeploys 2 DP cheaper. Every wreck, never more than 2."
    },
    "con": {
     "n": "Rushed Assembly",
@@ -1842,11 +1842,11 @@
    "bio": "Says less than any officer in the service and is obeyed faster. Has never once asked what the odds were.",
    "passive": {
     "n": "Spartan Company",
-    "d": "Your Fireteam and every card that fits it cost 1 less deploy point, minimum 1."
+    "d": "Fireteam cards cost 1 less deploy point, minimum 1."
    },
    "con": {
     "n": "No Frame",
-    "d": "You cannot field a Proto Frame. The Frame slot stays empty."
+    "d": "You cannot field a Proto Frame."
    }
   }
  },
