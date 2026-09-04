@@ -4,9 +4,15 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.38.1';
+export const VERSION = '2.38.2';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.38.2',
+    notes: [
+      'SUBJECT ONE IS TWICE THE FIGHT. Sixty-eight hull where it carried thirty-four, so the splice takes twice the work to break and each half that stands up out of it is twice what it was. It hits harder for it: the whole thing strikes for 5, and the hive half\'s claws take 6. There is still no clock on this one — but there is a great deal more of it.',
+    ],
+  },
   {
     v: '2.38.1',
     notes: [

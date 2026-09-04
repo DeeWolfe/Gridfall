@@ -4937,3 +4937,14 @@ flag is rebuilt from what remains (so a stripped Jetpack cannot leave servo
 behind). Only one `ab` can be live at a time — the newest wins, and the gear
 text says so. recycleLineCard checks the team's gear for `recover` and
 pushes to hand instead of the deck.
+
+## v2.38.2 — Subject One doubled
+
+hp 34 → 68, strikeDmg 3 → 5, clawDmg 4 → 6. The split takes half of what
+REMAINS at the flip, so doubling the base doubles both halves too (9 → 17
+each). Bot probe: 45% → 5% over 40 runs, avgTurns 30 → 35, and the losses
+are breach, not the boss. Two levers were measured and neither moved it —
+bulk 5 → 9 stayed at 5%, addEvery 3 → 5 stayed at 5% and pushed the fight
+to 43 turns. The cost of the change is fight LENGTH: the bot never
+repositions, so over ~35 turns a breach is close to certain for it. Read
+the 5% as "the bot cannot outlast this", not as a human win rate.

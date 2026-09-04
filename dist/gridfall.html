@@ -4308,15 +4308,15 @@ const BOSSDEF = {
   },
   subject: {
     op: "lumenspire",
-    hp: 34,
+    hp: 68,
     w: 2,
     h: 2,
     l: 1,
     c: 5,
     turns: 0,
-    strikeDmg: 3,
+    strikeDmg: 5,
     huntMv: 2,
-    clawDmg: 4,
+    clawDmg: 6,
     fleeMv: 2,
     mendN: 3,
     add: "husk",
@@ -5084,7 +5084,7 @@ const BEST = {
     n: "Subject One",
     t: "boss",
     boss: 1,
-    hp: 34,
+    hp: 68,
     dmg: 0,
     threat: 0,
     spd: 0,
@@ -16013,9 +16013,15 @@ function openPanel(key, quiet) {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.38.1';
+const VERSION = '2.38.2';
 
 const PATCH_NOTES = [
+  {
+    v: '2.38.2',
+    notes: [
+      'SUBJECT ONE IS TWICE THE FIGHT. Sixty-eight hull where it carried thirty-four, so the splice takes twice the work to break and each half that stands up out of it is twice what it was. It hits harder for it: the whole thing strikes for 5, and the hive half\'s claws take 6. There is still no clock on this one — but there is a great deal more of it.',
+    ],
+  },
   {
     v: '2.38.1',
     notes: [

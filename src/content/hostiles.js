@@ -323,7 +323,7 @@ export const BEST = {
     n: "Subject One",
     t: "boss",
     boss: 1,
-    hp: 34,
+    hp: 68,
     dmg: 0,
     threat: 0,
     spd: 0,
