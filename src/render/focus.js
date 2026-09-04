@@ -46,7 +46,7 @@ function statRows(id) {
     isProto(id) ? ['Frame', 'Seeded into your opening hand — outside the deck, one per mission'] : null,
     k.frameGear ? ['Fits', `${POOL[k.frameGear].n} only — played onto it while it stands`] : null,
     k.fits ? ['Fits', 'Any Fireteam — played onto it while it stands'] : null,
-    k.slot === 'armor' ? ['Slot', 'Armour ability — one carried at a time, the new one replaces the last'] : null,
+    k.slot === 'armor' ? ['Slot', 'Armour ability — one carried at a time, the new one replaces the last; one use a mission'] : null,
     k.line ? ['Line', 'Fireteam — one of each on the field; the card leaves the deck while the team stands and returns when it is lost'] : null,
     (k.line && k.blocker) ? ['Parapet', 'Blocks the horde, but friendly direct fire passes over it'] : null,
     (k.omni && !k.chassis) ? ['Facing', 'Fights facing either way'] : null,

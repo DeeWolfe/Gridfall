@@ -4,9 +4,15 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.37.3';
+export const VERSION = '2.37.4';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.37.4',
+    notes: [
+      'ARMOUR ABILITIES ARE ONE USE A MISSION. Play Active Camo, Jetpack, Armor Lock, Drop Shield, Hologram or the X-Grenade once and the reserve never deals it again that sortie — no dead kit cards sitting in hand after a reshuffle. Frame gear already worked this way. The teams themselves still return to the deck when lost.',
+    ],
+  },
   {
     v: '2.37.3',
     notes: [

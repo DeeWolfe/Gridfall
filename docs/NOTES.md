@@ -4911,3 +4911,7 @@ User's call after weighing gear vs deck. The five weapons are GEAR entries with 
 ## v2.37.3
 
 Fireteams carry `parapet` at mkUnit: the five beam walks in targeting.js pass them, the horde still stops at them.
+
+## v2.37.4
+
+User's call: Fireteam armour cards are one use a mission again (the v2.34.1 exception is gone). deploy.js marks every `fits` card spent, the grenade included; drawCard skips the spent list.

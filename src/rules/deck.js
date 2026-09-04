@@ -36,9 +36,9 @@ export function recycleLineCard(u) {
 export function drawCard(force) {
   if (!force && G.hand.length >= HAND_CAP) return false;
   if (!G.deck.length) {
-    // ...and minus Frame gear already played this mission — a kit on its
-    // machine would only come back as a dead duplicate. Fireteam abilities
-    // are not on this list: they cycle like the teams they fit.
+    // ...and minus any kit already played this mission — Frame gear and
+    // Fireteam armour alike are one use a mission, so a reshuffle never
+    // deals a card with nothing left to do.
     // ...and minus any Fireteam that is standing on the field right now — one
     // of each team at a time; it comes back the moment the team is lost.
     const back = active.loadout.deck.filter(c => POOL[c] && !G.hand.includes(c) && !(G.spent || []).includes(c)

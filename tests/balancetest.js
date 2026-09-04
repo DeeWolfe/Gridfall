@@ -476,7 +476,7 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'xgrenade']
   if (!A.G.hand.includes('whitedevil')) F.push('the Frame was not seeded beside a Fireteam deck');
 }
 
-// --- Frame gear never cycles back; Fireteam abilities do, like the teams ---
+// --- every kit is one use a mission: nothing played comes back through the reserve ---
 {
   start(['whitedevil', 'beamrifle', 'ftnoble', 'camo', 'xgrenade', 'rifle', 'marks', 'wall']);
   A.active.loadout.frame = null;
@@ -485,12 +485,14 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'xgrenade']
   A.G.dp = 20;
   A.deploy('ftnoble', 2, 1);
   A.deploy('camo', 2, 1);
-  spawnFoe('crawler', 2, 5, 10);
-  A.deploy('xgrenade', 2, 1);
-  if ((A.G.spent || []).includes('camo') || (A.G.spent || []).includes('xgrenade')) F.push('Fireteam abilities were marked spent');
+  spawnFoe('crawler', 2, 3, 10);
+  A.deploy('xgrenade', 2, 3);
+  if (!A.G.spent.includes('camo') || !A.G.spent.includes('xgrenade')) F.push('played Fireteam kits were not marked spent');
   const drawn = [];
   for (let i = 0; i < 12; i++) { if (A.drawCard(true)) drawn.push(A.G.hand[A.G.hand.length - 1]); }
-  if (!drawn.includes('camo') || !drawn.includes('xgrenade')) F.push('Fireteam abilities did not cycle back with the reserve');
+  if (drawn.includes('camo')) F.push('Active Camo came back through the reserve after being played');
+  if (drawn.includes('xgrenade')) F.push('a thrown X-Grenade came back through the reserve');
+  if (!drawn.includes('rifle')) F.push('the reserve stopped cycling ordinary cards');
   if (drawn.includes('ftnoble')) F.push('a standing Fireteam cycled back while on the field');
   // Field Refit hands a displaced FRAME gear back — and it is in play again.
   // (A Fireteam's stripped ability is lost; Refit reads "your Frame".)

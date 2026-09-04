@@ -181,19 +181,19 @@ export function deploy(cid, l, c) {
       const hit = G.enemies.filter(e => cells.some(([l2, c2]) => e.lane === l2 && e.col === c2));
       hit.forEach(e => dmgEnemy(e, k.grenade, 'X-Grenade', !!k.pen, thrower));
       clog(`<span class="g">X-Grenade</span> — ${thrower.n} lands it at ${l + 1},${c + 1}: ${hit.length} hostile${hit.length === 1 ? '' : 's'} in the X.`, 'order');
+      G.spent = G.spent || [];
+      if (!G.spent.includes(cid)) G.spent.push(cid);
       return consume(cid);
     }
     // A kit lands on its host — validTiles only ever offers the host's cell,
     // so the unit under (l, c) is the machine or the team this kit fits.
     const fr = unitAt(l, c);
     if (!fr || !(k.frameGear ? fr.id === k.frameGear : fr.line === k.fits)) return;
-    // Frame gear is spent the moment it is played: fitted, later stripped —
-    // it never comes back through the reserve. A Fireteam ability does: it
-    // cycles like the team it fits, and can be played onto the next team.
-    if (k.frameGear) {
-      G.spent = G.spent || [];
-      if (!G.spent.includes(cid)) G.spent.push(cid);
-    }
+    // Every kit is spent the moment it is played — Frame gear and Fireteam
+    // armour alike: fitted, later stripped, it never comes back through the
+    // reserve. One use a mission, so a reshuffle never deals a dead kit.
+    G.spent = G.spent || [];
+    if (!G.spent.includes(cid)) G.spent.push(cid);
     applyFrameGear(fr, cid);
   } else if (k.attach) {
     const u = unitAt(l, c);
