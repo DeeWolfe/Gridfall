@@ -8620,6 +8620,16 @@ const GAUNTLET_LEGS = 3;
 /** Node wins per free standard pack — the hold readout counts down to this. */
 const PACK_METER_GOAL = 3;
 
+/**
+ * Waves per free pack in Onslaught.
+ *
+ * It was 5, and 5 is exactly what a player reaches by deploying nothing at all
+ * and tapping End turn: measured over 200 idle runs the median is 5 and 97% get
+ * there, so the mode paid a pack for sitting still. No idle run reached 10, so
+ * the first pack now costs an actual defence.
+ */
+const ONSLAUGHT_PACK_WAVES = 10;
+
 /** Fresh, neutral-in-the-middle territory grid. */
 function freshTerritory() {
   const ter = [];
@@ -8954,7 +8964,9 @@ function settleOnslaught() {
   active.stats.kills += G.kills;
   commit();
 
-  for (let i = 0; i < Math.floor(G.turn / 5); i++) queuePack('standard', `Onslaught · wave ${(i + 1) * 5}`);
+  for (let i = 0; i < Math.floor(G.turn / ONSLAUGHT_PACK_WAVES); i++) {
+    queuePack('standard', `Onslaught · wave ${(i + 1) * ONSLAUGHT_PACK_WAVES}`);
+  }
 
   return {
     kind: 'lose', cleared: false, title: 'ONSLAUGHT ENDED',
@@ -16361,9 +16373,15 @@ function openPanel(key, quiet) {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.39.4';
+const VERSION = '2.39.5';
 
 const PATCH_NOTES = [
+  {
+    v: '2.39.5',
+    notes: [
+      'ONSLAUGHT PAYS FOR HOLDING, NOT FOR SITTING. A requisition pack came every 5 waves survived — and 5 waves is exactly what you get by deploying nothing and tapping End turn: across 200 idle runs the median is 5 and 97% reach it, so the mode was paying a free pack for doing nothing at all. The drip is every 10 waves now. No idle run has ever reached 10.',
+    ],
+  },
   {
     v: '2.39.4',
     notes: [

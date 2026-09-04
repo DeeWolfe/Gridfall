@@ -4,9 +4,15 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.39.4';
+export const VERSION = '2.39.5';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.39.5',
+    notes: [
+      'ONSLAUGHT PAYS FOR HOLDING, NOT FOR SITTING. A requisition pack came every 5 waves survived — and 5 waves is exactly what you get by deploying nothing and tapping End turn: across 200 idle runs the median is 5 and 97% reach it, so the mode was paying a free pack for doing nothing at all. The drip is every 10 waves now. No idle run has ever reached 10.',
+    ],
+  },
   {
     v: '2.39.4',
     notes: [

@@ -7,6 +7,7 @@ import {failures} from './support/harness.js';
 import {packOffer} from '../src/rules/packs.js';
 import {showPack, burstPack, takePack, packPicks} from '../src/render/packs.js';
 import {closeFocus} from '../src/render/focus.js';
+import {unlockAll} from './support/fixtures.js';
 
 const F = failures();
 const p = A.blankProfile('PK');
@@ -211,6 +212,38 @@ A.enterProfile(p);
       F.push(`after ${win} wins expected ${expected} standard packs, got ${standard}`);
     }
   }
+}
+
+// 7. Onslaught pays per wave survived — and not for sitting still
+//
+// The interval was 5, which is exactly where an idle run ends: deploy nothing,
+// tap End turn, and the line falls on wave 5 in 97 runs out of 100. The mode
+// paid a free pack for that. This drives real idle runs rather than asserting
+// the constant, so the guard fails if either the interval drops back OR the
+// wave ramp softens far enough that idling starts reaching it again.
+{
+  A.enterProfile(unlockAll(A.blankProfile('IDLE')));
+  let paid = 0;
+  let deepest = 0;
+  for (let n = 0; n < 25; n++) {
+    A.setPackQueue([]);
+    A.launchOnslaught();
+    let guard = 0;
+    while (!A.G.over && guard++ < 500) A.endTurn();
+    deepest = Math.max(deepest, A.G.turn);
+    paid += A.packQueue.length;
+    A.setG(null);
+  }
+  if (paid) F.push(`idling through Onslaught paid ${paid} pack(s) across 25 runs — it should pay none`);
+  // And the payout still works for someone who actually holds a line.
+  A.setPackQueue([]);
+  A.launchOnslaught();
+  A.G.turn = 20;
+  A.finish(false, '');
+  if (A.packQueue.length !== 2) {
+    F.push(`surviving 20 waves paid ${A.packQueue.length} packs, expected 2`);
+  }
+  A.setG(null);
 }
 
 F.report('requisition packs: all checks pass');
