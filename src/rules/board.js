@@ -67,7 +67,7 @@ export function visibleCells() {
   }
   for (let l = 0; l < LANES; l++) for (let c = 0; c < FOG_HOME; c++) out.add(l * COLS + c);
   G.units.forEach(u => {
-    const r = u.sight || DEFAULT_SIGHT;
+    const r = (u.sight || DEFAULT_SIGHT) + (u.sightUp || 0);
     for (let i = 0; i < (u.size || 1); i++) {
       for (let dl = -r; dl <= r; dl++) for (let dc = -r; dc <= r; dc++) {
         const l = u.lane + dl;

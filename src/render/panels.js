@@ -322,8 +322,8 @@ function quartermasterPanel() {
        <div style="color:var(--dim);font-size:0.6875rem">Buy the Frame first — a weapon with no Frame does nothing</div></div>
      <div class="cgrid">${frameGear.map(gearTile).join('')}</div>` : '') +
     (lineGear.length ? `<div class="sect" style="color:var(--violet)">Fireteam weapons</div>
-     <div class="bar"><div>Four are bound to their team, the Shotgun fits any — each replaces the team's own gun, chosen at the hold, carried all mission</div>
-       <div style="color:var(--dim);font-size:0.6875rem">One gear per card: a team with a weapon carries nothing else from the armoury</div></div>
+     <div class="bar"><div>Fits a Fireteam and nothing else</div>
+       <div style="color:var(--dim);font-size:0.6875rem">One gear per card, so a team carries one of these or one general piece</div></div>
      <div class="cgrid">${lineGear.map(gearTile).join('')}</div>` : '');
 
   const schemeGrid = `<div class="sect" style="color:var(--gold)">Uniforms</div>

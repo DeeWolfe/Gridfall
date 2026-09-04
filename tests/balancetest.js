@@ -640,4 +640,62 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'xgrenade']
   if (!m.unlocks.gear.includes('barrel')) F.push('a general gear piece was lost in the refund');
 }
 
+
+// --- four gear pieces for the line: plating, visor, rack, beacon ---
+{
+  ['mjolnir', 'visor', 'kitrack', 'beacon'].forEach(gi => { if (!A.GEAR[gi]) F.push(`missing gear '${gi}'`); });
+  ['kitrack', 'beacon'].forEach(gi => {
+    if (A.GEAR[gi].fits !== 'fireteam') F.push(`${gi} should be Fireteam-only`);
+    if (!A.gearFits('ftnoble', gi) || A.gearFits('rifle', gi)) F.push(`${gi} fits the wrong cards`);
+  });
+  ['mjolnir', 'visor'].forEach(gi => { if (!A.gearFits('rifle', gi) || !A.gearFits('ftnoble', gi)) F.push(`${gi} should be general gear`); });
+
+  const p = unlockAll(A.blankProfile('KIT'), ['ftnoble', 'ftshadow', 'camo', 'jetpack', 'lock', 'rifle', 'marks', 'wall']);
+  p.unlocks.gear.push('mjolnir', 'visor', 'kitrack', 'beacon');
+  p.loadout.gear = {rifle: 'mjolnir', marks: 'visor', ftnoble: 'kitrack', ftshadow: 'beacon'};
+  A.enterProfile(p);
+  A.launchSpec({node: null, type: 'stronghold', mod: 'fog', reward: 0});
+  clearBoard();
+
+  // Mjolnir Plating: a shield that comes back every turn.
+  const r = spawnUnit('rifle', 0, 1);
+  if (r.shield !== 1 || !r.regen) F.push('Mjolnir Plating did not grant a regenerating shield');
+  A.dmgUnit(r, 4, 'test');
+  if (r.shield !== 0 || r.hp !== r.max) F.push('the plating shield did not eat the blow');
+  A.endTurn();
+  if (A.G.units.find(u => u.uid === r.uid).shield !== 1) F.push('the plating shield did not re-form');
+
+  // VISR Visor: +2 cells of sight, on top of whatever the card sees.
+  clearBoard();
+  const m = spawnUnit('marks', 2, 1);
+  if (m.sightUp !== 2) F.push('the visor granted no sight');
+  if (!A.cellVisible(2, 5) || A.cellVisible(2, 6)) F.push('a scoped unit with a visor should see four cells');
+
+  // Kit Rack: two armour abilities at once, the newer ability the live one.
+  clearBoard();
+  A.G.hand = ['ftnoble', 'camo', 'jetpack', 'lock'];
+  A.G.dp = 20;
+  A.deploy('ftnoble', 2, 1);
+  const team = A.G.units.find(u => u.id === 'ftnoble');
+  if (!team.rack) F.push('the Kit Rack did not reach the team');
+  A.deploy('camo', 2, 1);
+  A.deploy('jetpack', 2, 1);
+  if (!team.camo || !team.jet) F.push('the rack did not hold two abilities at once');
+  if (team.gearS.length !== 2) F.push(`the team carries ${team.gearS.length} abilities, wanted 2`);
+  A.deploy('lock', 2, 1);
+  if (team.camo) F.push('the rack did not shed the oldest ability');
+  if (!team.jet || !team.ab || team.ab.key !== 'lock') F.push('the rack lost the ability it should have kept');
+  if (team.gearS.length !== 2) F.push('the rack went over its cap');
+
+  // Recovery Beacon: a lost team comes back to hand, not the deck.
+  clearBoard();
+  A.G.hand = [];
+  A.G.deck = [];
+  const sh = spawnUnit('ftshadow', 3, 1);
+  if (!sh.recover) F.push('the beacon did not reach the team');
+  A.dmgUnit(sh, 99, 'test');
+  if (!A.G.hand.includes('ftshadow')) F.push('the beacon did not recover the card to hand');
+  if (A.G.deck.includes('ftshadow')) F.push('the beacon put the card in the deck as well');
+}
+
 F.report('balancetest');

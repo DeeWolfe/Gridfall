@@ -4923,3 +4923,17 @@ Gear `team` binding: sniper→Osiris, gravhammer→Noble, rocket→Majestic, esw
 ## v2.38 — Fireteam weapons cut
 
 User's call after the gear-vs-card round trip: the five weapons were 'the team, but more' and cost a shelf and a binding rule. Gone; v20 refunds and unfits them. The generic support they needed (a gear with `tg` replaces the gun; `blast3`) stays in the engine, unused, in case a weapon idea comes back as a team's own trait.
+
+## v2.38.1 — four gear pieces for the Fireteam line
+
+Mjolnir Plating (`regen`) and VISR Visor (`sight: 2`) are general gear:
+mkUnit reads gear regen into the shield count, and `sightUp` rides on top of
+the card's sight (default included) in visibleCells. Kit Rack (`kitrack`)
+and Recovery Beacon (`recover`) carry `fits: 'fireteam'`.
+
+The armour branch of applyFrameGear is now a SET rather than a swap: cap 1,
+or 2 under a rack; the newest always stays, the oldest is shed, and every
+flag is rebuilt from what remains (so a stripped Jetpack cannot leave servo
+behind). Only one `ab` can be live at a time — the newest wins, and the gear
+text says so. recycleLineCard checks the team's gear for `recover` and
+pushes to hand instead of the deck.

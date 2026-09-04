@@ -1199,6 +1199,36 @@
    "d": "Fires a second time every turn, at the same targets.",
    "twin": 1,
    "role": "offense"
+  },
+  "mjolnir": {
+   "n": "Mjolnir Plating",
+   "cost": 200,
+   "role": "defense",
+   "regen": 1,
+   "d": "An energy shield that re-forms. Absorbs one attack whole, then comes back at the start of every turn."
+  },
+  "visor": {
+   "n": "VISR Visor",
+   "cost": 160,
+   "role": "utility",
+   "sight": 2,
+   "d": "+2 cells of sight in the fog. The only way to give eyes to a unit that has none."
+  },
+  "kitrack": {
+   "n": "Kit Rack",
+   "cost": 220,
+   "role": "utility",
+   "fits": "fireteam",
+   "kitrack": 1,
+   "d": "Fireteam only. The team carries two armour abilities at once instead of one. If both have an ability to trigger, the newer one is the one you can use."
+  },
+  "beacon": {
+   "n": "Recovery Beacon",
+   "cost": 220,
+   "role": "utility",
+   "fits": "fireteam",
+   "recover": 1,
+   "d": "Fireteam only. When the team is lost its card returns to your HAND, not the deck — redeploy next turn instead of waiting on the draw."
   }
  },
  "hostiles": {

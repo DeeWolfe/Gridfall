@@ -29,7 +29,9 @@ export function mkUnit(cid, l, c) {
   if (lead.con && lead.con.n === 'Rushed Assembly' && k.chassis === 'proto') {
     hp = Math.max(1, Math.ceil(hp / 2));
   }
-  const shield = (k.regen ? 1 : 0) + (g && g.shield ? g.shield : 0);
+  // Mjolnir Plating grants the regenerating shield a card can also print.
+  const regen = !!k.regen || !!(g && g.regen);
+  const shield = (regen ? 1 : 0) + (g && g.shield ? g.shield : 0);
 
   return {
     uid: nextUid(),
@@ -75,6 +77,12 @@ export function mkUnit(cid, l, c) {
     holo: false,
     // Fog of war: how far this unit sees. One cell unless the card says more.
     sight: k.sight || 0,
+    // A VISR Visor adds to whatever the card sees, default included.
+    sightUp: (g && g.sight) || 0,
+    // Kit Rack: two armour abilities at once. Recovery Beacon: a lost team
+    // card comes back to the hand instead of the deck.
+    rack: !!(g && g.kitrack),
+    recover: !!(g && g.recover),
     aura: k.aura || 0,
     colBuff: k.col || 0,
     laneB: k.laneB || 0,
@@ -109,7 +117,7 @@ export function mkUnit(cid, l, c) {
     pristine: k.pristine || 0,
     dynamo: k.dynamo || 0,
     tech: !!k.tech,
-    regen: !!k.regen,
+    regen,
     riposte: k.riposte || 0,
     // A Proto Frame moves and still acts in the same turn — the machine's
     // stride is not its whole turn. Servo gear grants the same to anyone.

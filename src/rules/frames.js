@@ -16,7 +16,7 @@
 
 import {POOL} from '../content/cards.js';
 import {G, active} from '../state/session.js';
-import {isProto, leadOf, cardName} from '../save/progression.js';
+import {isProto, leadOf, cardName, gearOf} from '../save/progression.js';
 import {clog} from './log.js';
 
 /** Seed the loadout's Frame into the opening hand, outside the deck. */
@@ -93,20 +93,28 @@ export function applyFrameGear(u, cid) {
   // Armour abilities: one carried at a time. The new one strips the last,
   // and every flag the last one set comes off with it.
   if (k.slot === 'armor') {
-    const prev = u.gearS.find(c => POOL[c].slot === 'armor');
-    if (prev) {
-      u.gearS = u.gearS.filter(c => c !== prev);
-      clog(`${POOL[prev].n} comes off ${u.n}.`, 'info');
-    }
+    // One armour ability at a time, two under a Kit Rack. The newest always
+    // stays; the oldest comes off when the rack is full. Every flag is then
+    // rebuilt from the set that remains, so nothing lingers from a piece that
+    // was stripped.
+    const cap = u.rack ? 2 : 1;
+    const worn = u.gearS.filter(c => POOL[c].slot === 'armor');
+    worn.push(cid);
+    while (worn.length > cap) clog(`${POOL[worn.shift()].n} comes off ${u.n}.`, 'info');
+    u.gearS = u.gearS.filter(c => POOL[c].slot !== 'armor').concat(worn);
+
+    const fit = gearOf(u.id);
     u.camo = false;
     u.cloaked = false;
     u.jet = false;
-    u.servo = false;
+    u.servo = !!(fit && fit.servo) || POOL[u.id].chassis === 'proto';
     u.ab = POOL[u.id].ab || null;
-    u.gearS.push(cid);
-    if (k.camo) { u.camo = true; u.cloaked = true; }
-    if (k.jet) { u.jet = true; u.servo = true; }
-    if (k.ab) { u.ab = k.ab; u.cd = 0; }
+    worn.forEach(c => {
+      const a2 = POOL[c];
+      if (a2.camo) { u.camo = true; u.cloaked = true; }
+      if (a2.jet) { u.jet = true; u.servo = true; }
+      if (a2.ab) { u.ab = a2.ab; u.cd = 0; }
+    });
     clog(`<span class="g">${k.n}</span> fitted to ${u.n}.`, 'order');
     return;
   }

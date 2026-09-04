@@ -4,9 +4,16 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.38';
+export const VERSION = '2.38.1';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.38.1',
+    notes: [
+      'FOUR NEW PIECES IN THE ARMOURY, aimed at what actually kills a Fireteam. MJOLNIR PLATING is an energy shield that re-forms every turn — it eats one blow, then comes back. The VISR VISOR gives +2 cells of sight in the fog, the first way to hand eyes to a unit that has none. Both fit any card that can carry gear.',
+      'AND TWO FOR THE LINE ALONE. The KIT RACK lets a Fireteam carry two armour abilities at once — Camo and a Jetpack on the same Shadow, a Lock and a Drop Shield on the same Noble; if both have an ability to trigger, the newer one is the one you can use. The RECOVERY BEACON sends a lost team\'s card to your HAND instead of the deck, so the team you lose this turn is the team you redeploy next turn.',
+    ],
+  },
   {
     v: '2.38',
     notes: [
