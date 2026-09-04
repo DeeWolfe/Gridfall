@@ -4,9 +4,15 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.39.2';
+export const VERSION = '2.39.3';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.39.3',
+    notes: [
+      "THE FIRST-MISSION BRIEFING TEACHES THE RULES THE GAME ACTUALLY RUNS. Its last card still described the free lane charges every lane used to carry — five saves a mission, gone since v2.39 — so a new commander was being promised cover they did not have. It now says the truth: nothing stops a breach on its own, and the only cover is a LAST-STAND PROTOCOL you buy and play into a lane.",
+    ],
+  },
   {
     v: '2.39.2',
     notes: [

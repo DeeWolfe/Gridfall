@@ -22,7 +22,7 @@ export {DOCTRINE} from '../../src/content/doctrines.js';
 export {TGNAME} from '../../src/content/targeting-names.js';
 export {TIERNAME, RANKS, VET} from '../../src/content/ranks.js';
 
-export {LANES, COLS, MAXDP, MAXBREACH, DECKSIZE, SAVE_VERSION, STARTER} from '../../src/state/constants.js';
+export {LANES, COLS, MAXDP, MAXBREACH, GROUND_FLOOR, DECKSIZE, SAVE_VERSION, STARTER} from '../../src/state/constants.js';
 export {shuffle, randInt, takeOne, chance} from '../../src/state/rng.js';
 export {hooks, setHooks} from '../../src/state/hooks.js';
 export {

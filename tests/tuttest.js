@@ -58,6 +58,28 @@ const firstNode = () => Object.keys(A.opRun().nodes)[0];
   A.endTurn();
   if (A.G.turn === turn) F.push('endTurn did not advance the mission');
   if (!/Hold the line/.test(card())) F.push('ending the turn did not advance the briefing');
+
+  // The briefing is the one place that teaches the loss conditions, and it
+  // taught the wrong ones for a whole version: it described the free ⛨ charge
+  // every lane used to carry, which v2.39 replaced with a card you buy. A new
+  // commander was being promised five saves they no longer had. The rule it
+  // states has to be the rule the engine runs, so the guard reads both.
+  const held = card();
+  if (!/LAST-STAND PROTOCOL/i.test(held)) {
+    F.push('the briefing never says how a breach can be stopped');
+  }
+  if (/charge on each lane|每|every lane/i.test(held)) {
+    F.push('the briefing still promises a free charge in every lane');
+  }
+  // The two numbers it quotes are the two the rules enforce.
+  if (!held.includes(String(A.GROUND_FLOOR))) {
+    F.push(`the briefing does not name the ground floor (${A.GROUND_FLOOR} tiles)`);
+  }
+  // A fresh mission starts with NO lane armed — the sentence above is only
+  // true while that holds.
+  if ((A.G.gridCharge || []).some(Boolean)) {
+    F.push('a lane starts armed — the briefing says nothing stops a breach on its own');
+  }
 }
 
 // 4. dismissing marks it done, permanently, and it survives a save round trip

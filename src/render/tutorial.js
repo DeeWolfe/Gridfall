@@ -43,10 +43,11 @@ const STEPS = [
   },
   {
     title: 'Hold the line',
-    body: 'The ⛨ charge on each lane fires once — the first hostile to cross ' +
-      'that line is vaporised along with everything behind it, and the lane ' +
-      'goes naked. After that, one body through loses the mission, and so ' +
-      'does falling below 6 tiles. Good hunting, Commander.',
+    body: 'Nothing stops a breach on its own. One hostile across your line ' +
+      'ends the mission, and so does being ground down under 6 tiles. Cover ' +
+      'is bought: a LAST-STAND PROTOCOL played into a lane destroys the next ' +
+      'hostile to cross there, and everything else in that lane with it. An ' +
+      'armed lane wears a ⛨. Good hunting, Commander.',
     btn: 'Dismiss',
   },
 ];

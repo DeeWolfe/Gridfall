@@ -16361,9 +16361,15 @@ function openPanel(key, quiet) {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.39.2';
+const VERSION = '2.39.3';
 
 const PATCH_NOTES = [
+  {
+    v: '2.39.3',
+    notes: [
+      "THE FIRST-MISSION BRIEFING TEACHES THE RULES THE GAME ACTUALLY RUNS. Its last card still described the free lane charges every lane used to carry — five saves a mission, gone since v2.39 — so a new commander was being promised cover they did not have. It now says the truth: nothing stops a breach on its own, and the only cover is a LAST-STAND PROTOCOL you buy and play into a lane.",
+    ],
+  },
   {
     v: '2.39.2',
     notes: [
@@ -17996,10 +18002,11 @@ const STEPS = [
   },
   {
     title: 'Hold the line',
-    body: 'The ⛨ charge on each lane fires once — the first hostile to cross ' +
-      'that line is vaporised along with everything behind it, and the lane ' +
-      'goes naked. After that, one body through loses the mission, and so ' +
-      'does falling below 6 tiles. Good hunting, Commander.',
+    body: 'Nothing stops a breach on its own. One hostile across your line ' +
+      'ends the mission, and so does being ground down under 6 tiles. Cover ' +
+      'is bought: a LAST-STAND PROTOCOL played into a lane destroys the next ' +
+      'hostile to cross there, and everything else in that lane with it. An ' +
+      'armed lane wears a ⛨. Good hunting, Commander.',
     btn: 'Dismiss',
   },
 ];
