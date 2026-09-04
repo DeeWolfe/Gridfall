@@ -194,6 +194,11 @@ export function supportTargets(u) {
       if (o.uid !== u.uid && Math.abs(o.lane - u.lane) + Math.abs(o.col - u.col) === 1) add(o);
     });
   }
+  if (u.auraShield) {
+    G.units.forEach(o => {
+      if (o.uid !== u.uid && Math.abs(o.lane - u.lane) + Math.abs(o.col - u.col) === 1) add(o);
+    });
+  }
 
   if (u.heal || u.hot) {
     const wantsTech = u.healType === 'tech';
@@ -229,6 +234,7 @@ export function supportLabel(u) {
   if (u.laneB) return 'Buffing this lane';
   if (u.techBuff) return 'Boosting and repairing the Tech unit ahead';
   if (u.sustain) return 'Repairing neighbours and hurrying their cooldowns';
+  if (u.auraShield) return 'Shielding adjacent friendlies every turn';
   if (u.hot) return 'Regenerating ' + (u.healType === 'tech' ? 'Tech' : 'personnel') + ' in column';
   if (u.heal) {
     return 'Healing ' + (u.healMode === 'front' ? 'the unit ahead'

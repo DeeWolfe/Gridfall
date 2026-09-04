@@ -124,7 +124,7 @@ export function applyFrameGear(u, cid) {
     if (u.gearW && !refit) clog(`${POOL[u.gearW].n} is stripped off ${u.n} and lost.`, 'info');
     u.gearW = cid;
     u.tg = k.tg;
-    u.dmg = k.dmg || 0;
+    u.dmg = (k.dmg || 0) + (u.gearDmg || 0);
     u.single = !!k.single;
     // A riposte is a TRAIT, not part of the weapon: Seven Blades answers
     // blows whatever it swings, and a Beam Saber adds its own on top.
@@ -140,12 +140,20 @@ export function applyFrameGear(u, cid) {
     u.choose = !!(base.choose || k.choose);
     u.push = !!(base.push || k.push);
     u.recharge = !!(base.recharge || k.recharge);
+    u.falloff = !!(base.falloff || k.falloff);
     u.cycling = 0;
   } else {
     u.gearS.push(cid);
     if (k.boost) { u.boost = true; u.servo = true; }
     if (k.twin) u.twin = true;
     if (k.resonate) u.resonate = (u.resonate || 0) + k.resonate;
+    // Guardian Field: a standing aura, refreshed each turn in phases.js.
+    if (k.auraShield) u.auraShield = true;
+    // Core Booster: an anchored chassis may move once this is fitted.
+    if (k.mobGrant) { u.mob = true; u.mobGrant = true; }
+    // Devil's Drive: added to the gear-damage pool AND applied immediately,
+    // so it lands whether the weapon was fitted before or after this.
+    if (k.dmg) { u.gearDmg = (u.gearDmg || 0) + k.dmg; u.dmg += k.dmg; }
   }
   clog(`<span class="g">${k.n}</span> fitted to ${u.n}.`, 'order');
 }
@@ -164,6 +172,7 @@ function unmountWeapon(u) {
   u.choose = !!k.choose;
   u.push = !!k.push;
   u.recharge = !!k.recharge;
+  u.falloff = !!k.falloff;
   u.cycling = 0;
 }
 
@@ -172,6 +181,9 @@ function unmountSupports(u) {
   u.servo = false;
   u.twin = false;
   u.resonate = 0;
+  u.gearDmg = 0;
+  u.auraShield = false;
+  u.mobGrant = false;
 }
 
 /**

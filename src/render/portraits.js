@@ -42,9 +42,9 @@ const KANJI = {
   enfilade: '掃', grapple: '鎖',
   // The Frame line and its closed kits of gear cards.
   whitedevil: '白', sevenblades: '七', heavyarms: '重',
-  beamrifle: '射', beamsaber: '剣', booster: '翔',
-  greatsword: '大', longsword: '長', resonator: '振',
-  lasergatling: '閃', missilegatling: '雨', ammohopper: '弾',
+  beamrifle: '射', beamsaber: '剣', booster: '翔', beamjavelin: '投', guardianfield: '守', devilsdrive: '猛',
+  greatsword: '大', longsword: '長', resonator: '振', pilebunker: '穿', dualblades: '双', doubleblade: '對',
+  lasergatling: '閃', missilegatling: '雨', ammohopper: '弾', siegecannon: '砲', corebooster: '脚',
 };
 
 const INK = '#e8e4f5';

@@ -698,4 +698,130 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'xgrenade']
   if (A.G.deck.includes('ftshadow')) F.push('the beacon put the card in the deck as well');
 }
 
+
+// --- v2.38.3: eight more Frame gear cards, three new mechanics ---
+{
+  const NEW = ['beamjavelin', 'guardianfield', 'devilsdrive', 'pilebunker', 'dualblades', 'doubleblade', 'siegecannon', 'corebooster'];
+  NEW.forEach(id => {
+    const k = A.POOL[id];
+    if (!k || k.slot !== 'weapon' && k.slot !== 'support') F.push(`${id} is not a Frame gear card`);
+  });
+  if (!A.TGNAME.flank2) F.push('flank2 has no targeting name');
+}
+
+// --- Beam Javelin: sweeps every cell around the White Devil ---
+{
+  start(['whitedevil', 'beamjavelin', 'rifle', 'marks', 'wall', 'medic']);
+  A.G.hand = ['beamjavelin'];
+  A.G.dp = 5;
+  const wd = spawnUnit('whitedevil', 2, 2);
+  A.deploy('beamjavelin', 2, 2);
+  if (wd.gearW !== 'beamjavelin' || wd.tg !== 'around' || wd.dmg !== 3) F.push('Beam Javelin did not fit');
+  const cells = new Set(A.geomCells(wd));
+  if (cells.size !== 8) F.push(`Beam Javelin reaches ${cells.size} cells, wanted the 8 around it`);
+}
+
+// --- Guardian Field: a standing aura, refreshed every turn, gone once stripped ---
+{
+  start(['whitedevil', 'guardianfield', 'rifle', 'marks', 'wall', 'medic']);
+  A.G.hand = ['guardianfield'];
+  A.G.dp = 5;
+  const wd = spawnUnit('whitedevil', 2, 2);
+  const near = spawnUnit('rifle', 2, 3);
+  const far = spawnUnit('marks', 4, 2);
+  A.deploy('guardianfield', 2, 2);
+  if (!wd.auraShield) F.push('Guardian Field did not fit');
+  near.shield = 0; far.shield = 0;
+  A.endTurn();
+  const nearAfter = A.G.units.find(u => u.uid === near.uid);
+  const farAfter = A.G.units.find(u => u.uid === far.uid);
+  if (!nearAfter || nearAfter.shield < 1) F.push('Guardian Field did not shield an adjacent friendly');
+  if (farAfter && farAfter.shield) F.push('Guardian Field reached past adjacency');
+  if (!A.supportTargets(A.G.units.find(u => u.id === 'whitedevil')).length) F.push('Guardian Field has no support highlight');
+}
+
+// --- Devil's Drive: +2 damage, no other strings attached ---
+{
+  start(['whitedevil', 'devilsdrive', 'rifle', 'marks', 'wall', 'medic']);
+  A.G.hand = ['devilsdrive'];
+  A.G.dp = 5;
+  const wd = spawnUnit('whitedevil', 2, 2);
+  const before = A.dmgPreview(wd);
+  A.deploy('devilsdrive', 2, 2);
+  if (A.dmgPreview(wd) !== before + 2) F.push(`Devil's Drive should add 2 damage, went ${before} -> ${A.dmgPreview(wd)}`);
+  if (!wd.regen) F.push("Devil's Drive should not touch the White Devil's own shield");
+}
+
+// --- Pile Bunker Blade: full damage through armour at the first cell, half at the second ---
+{
+  start(['sevenblades', 'pilebunker', 'rifle', 'marks', 'wall', 'medic']);
+  A.G.hand = ['pilebunker'];
+  A.G.dp = 5;
+  const sb = spawnUnit('sevenblades', 2, 1);
+  A.deploy('pilebunker', 2, 1);
+  if (sb.gearW !== 'pilebunker' || !sb.pen || !sb.falloff) F.push('Pile Bunker Blade did not fit with its traits');
+  const near = spawnFoe('hulk', 2, 2, 30);           // armour floor — pen must ignore it
+  const far = spawnFoe('hulk', 2, 3, 30);
+  sb.fresh = false; sb.acted = false;
+  A.fire(sb, false);
+  if (30 - near.hp !== 6) F.push(`Pile Bunker Blade dealt ${30 - near.hp} at range 1, wanted 6 through armour`);
+  if (30 - far.hp !== 3) F.push(`Pile Bunker Blade dealt ${30 - far.hp} at range 2, wanted 3 (half, rounded up)`);
+}
+
+// --- Dual Blades: the lane above and below, one cell ahead, own lane clear ---
+{
+  start(['sevenblades', 'dualblades', 'rifle', 'marks', 'wall', 'medic']);
+  A.G.hand = ['dualblades'];
+  A.G.dp = 5;
+  const sb = spawnUnit('sevenblades', 2, 1);
+  A.deploy('dualblades', 2, 1);
+  const up = spawnFoe('crawler', 1, 2, 10);
+  const own = spawnFoe('crawler', 2, 2, 10);
+  const down = spawnFoe('crawler', 3, 2, 10);
+  const hit = A.targetsFor(sb).map(e => e.uid);
+  if (!hit.includes(up.uid) || !hit.includes(down.uid)) F.push('Dual Blades missed a flank');
+  if (hit.includes(own.uid)) F.push('Dual Blades hit its own lane');
+}
+
+// --- Double Blade: the cell ahead and the cell behind, in one motion ---
+{
+  start(['sevenblades', 'doubleblade', 'rifle', 'marks', 'wall', 'medic']);
+  A.G.hand = ['doubleblade'];
+  A.G.dp = 5;
+  const sb = spawnUnit('sevenblades', 2, 2);
+  A.deploy('doubleblade', 2, 2);
+  const ahead = spawnFoe('crawler', 2, 3, 10);
+  const behind = spawnFoe('crawler', 2, 1, 10);
+  const hit = A.targetsFor(sb).map(e => e.uid);
+  if (!hit.includes(ahead.uid) || !hit.includes(behind.uid)) F.push('Double Blade missed a side');
+}
+
+// --- Siege Cannon: reaches the whole board, needs a turn to cycle ---
+{
+  start(['heavyarms', 'siegecannon', 'rifle', 'marks', 'wall', 'medic']);
+  A.G.hand = ['siegecannon'];
+  A.G.dp = 5;
+  const ha = spawnUnit('heavyarms', 2, 1);
+  A.deploy('siegecannon', 2, 1);
+  if (ha.tg !== 'boardFurthest' || ha.dmg !== 8 || !ha.recharge) F.push('Siege Cannon did not fit');
+  const deep = spawnFoe('crawler', 4, 7, 20);
+  ha.fresh = false; ha.acted = false;
+  A.fire(ha, false);
+  if (20 - deep.hp !== 8) F.push(`Siege Cannon dealt ${20 - deep.hp}, wanted 8`);
+  if (ha.cycling <= 0) F.push('Siege Cannon did not start cycling');
+}
+
+// --- Core Booster: the Heavy Arms may move ---
+{
+  start(['heavyarms', 'corebooster', 'rifle', 'marks', 'wall', 'medic']);
+  A.G.hand = ['corebooster'];
+  A.G.dp = 5;
+  const ha = spawnUnit('heavyarms', 2, 1);
+  if (ha.mob) F.push('Heavy Arms should be anchored bare');
+  A.deploy('corebooster', 2, 1);
+  if (!ha.mob) F.push('Core Booster did not grant movement');
+  ha.fresh = false; ha.acted = false; ha.moved = false;
+  if (!A.moveTargets(ha).length) F.push('a mobile Heavy Arms has no move targets');
+}
+
 F.report('balancetest');

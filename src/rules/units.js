@@ -68,6 +68,12 @@ export function mkUnit(cid, l, c) {
     ember: !!k.ember,
     // Recoilless Team: the friendly directly behind eats this much per shot.
     backblast: k.backblast || 0,
+    // Pile Bunker Blade: the second cell in a two-deep thrust takes half.
+    falloff: !!k.falloff,
+    // Guardian Field / Core Booster: an aura and a mobility grant, both read
+    // off the fitted support rather than the base card.
+    auraShield: false,
+    mobGrant: false,
     // The Fireteam line: hosts carry a line, armour abilities set the flags.
     line: k.line || null,
     camo: false,
@@ -140,6 +146,10 @@ export function mkUnit(cid, l, c) {
     // A long stride on the card itself (Osiris), or from a Thruster Pack later.
     boost: !!k.boost,
     resonate: 0,
+    // Devil's Drive: a flat damage bonus from a SUPPORT card, which must
+    // survive a later weapon swap — the weapon-fit path adds this back in
+    // rather than zeroing dmg to the new gun's bare number.
+    gearDmg: 0,
     att: {},
     acted: false,
     moved: false,

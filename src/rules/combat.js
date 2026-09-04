@@ -271,7 +271,12 @@ export function fire(u, onPlay) {
     const ts = targetsFor(u);
     if (!ts.length) break;
     fired = true;
-    ts.forEach(e => dmgEnemy(e, base + lensBonus(u, e), u.n, u.pen, u));
+    // Falloff: the first cell hit takes the full shot, anything behind it
+    // in the same volley takes half, rounded up so it is never nothing.
+    ts.forEach((e, i) => {
+      const full = base + lensBonus(u, e);
+      dmgEnemy(e, i === 0 || !u.falloff ? full : Math.max(1, Math.ceil(full / 2)), u.n, u.pen, u);
+    });
 
     // A recharge weapon spends the next turn cycling. Set to 2 because the
     // end-of-turn reset decrements once immediately after this fires.

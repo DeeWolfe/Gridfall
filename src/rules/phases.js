@@ -54,6 +54,13 @@ export function playerPhase() {
     if (fabrication && u.tech) u.hp = Math.min(u.max, u.hp + 1);
     if (u.regen) u.shield = Math.max(u.shield, u.shieldMax || 1);
   });
+  // Guardian Field: every friendly adjacent to the carrier holds a shield too.
+  G.units.filter(u => u.auraShield).forEach(u => {
+    G.units.forEach(o => {
+      if (o.uid === u.uid || Math.abs(o.lane - u.lane) + Math.abs(o.col - u.col) !== 1) return;
+      o.shield = Math.max(o.shield, 1);
+    });
+  });
 
   // Field support: an Engineer repairs the Tech unit ahead; a Forward Base
   // repairs its neighbours and hurries their cooldowns — but the extra step

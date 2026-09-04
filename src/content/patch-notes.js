@@ -4,9 +4,16 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.38.2';
+export const VERSION = '2.38.3';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.38.3',
+    notes: [
+      'EIGHT NEW FRAME GEAR CARDS. The White Devil gains BEAM JAVELIN (a sweep of every cell around it), GUARDIAN FIELD (every adjacent friendly carries a shield of its own, refreshed each turn) and DEVIL\'S DRIVE (+2 damage). The Seven Blades gains PILE BUNKER BLADE (a piercing thrust — full damage through armour at the first cell, half carried through to the second), DUAL BLADES (the lane above and below, one cell ahead, own lane left clear — the answer to a flanker) and DOUBLE BLADE (the cell ahead and the cell behind, in one motion). Heavy Arms gains the SIEGE CANNON (one heavy indirect shot at the deepest hostile on the board, then a turn to cycle) and the CORE BOOSTER, an external unit that lets the anchored gunner move.',
+      'Frame chassis now carry real weapon and support choices rather than one obvious pick each — a support like Devil\'s Drive survives a later weapon swap instead of being silently wiped by it.',
+    ],
+  },
   {
     v: '2.38.2',
     notes: [

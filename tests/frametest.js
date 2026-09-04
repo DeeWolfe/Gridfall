@@ -55,16 +55,17 @@ const play = (cid, l, c) => {
   });
   // The Fireteam's kits ride the same mechanism; only the Frame kits are counted here.
   const FRAMEKITS = GEARCARDS.filter(c => isProto(POOL[c].frameGear));
-  if (FRAMEKITS.length !== 9) F.push(`expected 9 Frame gear cards, found ${FRAMEKITS.length}`);
+  if (FRAMEKITS.length !== 17) F.push(`expected 17 Frame gear cards, found ${FRAMEKITS.length}`);
   GEARCARDS.forEach(c => {
     const k = POOL[c];
     if (!POOL[k.frameGear]) F.push(`${c} points at a host that does not exist`);
     if (k.dp !== 1) F.push(`${c} costs ${k.dp} DP, spec says 1`);
     if (k.slot !== 'weapon' && k.slot !== 'support') F.push(`${c} has no slot`);
   });
+  const KITSIZE = {whitedevil: 6, sevenblades: 6, heavyarms: 5};
   FRAMES.forEach(f => {
     const kit = GEARCARDS.filter(c => POOL[c].frameGear === f);
-    if (kit.length !== 3) F.push(`${f} kit has ${kit.length} pieces, wanted 3`);
+    if (kit.length !== KITSIZE[f]) F.push(`${f} kit has ${kit.length} pieces, wanted ${KITSIZE[f]}`);
   });
   // The armoury's frame pieces are gone — gear cards replaced them all.
   Object.keys(GEAR).forEach(g => {

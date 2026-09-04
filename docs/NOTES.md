@@ -4948,3 +4948,30 @@ bulk 5 → 9 stayed at 5%, addEvery 3 → 5 stayed at 5% and pushed the fight
 to 43 turns. The cost of the change is fight LENGTH: the bot never
 repositions, so over ~35 turns a breach is close to certain for it. Read
 the 5% as "the bot cannot outlast this", not as a human win rate.
+
+## v2.38.3 — eight Frame gear cards, three new mechanics
+
+User-specified batch: White Devil gets Beam Javelin (weapon, `tg:'around'`),
+Guardian Field (support, `auraShield` — every adjacent friendly holds a
+shield, refreshed alongside the regen pass in phases.js) and Devil's Drive
+(support, `dmg:2`). Seven Blades gets Pile Bunker Blade (weapon, `pen` +
+`falloff` — the new mechanic: fire()'s damage loop now halves, rounded up,
+for every cell past the first when `u.falloff` is set), Dual Blades (weapon,
+new `flank2` pattern — the lane above and below at front+1, own lane clear,
+not a straight shot so no blocker cut, same treatment as `diag`) and Double
+Blade (weapon, reuses the existing `bothsides` pattern). Heavy Arms gets
+Siege Cannon (weapon, `boardFurthest` + `recharge`) and Core Booster
+(support, `mobGrant` — grants `u.mob = true` to an anchored chassis).
+
+One real bug caught in testing: a support's flat damage bonus (Devil's
+Drive) was being silently wiped by a LATER weapon swap, because the
+weapon-fit branch unconditionally set `u.dmg = k.dmg || 0`. Fixed with a
+`gearDmg` accumulator on the unit that both the weapon-fit and support-fit
+paths read, so a support's bonus survives regardless of which slot gets
+refit second. Frame gear count: 9 → 17 (whitedevil 6, sevenblades 6,
+heavyarms 5); frametest's per-chassis guard now expects those counts by name
+instead of a flat 3.
+
+Still open: which Kaede/Field-Refit fix (of the six discussed) to build.
+The gear batch makes the swap worth doing; it doesn't by itself close the
+loophole for a player who never touches it.

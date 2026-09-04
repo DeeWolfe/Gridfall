@@ -184,6 +184,11 @@ function geomBase(u) {
         !(e.lane === L && e.col === u.col));
     case 'bothsides':
       return G.enemies.filter(e => e.lane === L && (e.col === front + 1 || e.col === u.col - 1));
+    // Dual Blades: the lane above and the lane below, one cell ahead — own
+    // lane left clear. Not a straight-line shot, so a wall does not cut it,
+    // same as the diagonals.
+    case 'flank2':
+      return G.enemies.filter(e => Math.abs(e.lane - L) === 1 && e.col === front + 1);
     case 'diag':
       return G.enemies.filter(e => Math.abs(e.lane - L) === 1 && Math.abs(e.col - u.col) === 1);
     case 'vert3': {
@@ -334,6 +339,7 @@ export function geomCells(u, at) {
       }
       break;
     case 'bothsides': add(L, front + 1); add(L, col - 1); break;
+    case 'flank2': add(L - 1, front + 1); add(L + 1, front + 1); break;
     case 'diag':
       [[-1, -1], [-1, 1], [1, -1], [1, 1]].forEach(([dl, dc]) => add(L + dl, col + dc));
       break;
