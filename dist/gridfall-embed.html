@@ -16354,9 +16354,17 @@ function openPanel(key, quiet) {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.39.1';
+const VERSION = '2.39.2';
 
 const PATCH_NOTES = [
+  {
+    v: '2.39.2',
+    notes: [
+      'THE COMBAT LOG IS ON SCREEN ON A DESKTOP. It sits in the details rail under the objective, scrolling on its own, in the room the panel above it was only stretching into — no column taken off the board, and no button to press to find out what just happened. The Log button stands down there because there is nothing left to open.',
+      'ON A PHONE NOTHING MOVES. There is no spare room to give it, so the log stays behind the Log button with the wave clock and the loss terms at the top of it, and the objective under the board stays down to the order and how far through it you are.',
+      "AND THE ORDER SAYS WHEN. 'Hold three at the clock' was a phrase the game explains nowhere; RETAKE and FIGHT FOR CRYSTALS now say 'when the last wave clears', which is what the briefing said all along.",
+    ],
+  },
   {
     v: '2.39.1',
     notes: [
