@@ -66,6 +66,7 @@ function statRows(id) {
     // An instant never lands, so it has no footprint to report.
     (!k.instant && (k.size > 1 || k.attach)) ? ['Footprint', k.size > 1 ? k.size + ' cells' : 'Attachment'] : null,
     (g && g.tg) ? ['Weapon', `${g.n} — ${g.dmg} damage, replaces the team’s own gun`] : null,
+    k.berserk ? ['Damage', 'Scales with the machine’s own wounds — +1 below three-quarters hull, +2 below half, +3 below a quarter'] : null,
     (k.dmg && !(g && g.tg)) ? ['Damage', (k.dmg + (g && g.dmg ? g.dmg : 0)) + (k.burst ? ` (${k.burst} on play)` : '') + (k.falloff ? ' — half at the second cell' : '')] : null,
     k.auraShield ? ['Aura', 'Every adjacent friendly holds a shield, refreshed each turn'] : null,
     k.mobGrant ? ['Mobility', 'Grants an anchored Frame the ability to move'] : null,

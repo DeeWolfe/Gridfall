@@ -217,17 +217,20 @@ const play = (cid, l, c) => {
   console.log('the code: half hull out, machine and kit recovered on death');
 }
 
-// --- Field Refit: swap freely, one mount, the swap is the turn ---
+// --- Field Refit: swap freely, one mount, heals 3, costs no action ---
 {
   start('whitedevil', 'fieldrefit');
   const u = play('whitedevil', 2, 1);
   play('beamrifle', 2, 1);
   if (u.gearW !== 'beamrifle') F.push('refit: first mount failed');
   u.acted = false;
+  u.hp = Math.max(1, u.max - 6);
+  const before = u.hp;
   play('beamsaber', 2, 1);
   if (u.gearW !== 'beamsaber') F.push('refit: swap did not mount the saber');
   if (!A.G.hand.includes('beamrifle')) F.push('refit: the rifle was not returned to hand');
-  if (!u.acted) F.push('refit: the swap did not spend the Frame\'s turn');
+  if (u.hp !== Math.min(u.max, before + 3)) F.push(`refit: the swap should heal 3, went ${before} -> ${u.hp}`);
+  if (u.acted) F.push('refit: the swap spent the Frame\'s turn — it should not have');
   // Single Mount: a support does not ride alongside — it replaces.
   u.acted = false;
   play('booster', 2, 1);
@@ -236,7 +239,7 @@ const play = (cid, l, c) => {
   if (u.dmg !== POOL.whitedevil.dmg || u.tg !== POOL.whitedevil.tg) {
     F.push('refit: base weapon not restored when the saber came off');
   }
-  console.log('field refit: swaps return gear to hand, one mount, the swap is the turn');
+  console.log('field refit: swaps return gear to hand, one mount, heal 3, no lost action');
 }
 
 F.report('the frame line holds: seeded, functional bare, closed kits, both frame leads honest');

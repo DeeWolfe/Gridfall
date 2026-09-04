@@ -4,9 +4,16 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.38.3';
+export const VERSION = '2.38.4';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.38.4',
+    notes: [
+      "DEVIL'S DRIVE runs on Barbatos's own trade now: no flat bonus, no downside to fitting it — the White Devil simply hits harder the worse shape it's in. +1 below three-quarters hull, +2 below half, +3 below a quarter, no ceiling on how far it's been ground down. HEAVY ARMS' mobility support is MANEUVER THRUSTERS — an external booster pack, the way Gundam's own auxiliary flight units carry a machine that was never built to move.",
+      "FIELD REFIT REWORKED. Every gear swap now repairs 3 hull on the Frame, and the swap itself costs no action — a machine that hasn't fired yet this turn still can, after the refit. Kaede's whole identity is proactive now: patch the machine and keep fighting in the same turn.",
+    ],
+  },
   {
     v: '2.38.3',
     notes: [

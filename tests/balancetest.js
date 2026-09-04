@@ -740,15 +740,23 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'xgrenade']
   if (!A.supportTargets(A.G.units.find(u => u.id === 'whitedevil')).length) F.push('Guardian Field has no support highlight');
 }
 
-// --- Devil's Drive: +2 damage, no other strings attached ---
+// --- Devil's Drive: a Barbatos-style bonus that scales with the machine's own wounds ---
 {
   start(['whitedevil', 'devilsdrive', 'rifle', 'marks', 'wall', 'medic']);
   A.G.hand = ['devilsdrive'];
   A.G.dp = 5;
   const wd = spawnUnit('whitedevil', 2, 2);
-  const before = A.dmgPreview(wd);
+  if (A.berserkBonus(wd)) F.push('Devil\'s Drive applied before it was fitted');
   A.deploy('devilsdrive', 2, 2);
-  if (A.dmgPreview(wd) !== before + 2) F.push(`Devil's Drive should add 2 damage, went ${before} -> ${A.dmgPreview(wd)}`);
+  if (!wd.berserk) F.push('Devil\'s Drive did not fit');
+  const before = A.dmgPreview(wd);
+  if (A.berserkBonus(wd) !== 0) F.push(`a full-hull Frame should carry no berserk bonus, got ${A.berserkBonus(wd)}`);
+  wd.hp = Math.ceil(wd.max * 0.7);
+  if (A.dmgPreview(wd) !== before + 1) F.push(`below three-quarters hull should be +1, went ${before} -> ${A.dmgPreview(wd)}`);
+  wd.hp = Math.ceil(wd.max * 0.45);
+  if (A.dmgPreview(wd) !== before + 2) F.push('below half hull should be +2');
+  wd.hp = 1;
+  if (A.dmgPreview(wd) !== before + 3) F.push('near death should be +3, the cap');
   if (!wd.regen) F.push("Devil's Drive should not touch the White Devil's own shield");
 }
 

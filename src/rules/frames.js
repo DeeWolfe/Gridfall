@@ -67,8 +67,9 @@ export function frameGateText(cid) {
 /**
  * Bolt a gear card onto the standing Frame. Weapon gear replaces the current
  * weapon; support gear adds alongside. Field Refit trades under her own
- * rules: any displaced gear returns to hand, one gear total, and the swap
- * spends the Frame's turn.
+ * rules: any displaced gear returns to hand, one gear total, the swap heals
+ * 3 hull, and it costs no action of its own — the Frame still moves, fires
+ * or uses its ability after, if it hadn't already this turn.
  */
 export function applyFrameGear(u, cid) {
   const k = POOL[cid];
@@ -76,7 +77,9 @@ export function applyFrameGear(u, cid) {
   const carried = [u.gearW, ...u.gearS].filter(Boolean);
 
   // Single Mount: everything already carried comes off — and back to hand,
-  // which is the pro paying for the con. The swap is the machine's turn.
+  // which is the pro paying for the con. The refit itself patches the
+  // machine and does NOT spend its turn: a Frame that hasn't acted yet
+  // this turn can still move, fire or use its ability after the swap.
   if (refit && u.frame && carried.length) {
     carried.forEach(old => {
       G.hand.push(old);
@@ -87,7 +90,8 @@ export function applyFrameGear(u, cid) {
     u.gearS = [];
     unmountWeapon(u);
     unmountSupports(u);
-    u.acted = true;
+    u.hp = Math.min(u.max, u.hp + 3);
+    clog(`<span class="g">Field Refit</span> — ${u.n} patched for 3 on the swap.`, 'order');
   }
 
   // Armour abilities: one carried at a time. The new one strips the last,
@@ -154,6 +158,8 @@ export function applyFrameGear(u, cid) {
     // Devil's Drive: added to the gear-damage pool AND applied immediately,
     // so it lands whether the weapon was fitted before or after this.
     if (k.dmg) { u.gearDmg = (u.gearDmg || 0) + k.dmg; u.dmg += k.dmg; }
+    // Devil's Drive: a live bonus read off current hull, not a fitted number.
+    if (k.berserk) u.berserk = true;
   }
   clog(`<span class="g">${k.n}</span> fitted to ${u.n}.`, 'order');
 }
@@ -184,6 +190,7 @@ function unmountSupports(u) {
   u.gearDmg = 0;
   u.auraShield = false;
   u.mobGrant = false;
+  u.berserk = false;
 }
 
 /**

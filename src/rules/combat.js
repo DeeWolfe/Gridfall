@@ -5,7 +5,7 @@ import {POOL} from '../content/cards.js';
 import {BEST} from '../content/hostiles.js';
 import {G, active, nextUid} from '../state/session.js';
 import {unitAt, foeAt, civAt, scorched} from './board.js';
-import {buffOf, leadBonus, packBonus} from './units.js';
+import {buffOf, leadBonus, packBonus, berserkBonus} from './units.js';
 import {recycleLineCard} from './deck.js';
 import {leadOf} from '../save/progression.js';
 import {targetsFor, laneFloor} from './targeting.js';
@@ -264,7 +264,7 @@ export function fire(u, onPlay) {
       Math.abs(e.lane - u.lane) + Math.abs(e.col - u.col) === 1).length
     : 0;
   const base = (onPlay && k.burst ? k.burst + gearBonus : u.dmg)
-    + buffOf(u) + leadBonus(u) + pristine + resonance + packBonus(u) + eventTechBonus(u);
+    + buffOf(u) + leadBonus(u) + pristine + resonance + packBonus(u) + berserkBonus(u) + eventTechBonus(u);
 
   let fired = false;
   for (let shot = 0; shot < (u.twin ? 2 : 1); shot++) {

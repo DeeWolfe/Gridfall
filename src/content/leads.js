@@ -116,7 +116,7 @@ export const LEADS = {
     bio: "Rebuilds a loadout mid-sortie the way other people change their mind. Considers a fixed configuration a failure of imagination.",
     passive: {
       n: "Field Refit",
-      d: "Gear may be swapped freely — playing gear onto a Frame that already carries one returns the old gear to your hand. The swap spends the Frame's turn.",
+      d: "Gear may be swapped freely — playing gear onto a Frame that already carries one returns the old gear to your hand and repairs 3 hull. If the Frame hasn't acted yet this turn, it still can after the swap.",
     },
     con: {n: "Single Mount", d: "Your Frame may carry only one gear at a time."},
   },

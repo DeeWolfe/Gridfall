@@ -4975,3 +4975,23 @@ instead of a flat 3.
 Still open: which Kaede/Field-Refit fix (of the six discussed) to build.
 The gear batch makes the swap worth doing; it doesn't by itself close the
 loophole for a player who never touches it.
+
+## v2.38.4 — Devil's Drive reworked, Maneuver Thrusters, Field Refit reworked
+
+Devil's Drive: flat +2 dmg -> a live, hp-ratio-gated bonus. New `berserk`
+flag on the unit, read by a new `berserkBonus(u)` helper in units.js
+(step function on hp/max, capped +3) and consumed by both `dmgPreview`
+and `fire()`'s base computation — it has to be live, not baked into
+`u.dmg` at fit-time, since it changes every time the Frame takes a hit.
+
+Core Booster renamed Maneuver Thrusters (display name only, id unchanged
+— matches how every other in-fiction rename in this project has worked).
+
+Field Refit: the refit-swap branch in applyFrameGear no longer sets
+`u.acted = true` (so a Frame that hasn't fired yet this turn still can
+after swapping) and now heals 3 hull on every swap. Both are User calls,
+not something I proposed — this is one of the "makes the ability worth
+using" directions from the earlier design conversation, not the
+"decouples the con from player choice" direction; Single Mount is
+unchanged, and a player who never swaps still sees nothing from either
+half of Kaede's kit. Left as-is per the user's explicit build request.

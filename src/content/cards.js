@@ -1057,9 +1057,9 @@ export const POOL = {
     price: 190,
     frameGear: "whitedevil",
     slot: "support",
-    dmg: 2,
     tech: 1,
-    d: "+2 damage to the White Devil's attacks. The aggressive read — spend the support slot on output instead of utility.",
+    d: "Barbatos's trade: the White Devil hits harder the more damaged it is — +1 below three-quarters hull, +2 below half, +3 below a quarter. No cost to fit, no ceiling on how far it's been ground down.",
+    berserk: 1,
   },
   pilebunker: {
     n: "Pile Bunker Blade",
@@ -1118,7 +1118,7 @@ export const POOL = {
     d: "One heavy indirect shot at the deepest hostile on the board, 8 damage — then a turn to cycle. Siege artillery for a boss body, not a crowd.",
   },
   corebooster: {
-    n: "Core Booster",
+    n: "Maneuver Thrusters",
     t: "tech",
     dp: 1,
     hp: 0,
@@ -1127,6 +1127,6 @@ export const POOL = {
     slot: "support",
     mobGrant: 1,
     tech: 1,
-    d: "An external unit bolted to an anchored frame. The Heavy Arms may move — the engineer's answer when the lane the turret is camping stops being the lane that matters.",
+    d: "An external booster pack, bolted on the way Gundam's own auxiliary flight units carry a machine that was never built to move. The Heavy Arms may move — the engineer's answer when the lane the turret is camping stops being the lane that matters.",
   },
 };

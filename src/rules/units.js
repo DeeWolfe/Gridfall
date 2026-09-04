@@ -150,6 +150,8 @@ export function mkUnit(cid, l, c) {
     // survive a later weapon swap — the weapon-fit path adds this back in
     // rather than zeroing dmg to the new gun's bare number.
     gearDmg: 0,
+    // Devil's Drive: the machine hits harder the more damaged it is.
+    berserk: false,
     att: {},
     acted: false,
     moved: false,
@@ -213,8 +215,19 @@ export function packBonus(u) {
     o.uid !== u.uid && Math.abs(o.lane - u.lane) + Math.abs(o.col - u.col) === 1).length;
 }
 
+/**
+ * Devil's Drive: a wound-scaling bonus for a berserk-flagged unit. Steps,
+ * not a smooth curve, so the threshold reads on the card the same way it
+ * reads in play — the machine gets meaner in stages, not by the point.
+ */
+export function berserkBonus(u) {
+  if (!u.berserk || !u.max) return 0;
+  const ratio = u.hp / u.max;
+  return ratio <= 0.25 ? 3 : ratio <= 0.5 ? 2 : ratio <= 0.75 ? 1 : 0;
+}
+
 /** Damage this unit would deal right now, buffs and pristine bonus included. */
 export function dmgPreview(u) {
   const pristine = u.pristine && u.hp >= u.max ? u.pristine : 0;
-  return Math.max(0, u.dmg + buffOf(u) + leadBonus(u) + pristine + packBonus(u) + eventTechBonus(u));
+  return Math.max(0, u.dmg + buffOf(u) + leadBonus(u) + pristine + packBonus(u) + berserkBonus(u) + eventTechBonus(u));
 }
