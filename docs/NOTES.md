@@ -5114,3 +5114,23 @@ note already spells out The Code's discount for players — a second entry
 saying the sentence got shorter would be noise. Perk prose is safe to reword
 because v2.38.6 moved every lead rule onto `leadIs(id)`; passivetest guards
 that by rewording the entire roster and re-checking the trades.
+
+## Bushido and Kaede: perk text, second pass
+
+THE CODE. "Every wreck, never more than 2." comes off, and the discount is
+timed instead: "Your destroyed Frame returns to hand with its gear and
+redeploys 2 DP cheaper next time." The non-stacking rule is unchanged in
+code (salvageFrame assigns 2, never accumulates; frametest guards both
+halves) — it is simply no longer spelled out in the perk, which now says
+when the discount applies rather than how it fails to compound.
+
+FIELD REFIT. 203 characters down to 122: "Swapping gear returns the old
+gear to your hand and repairs 3 hull. The Frame can still act this turn if
+it hasn't already." Same three facts as before — the gear comes back, the
+swap heals 3, the swap costs no action — without the clause explaining what
+a swap is.
+
+Note on the previous entry: the earlier "chief" was KAEDE, callsign CHIEF,
+not JOHN-117 / MASTER CHIEF. Master Chief's Spartan Company and No Frame
+were trimmed on that misreading. Both trims are accurate and stand, but
+they were not what was asked for.
