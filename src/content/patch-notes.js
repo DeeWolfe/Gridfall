@@ -4,9 +4,15 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.37.2';
+export const VERSION = '2.37.3';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.37.3',
+    notes: [
+      'THE LINE SHOOTS OVER A FIRETEAM. Noble still blocks the horde, but friendly direct fire passes every team the way it passes a Firing Step.',
+    ],
+  },
   {
     v: '2.37.2',
     notes: [

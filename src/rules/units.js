@@ -57,7 +57,9 @@ export function mkUnit(cid, l, c) {
     blocker: !!k.blocker,
     // Firing Step: a blocker friendly direct fire shoots over. Still a wall
     // to the horde and to the wave scorer; only the beam walk ignores it.
-    parapet: !!k.parapet,
+    // A Fireteam never stands in the way of the line's fire: Spartans are
+    // shot over, whatever they block.
+    parapet: !!k.parapet || !!k.line,
     // Banner Bearer: +pack damage per adjacent friendly, outside the buff cap.
     pack: k.pack || 0,
     // Ember Lance: the cell under anything it hits burns for a turn.

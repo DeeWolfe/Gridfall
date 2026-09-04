@@ -48,6 +48,7 @@ function statRows(id) {
     k.fits ? ['Fits', 'Any Fireteam — played onto it while it stands'] : null,
     k.slot === 'armor' ? ['Slot', 'Armour ability — one carried at a time, the new one replaces the last'] : null,
     k.line ? ['Line', 'Fireteam — one of each on the field; the card leaves the deck while the team stands and returns when it is lost'] : null,
+    (k.line && k.blocker) ? ['Parapet', 'Blocks the horde, but friendly direct fire passes over it'] : null,
     (k.omni && !k.chassis) ? ['Facing', 'Fights facing either way'] : null,
     isProto(id) ? ['Stride', 'Moves and still fires or uses its ability the same turn'] : null,
     k.camo ? ['Cloak', 'Hostiles cannot target it until the turn it fires'] : null,

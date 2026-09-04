@@ -4907,3 +4907,7 @@ User's call after weighing gear vs deck. The five weapons are GEAR entries with 
 ## v2.37.2 — aimed X-Grenade
 
 `throw: 2` on the card: validTiles offers every non-cratered cell within Chebyshev 2 of any standing Fireteam (occupied or not); deploy resolves the X at the tapped cell with the nearest team as the thrower, then consumes the card.
+
+## v2.37.3
+
+Fireteams carry `parapet` at mkUnit: the five beam walks in targeting.js pass them, the horde still stops at them.

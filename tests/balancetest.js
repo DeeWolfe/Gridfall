@@ -662,4 +662,17 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'xgrenade']
   if (m.progress.credits !== 390 || m.unlocks.cards.includes('sniper')) F.push('weapon cards were not refunded out of an old save');
 }
 
+
+// --- the line shoots over a Fireteam, blocker or not ---
+{
+  start();
+  const r = spawnUnit('rifle', 2, 1);
+  const noble = spawnUnit('ftnoble', 2, 2);
+  if (!noble.blocker || !noble.parapet) F.push('Noble should block the horde and still be shot over');
+  const foe = spawnFoe('crawler', 2, 4, 10);
+  if (!A.geomFor(r).includes(foe)) F.push('a Rifleman behind Fireteam Noble could not fire past it');
+  const m = spawnUnit('marks', 3, 1); spawnUnit('ftshadow', 3, 2); const f2 = spawnFoe('crawler', 3, 5, 10);
+  if (!A.geomFor(m).includes(f2)) F.push('a Marksman behind Fireteam Shadow could not fire past it');
+}
+
 F.report('balancetest');

@@ -5975,7 +5975,9 @@ function mkUnit(cid, l, c) {
     blocker: !!k.blocker,
     // Firing Step: a blocker friendly direct fire shoots over. Still a wall
     // to the horde and to the wave scorer; only the beam walk ignores it.
-    parapet: !!k.parapet,
+    // A Fireteam never stands in the way of the line's fire: Spartans are
+    // shot over, whatever they block.
+    parapet: !!k.parapet || !!k.line,
     // Banner Bearer: +pack damage per adjacent friendly, outside the buff cap.
     pack: k.pack || 0,
     // Ember Lance: the cell under anything it hits burns for a turn.
@@ -9461,6 +9463,7 @@ function statRows(id) {
     k.fits ? ['Fits', 'Any Fireteam — played onto it while it stands'] : null,
     k.slot === 'armor' ? ['Slot', 'Armour ability — one carried at a time, the new one replaces the last'] : null,
     k.line ? ['Line', 'Fireteam — one of each on the field; the card leaves the deck while the team stands and returns when it is lost'] : null,
+    (k.line && k.blocker) ? ['Parapet', 'Blocks the horde, but friendly direct fire passes over it'] : null,
     (k.omni && !k.chassis) ? ['Facing', 'Fights facing either way'] : null,
     isProto(id) ? ['Stride', 'Moves and still fires or uses its ability the same turn'] : null,
     k.camo ? ['Cloak', 'Hostiles cannot target it until the turn it fires'] : null,
@@ -15988,9 +15991,15 @@ function openPanel(key, quiet) {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.37.2';
+const VERSION = '2.37.3';
 
 const PATCH_NOTES = [
+  {
+    v: '2.37.3',
+    notes: [
+      'THE LINE SHOOTS OVER A FIRETEAM. Noble still blocks the horde, but friendly direct fire passes every team the way it passes a Firing Step.',
+    ],
+  },
   {
     v: '2.37.2',
     notes: [
