@@ -300,6 +300,20 @@ export function migrate(p) {
     p.unlocks.cards = (p.unlocks.cards || []).filter(id => !refunds[id]);
   }
 
+  // v20: the Fireteam weapon gear is cut. Refund at cost, unfit it.
+  if (p.version < 20) {
+    p.version = 20;
+    p.unlocks = p.unlocks || {};
+    p.progress = p.progress || {};
+    p.loadout = p.loadout || {};
+    const refunds = {"rocket": 190, "shotgun": 180, "sniper": 200, "esword": 190, "gravhammer": 190};
+    (p.unlocks.gear || []).forEach(gi => {
+      if (refunds[gi]) p.progress.credits = (p.progress.credits || 0) + refunds[gi];
+    });
+    p.unlocks.gear = (p.unlocks.gear || []).filter(gi => !refunds[gi]);
+    Object.keys(p.loadout.gear || {}).forEach(c => { if (refunds[p.loadout.gear[c]]) delete p.loadout.gear[c]; });
+  }
+
   p.unlocks = p.unlocks || {};
   p.unlocks.cards = p.unlocks.cards || [...STARTER];
   p.unlocks.enemies = p.unlocks.enemies || [];

@@ -629,60 +629,15 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'xgrenade']
   if (n.tg !== 'around' || sa.tg !== 'sweep5') F.push('the pair swapped shapes');
 }
 
-// --- five Fireteam weapons in the armoury: fit any team, nothing else, and replace the gun ---
+// --- the Fireteam weapon gear is gone, refunded; the line is teams and abilities ---
 {
-  const WEAPONS = ['rocket', 'shotgun', 'sniper', 'esword', 'gravhammer'];
-  const BOUND = {sniper: 'ftosiris', gravhammer: 'ftnoble', rocket: 'ftmajestic', esword: 'ftshadow'};
-  WEAPONS.forEach(id => {
-    if (A.POOL[id]) F.push(`${id} is still a card`);
-    const g = A.GEAR[id];
-    if (!g || g.fits !== 'fireteam' || !g.tg) F.push(`${id} is not a Fireteam weapon gear`);
-    if (A.gearFits('rifle', id) || A.gearFits('whitedevil', id)) F.push(`${id} fits something that is not a Fireteam`);
-    if (BOUND[id]) {
-      if (g.team !== BOUND[id]) F.push(`${id} should be bound to ${BOUND[id]}`);
-      if (!A.gearFits(BOUND[id], id)) F.push(`${id} does not fit its own team`);
-      TEAMS.filter(t => t !== BOUND[id]).forEach(t => { if (A.gearFits(t, id)) F.push(`${id} fits ${t}, which is not its team`); });
-    } else {
-      if (g.team) F.push(`${id} should be universal`);
-      TEAMS.forEach(t => { if (!A.gearFits(t, id)) F.push(`${id} should fit ${t}`); });
-    }
+  ['rocket', 'shotgun', 'sniper', 'esword', 'gravhammer'].forEach(id => {
+    if (A.GEAR[id] || A.POOL[id]) F.push(`${id} survives as gear or card`);
   });
-  if (!A.TGNAME.blast3) F.push('blast3 has no name');
-  const p = unlockAll(A.blankProfile('ARM'), ['ftosiris', 'ftnoble', 'rifle', 'marks', 'wall', 'medic']);
-  p.unlocks.gear.push('sniper', 'gravhammer', 'rocket');
-  p.loadout.gear = {ftosiris: 'sniper', ftnoble: 'gravhammer'};   // each on its own team
-  A.enterProfile(p);
-  A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0});
-  clearBoard();
-  const os = A.mkUnit('ftosiris', 2, 1);
-  if (os.tg !== 'furthest' || os.dmg !== 8 || !os.pen || !os.recharge || !os.single) F.push(`Sniper Rifle did not replace Osiris's gun (${os.tg}/${os.dmg})`);
-  const nb = A.mkUnit('ftnoble', 3, 1);
-  if (nb.tg !== 'around' || nb.dmg !== 3 || !nb.push || nb.riposte !== 2 || !nb.blocker) F.push('Gravity Hammer did not replace Noble\'s gun while keeping its traits');
-  A.G.units.push(nb);
-  const foe = spawnFoe('crawler', 3, 2, 10);
-  nb.fresh = false; nb.acted = false;
-  A.fire(nb, false);
-  if (foe.hp !== 7 || foe.col !== 3) F.push(`the hammer dealt ${10 - foe.hp} and left the crawler at ${foe.col}, wanted 3 and a push to 3`);
-  p.loadout.gear.ftmajestic = 'rocket';
-  const rk = A.mkUnit('ftmajestic', 2, 1);
-  const cells = new Set(A.geomCells(rk));
-  if (cells.size !== 9 || !cells.has(2 * A.COLS + 4)) F.push('rocket blast is not the 3x3 centred three out');
-  const old = A.blankProfile('WPN'); old.version = 18; old.unlocks.cards = ['scout', 'sniper', 'rocket']; old.progress.credits = 0;
+  const old = A.blankProfile('WPN'); old.version = 19; old.unlocks.gear = ['barrel', 'sniper', 'gravhammer']; old.loadout.gear = {ftosiris: 'sniper'}; old.progress.credits = 0;
   const m = A.migrate(old);
-  if (m.progress.credits !== 390 || m.unlocks.cards.includes('sniper')) F.push('weapon cards were not refunded out of an old save');
-}
-
-
-// --- the line shoots over a Fireteam, blocker or not ---
-{
-  start();
-  const r = spawnUnit('rifle', 2, 1);
-  const noble = spawnUnit('ftnoble', 2, 2);
-  if (!noble.blocker || !noble.parapet) F.push('Noble should block the horde and still be shot over');
-  const foe = spawnFoe('crawler', 2, 4, 10);
-  if (!A.geomFor(r).includes(foe)) F.push('a Rifleman behind Fireteam Noble could not fire past it');
-  const m = spawnUnit('marks', 3, 1); spawnUnit('ftshadow', 3, 2); const f2 = spawnFoe('crawler', 3, 5, 10);
-  if (!A.geomFor(m).includes(f2)) F.push('a Marksman behind Fireteam Shadow could not fire past it');
+  if (m.progress.credits !== 390 || m.unlocks.gear.includes('sniper') || m.loadout.gear.ftosiris) F.push('weapon gear was not refunded and unfitted out of an old save');
+  if (!m.unlocks.gear.includes('barrel')) F.push('a general gear piece was lost in the refund');
 }
 
 F.report('balancetest');

@@ -4,9 +4,15 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.37.5';
+export const VERSION = '2.38';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.38',
+    notes: [
+      'THE FIRETEAM WEAPONS ARE CUT. Rocket Launcher, Shotgun, Sniper Rifle, Energy Sword and Gravity Hammer leave the armoury, refunded at cost and unfitted. Each team\'s own gun was already its identity; the six armour abilities are where the line makes its decisions; and the general armoury still fits a Fireteam for anyone who wants to tune one. Four teams, six abilities. That is the line.',
+    ],
+  },
   {
     v: '2.37.5',
     notes: [

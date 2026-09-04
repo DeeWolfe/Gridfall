@@ -4919,3 +4919,7 @@ User's call: Fireteam armour cards are one use a mission again (the v2.34.1 exce
 ## v2.37.5
 
 Gear `team` binding: sniper→Osiris, gravhammer→Noble, rocket→Majestic, esword→Shadow; shotgun universal. gearFits and the shop tiles read it.
+
+## v2.38 — Fireteam weapons cut
+
+User's call after the gear-vs-card round trip: the five weapons were 'the team, but more' and cost a shelf and a binding rule. Gone; v20 refunds and unfits them. The generic support they needed (a gear with `tg` replaces the gun; `blast3`) stays in the engine, unused, in case a weapon idea comes back as a team's own trait.

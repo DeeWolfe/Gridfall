@@ -7,7 +7,7 @@
   "GROUND_FLOOR": 6,
   "HAND_CAP": 6,
   "DECKSIZE": 12,
-  "SAVE_VERSION": 19,
+  "SAVE_VERSION": 20,
   "STARTER": [
    "scout",
    "rifle",
@@ -1199,61 +1199,6 @@
    "d": "Fires a second time every turn, at the same targets.",
    "twin": 1,
    "role": "offense"
-  },
-  "rocket": {
-   "n": "Rocket Launcher",
-   "cost": 190,
-   "role": "offense",
-   "fits": "fireteam",
-   "tg": "blast3",
-   "dmg": 3,
-   "d": "Majestic's weapon. A rocket into the 3×3 centred three cells ahead, 3 to everything in it. Direct fire — a wall of yours directly in front cuts it.",
-   "team": "ftmajestic"
-  },
-  "shotgun": {
-   "n": "Shotgun",
-   "cost": 180,
-   "role": "offense",
-   "fits": "fireteam",
-   "tg": "sweep",
-   "dmg": 2,
-   "d": "Any Fireteam's weapon. Both columns ahead across three lanes, six cells for 2. Close work; nothing beyond two cells."
-  },
-  "sniper": {
-   "n": "Sniper Rifle",
-   "cost": 200,
-   "role": "offense",
-   "fits": "fireteam",
-   "tg": "furthest",
-   "dmg": 8,
-   "single": 1,
-   "pen": 1,
-   "recharge": 1,
-   "d": "Osiris's weapon. The furthest hostile in the lane for 8, armour ignored — then a turn to cycle. One shot every other turn.",
-   "team": "ftosiris"
-  },
-  "esword": {
-   "n": "Energy Sword",
-   "cost": 190,
-   "role": "offense",
-   "fits": "fireteam",
-   "tg": "adj4",
-   "dmg": 8,
-   "single": 1,
-   "choose": 1,
-   "d": "Shadow's weapon. One adjacent hostile of your choice, any side, for 8. Nothing at range.",
-   "team": "ftshadow"
-  },
-  "gravhammer": {
-   "n": "Gravity Hammer",
-   "cost": 190,
-   "role": "offense",
-   "fits": "fireteam",
-   "tg": "around",
-   "dmg": 3,
-   "push": 1,
-   "d": "Noble's weapon. Every cell around the team for 3, and survivors are driven back a cell. The wall that moves the line.",
-   "team": "ftnoble"
   }
  },
  "hostiles": {
