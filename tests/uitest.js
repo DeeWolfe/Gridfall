@@ -72,21 +72,25 @@ const stamp = () => document.documentElement.dataset.ui;
   if (/@media[^{]*pointer:\s*fine/.test(css)) {
     F.push('a pointer media query duplicates the stamped desktop layer');
   }
-  // Board and details rail. The log used to be a third column here; it is an
-  // overlay now, so a .cbcol.intel anywhere means the rail crept back and the
-  // board is paying a grid track for a history nobody reads mid-turn.
+  // Board and details rail — two columns, not three. The log lives in the rail
+  // on desktop, stacked under the details box; a .cbcol.intel anywhere means it
+  // went back to being a grid track the board pays for on every layout.
   const mainRule = (/:root\[data-ui="pc"\] \.cbmain\{([^}]*)\}/.exec(css) || [])[1] || '';
   if (!/grid-template-columns/.test(mainRule)) F.push('desktop board has no column layout');
   if (/\.cbcol\.intel/.test(css) || head.includes('cbcol intel')) {
-    F.push('the log is a grid column again — it should be the #logview overlay');
+    F.push('the log is a grid column again — it belongs in the details rail');
   }
 }
 
-// --- the combat log is an overlay, reachable from every layout ---
+// --- the combat log is reachable from every layout ---
 //
-// As a column it was desktop-only, so the explanation of what just killed your
-// unit was simply unavailable on a phone. Floating it makes one behaviour for
-// every screen — and the alert strip carries the 3.6% that cannot wait.
+// This is the guard that matters, and it is about REACHABILITY, not about
+// which widget does it. As a grid column the log was desktop-only, so the
+// explanation of what had just killed your unit was simply unavailable on a
+// phone. Two hosts satisfy that now — the rail box on desktop, the overlay
+// behind the Log button on compact — so the test paints in both modes and
+// insists the history is on screen in each. The alert strip carries the 3.6%
+// that cannot wait either way.
 {
   A.enterProfile(A.blankProfile('LOG'));
   setUiMode('pc');
@@ -94,14 +98,30 @@ const stamp = () => document.documentElement.dataset.ui;
   stillAir();
   A.endTurn();
   drawAll();
-  const log = get('cblog')._html;
-  if (!log.includes('logline')) F.push('combat log rendered no entries');
-  if (/undefined|NaN|\[object/.test(log)) F.push('combat log artefact');
+  for (const id of ['cblog', 'cblogside']) {
+    const log = get(id)._html;
+    if (!log.includes('logline')) F.push(`combat log host ${id} rendered no entries`);
+    if (/undefined|NaN|\[object/.test(log)) F.push(`combat log artefact in ${id}`);
+  }
   if (!head.includes('id="logview"')) F.push('no log overlay in the markup');
+  if (!head.includes('id="cblogside"')) F.push('no log box in the desktop rail');
   if (!head.includes('id="alertstrip"')) F.push('no alert strip under the board');
   if (!head.includes('id="logtog"')) F.push('no way to open the log');
-  // The overlay must not be gated behind a layout mode the way the rail was.
-  if (/data-ui="pc"[^{]*#logview/.test(css)) F.push('the log overlay is desktop-only again');
+  // Whichever host a layout uses, the other one is the one it hides. Hiding
+  // BOTH in the same layer is how the log goes missing on a whole class of
+  // screen, which is exactly what the column did.
+  if (/data-ui="pc"[^{]*\.logbox\{[^}]*display:none/.test(css)) {
+    F.push('the desktop layer hides the rail log — nothing left to read it in');
+  }
+  if (!/data-ui="pc"[^{]*\.logbox\{[^}]*display:flex/.test(css)) {
+    F.push('the desktop layer never shows the rail log');
+  }
+  // Compact keeps the overlay: the default .logbox is hidden, and nothing in
+  // the compact layer may hide #logview or the button that opens it.
+  if (!/\n\.logbox\{display:none\}/.test(css)) F.push('the rail log is not hidden by default');
+  if (/max-width:999px[^@]*#logview\{[^}]*display:none/.test(css)) {
+    F.push('the log overlay is hidden on the layout that is its only host');
+  }
 
   // The strip carries losses only. Anything else and it stops being an alert:
   // at 2.9 orders and 1.9 kills a turn it would be the noisy log all over again.

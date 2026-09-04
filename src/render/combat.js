@@ -39,7 +39,7 @@ import {setMusicMood, musicOn, toggleMusic} from './music.js';
 import {unitSprite, foeSprite} from './sprites.js';
 import {openPanel} from './panels.js';
 import {openPatchNotes} from './patchnotes.js';
-import {cycleUiMode, uiPreference, UI_LABELS} from './uimode.js';
+import {cycleUiMode, uiPreference, resolvedMode, UI_LABELS} from './uimode.js';
 import {paintHold} from './hold.js';
 import {startScene} from './battlefield.js';
 
@@ -595,12 +595,17 @@ export function drawBoard() {
  * was nowhere to put it. Newest first, capped to what the rail can show.
  */
 function drawLog() {
-  const el = $('cblog');
-  if (!el) return;
   const entries = G.logs.slice(0, LOG_LINES);
-  el.innerHTML = entries.length
+  const html = entries.length
     ? entries.map(e => `<div class="logline l-${e.c}">${e.h}</div>`).join('')
     : '<div class="logline l-info">Awaiting contact.</div>';
+  // Two hosts, one history: the overlay the Log button opens on a phone, and
+  // the rail box the desktop layout keeps on screen. Only one of them is ever
+  // visible, so painting both costs a string assignment and saves a branch.
+  for (const id of ['cblog', 'cblogside']) {
+    const el = $(id);
+    if (el) el.innerHTML = html;
+  }
 }
 
 /**
@@ -642,14 +647,33 @@ function paintAlert() {
 }
 
 /**
- * The full history, as an overlay rather than a column.
+ * The full history: a box in the rail on desktop, an overlay on a phone.
  *
- * It used to be a grid track that the board had to pay for on every layout —
- * and folding it away was not even free, because the compact grid kept
- * reserving the row. Floating it costs the board nothing, works the same on a
- * phone as on a desktop, and lets the log be as long as it likes.
+ * It used to be a grid COLUMN, which the board had to pay for on every layout
+ * — and folding it away was not even free, because the compact grid kept
+ * reserving the track. That is what got it cut, and the distinction worth
+ * keeping: on desktop it is now the rail's second box, sharing space the
+ * details panel was stretching into rather than taking any from the board. A
+ * phone has no such slack, so there it stays floating behind the Log button
+ * and can be as long as it likes.
  */
 export function openLog() {
+  // In the desktop layout the log is already in the rail, so there is nothing
+  // to open — the overlay would be a second copy of what you are looking at.
+  // The alert strip still routes here, so point it at the real box: newest
+  // line to the top, and a flash so the eye knows where it was sent.
+  if (resolvedMode() === 'pc') {
+    const list = $('cblogside');
+    const box = $('logbox');
+    if (list) list.scrollTop = 0;
+    if (box) {
+      box.classList.remove('flash');
+      setTimeout(() => box.classList.add('flash'), 0);
+      setTimeout(() => box.classList.remove('flash'), 900);
+    }
+    sfx('tap');
+    return;
+  }
   setLogOpen(true);
   // The objective rides at the top of the overlay, outside the scroller. The
   // log is the one place a player goes to work out what just happened, and
@@ -670,6 +694,9 @@ export function closeLog() {
 function paintLogToggle() {
   const tog = $('logtog');
   if (!tog) return;
+  // Switching to the desktop layout with the overlay up would leave it stuck:
+  // CSS hides it there, and the button that closes it hides with it.
+  if (logOpen && resolvedMode() === 'pc') closeLog();
   tog.onclick = () => (logOpen ? closeLog() : openLog());
   const bg = $('lvbg');
   const x = $('lvx');
@@ -688,6 +715,16 @@ function paintLogToggle() {
 function drawObjective(host) {
   const el = $(host || 'objblk');
   if (!el) return;
+  // Two copies, two jobs. The log's is the REFERENCE one — it carries the
+  // clock and the loss terms as well, because that is where you go to look
+  // something up. The board's carries only what changes while you play: the
+  // order, and how far through it you are. The header already prints the
+  // wave, and Ground and Breaches under the board already report the danger
+  // in colour as it closes in, which a sentence restated every turn cannot.
+  //
+  // The desktop layout has only one copy — the log lives in the rail and the
+  // overlay never opens — so there the board's IS the reference one.
+  const full = !!host || resolvedMode() === 'pc';
   const b = objBrief();
   const met = b.total > 0 && b.done >= b.total;
   let prog = '';
@@ -700,10 +737,10 @@ function drawObjective(host) {
   const count = b.total > 0 ? `<b class="onum">${b.done} / ${b.total}</b>` : '';
   el.className = 'objblk' + (host ? ' lvobj' : '') + (met ? ' met' : '');
   el.innerHTML = `<span class="orow"><span class="olab">Objective</span>
-      <span class="oclock">${b.clock}</span></span>
+      ${full ? `<span class="oclock">${b.clock}</span>` : ''}</span>
     <span class="ogoal">${b.goal}</span>
     ${prog || count ? `<span class="orow">${prog}${count}</span>` : ''}
-    <span class="olose">${b.lose}</span>`;
+    ${full ? `<span class="olose">${b.lose}</span>` : ''}`;
 }
 
 /**

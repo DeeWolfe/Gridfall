@@ -977,6 +977,14 @@ body{font-size:1rem}
 .selbox #selinfo{font-size:0.7188rem;color:var(--dim);line-height:1.6;flex:1;min-height:0;overflow-y:auto}
 .selbox #selinfo[hidden]{display:none}
 
+/* The combat log, back in the rail it was cut from — but only in the desktop
+   layout, and only as the rail's second box rather than a third grid column.
+   That is the distinction that killed it last time: as a column the board paid
+   for it on every layout, folded away or not. Here it costs the board nothing
+   and takes the slack the details box was stretching into. On compact it stays
+   behind the Log button, because a phone has no slack to give it. */
+.logbox{display:none}
+
 /* ============ OBJECTIVE PANEL ============
    The details box read "Nothing selected" for most of a turn while the
    mission's goal lived in a header span hidden on every compact layout. The
@@ -1214,7 +1222,23 @@ body{font-size:1rem}
   overflow:hidden;gap:clamp(7px,.7vw,12px);padding:clamp(7px,.7vw,12px);align-content:stretch}
 :root[data-ui="pc"] .cbcol{overflow:hidden}
 :root[data-ui="pc"] .cbcol.mid{overflow:hidden;justify-content:flex-start}
-:root[data-ui="pc"] .cbcol.side{overflow-y:auto}
+/* The rail splits: details sized to what it is saying, the log taking the
+   rest. .cbcol.side stops scrolling as one piece — the log scrolls inside
+   itself instead, so the objective never leaves the screen. */
+:root[data-ui="pc"] .cbcol.side{overflow:hidden}
+:root[data-ui="pc"] .selbox{flex:0 0 auto}
+:root[data-ui="pc"] .logbox{display:flex;flex-direction:column;flex:1;min-height:0;
+  transition:border-color .18s,box-shadow .18s}
+/* The box already carries the padding the overlay version needs from .lvlist. */
+:root[data-ui="pc"] .logbox .lvlist{padding:0 2px 0 0}
+:root[data-ui="pc"] .logbox h3{flex:0 0 auto;margin-bottom:5px}
+/* Nothing to toggle, and nothing to toggle it to: the overlay would be a
+   second copy of the box above it. */
+:root[data-ui="pc"] #logtog{display:none}
+:root[data-ui="pc"] #logview{display:none}
+/* Clicking the alert strip points at the rail rather than opening anything. */
+:root[data-ui="pc"] .logbox.flash{border-color:var(--mag);
+  box-shadow:0 0 0 1px var(--mag-d),0 0 18px rgba(255,77,143,.22)}
 :root[data-ui="pc"] .field{max-width:min(100%,calc((100vh - 19.5rem) * 1.62));padding:clamp(7px,.7vw,12px)}
 
 /* Denser chrome throughout — a mouse does not need 44px targets. */

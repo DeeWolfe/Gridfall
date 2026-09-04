@@ -984,6 +984,14 @@ body{font-size:1rem}
 .selbox #selinfo{font-size:0.7188rem;color:var(--dim);line-height:1.6;flex:1;min-height:0;overflow-y:auto}
 .selbox #selinfo[hidden]{display:none}
 
+/* The combat log, back in the rail it was cut from — but only in the desktop
+   layout, and only as the rail's second box rather than a third grid column.
+   That is the distinction that killed it last time: as a column the board paid
+   for it on every layout, folded away or not. Here it costs the board nothing
+   and takes the slack the details box was stretching into. On compact it stays
+   behind the Log button, because a phone has no slack to give it. */
+.logbox{display:none}
+
 /* ============ OBJECTIVE PANEL ============
    The details box read "Nothing selected" for most of a turn while the
    mission's goal lived in a header span hidden on every compact layout. The
@@ -1221,7 +1229,23 @@ body{font-size:1rem}
   overflow:hidden;gap:clamp(7px,.7vw,12px);padding:clamp(7px,.7vw,12px);align-content:stretch}
 :root[data-ui="pc"] .cbcol{overflow:hidden}
 :root[data-ui="pc"] .cbcol.mid{overflow:hidden;justify-content:flex-start}
-:root[data-ui="pc"] .cbcol.side{overflow-y:auto}
+/* The rail splits: details sized to what it is saying, the log taking the
+   rest. .cbcol.side stops scrolling as one piece — the log scrolls inside
+   itself instead, so the objective never leaves the screen. */
+:root[data-ui="pc"] .cbcol.side{overflow:hidden}
+:root[data-ui="pc"] .selbox{flex:0 0 auto}
+:root[data-ui="pc"] .logbox{display:flex;flex-direction:column;flex:1;min-height:0;
+  transition:border-color .18s,box-shadow .18s}
+/* The box already carries the padding the overlay version needs from .lvlist. */
+:root[data-ui="pc"] .logbox .lvlist{padding:0 2px 0 0}
+:root[data-ui="pc"] .logbox h3{flex:0 0 auto;margin-bottom:5px}
+/* Nothing to toggle, and nothing to toggle it to: the overlay would be a
+   second copy of the box above it. */
+:root[data-ui="pc"] #logtog{display:none}
+:root[data-ui="pc"] #logview{display:none}
+/* Clicking the alert strip points at the rail rather than opening anything. */
+:root[data-ui="pc"] .logbox.flash{border-color:var(--mag);
+  box-shadow:0 0 0 1px var(--mag-d),0 0 18px rgba(255,77,143,.22)}
 :root[data-ui="pc"] .field{max-width:min(100%,calc((100vh - 19.5rem) * 1.62));padding:clamp(7px,.7vw,12px)}
 
 /* Denser chrome throughout — a mouse does not need 44px targets. */
@@ -1587,6 +1611,10 @@ body{font-size:1rem}
       <div class="box grow selbox">
         <div class="objblk" id="objblk"></div>
         <div id="selinfo">Nothing selected.</div>
+      </div>
+      <div class="box logbox" id="logbox">
+        <h3>Combat log</h3>
+        <div class="lvlist" id="cblogside"></div>
       </div>
     </div>
   </div>
@@ -8864,9 +8892,9 @@ function objBrief() {
       };
     }
     case 'retake':
-      return b('Hold 3 tiles in hostile ground at the clock.', heldEnemyHalf(), 3);
+      return b('Hold 3 tiles in hostile ground when the last wave clears.', heldEnemyHalf(), 3);
     case 'crystals':
-      return b('Hold 3 of the 4 crystal nodes at the clock.', crystalsHeld(), 3);
+      return b('Hold 3 of the 4 crystal nodes when the last wave clears.', crystalsHeld(), 3);
     case 'specimens':
       return b(`Destroy ${G.quota} ${BEST[G.quotaK].n}s. Other kills do not count.`, G.quotaHit, G.quota);
     case 'uplink':
@@ -11401,8 +11429,8 @@ const sceneRunning = () => raf !== null;
 // Which interface the player gets.
 //
 // Two layouts ship: `compact`, the touch-first one that stacks and scrolls, and
-// `pc`, a denser three-column desktop layout with a combat log, hover states
-// and number-key deployment.
+// `pc`, a denser desktop layout that keeps the combat log on screen in the
+// details rail, plus hover states and number-key deployment.
 //
 // The stored preference has three values, but the DOM only ever carries a
 // concrete one: `auto` is resolved here and stamped as `pc` or `compact`. That
@@ -17479,12 +17507,17 @@ function drawBoard() {
  * was nowhere to put it. Newest first, capped to what the rail can show.
  */
 function drawLog() {
-  const el = $('cblog');
-  if (!el) return;
   const entries = G.logs.slice(0, LOG_LINES);
-  el.innerHTML = entries.length
+  const html = entries.length
     ? entries.map(e => `<div class="logline l-${e.c}">${e.h}</div>`).join('')
     : '<div class="logline l-info">Awaiting contact.</div>';
+  // Two hosts, one history: the overlay the Log button opens on a phone, and
+  // the rail box the desktop layout keeps on screen. Only one of them is ever
+  // visible, so painting both costs a string assignment and saves a branch.
+  for (const id of ['cblog', 'cblogside']) {
+    const el = $(id);
+    if (el) el.innerHTML = html;
+  }
 }
 
 /**
@@ -17526,14 +17559,33 @@ function paintAlert() {
 }
 
 /**
- * The full history, as an overlay rather than a column.
+ * The full history: a box in the rail on desktop, an overlay on a phone.
  *
- * It used to be a grid track that the board had to pay for on every layout —
- * and folding it away was not even free, because the compact grid kept
- * reserving the row. Floating it costs the board nothing, works the same on a
- * phone as on a desktop, and lets the log be as long as it likes.
+ * It used to be a grid COLUMN, which the board had to pay for on every layout
+ * — and folding it away was not even free, because the compact grid kept
+ * reserving the track. That is what got it cut, and the distinction worth
+ * keeping: on desktop it is now the rail's second box, sharing space the
+ * details panel was stretching into rather than taking any from the board. A
+ * phone has no such slack, so there it stays floating behind the Log button
+ * and can be as long as it likes.
  */
 function openLog() {
+  // In the desktop layout the log is already in the rail, so there is nothing
+  // to open — the overlay would be a second copy of what you are looking at.
+  // The alert strip still routes here, so point it at the real box: newest
+  // line to the top, and a flash so the eye knows where it was sent.
+  if (resolvedMode() === 'pc') {
+    const list = $('cblogside');
+    const box = $('logbox');
+    if (list) list.scrollTop = 0;
+    if (box) {
+      box.classList.remove('flash');
+      setTimeout(() => box.classList.add('flash'), 0);
+      setTimeout(() => box.classList.remove('flash'), 900);
+    }
+    sfx('tap');
+    return;
+  }
   setLogOpen(true);
   // The objective rides at the top of the overlay, outside the scroller. The
   // log is the one place a player goes to work out what just happened, and
@@ -17554,6 +17606,9 @@ function closeLog() {
 function paintLogToggle() {
   const tog = $('logtog');
   if (!tog) return;
+  // Switching to the desktop layout with the overlay up would leave it stuck:
+  // CSS hides it there, and the button that closes it hides with it.
+  if (logOpen && resolvedMode() === 'pc') closeLog();
   tog.onclick = () => (logOpen ? closeLog() : openLog());
   const bg = $('lvbg');
   const x = $('lvx');
@@ -17572,6 +17627,16 @@ function paintLogToggle() {
 function drawObjective(host) {
   const el = $(host || 'objblk');
   if (!el) return;
+  // Two copies, two jobs. The log's is the REFERENCE one — it carries the
+  // clock and the loss terms as well, because that is where you go to look
+  // something up. The board's carries only what changes while you play: the
+  // order, and how far through it you are. The header already prints the
+  // wave, and Ground and Breaches under the board already report the danger
+  // in colour as it closes in, which a sentence restated every turn cannot.
+  //
+  // The desktop layout has only one copy — the log lives in the rail and the
+  // overlay never opens — so there the board's IS the reference one.
+  const full = !!host || resolvedMode() === 'pc';
   const b = objBrief();
   const met = b.total > 0 && b.done >= b.total;
   let prog = '';
@@ -17584,10 +17649,10 @@ function drawObjective(host) {
   const count = b.total > 0 ? `<b class="onum">${b.done} / ${b.total}</b>` : '';
   el.className = 'objblk' + (host ? ' lvobj' : '') + (met ? ' met' : '');
   el.innerHTML = `<span class="orow"><span class="olab">Objective</span>
-      <span class="oclock">${b.clock}</span></span>
+      ${full ? `<span class="oclock">${b.clock}</span>` : ''}</span>
     <span class="ogoal">${b.goal}</span>
     ${prog || count ? `<span class="orow">${prog}${count}</span>` : ''}
-    <span class="olose">${b.lose}</span>`;
+    ${full ? `<span class="olose">${b.lose}</span>` : ''}`;
 }
 
 /**

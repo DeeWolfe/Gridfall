@@ -1,8 +1,8 @@
 // Which interface the player gets.
 //
 // Two layouts ship: `compact`, the touch-first one that stacks and scrolls, and
-// `pc`, a denser three-column desktop layout with a combat log, hover states
-// and number-key deployment.
+// `pc`, a denser desktop layout that keeps the combat log on screen in the
+// details rail, plus hover states and number-key deployment.
 //
 // The stored preference has three values, but the DOM only ever carries a
 // concrete one: `auto` is resolved here and stamped as `pc` or `compact`. That

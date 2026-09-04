@@ -308,9 +308,9 @@ export function objBrief() {
       };
     }
     case 'retake':
-      return b('Hold 3 tiles in hostile ground at the clock.', heldEnemyHalf(), 3);
+      return b('Hold 3 tiles in hostile ground when the last wave clears.', heldEnemyHalf(), 3);
     case 'crystals':
-      return b('Hold 3 of the 4 crystal nodes at the clock.', crystalsHeld(), 3);
+      return b('Hold 3 of the 4 crystal nodes when the last wave clears.', crystalsHeld(), 3);
     case 'specimens':
       return b(`Destroy ${G.quota} ${BEST[G.quotaK].n}s. Other kills do not count.`, G.quotaHit, G.quota);
     case 'uplink':
