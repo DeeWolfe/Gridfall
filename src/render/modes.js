@@ -6,6 +6,7 @@ import {commit} from '../save/profile.js';
 import {launchOnslaught, launchGauntlet, launchDaily, todayKey, GAUNTLET_LEGS} from '../rules/mission.js';
 import {$, show} from './dom.js';
 import {renderOps} from './ops.js';
+import {openRun} from './deeprun.js';
 
 export function renderModes() {
   if (!active) return;
@@ -15,6 +16,7 @@ export function renderModes() {
   const g = active.gaunt;
   const cleared = Object.values(OPS).reduce((a, o) => a + ((active.ops[o.k] || {cleared: []}).cleared.length), 0);
   const doneToday = active.daily.date === todayKey() && active.daily.done;
+  const r = active.run && !active.run.over ? active.run : null;
 
   $('modesbody').innerHTML = `<div class="sect">Choose how you deploy</div>
   <div class="modegrid">
@@ -32,6 +34,11 @@ export function renderModes() {
       <div class="mname">Onslaught</div>
       <div class="mdesc">One board. The waves never stop and keep getting heavier. Survive as long as you can — credits scale with how deep you get.</div>
       <div class="mfoot"><span>Best · ${active.bests.onslaught || 0} waves</span><span style="color:#ff4d8f">Deploy ▸</span></div></button>
+    <button class="modecard live" style="--oc:#9d6bff" id="goRun">
+      <div class="mname">Deep Run</div>
+      <div class="mdesc">A generated map, five cards and no lead. Every layer you clear offers three things — take one. Your collection is never consulted, and one loss ends the run.</div>
+      <div class="mfoot"><span>${r ? `In progress — layer ${(r.depth || 0) + 1}` : `Deepest layer · ${active.bests.run || 0}`}</span>
+        <span style="color:#9d6bff">${r ? 'Resume ▸' : 'Descend ▸'}</span></div></button>
     <button class="modecard live" style="--oc:#ffc94d" id="goGauntlet">
       <div class="mname">Gauntlet</div>
       <div class="mdesc">Three missions back to back, escalating rewards and heavier modifiers each leg. A single loss ends the chain.</div>
@@ -50,4 +57,5 @@ export function renderModes() {
   $('goOnslaught').onclick = () => launchOnslaught();
   $('goGauntlet').onclick = () => launchGauntlet();
   $('goDaily').onclick = () => launchDaily();
+  $('goRun').onclick = () => openRun();
 }

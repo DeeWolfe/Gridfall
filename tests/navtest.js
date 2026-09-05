@@ -9,6 +9,7 @@ const SCREENS = [
   ['modes', 'modesbody', 'modesback'],
   ['ops', 'opsbody', 'opsback'],
   ['map', 'mapbody', 'mapback'],
+  ['deeprun', 'runbody', 'runback'],
   ['panel', 'pbody', 'pclose'],
 ];
 

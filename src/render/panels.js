@@ -494,6 +494,8 @@ function achievementList() {
     {n: 'Deep Water', d: 'Hold twenty-five waves in one Onslaught.', have: active.bests.onslaught || 0, need: 25},
     {n: 'Chainrunner', d: 'Complete a Gauntlet chain.', have: active.bests.gauntlet || 0, need: 1},
     {n: 'Chain of Command', d: 'Complete five Gauntlet chains.', have: active.bests.gauntlet || 0, need: 5},
+    {n: 'Deep Water Mark', d: 'Reach the fourth layer of a Deep Run.', have: active.bests.run || 0, need: 4},
+    {n: 'Down and Out', d: 'Put down the target at the end of a Deep Run.', have: active.bests.runsDone || 0, need: 1},
     {n: 'Standing Order', d: 'Carry a seven-day Daily Challenge streak.',
       have: daily.streak || 0, need: 7},
     {n: 'Machine Spirit', d: 'Field a Proto Frame for the first time.', have: frameSorties, need: 1},
@@ -566,6 +568,8 @@ function recordPanel() {
    <div class="sect">Modes</div><div class="rows">
    <div class="row"><span>Onslaught best</span><span class="r hot">${active.bests.onslaught || 0} waves</span></div>
    <div class="row"><span>Gauntlets completed</span><span class="r hot">${active.bests.gauntlet || 0}</span></div>
+   <div class="row"><span>Deep Run — deepest layer</span><span class="r hot">${active.bests.run || 0}</span></div>
+   <div class="row"><span>Deep Runs completed</span><span class="r hot">${active.bests.runsDone || 0}</span></div>
    <div class="row"><span>Ironman</span><span class="r">${active.ironman ? 'Enabled' : 'Off'}</span></div></div>`;
 }
 

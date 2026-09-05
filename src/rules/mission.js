@@ -7,6 +7,7 @@
 
 import {LANES, COLS, MAXDP, GROUND_FLOOR} from '../state/constants.js';
 import {POOL} from '../content/cards.js';
+import {LEADS} from '../content/leads.js';
 import {BEST} from '../content/hostiles.js';
 import {MISSIONS} from '../content/missions.js';
 import {MODS} from '../content/modifiers.js';
@@ -18,7 +19,8 @@ import {deckCapOf, leadOf, deckProblems} from '../save/progression.js';
 import {held, heldEnemyHalf, crystalsHeld, breachAllowance, ENDGAME_TURNS} from './board.js';
 import {wave, rollDoctrine, predictSpawns} from './waves.js';
 import {opRun, genRun, opComplete, markOpCleared} from './run.js';
-import {queuePack} from './packs.js';
+import {runNodeState, runComplete, runDepthReached, runNodeSpec} from './roguelike.js';
+import {queuePack, queueDraft} from './packs.js';
 import {tapeEnd} from './tape.js';
 import {seedFrame} from './frames.js';
 import {seedBoss, bossHp} from './boss.js';
@@ -45,6 +47,9 @@ export const PACK_METER_GOAL = 3;
  * the first pack now costs an actual defence.
  */
 const ONSLAUGHT_PACK_WAVES = 10;
+
+/** Paid once, on top of the Deep Run's final node, for putting the target down. */
+const RUN_CLEAR_BONUS = 400;
 
 /** Fresh, neutral-in-the-middle territory grid. */
 function freshTerritory() {
@@ -82,23 +87,31 @@ export function launchSpec(nd) {
   const m = MISSIONS[nd.type];
   if (!m) return false;
 
-  const deck = active.loadout.deck.filter(c => POOL[c]);
+  // A Deep Run fields the deck it drafted, not the profile's. That deck was
+  // assembled by this mode's own rules — it is never over its own cap and the
+  // player cannot edit it between nodes — so the two loadout gates below are
+  // the profile's problem, not the run's.
+  const runDeck = nd.run && active.run ? active.run.deck : null;
+  const lead = runDeck ? (LEADS[active.run.lead] || LEADS.ironbrand) : leadOf();
+  const deck = (runDeck || active.loadout.deck).filter(c => POOL[c]);
   if (!deck.length) {
     hooks.notify('No deck', 'Your deck is empty. Build one in Squad before deploying.');
     return false;
   }
-  // A short-manifest lead (Coronet, Quartermaster) refuses a deck built over
-  // its ceiling — caught here so it fails loudly at the door, not at deploy.
-  if (deck.length > deckCapOf()) {
-    hooks.notify('Deck over limit', `${leadOf().call} fields at most ${deckCapOf()} cards — ` +
-      `your deck holds ${deck.length}. Trim it in Squad or change leads.`);
-    return false;
-  }
-  // The one-line rule and Lone Spartan: warned on the Squad page, refused here.
-  const broken = deckProblems(deck, active.loadout.frame);
-  if (broken.length) {
-    hooks.notify(broken[0].n, broken[0].d);
-    return false;
+  if (!runDeck) {
+    // A short-manifest lead (Coronet, Quartermaster) refuses a deck built over
+    // its ceiling — caught here so it fails loudly at the door, not at deploy.
+    if (deck.length > deckCapOf()) {
+      hooks.notify('Deck over limit', `${leadOf().call} fields at most ${deckCapOf()} cards — ` +
+        `your deck holds ${deck.length}. Trim it in Squad or change leads.`);
+      return false;
+    }
+    // The one-line rule and Lone Spartan: warned on the Squad page, refused here.
+    const broken = deckProblems(deck, active.loadout.frame);
+    if (broken.length) {
+      hooks.notify(broken[0].n, broken[0].d);
+      return false;
+    }
   }
 
   setG({
@@ -107,8 +120,11 @@ export function launchSpec(nd) {
     // without one, a boss mission falls back to the operation's final target.
     bossK: nd.boss || null,
     heat: nd.heat || 0, endless: !!nd.endless, gauntlet: !!nd.gauntlet, daily: !!nd.daily,
+    // `run` is read by liveLoadout(), which is what makes gearOf/leadOf/leadIs
+    // resolve against the run's drafted kit for the length of this mission.
+    run: !!nd.run,
     waves: nd.endless ? 9999 : m.waves,
-    turn: 1, dp: Math.max(1, MAXDP + (leadOf().dpMod || 0)), breaches: 0, over: false,
+    turn: 1, dp: Math.max(1, MAXDP + (lead.dpMod || 0)), breaches: 0, over: false,
     ter: freshTerritory(), scorch: {}, rubble: {}, burrowAt: null,
     // Fog of war rides the modifier; a boss fight is never fogged — the
     // machine IS the board, and hiding it would hide the fight.
@@ -151,7 +167,7 @@ export function launchSpec(nd) {
     // the wave budget, field events sit the fight out, and the mission wants a
     // point more room per turn than a standard drop (boss-patch economy note).
     G.noEvents = true;
-    G.dp = Math.max(1, MAXDP + 1 + (leadOf().dpMod || 0));
+    G.dp = Math.max(1, MAXDP + 1 + (lead.dpMod || 0));
     seedBoss();
   }
 
@@ -173,6 +189,7 @@ export function launchSpec(nd) {
   if (G.heat) clog(`<span class="d">Deep-zone operation</span> — hive pressure +${G.heat} threat every wave.`);
   if (G.endless) clog('<span class="t">ONSLAUGHT</span> — the waves do not stop. See how far you get.');
   if (G.gauntlet) clog(`<span class="t">GAUNTLET ${active.gaunt.i + 1} of ${GAUNTLET_LEGS}</span> — one loss ends the chain.`);
+  if (G.run) clog(`<span class="t">DEEP RUN \u00b7 LAYER ${nd.depth || 1}</span> — no resupply behind you. A loss ends the run.`);
   if (G.daily) clog(`<span class="t">DAILY CHALLENGE</span> — today's op. A loss does not cost your streak; only the win of the day does.`);
 
   hooks.enterCombat();
@@ -185,6 +202,26 @@ export function launch(nodeId) {
   const nd = opRun().nodes[nodeId];
   if (!nd) return false;
   return launchSpec({node: nodeId, op: active.op, type: nd.type, mod: nd.mod, reward: nd.reward, heat: nd.heat, boss: nd.boss});
+}
+
+/**
+ * Deep Run: launch the mission sitting on run node `id`.
+ *
+ * The run supplies everything — deck, gear, lead, heat — so nothing here reads
+ * the profile loadout. `run: true` is what tells launchSpec (and, through
+ * `G.run`, liveLoadout) to source from `active.run` instead.
+ */
+export function launchRunNode(id) {
+  if (!active || !active.run || active.run.over) return false;
+  const nd = runNodeSpec(id);
+  if (!nd) return false;
+  if (runNodeState(id) !== 'open') return false;
+  return launchSpec({
+    node: id, type: nd.type, mod: nd.mod, boss: nd.boss || null,
+    heat: nd.heat || 0, depth: nd.depth || 1,
+    reward: nd.reward,
+    run: true,
+  });
 }
 
 /** Onslaught: one board, waves that never stop and scale 1.9x each time. */
@@ -263,11 +300,16 @@ export function abortMission() {
   const wasEndless = G && G.endless;
   const wasGauntlet = G && G.gauntlet;
   const wasDaily = G && G.daily;
+  const wasRun = G && G.run;
   if (wasGauntlet) active.gaunt = null;
+  // Walking out of a Deep Run node is a loss by another name: the run closes
+  // where it stands rather than parking a node you could re-enter with the
+  // board reshuffled in your favour.
+  if (wasRun && active.run) active.run.over = true;
   setG(null);
   clearSelection();
   commit();
-  return {wasEndless, wasGauntlet, wasDaily};
+  return {wasEndless, wasGauntlet, wasDaily, wasRun};
 }
 
 /**
@@ -433,6 +475,74 @@ function settleGauntlet(win, why) {
   };
 }
 
+/**
+ * Deep Run settlement. One loss ends the run — there is no retry, no reroll and
+ * no partial credit beyond what earlier nodes already banked, which is what
+ * makes the route choice on the map a decision rather than a formality.
+ *
+ * A win that is not the target queues a draft: three offers, keep one, taken
+ * into the run rather than into the collection. The run's own kit never touches
+ * the profile — the credits it earns do.
+ */
+function settleRun(win, why) {
+  const r = active.run;
+  const depth = (r && r.nodes[G.node] && r.nodes[G.node].depth) || 1;
+  let cr = 0;
+  let title;
+  let done = false;
+
+  if (win) {
+    if (!r.cleared.includes(G.node)) r.cleared.push(G.node);
+    r.depth = Math.max(r.depth || 0, depth);
+    cr = G.reward + Math.floor(G.kills / 5);
+    active.progress.credits += cr;
+    active.stats.held++;
+    done = runComplete();
+    if (done) {
+      cr += RUN_CLEAR_BONUS;
+      active.progress.credits += RUN_CLEAR_BONUS;
+      active.bests.runsDone = (active.bests.runsDone || 0) + 1;
+      r.over = true;
+      queuePack('standard', 'Deep Run complete');
+      queuePack('specialist', 'Deep Run complete');
+      title = 'DEEP RUN COMPLETE';
+    } else {
+      // The draft rides the pack queue, so it lands in the same slot the
+      // player already expects a reward to appear in.
+      queueDraft(`Salvage \u00b7 layer ${depth}`);
+      title = 'LAYER CLEARED';
+    }
+  } else {
+    r.over = true;
+    active.stats.lost++;
+    title = 'RUN ENDED';
+  }
+
+  // The record is how deep you got, not how many runs you started.
+  active.bests.run = Math.max(active.bests.run || 0, runDepthReached());
+
+  active.stats.deployments++;
+  active.stats.kills += G.kills;
+  active.stats.unitsLost += G.lost;
+  active.stats.breaches += G.breaches;
+  commit();
+
+  return {
+    kind: win ? 'win' : 'lose',
+    cleared: win,
+    title, why,
+    lines: [
+      `Layer \u00b7 <b style="color:var(--violet)">${depth}</b> of ${r.map.layers.length}`,
+      `Hostiles destroyed \u00b7 ${G.kills}`,
+      `Units lost \u00b7 ${G.lost}`,
+      done ? 'The target is down. The run is yours.'
+        : win ? 'Salvage recovered — take one thing deeper.'
+          : `Deepest layer reached \u00b7 ${runDepthReached()}`,
+    ].filter(Boolean),
+    payout: cr ? {cr} : null,
+  };
+}
+
 function settleCampaign(win, why) {
   let cr = 0;
 
@@ -530,9 +640,10 @@ export function finish(win, why) {
   tapeEnd();                     // the result card takes over; drop the tape
   G.over = true;
   G.result = G.endless ? settleOnslaught()
-    : G.gauntlet ? settleGauntlet(win, why)
-      : G.daily ? settleDaily(win, why)
-        : settleCampaign(win, why);
+    : G.run ? settleRun(win, why)
+      : G.gauntlet ? settleGauntlet(win, why)
+        : G.daily ? settleDaily(win, why)
+          : settleCampaign(win, why);
   hooks.showResult();
   hooks.invalidate();
 }

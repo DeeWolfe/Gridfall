@@ -877,16 +877,23 @@ body{font-size:1rem}
   clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px));
   animation:packidle 2.6s ease-in-out infinite}
 .packbox.spec{border-color:var(--gold);background:linear-gradient(160deg,#4a3a10,#1a1408 62%)}
+/* The Deep Run's field cache. It is neither a requisition nor a specialist
+   drop — it is what the ground gave up — so it wears the run's own cyan
+   rather than the store's violet or the specialist gold. */
+.packbox.draft{border-color:var(--cyan);background:linear-gradient(160deg,#0f3a49,#0a1526 62%)}
 .packbox:hover{filter:brightness(1.15)}
 @keyframes packidle{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-7px) rotate(1deg)}}
 .pbglow{position:absolute;inset:-2px;background:radial-gradient(circle at 50% 30%,rgba(157,107,255,.4),transparent 68%);
   animation:pbpulse 2.2s ease-in-out infinite}
 .packbox.spec .pbglow{background:radial-gradient(circle at 50% 30%,rgba(255,201,77,.42),transparent 68%)}
+.packbox.draft .pbglow{background:radial-gradient(circle at 50% 30%,rgba(77,232,255,.38),transparent 68%)}
 @keyframes pbpulse{0%,100%{opacity:.5}50%{opacity:1}}
 .pbseal{font-size:0.6875rem;letter-spacing:.2em;color:var(--violet);z-index:2}
 .packbox.spec .pbseal{color:var(--gold)}
+.packbox.draft .pbseal{color:var(--cyan)}
 .pbmark{font-size:3.2rem;color:var(--violet);z-index:2;text-shadow:0 0 22px currentColor}
 .packbox.spec .pbmark{color:var(--gold)}
+.packbox.draft .pbmark{color:var(--cyan)}
 .pbsub{font-size:0.6562rem;letter-spacing:.16em;color:var(--dim);z-index:2}
 .packbox.burst{animation:packburst .3s ease-in forwards}
 @keyframes packburst{to{transform:scale(1.5);opacity:0;filter:blur(6px)}}
@@ -1583,6 +1590,13 @@ body{font-size:1rem}
   <div class="navfoot"><h2 id="maptitle">DELTA SHELF</h2>
     <div class="navbtns"><button class="btn ghost" id="mapback">Back</button>
       <button class="btn ghost" id="mapmenu">Menu</button></div></div>
+</div>
+
+<div class="scr" id="deeprun">
+  <div class="mapbody" id="runbody"></div>
+  <div class="navfoot"><h2 id="runtitle">DEEP RUN</h2>
+    <div class="navbtns"><button class="btn ghost" id="runback">Back</button>
+      <button class="btn ghost" id="runmenu">Menu</button></div></div>
 </div>
 
 <div class="scr" id="combat">
@@ -3764,10 +3778,35 @@ function vetOf(id) {
   return {t, u, n: VET[t].n, col: VET[t].col, next: t < VET.length - 1 ? VET[t + 1].at : null};
 }
 
+/**
+ * The loadout actually in force.
+ *
+ * A Deep Run brings its own deck, gear and lead — drafted inside the run and
+ * stored on `active.run`, never on the profile's loadout. Every reader below
+ * goes through here rather than at `active.loadout` directly, so the run is
+ * invisible to them: the same costOf(), gearOf() and leadOf() answer for a
+ * campaign mission and a run mission without either knowing the other exists.
+ *
+ * Outside a run mission this is the profile, unchanged.
+ */
+function liveLoadout() {
+  if (G && G.run && active && active.run) {
+    // A run drafts no Proto Frame, so it flies none — the profile's Frame is
+    // not the run's to field.
+    return {deck: active.run.deck, gear: active.run.gear, lead: active.run.lead || 'ironbrand', frame: null};
+  }
+  if (!active) return {deck: [], gear: {}, lead: 'ironbrand', frame: null};
+  return {
+    deck: (active.loadout && active.loadout.deck) || [],
+    gear: (active.loadout && active.loadout.gear) || {},
+    lead: active.lead || 'ironbrand',
+    frame: (active.loadout && active.loadout.frame) || null,
+  };
+}
+
 /** The gear fitted to a card, or null. */
 function gearOf(id) {
-  if (!active || !active.loadout || !active.loadout.gear) return null;
-  return GEAR[active.loadout.gear[id]] || null;
+  return GEAR[liveLoadout().gear[id]] || null;
 }
 
 /**
@@ -3873,9 +3912,9 @@ function deckProblems(deck = active && active.loadout ? active.loadout.deck : []
   return [];
 }
 
-/** The active profile's team lead, defaulting to Ironbrand. */
+/** The team lead in force — the run's while a Deep Run mission is live. */
 function leadOf() {
-  return LEADS[(active && active.lead) || 'ironbrand'] || LEADS.ironbrand;
+  return LEADS[liveLoadout().lead] || LEADS.ironbrand;
 }
 
 /**
@@ -3887,7 +3926,7 @@ function leadOf() {
  * it. The id is the stable key, so that is what the rules ask for; the prose
  * above stays prose.
  */
-const leadIs = key => LEADS[(active && active.lead) || ''] ? active.lead === key : key === 'ironbrand';
+const leadIs = key => (LEADS[liveLoadout().lead] ? liveLoadout().lead : 'ironbrand') === key;
 
 /**
  * Is this lead available to the active profile? The starting three carry no
@@ -4530,7 +4569,10 @@ function blankProfile(callsign) {
     mode: 'campaign',
     ironman: false,
     gaunt: null,
-    bests: {onslaught: 0, gauntlet: 0},
+    // The Deep Run in progress: its own map, deck, gear and lead. Null between
+    // runs, and never merged into the profile loadout in either direction.
+    run: null,
+    bests: {onslaught: 0, gauntlet: 0, run: 0, runsDone: 0},
     settings: {},
   };
 }
@@ -4554,7 +4596,10 @@ function migrate(p) {
   p.loadout = p.loadout || {};
   p.stats = p.stats || {};
 
-  // v3 and earlier stored a single in-progress run; v4 keys runs by operation.
+  // v3 and earlier stored a single in-progress campaign run on `p.run`; v4
+  // keys campaign runs by operation and drops it. The key was later reused for
+  // the Deep Run, which is a different shape entirely — deleting it here keeps
+  // a v3 save from arriving at the Deep Run repair pass wearing its clothes.
   if (!p.version || p.version < 4) {
     p.version = 4;
     p.op = 'ironveil';
@@ -4864,7 +4909,29 @@ function migrate(p) {
   p.op = OPS[p.op] ? p.op : 'ironveil';
   p.mode = p.mode || 'campaign';
   p.bests = p.bests || {onslaught: 0, gauntlet: 0};
+  p.bests.run = p.bests.run || 0;
+  p.bests.runsDone = p.bests.runsDone || 0;
   p.gaunt = p.gaunt || null;
+
+  // A Deep Run survives a save round trip whole — it is plain data and holds
+  // no references into the profile. What it can hold is content we no longer
+  // ship, so those entries are dropped; a run whose map did not survive is
+  // dropped entirely rather than half-restored into something unplayable.
+  if (p.run && typeof p.run === 'object' && p.run.map
+    && Array.isArray(p.run.map.nodes) && p.run.map.nodes.length
+    && p.run.nodes && typeof p.run.nodes === 'object') {
+    p.run.cleared = Array.isArray(p.run.cleared) ? p.run.cleared : [];
+    p.run.deck = (Array.isArray(p.run.deck) ? p.run.deck : []).filter(c => POOL[c]);
+    p.run.gear = (p.run.gear && typeof p.run.gear === 'object') ? p.run.gear : {};
+    Object.keys(p.run.gear).forEach(k => {
+      if (!POOL[k] || !GEAR[p.run.gear[k]]) delete p.run.gear[k];
+    });
+    p.run.lead = LEADS[p.run.lead] ? p.run.lead : null;
+    p.run.depth = p.run.depth || 0;
+    p.run.over = !!p.run.over;
+  } else {
+    p.run = null;
+  }
   p.usage = p.usage || {};
   p.settings = p.settings || {};
   // Saved decks: name, the twelve, the Frame slot. Never more than a handful.
@@ -5371,7 +5438,7 @@ function clog(html, cat) {
 
 /** Seed the loadout's Frame into the opening hand, outside the deck. */
 function seedFrame() {
-  const id = active && active.loadout ? active.loadout.frame : null;
+  const id = liveLoadout().frame;
   G.frame = null;
   // No Frame (Master Chief): the slot may hold a machine, but it never flies.
   const noFrame = leadIs('masterchief');
@@ -5997,7 +6064,7 @@ function predictSpawns() {
  */
 function recycleLineCard(u) {
   if (!u || !u.line || !G || !G.deck) return;
-  if (!active || !active.loadout.deck.includes(u.id)) return;
+  if (!active || !liveLoadout().deck.includes(u.id)) return;
   if (G.deck.includes(u.id) || G.hand.includes(u.id)) return;
   if (G.units.some(o => o.id === u.id)) return;           // another copy still stands
   // A Recovery Beacon puts the card straight back in your hand instead.
@@ -6019,7 +6086,9 @@ function drawCard(force) {
     // deals a card with nothing left to do.
     // ...and minus any Fireteam that is standing on the field right now — one
     // of each team at a time; it comes back the moment the team is lost.
-    const back = active.loadout.deck.filter(c => POOL[c] && !G.hand.includes(c) && !(G.spent || []).includes(c)
+    // liveLoadout(), not the profile: a Deep Run cycles its own drafted deck
+    // and must never be handed a card off the commander's shelf.
+    const back = liveLoadout().deck.filter(c => POOL[c] && !G.hand.includes(c) && !(G.spent || []).includes(c)
       && !(POOL[c].line && G.units.some(u => u.id === c)));
     if (!back.length) return false;
     G.deck = shuffle([...back]);
@@ -8540,6 +8609,296 @@ function enterProfile(p) {
   return p;
 }
 
+/* ==== src/rules/roguelike.js ======================================== */
+// The Deep Run: a generated roguelike run.
+//
+// The campaign asks what your collection can do. This asks what you can do with
+// what the run hands you: a fixed five-card starter, a lead chosen from three,
+// and everything after that drafted between nodes. Your unlocks are not
+// consulted anywhere in here — that is the whole point of the mode, and it is
+// why a commander who owns nine cards and one who owns eighty-six get the same
+// game out of it.
+//
+// The map is generated rather than authored, but it is generated in exactly the
+// shape an operation map has (`zones`, `nodes`, `edges`), so renderMap, the
+// node-state walk and the map thumbnail all read it without knowing it is not
+// one of the six. That compatibility is deliberate and worth preserving: the
+// alternative was a second map renderer that would drift from the first.
+//
+// Difficulty is depth. `heat` is the dial the wave budget already respects, so
+// a node four layers in is genuinely heavier rather than merely later.
+
+/** What every run starts with. Five commons: a gun, eyes, a patch, a wall and
+ * reach — enough to play turn one, not enough to have a plan yet. */
+const RUN_STARTER = ['rifle', 'scout', 'medic', 'wall', 'marks'];
+
+/**
+ * Layers between the drop and the target, inclusive of neither.
+ *
+ * Four or five layers all told. Six was the first shape and it was wrong twice
+ * over: a mode where one loss ends everything cannot ask for six fights before
+ * it pays, and six columns across a 440-wide canvas leaves 66px a node, which
+ * is narrower than the shortest mission label.
+ */
+const RUN_MIDDLE_LAYERS = [2, 3];
+/** Nodes per middle layer. Two is a choice; three is a choice with a cost. */
+const RUN_LAYER_WIDTH = [2, 3];
+
+/** The finales a run can end at — the six operation bosses. The four honor
+ * guards are wing fights and stay in Crownring where they mean something. */
+const RUN_BOSSES = Object.keys(BOSSDEF).filter(k => !BOSSDEF[k].sub);
+
+/**
+ * Node payout: a flat base plus this much per layer of depth.
+ *
+ * A run node pays more than a campaign node of the same shape, and it should:
+ * the campaign lets you retreat to the hold, rebuild the deck and come back,
+ * and a run does not. The whole run is forfeit the moment you lose, so the
+ * question the mode asks — push one layer deeper or take the target now — has
+ * to have a real number on both sides of it.
+ */
+const RUN_NODE_BASE = 55;
+const RUN_NODE_DEPTH = 35;
+const runRewardAt = depth => RUN_NODE_BASE + depth * RUN_NODE_DEPTH;
+
+/** Heat by depth: the drop is flat, and it climbs one step every two layers. */
+const runHeatAt = depth => Math.max(0, Math.floor((depth - 1) / 2));
+
+/** The mission pool a run node draws from — everything but the boss fight. */
+const runTypePool = () => Object.keys(MISSIONS).filter(t => t !== 'boss');
+
+/**
+ * Generate the run's map: a layered graph from one drop point to one target.
+ *
+ * Every node in a layer is joined to at least one in the next, and every node
+ * in the next has at least one way in — so no branch is ever a dead end and no
+ * node is unreachable. That is checked by the guard rather than assumed here.
+ */
+function genRunMap() {
+  const layers = [];
+  layers.push(['n0']);
+  const mid = RUN_MIDDLE_LAYERS[randInt(RUN_MIDDLE_LAYERS.length)];
+  let id = 1;
+  for (let l = 0; l < mid; l++) {
+    const w = RUN_LAYER_WIDTH[randInt(RUN_LAYER_WIDTH.length)];
+    layers.push(Array.from({length: w}, () => 'n' + id++));
+  }
+  layers.push(['n' + id]);
+
+  // Positions on the same 440x300 canvas an operation map uses.
+  const nodes = [];
+  const X0 = 58;
+  const X1 = 388;
+  layers.forEach((row, li) => {
+    const x = Math.round(X0 + (X1 - X0) * (li / (layers.length - 1)));
+    row.forEach((nid, i) => {
+      const span = 210;
+      const y = row.length === 1 ? 150
+        : Math.round(150 - span / 2 + (span * i) / (row.length - 1));
+      nodes.push({id: nid, x, y});
+    });
+  });
+
+  const edges = [];
+  for (let l = 0; l < layers.length - 1; l++) {
+    const from = layers[l];
+    const to = layers[l + 1];
+    // Everything downstream must be reachable...
+    to.forEach((t, i) => edges.push([from[i % from.length], t]));
+    // ...and every node upstream must lead somewhere.
+    from.forEach((f, i) => {
+      if (!edges.some(([a]) => a === f)) edges.push([f, to[i % to.length]]);
+      // A second exit, sometimes, so a route is a real choice rather than a
+      // corridor with scenery.
+      if (to.length > 1 && chance(0.55)) {
+        const t = to[(i + 1) % to.length];
+        if (!edges.some(([a, b]) => a === f && b === t)) edges.push([f, t]);
+      }
+    });
+  }
+
+  const first = nodes[0];
+  const last = nodes[nodes.length - 1];
+  first.role = 'start';
+  first.l = 'Drop Point';
+  last.role = 'final';
+  last.l = 'The Target';
+
+  return {
+    k: 'run',
+    n: 'DEEP RUN',
+    sub: 'Unsurveyed ground · one way in',
+    col: '#9d6bff',
+    zones: [
+      {l: 'APPROACH', p: '18,58 156,44 168,150 152,258 22,244'},
+      {l: 'DEEP GROUND', p: '160,44 300,50 312,150 296,254 156,258'},
+      {l: 'THE TARGET', p: '304,50 424,62 428,240 300,254 314,150'},
+    ],
+    nodes,
+    edges,
+    lore: 'No survey, no briefing, no resupply. What you take in is what the ' +
+      'ground gives you on the way down — and the thing at the far end of it ' +
+      'has been waiting for somebody to walk this far.',
+    layers,
+  };
+}
+
+/** How many layers deep a node sits. The drop is depth 1. */
+function runDepthOf(map, nodeId) {
+  const li = (map.layers || []).findIndex(row => row.includes(nodeId));
+  return li < 0 ? 1 : li + 1;
+}
+
+/** Roll the mission sitting on every node of a generated map. */
+function runNodeSpecs(map) {
+  const pool = runTypePool();
+  const mods = Object.keys(MODS).filter(k => k !== 'none');
+  const out = {};
+  map.nodes.forEach(n => {
+    const depth = runDepthOf(map, n.id);
+    if (n.role === 'start') {
+      // The drop teaches the run's own rules with nothing else in the way.
+      out[n.id] = {type: 'stronghold', mod: 'none', heat: 0, depth, reward: runRewardAt(depth)};
+      return;
+    }
+    if (n.role === 'final') {
+      out[n.id] = {type: 'boss', mod: 'none', heat: runHeatAt(depth), depth,
+        reward: runRewardAt(depth), boss: RUN_BOSSES[randInt(RUN_BOSSES.length)]};
+      return;
+    }
+    // Modifiers thicken with depth rather than arriving on a flat coin flip.
+    const modChance = Math.min(0.75, 0.2 + depth * 0.12);
+    out[n.id] = {
+      type: pool[randInt(pool.length)],
+      mod: chance(modChance) ? mods[randInt(mods.length)] : 'none',
+      heat: runHeatAt(depth),
+      depth,
+      reward: runRewardAt(depth),
+    };
+  });
+  return out;
+}
+
+/** The mission spec sitting on one run node. */
+function runNodeSpec(id) {
+  const r = active && active.run;
+  return r ? r.nodes[id] || null : null;
+}
+
+/** The run's deck ceiling — its own drafted lead's, never the profile's. */
+function runDeckCap() {
+  const r = active && active.run;
+  const L = r && LEADS[r.lead];
+  return (L && L.deckCap) || DECKSIZE;
+}
+
+/** Is a run in progress? */
+const runActive = () => !!(active && active.run && !active.run.over);
+
+/** The run's map, or null. */
+const runMap = () => (active && active.run ? active.run.map : null);
+
+/**
+ * Begin a fresh run. The deck is the starter and nothing else — no unlocks are
+ * read, so this is identical for every commander on the roster.
+ */
+function startRun() {
+  if (!active) return null;
+  const map = genRunMap();
+  active.run = {
+    map,
+    nodes: runNodeSpecs(map),
+    cleared: [],
+    deck: [...RUN_STARTER],
+    gear: {},
+    lead: null,          // chosen from three at the first draft
+    depth: 0,
+    over: false,
+  };
+  commit();
+  return active.run;
+}
+
+/** 'clear' | 'open' | 'locked' for a run node — the same walk the campaign map
+ * uses, against the run's own cleared list. */
+function runNodeState(id) {
+  const r = active && active.run;
+  if (!r) return 'locked';
+  if (r.cleared.includes(id)) return 'clear';
+  if (!r.cleared.length) return id === r.map.nodes[0].id ? 'open' : 'locked';
+  return r.map.edges.some(([a, b]) =>
+    (r.cleared.includes(a) && b === id) || (r.cleared.includes(b) && a === id))
+    ? 'open' : 'locked';
+}
+
+/** The run is won when the target falls. */
+function runComplete() {
+  const r = active && active.run;
+  if (!r) return false;
+  const fin = r.map.nodes.find(n => n.role === 'final');
+  return !!(fin && r.cleared.includes(fin.id));
+}
+
+/** Deepest layer the run has actually taken — what the payout is scaled by. */
+function runDepthReached() {
+  const r = active && active.run;
+  if (!r || !r.cleared.length) return 0;
+  return Math.max(...r.cleared.map(id => runDepthOf(r.map, id)));
+}
+
+// ---- the draft --------------------------------------------------------------
+
+const DRAFT_SIZE = 3;
+
+/**
+ * What the next draft offers.
+ *
+ * Leads first, once, because choosing who you are answering to is the run's
+ * opening decision and it should not be buried behind a card. After that the
+ * run drafts cards until the deck is full and gear once it is — so a full deck
+ * turns the draft from "another body" into "make one of these better", which
+ * is the shape the back half of a run wants.
+ */
+function runDraftOffer() {
+  const r = active && active.run;
+  if (!r) return [];
+  if (!r.lead) {
+    return shuffle(Object.keys(LEADS)).slice(0, DRAFT_SIZE).map(id => ({kind: 'lead', id}));
+  }
+  if (r.deck.length < runDeckCap()) {
+    // A Proto Frame is a deck-defining commitment and its kit is three more
+    // cards; that is a whole run's worth of drafting and it stays out of this
+    // slice rather than arriving as a card you cannot support.
+    const pool = Object.keys(POOL).filter(id => {
+      const k = POOL[id];
+      if (k.chassis === 'proto' || k.frameGear) return false;
+      if (r.deck.includes(id)) return false;
+      return true;
+    });
+    return shuffle(pool).slice(0, DRAFT_SIZE).map(id => ({kind: 'card', id}));
+  }
+  const worn = new Set(Object.values(r.gear));
+  const pool = Object.keys(GEAR).filter(gi => !worn.has(gi) && !GEAR[gi].fits && !GEAR[gi].frame);
+  return shuffle(pool).slice(0, DRAFT_SIZE).map(id => ({kind: 'gear', id}));
+}
+
+/** Take one draft pick into the run. */
+function runDraftTake(pick) {
+  const r = active && active.run;
+  if (!r || !pick) return;
+  if (pick.kind === 'lead') r.lead = pick.id;
+  else if (pick.kind === 'card' && r.deck.length < runDeckCap()) r.deck.push(pick.id);
+  else if (pick.kind === 'gear') {
+    // Onto whichever card in the deck is carrying nothing; failing that, the
+    // first that can take it at all.
+    const fits = r.deck.filter(c => POOL[c] && POOL[c].hp);
+    const bare = fits.find(c => !r.gear[c]);
+    const host = bare || fits[0];
+    if (host) r.gear[host] = pick.id;
+  }
+  commit();
+}
+
 /* ==== src/rules/packs.js ============================================ */
 // Requisition packs: three items offered, keep one.
 //
@@ -8642,6 +9001,16 @@ function queuePack(tier, label) {
   packQueue.push({tier, label});
 }
 
+/**
+ * Owe the player a Deep Run draft — same slot in the same queue, but the offer
+ * comes from the run and the pick goes into the run, never into the collection.
+ * Riding the pack queue rather than inventing a second overlay is deliberate:
+ * the reward beat already exists and the player already knows where to look.
+ */
+function queueDraft(label) {
+  packQueue.push({tier: 'standard', label: label || 'Field salvage', draft: true});
+}
+
 /* ==== src/rules/mission.js ========================================== */
 // Starting a mission, and settling up when it ends.
 //
@@ -8669,6 +9038,9 @@ const PACK_METER_GOAL = 3;
  * the first pack now costs an actual defence.
  */
 const ONSLAUGHT_PACK_WAVES = 10;
+
+/** Paid once, on top of the Deep Run's final node, for putting the target down. */
+const RUN_CLEAR_BONUS = 400;
 
 /** Fresh, neutral-in-the-middle territory grid. */
 function freshTerritory() {
@@ -8706,23 +9078,31 @@ function launchSpec(nd) {
   const m = MISSIONS[nd.type];
   if (!m) return false;
 
-  const deck = active.loadout.deck.filter(c => POOL[c]);
+  // A Deep Run fields the deck it drafted, not the profile's. That deck was
+  // assembled by this mode's own rules — it is never over its own cap and the
+  // player cannot edit it between nodes — so the two loadout gates below are
+  // the profile's problem, not the run's.
+  const runDeck = nd.run && active.run ? active.run.deck : null;
+  const lead = runDeck ? (LEADS[active.run.lead] || LEADS.ironbrand) : leadOf();
+  const deck = (runDeck || active.loadout.deck).filter(c => POOL[c]);
   if (!deck.length) {
     hooks.notify('No deck', 'Your deck is empty. Build one in Squad before deploying.');
     return false;
   }
-  // A short-manifest lead (Coronet, Quartermaster) refuses a deck built over
-  // its ceiling — caught here so it fails loudly at the door, not at deploy.
-  if (deck.length > deckCapOf()) {
-    hooks.notify('Deck over limit', `${leadOf().call} fields at most ${deckCapOf()} cards — ` +
-      `your deck holds ${deck.length}. Trim it in Squad or change leads.`);
-    return false;
-  }
-  // The one-line rule and Lone Spartan: warned on the Squad page, refused here.
-  const broken = deckProblems(deck, active.loadout.frame);
-  if (broken.length) {
-    hooks.notify(broken[0].n, broken[0].d);
-    return false;
+  if (!runDeck) {
+    // A short-manifest lead (Coronet, Quartermaster) refuses a deck built over
+    // its ceiling — caught here so it fails loudly at the door, not at deploy.
+    if (deck.length > deckCapOf()) {
+      hooks.notify('Deck over limit', `${leadOf().call} fields at most ${deckCapOf()} cards — ` +
+        `your deck holds ${deck.length}. Trim it in Squad or change leads.`);
+      return false;
+    }
+    // The one-line rule and Lone Spartan: warned on the Squad page, refused here.
+    const broken = deckProblems(deck, active.loadout.frame);
+    if (broken.length) {
+      hooks.notify(broken[0].n, broken[0].d);
+      return false;
+    }
   }
 
   setG({
@@ -8731,8 +9111,11 @@ function launchSpec(nd) {
     // without one, a boss mission falls back to the operation's final target.
     bossK: nd.boss || null,
     heat: nd.heat || 0, endless: !!nd.endless, gauntlet: !!nd.gauntlet, daily: !!nd.daily,
+    // `run` is read by liveLoadout(), which is what makes gearOf/leadOf/leadIs
+    // resolve against the run's drafted kit for the length of this mission.
+    run: !!nd.run,
     waves: nd.endless ? 9999 : m.waves,
-    turn: 1, dp: Math.max(1, MAXDP + (leadOf().dpMod || 0)), breaches: 0, over: false,
+    turn: 1, dp: Math.max(1, MAXDP + (lead.dpMod || 0)), breaches: 0, over: false,
     ter: freshTerritory(), scorch: {}, rubble: {}, burrowAt: null,
     // Fog of war rides the modifier; a boss fight is never fogged — the
     // machine IS the board, and hiding it would hide the fight.
@@ -8775,7 +9158,7 @@ function launchSpec(nd) {
     // the wave budget, field events sit the fight out, and the mission wants a
     // point more room per turn than a standard drop (boss-patch economy note).
     G.noEvents = true;
-    G.dp = Math.max(1, MAXDP + 1 + (leadOf().dpMod || 0));
+    G.dp = Math.max(1, MAXDP + 1 + (lead.dpMod || 0));
     seedBoss();
   }
 
@@ -8797,6 +9180,7 @@ function launchSpec(nd) {
   if (G.heat) clog(`<span class="d">Deep-zone operation</span> — hive pressure +${G.heat} threat every wave.`);
   if (G.endless) clog('<span class="t">ONSLAUGHT</span> — the waves do not stop. See how far you get.');
   if (G.gauntlet) clog(`<span class="t">GAUNTLET ${active.gaunt.i + 1} of ${GAUNTLET_LEGS}</span> — one loss ends the chain.`);
+  if (G.run) clog(`<span class="t">DEEP RUN \u00b7 LAYER ${nd.depth || 1}</span> — no resupply behind you. A loss ends the run.`);
   if (G.daily) clog(`<span class="t">DAILY CHALLENGE</span> — today's op. A loss does not cost your streak; only the win of the day does.`);
 
   hooks.enterCombat();
@@ -8809,6 +9193,26 @@ function launch(nodeId) {
   const nd = opRun().nodes[nodeId];
   if (!nd) return false;
   return launchSpec({node: nodeId, op: active.op, type: nd.type, mod: nd.mod, reward: nd.reward, heat: nd.heat, boss: nd.boss});
+}
+
+/**
+ * Deep Run: launch the mission sitting on run node `id`.
+ *
+ * The run supplies everything — deck, gear, lead, heat — so nothing here reads
+ * the profile loadout. `run: true` is what tells launchSpec (and, through
+ * `G.run`, liveLoadout) to source from `active.run` instead.
+ */
+function launchRunNode(id) {
+  if (!active || !active.run || active.run.over) return false;
+  const nd = runNodeSpec(id);
+  if (!nd) return false;
+  if (runNodeState(id) !== 'open') return false;
+  return launchSpec({
+    node: id, type: nd.type, mod: nd.mod, boss: nd.boss || null,
+    heat: nd.heat || 0, depth: nd.depth || 1,
+    reward: nd.reward,
+    run: true,
+  });
 }
 
 /** Onslaught: one board, waves that never stop and scale 1.9x each time. */
@@ -8887,11 +9291,16 @@ function abortMission() {
   const wasEndless = G && G.endless;
   const wasGauntlet = G && G.gauntlet;
   const wasDaily = G && G.daily;
+  const wasRun = G && G.run;
   if (wasGauntlet) active.gaunt = null;
+  // Walking out of a Deep Run node is a loss by another name: the run closes
+  // where it stands rather than parking a node you could re-enter with the
+  // board reshuffled in your favour.
+  if (wasRun && active.run) active.run.over = true;
   setG(null);
   clearSelection();
   commit();
-  return {wasEndless, wasGauntlet, wasDaily};
+  return {wasEndless, wasGauntlet, wasDaily, wasRun};
 }
 
 /**
@@ -9057,6 +9466,74 @@ function settleGauntlet(win, why) {
   };
 }
 
+/**
+ * Deep Run settlement. One loss ends the run — there is no retry, no reroll and
+ * no partial credit beyond what earlier nodes already banked, which is what
+ * makes the route choice on the map a decision rather than a formality.
+ *
+ * A win that is not the target queues a draft: three offers, keep one, taken
+ * into the run rather than into the collection. The run's own kit never touches
+ * the profile — the credits it earns do.
+ */
+function settleRun(win, why) {
+  const r = active.run;
+  const depth = (r && r.nodes[G.node] && r.nodes[G.node].depth) || 1;
+  let cr = 0;
+  let title;
+  let done = false;
+
+  if (win) {
+    if (!r.cleared.includes(G.node)) r.cleared.push(G.node);
+    r.depth = Math.max(r.depth || 0, depth);
+    cr = G.reward + Math.floor(G.kills / 5);
+    active.progress.credits += cr;
+    active.stats.held++;
+    done = runComplete();
+    if (done) {
+      cr += RUN_CLEAR_BONUS;
+      active.progress.credits += RUN_CLEAR_BONUS;
+      active.bests.runsDone = (active.bests.runsDone || 0) + 1;
+      r.over = true;
+      queuePack('standard', 'Deep Run complete');
+      queuePack('specialist', 'Deep Run complete');
+      title = 'DEEP RUN COMPLETE';
+    } else {
+      // The draft rides the pack queue, so it lands in the same slot the
+      // player already expects a reward to appear in.
+      queueDraft(`Salvage \u00b7 layer ${depth}`);
+      title = 'LAYER CLEARED';
+    }
+  } else {
+    r.over = true;
+    active.stats.lost++;
+    title = 'RUN ENDED';
+  }
+
+  // The record is how deep you got, not how many runs you started.
+  active.bests.run = Math.max(active.bests.run || 0, runDepthReached());
+
+  active.stats.deployments++;
+  active.stats.kills += G.kills;
+  active.stats.unitsLost += G.lost;
+  active.stats.breaches += G.breaches;
+  commit();
+
+  return {
+    kind: win ? 'win' : 'lose',
+    cleared: win,
+    title, why,
+    lines: [
+      `Layer \u00b7 <b style="color:var(--violet)">${depth}</b> of ${r.map.layers.length}`,
+      `Hostiles destroyed \u00b7 ${G.kills}`,
+      `Units lost \u00b7 ${G.lost}`,
+      done ? 'The target is down. The run is yours.'
+        : win ? 'Salvage recovered — take one thing deeper.'
+          : `Deepest layer reached \u00b7 ${runDepthReached()}`,
+    ].filter(Boolean),
+    payout: cr ? {cr} : null,
+  };
+}
+
 function settleCampaign(win, why) {
   let cr = 0;
 
@@ -9154,9 +9631,10 @@ function finish(win, why) {
   tapeEnd();                     // the result card takes over; drop the tape
   G.over = true;
   G.result = G.endless ? settleOnslaught()
-    : G.gauntlet ? settleGauntlet(win, why)
-      : G.daily ? settleDaily(win, why)
-        : settleCampaign(win, why);
+    : G.run ? settleRun(win, why)
+      : G.gauntlet ? settleGauntlet(win, why)
+        : G.daily ? settleDaily(win, why)
+          : settleCampaign(win, why);
   hooks.showResult();
   hooks.invalidate();
 }
@@ -9168,7 +9646,7 @@ function finish(win, why) {
 const $ = id => document.getElementById(id);
 
 /** Every screen in the shell, in the order they appear. */
-const SCREENS = ['title', 'boot', 'hold', 'modes', 'ops', 'map', 'combat'];
+const SCREENS = ['title', 'boot', 'hold', 'modes', 'ops', 'map', 'deeprun', 'combat'];
 
 /**
  * Show exactly one screen. Visibility is driven purely by the `.on` class —
@@ -10123,21 +10601,27 @@ function focusLead(k, ctx) {
   const price = leadPrice(k);
   const affordable = active.progress.credits >= price;
   const close = '<button class="btn ghost" data-close="1">Close</button>';
+  // 'view' is the read-only context: a Deep Run draft offer, where unlocks and
+  // credits do not apply and nothing on this card may touch the profile. The
+  // lock glyph and the price go with the buttons — inside a run they would be
+  // answering a question nobody asked.
+  const viewOnly = ctx === 'view';
 
-  const acts = assigned ? '<button class="btn ghost" data-close="1">Assigned — close</button>'
-    : open ? `<button class="btn" data-fassign="${k}" data-fctx="${ctx}">Assign lead</button>${close}`
-      : affordable ? `<button class="btn gold" data-frecruit="${k}" data-fctx="${ctx}">Recruit · ${price} cr</button>${close}`
-        : `<button class="btn ghost" data-close="1">Need ${price} cr</button>`;
+  const acts = viewOnly ? close
+    : assigned ? '<button class="btn ghost" data-close="1">Assigned — close</button>'
+      : open ? `<button class="btn" data-fassign="${k}" data-fctx="${ctx}">Assign lead</button>${close}`
+        : affordable ? `<button class="btn gold" data-frecruit="${k}" data-fctx="${ctx}">Recruit · ${price} cr</button>${close}`
+          : `<button class="btn ghost" data-close="1">Need ${price} cr</button>`;
 
   $('fwrap').innerHTML = `<div class="fcard flead" style="border-color:${L.col}">
       <div class="fart">${portrait(k)}</div>
-      <div class="fname" style="color:${L.col}">${open ? '' : '🔒 '}${L.call}</div>
+      <div class="fname" style="color:${L.col}">${open || viewOnly ? '' : '🔒 '}${L.call}</div>
       <div class="ftype">${L.role} · ${L.n}</div>
       <div class="ftxt">${L.bio}</div>
       ${L.passive ? `<div class="fab"><b>Passive · ${L.passive.n}</b>${L.passive.d}</div>` : ''}
       ${L.con ? `<div class="fab down"><b>Cost · ${L.con.n}</b>${L.con.d}</div>` : ''}
       <div class="fstats"><div class="fstat"><span class="k">Status</span>
-        <span class="v">${assigned ? 'Assigned' : open ? 'On the roster' : leadGateText(k)}</span></div></div>
+        <span class="v">${viewOnly ? 'Offered' : assigned ? 'Assigned' : open ? 'On the roster' : leadGateText(k)}</span></div></div>
     </div><div class="facts">${acts}</div>`;
   $('fbg').innerHTML = bokehLayer([L.col, '#9d6bff', '#4de8ff']);
   $('focus').classList.add('on');
@@ -12090,19 +12574,24 @@ function replayIntros() {
 
 /* ==== src/render/map.js ============================================= */
 // The operation map: nodes, the edges that gate them, and the briefing list.
+//
+// The SVG builders take the map definition, the run and a node-state function
+// rather than reaching for MAPDEF and nodeState directly, because the Deep Run
+// draws its generated map through exactly the same code. One map renderer is
+// the point: a second one would have drifted from this one by the second patch.
 
 const CLEARED = '#5dffa0';
 const DARK = '#2b2558';
 
-function edgesSvg(run, complete) {
-  const node = id => MAPDEF.nodes.find(n => n.id === id);
-  return MAPDEF.edges.map(([a, b]) => {
+function edgesSvg(def, run, complete, stateOf) {
+  const node = id => def.nodes.find(n => n.id === id);
+  return def.edges.map(([a, b]) => {
     const A = node(a);
     const B = node(b);
     const done = complete || (run.cleared.includes(a) && run.cleared.includes(b));
-    const live = !complete && ((run.cleared.includes(a) && nodeState(b) === 'open') ||
-      (run.cleared.includes(b) && nodeState(a) === 'open'));
-    const stroke = done ? CLEARED : live ? MAPDEF.col : DARK;
+    const live = !complete && ((run.cleared.includes(a) && stateOf(b) === 'open') ||
+      (run.cleared.includes(b) && stateOf(a) === 'open'));
+    const stroke = done ? CLEARED : live ? def.col : DARK;
     return `<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="${stroke}" stroke-width="${done || live ? 2 : 1.2}" stroke-dasharray="${done || live ? '' : '3 3'}" opacity="${done || live ? 0.9 : 0.5}"/>`;
   }).join('');
 }
@@ -12112,14 +12601,14 @@ const GOLD = '#ffc94d';
 // Once the final node is cleared the run stays on the board as a finished
 // map — every node shown filled and ticked, whatever side objectives were
 // actually collected — rather than snapping back to a fresh roll unasked.
-function nodesSvg(run, complete) {
-  return MAPDEF.nodes.map(n => {
-    const st = complete ? 'clear' : nodeState(n.id);
+function nodesSvg(def, run, complete, stateOf, blocked, labelOf) {
+  return def.nodes.map(n => {
+    const st = complete ? 'clear' : stateOf(n.id);
     const m = MISSIONS[run.nodes[n.id].type];
-    const gated = !complete && reqBlocked(n.id);
+    const gated = !complete && blocked(n.id);
     // Open nodes get a breathing ring so the eye lands on what is playable.
     const pulse = st === 'open'
-      ? `<circle cx="${n.x}" cy="${n.y}" r="14" fill="none" stroke="${MAPDEF.col}" stroke-width="1" opacity=".5">
+      ? `<circle cx="${n.x}" cy="${n.y}" r="14" fill="none" stroke="${def.col}" stroke-width="1" opacity=".5">
         <animate attributeName="r" values="11;19;11" dur="2.3s" repeatCount="indefinite"/>
         <animate attributeName="opacity" values=".6;0;.6" dur="2.3s" repeatCount="indefinite"/></circle>`
       : '';
@@ -12131,32 +12620,59 @@ function nodesSvg(run, complete) {
     const halo = n.role === 'final'
       ? `<circle cx="${n.x}" cy="${n.y}" r="14.5" fill="none" stroke="${GOLD}" stroke-width="1.4" opacity=".85"/>`
       : n.role === 'side'
-        ? `<circle cx="${n.x}" cy="${n.y}" r="14" fill="none" stroke="${MAPDEF.col}" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/>`
+        ? `<circle cx="${n.x}" cy="${n.y}" r="14" fill="none" stroke="${def.col}" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/>`
         : '';
     const gate = gated
       ? `<path d="M${n.x - 4},${n.y - 1} h8 M${n.x},${n.y - 5} v8" stroke="${GOLD}" stroke-width="1.6" transform="rotate(45 ${n.x} ${n.y})"/>`
       : '';
-    const line1 = (n.l || m.n).toUpperCase();
-    const line2 = n.l ? m.n.toUpperCase() : n.role === 'side' ? 'BONUS' : '';
+    const [line1, line2] = labelOf(n, m);
     return `<g data-n="${n.id}" style="cursor:${st === 'open' ? 'pointer' : 'default'};opacity:${st === 'locked' && !gated ? 0.45 : 1}">
       ${pulse}${halo}
-      <circle cx="${n.x}" cy="${n.y}" r="10" fill="${st === 'clear' ? CLEARED : '#0d0b1c'}" stroke="${st === 'clear' ? '#9dffc6' : st === 'open' ? MAPDEF.col : n.role === 'final' ? GOLD : DARK}" stroke-width="2.4"/>
+      <circle cx="${n.x}" cy="${n.y}" r="10" fill="${st === 'clear' ? CLEARED : '#0d0b1c'}" stroke="${st === 'clear' ? '#9dffc6' : st === 'open' ? def.col : n.role === 'final' ? GOLD : DARK}" stroke-width="2.4"/>
       ${tick}${gate}
       <text x="${n.x}" y="${n.y + 23}" fill="${st === 'locked' ? '#4a4477' : '#d3d0ea'}" font-size="9" text-anchor="middle" letter-spacing="1" font-family="ui-monospace,monospace">${line1}</text>
       ${line2 ? `<text x="${n.x}" y="${n.y + 31}" fill="${n.role === 'side' && !n.l ? GOLD : '#8d86bd'}" font-size="8" text-anchor="middle" letter-spacing="1.2" font-family="ui-monospace,monospace">${line2}</text>` : ''}</g>`;
   }).join('');
 }
 
-function zonesSvg() {
-  const shapes = MAPDEF.zones
+function zonesSvg(def) {
+  const shapes = def.zones
     .map(z => `<polygon points="${z.p}" fill="#141033" stroke="#3a2f7a" stroke-width="1.2" opacity=".7"/>`).join('');
-  const labels = MAPDEF.zones.map(z => {
+  const labels = def.zones.map(z => {
     const coords = z.p.split(' ');
     const xs = coords.map(q => +q.split(',')[0]);
     const ys = coords.map(q => +q.split(',')[1]);
     return `<text x="${Math.min(...xs) + 14}" y="${Math.max(...ys) - 9}" fill="#847cb8" font-size="10" letter-spacing="2.2" font-family="ui-monospace,monospace">${z.l}</text>`;
   }).join('');
   return shapes + labels;
+}
+
+const NEVER_GATED = () => false;
+
+/**
+ * An operation node's two label lines: its own name over the mission it holds,
+ * or just the mission when the node is unnamed. The Deep Run passes its own —
+ * its nodes are unnamed and its mission names are too long for the spacing a
+ * generated map has.
+ */
+const OP_LABEL = (n, m) => [
+  (n.l || m.n).toUpperCase(),
+  n.l ? m.n.toUpperCase() : n.role === 'side' ? 'BONUS' : '',
+];
+
+/**
+ * The whole map as one SVG. Shared by the operation map and the Deep Run —
+ * pass the map definition, the run holding `cleared` and `nodes`, and the
+ * node-state walk that belongs to that mode.
+ */
+function mapSvg(def, run, complete, stateOf, blocked, labelOf) {
+  const gate = blocked || NEVER_GATED;
+  const label = labelOf || OP_LABEL;
+  return `<svg viewBox="0 0 440 300" style="width:100%;display:block">
+      <defs><pattern id="gr" width="8" height="8" patternUnits="userSpaceOnUse">
+        <path d="M8 0H0V8" fill="none" stroke="#181340" stroke-width=".5"/></pattern></defs>
+      <rect width="440" height="300" fill="#080714"/><rect width="440" height="300" fill="url(#gr)"/>
+      ${zonesSvg(def)}${edgesSvg(def, run, complete, stateOf)}${nodesSvg(def, run, complete, stateOf, gate, label)}</svg>`;
 }
 
 function renderMap() {
@@ -12197,11 +12713,7 @@ function renderMap() {
       <div style="font-size:0.6562rem;color:var(--dim);margin-top:4px;line-height:1.5">${n.reqText || 'Requirements not met.'}</div></span></div>`).join('');
 
   $('mapbody').innerHTML = `<div class="mapwrap"><div><div class="mapsvg">
-    <svg viewBox="0 0 440 300" style="width:100%;display:block">
-      <defs><pattern id="gr" width="8" height="8" patternUnits="userSpaceOnUse">
-        <path d="M8 0H0V8" fill="none" stroke="#181340" stroke-width=".5"/></pattern></defs>
-      <rect width="440" height="300" fill="#080714"/><rect width="440" height="300" fill="url(#gr)"/>
-      ${zonesSvg()}${edgesSvg(run, complete)}${nodesSvg(run, complete)}</svg></div>
+    ${mapSvg(MAPDEF, run, complete, nodeState, reqBlocked)}</div>
     ${MAPDEF.lore ? `<div class="sect">状況 · Situation report</div>
       <div class="oplore" style="border-color:${MAPDEF.col}">${MAPDEF.lore}</div>` : ''}</div>
     <div><div class="sect">${complete ? 'Status' : 'Available — ' + open.length}</div><div class="rows">${briefings}${gatedRows}</div>
@@ -12288,6 +12800,315 @@ function renderOps() {
   });
 }
 
+/* ==== src/render/packs.js =========================================== */
+// Requisition pack presentation: the sealed box, the burst, and the fan of
+// three cards to choose from.
+
+const BURST_MS = 260;
+
+let packPicks = [];
+let packOpen = false;
+// True while the overlay is showing a Deep Run draft rather than a pack: the
+// offer came from the run and the pick goes back into it.
+let packDraft = false;
+
+/** Runs once the whole queue has been worked through. Set by wiring.js. */
+let afterPacks = () => {};
+const setAfterPacks = fn => { afterPacks = fn; };
+
+/** Everything the pack card needs to render one offer. Card picks carry no
+ * sub-line — tier and stats stay in the shop and squad views; the pick's
+ * rules text is already on the card. Non-card picks keep a kind label. */
+function packArt(p) {
+  if (p.kind === 'card') {
+    const k = POOL[p.id];
+    return {title: k.n, sub: '', body: k.d, art: artFor(p.id, k.t, 86), tier: k.t};
+  }
+  if (p.kind === 'gear') {
+    const g = GEAR[p.id];
+    return {title: g.n, sub: 'Gear', body: g.d, art: sigil(p.id, 'tech', 86), tier: 'tech'};
+  }
+  if (p.kind === 'lead') {
+    const L = LEADS[p.id];
+    const perk = [L.passive ? '◈ ' + L.passive.n + ' — ' + L.passive.d : '',
+      L.con ? '▽ ' + L.con.n + ' — ' + L.con.d : ''].filter(Boolean).join('<br>');
+    return {title: L.call, sub: L.role, body: perk || L.bio, art: portrait(p.id, 86), tier: 'special'};
+  }
+  if (p.kind === 'vet') {
+    const k = POOL[p.id];
+    return {title: k.n, sub: 'Field promotion',
+      body: `+${p.amount} deployments logged — advances this card toward its next rank.`,
+      art: artFor(p.id, k.t, 86, '#9d6bff'), tier: 'special'};
+  }
+  return {title: '+' + p.amount + ' Credits', sub: 'Bonus payout', body: 'Extra requisition credits — nothing wasted.',
+    art: sigil('credits', 'tech', 86), tier: 'tech'};
+}
+
+/** Present the next owed pack. Returns false when the queue is empty. */
+function showPack() {
+  if (!packQueue.length) { packPicks = []; return false; }
+  const job = packQueue.shift();
+  packDraft = !!job.draft;
+  packPicks = packDraft ? runDraftOffer() : packOffer(job.tier);
+  // A draft with nothing left to offer is not a beat worth showing — skip it
+  // and take whatever is behind it in the queue.
+  if (packDraft && !packPicks.length) return showPack();
+  packOpen = false;
+
+  const specialist = job.tier === 'specialist';
+  $('packlabel').textContent = job.label || 'Requisition';
+  $('packhint').textContent = packDraft ? 'Tap the cache to open' : 'Tap the pack to open';
+  $('packbg').innerHTML = packDraft
+    ? bokehLayer(['#4de8ff', '#9d6bff', '#5dffa0'])
+    : bokehLayer(specialist
+      ? ['#ffc94d', '#9d6bff', '#ff4d8f']
+      : ['#4de8ff', '#9d6bff', '#5dffa0']);
+  $('packfoot').innerHTML = '';
+  $('packstage').innerHTML = `<button class="packbox${packDraft ? ' draft' : specialist ? ' spec' : ''}" id="packbox">
+      <span class="pbglow"></span>
+      <span class="pbseal">${packDraft ? 'SALVAGE' : specialist ? 'SPECIALIST' : 'STANDARD'}</span>
+      <span class="pbmark">${packDraft ? '▣' : '◆'}</span>
+      <span class="pbsub">${packDraft ? 'Field Cache' : 'Requisition Pack'}</span>
+    </button>`;
+  $('packbox').onclick = burstPack;
+  $('pack').classList.add('on');
+  return true;
+}
+
+function burstPack() {
+  if (packOpen) return;
+  packOpen = true;
+  sfx('pack');
+
+  const flash = $('packflash');
+  flash.classList.remove('go');
+  void flash.offsetWidth;          // force a reflow so the animation replays
+  flash.classList.add('go');
+
+  const box = $('packbox');
+  if (box) box.classList.add('burst');
+  $('packhint').textContent = packDraft
+    ? 'Choose one to take deeper — the rest stay in the dirt'
+    : 'Choose one to keep — the others are returned';
+
+  setTimeout(() => {
+    $('packstage').innerHTML = `<div class="packfan">${packPicks.map((p, i) => {
+      const a = packArt(p);
+      // A pack pick's flavour text alone isn't the full story — the same
+      // stats a shop or squad tile shows a tap away live behind this one too,
+      // so choosing doesn't mean choosing blind.
+      const inspectable = p.kind === 'card' || p.kind === 'gear' || p.kind === 'vet' || p.kind === 'lead';
+      return `<div class="packcard t-${a.tier}" data-pick="${i}" style="animation-delay:${i * 110}ms">
+        <button class="pclook"${inspectable ? ` data-inspect="${i}"` : ' disabled'} title="${inspectable ? 'Tap to inspect' : ''}">
+          <span class="pcart">${a.art}</span>
+          <span class="pcname">${a.title}</span>
+          ${a.sub ? `<span class="pcsub">${a.sub}</span>` : ''}
+          <span class="pctxt">${a.body}</span>
+        </button>
+        <button class="pctake" data-take="${i}">Keep this</button>
+      </div>`;
+    }).join('')}</div>`;
+    document.querySelectorAll('#packstage [data-take]').forEach(b => {
+      b.onclick = () => takePack(+b.dataset.take);
+    });
+    document.querySelectorAll('#packstage [data-inspect]').forEach(b => {
+      b.onclick = () => {
+        const p = packPicks[+b.dataset.inspect];
+        if (p.kind === 'gear') focusGear(p.id, true);
+        else if (p.kind === 'lead') focusLead(p.id, 'view');
+        else focusCard(p.id);
+      };
+    });
+  }, BURST_MS);
+}
+
+function takePack(i) {
+  const p = packPicks[i];
+  if (!p) return;
+  if (packDraft) runDraftTake(p); else claimPack(p);
+  const a = packArt(p);
+
+  document.querySelectorAll('#packstage [data-pick]').forEach(el => {
+    el.classList.add(+el.dataset.pick === i ? 'taken' : 'returned');
+  });
+  document.querySelectorAll('#packstage [data-take]').forEach(b => { b.onclick = null; });
+  document.querySelectorAll('#packstage [data-inspect]').forEach(b => { b.onclick = null; });
+  $('packhint').textContent = '';
+  $('packfoot').innerHTML = `<div class="packgot"><b>${a.title}</b> ${packDraft
+    ? (p.kind === 'lead' ? 'has the run' : 'goes with you')
+    : 'added to your collection'}</div>
+    <button class="btn" id="packnext">${packQueue.length ? 'Next pack' : 'Continue'}</button>`;
+  $('packnext').onclick = () => {
+    $('pack').classList.remove('on');
+    setTimeout(() => { if (!showPack()) afterPacks(); }, 120);
+  };
+}
+
+/* ==== src/render/deeprun.js ========================================= */
+// The Deep Run screen: the generated map, the route in front of you, and the
+// kit the run has handed you so far.
+//
+// It shares the operation map's SVG builders (mapSvg) rather than drawing its
+// own, and it shares the pack overlay for the draft rather than inventing a
+// second reward beat. What it does not share is the profile: nothing on this
+// screen reads or writes the collection, the loadout or the lead, because a
+// run that consulted your unlocks would stop being the same run for everybody.
+
+/**
+ * Node labels for the run map. The operation maps hand-name their nodes and put
+ * the mission underneath; a generated map has no names to give, and the mission
+ * names themselves ("Defend Stronghold", "Fight for Crystals") are wider than
+ * the spacing a five-column map leaves, so the board carries a short code and
+ * the route list on the right carries the full briefing.
+ */
+const RUN_CODE = {
+  stronghold: 'HOLD', civilians: 'RESCUE', specimens: 'CAPTURE', crystals: 'CRYSTALS',
+  retake: 'RETAKE', extract: 'EXTRACT', uplink: 'UPLINK', blitz: 'BLITZ', boss: 'TARGET',
+};
+function runLabel(n, m) {
+  if (n.role === 'start') return ['DROP', ''];
+  if (n.role === 'final') return ['TARGET', ''];
+  const spec = runNodeSpec(n.id);
+  const code = RUN_CODE[Object.keys(MISSIONS).find(k => MISSIONS[k] === m)] || '';
+  return [code, spec && spec.mod !== 'none' ? '◈' : ''];
+}
+
+/** The run's own loadout readout — deck, gear and lead as the run holds them. */
+function kitHTML(r) {
+  const L = LEADS[r.lead];
+  const cards = r.deck.map(c => {
+    const k = POOL[c];
+    const g = GEAR[r.gear[c]];
+    return `<div class="row"><span>${k ? k.n : c}</span>
+      <span class="r${g ? ' hot' : ''}">${g ? g.n : '—'}</span></div>`;
+  }).join('');
+  return `<div class="sect">Lead</div><div class="rows">
+      <div class="row"><span>${L
+    ? `<b style="color:${L.col}">${L.call}</b> · ${L.role}
+      <div style="font-size:0.6562rem;color:var(--dim);margin-top:4px;line-height:1.5">${[
+    L.passive ? '◈ ' + L.passive.d : '', L.con ? '▽ ' + L.con.d : '',
+  ].filter(Boolean).join(' ')}</div>`
+    : 'Not yet chosen'}</span></div></div>
+    <div class="sect">Manifest — ${r.deck.length} / ${runDeckCap()}</div>
+    <div class="rows">${cards || '<div class="row"><span style="color:var(--dim)">Empty.</span></div>'}</div>`;
+}
+
+/** Offer one or more drafts back to back and come back here once they are taken. */
+function draft(...labels) {
+  labels.forEach(l => queueDraft(l));
+  setAfterPacks(() => renderRun());
+  if (!showPack()) renderRun();
+}
+
+/** The panel shown when there is no run to stand on — before one, or after. */
+function idleHTML() {
+  const r = active.run;
+  const ended = r && r.over;
+  const won = ended && runComplete();
+  const best = active.bests.run || 0;
+  return `<div class="mapwrap"><div>
+      <div class="sect">${ended ? (won ? '突破 · Run complete' : '断絶 · Run ended') : '深層 · Deep Run'}</div>
+      <div class="oplore" style="border-color:#9d6bff">${ended
+    ? (won
+      ? 'The target is down and the ground behind you is somebody else’s problem now. ' +
+        'Everything the run handed you stays where you found it — the credits are what comes home.'
+      : `The run stopped at layer ${runDepthReached()}. Nothing carries forward but what you learned ` +
+        'about the ground, which is the only thing that ever did.')
+    : 'One drop, one route, one way out. You go in with five cards and no lead, and every layer ' +
+      'you clear offers three things — take one. Your collection is not consulted and never will be: ' +
+      'the run is the same for a commander on their first night as it is for one with the whole roster. ' +
+      'A single loss ends it.'}</div>
+      <div class="sect">Standing orders</div><div class="rows">
+        <div class="row"><span>Starting manifest</span><span class="r">${RUN_STARTER.length} cards</span></div>
+        <div class="row"><span>Draft after every layer</span><span class="r">3 offered, keep 1</span></div>
+        <div class="row"><span>Depth</span><span class="r hot">Raises hive pressure every 2 layers</span></div>
+        <div class="row"><span>A loss</span><span class="r hot">Ends the run</span></div>
+      </div>
+    </div><div>
+      <div class="sect">Record</div><div class="rows">
+        <div class="row"><span>Deepest layer reached</span><span class="r hot">${best}</span></div>
+        <div class="row"><span>Runs completed</span><span class="r">${active.bests.runsDone || 0}</span></div>
+      </div>
+      <div class="row" style="margin-top:14px;justify-content:center">
+        <button class="btn gold" id="runstart">${ended ? '↺ Run it again' : 'Begin the descent ▸'}</button>
+      </div>
+    </div></div>`;
+}
+
+function renderRun() {
+  if (!active) return;
+  active.bests = active.bests || {onslaught: 0, gauntlet: 0};
+
+  if (!runActive()) {
+    $('runbody').innerHTML = idleHTML();
+    $('runstart').onclick = () => {
+      startRun();
+      // Two picks before the first drop. The lead is the run's opening
+      // decision and asking it after the drop would mean fighting the drop
+      // under a default nobody chose; the card that follows is what turns
+      // the starter five into a hand with an idea in it.
+      draft('Deep Run · choose your lead', 'Deep Run · first requisition');
+    };
+    return;
+  }
+
+  const r = active.run;
+  const map = runMap();
+  if (!r.lead) { draft('Deep Run · choose your lead'); return; }
+
+  const open = map.nodes.filter(n => runNodeState(n.id) === 'open');
+  const briefings = open.map(n => {
+    const nd = runNodeSpec(n.id);
+    const m = MISSIONS[nd.type];
+    const md = MODS[nd.mod];
+    const boss = nd.type === 'boss' ? BOSSDEF[nd.boss] : null;
+    const tag = n.role === 'final'
+      ? ` <span style="color:var(--gold)">· ${boss ? boss.n.toUpperCase() : 'PRIORITY TARGET'} — ends the run</span>` : '';
+    return `<div class="row" data-go="${n.id}" style="cursor:pointer">
+      <span><b style="color:var(--zan)">Layer ${nd.depth} — ${m.n}</b>${nd.mod !== 'none'
+    ? ` <span style="color:var(--violet)">· ${md.n}</span>` : ''}${tag}
+      <div style="font-size:0.6562rem;color:var(--dim);margin-top:4px;line-height:1.5">${m.d}${md.d ? ' ' + md.d : ''}${nd.heat
+    ? ` <span style="color:var(--hot)">Hive pressure +${nd.heat}.</span>` : ''}</div></span>
+      <span class="r hot">${nd.reward} cr ▸</span></div>`;
+  }).join('');
+
+  $('runbody').innerHTML = `<div class="mapwrap"><div><div class="mapsvg">
+    ${mapSvg(map, r, false, runNodeState, null, runLabel)}</div>
+    <div class="sect">状況 · Situation report</div>
+    <div class="oplore" style="border-color:${map.col}">${map.lore}</div></div>
+    <div><div class="sect">Route — ${open.length} ahead · layer ${runDepthReached() + 1} of ${map.layers.length}</div>
+    <div class="rows">${briefings || '<div class="row"><span style="color:var(--dim)">Nowhere left to go.</span></div>'}</div>
+    ${kitHTML(r)}
+    <div class="row" style="margin-top:14px;justify-content:center">
+      <button class="btn ghost" id="runquit">Abandon run</button></div></div></div>`;
+
+  document.querySelectorAll('#runbody [data-n],#runbody [data-go]').forEach(el => {
+    const id = el.dataset.n || el.dataset.go;
+    if (runNodeState(id) !== 'open') return;
+    el.onclick = () => {
+      const nd = runNodeSpec(id);
+      if (nd.type === 'boss' && nd.boss && playBossBrief(nd.boss, () => launchRunNode(id))) return;
+      launchRunNode(id);
+    };
+  });
+
+  $('runquit').onclick = () => ask('Abandon run',
+    'Walk away at layer ' + runDepthReached() + '? The run closes where it stands — ' +
+    'the credits you have banked are yours, everything you drafted is not.',
+    ok => {
+      if (!ok) return;
+      r.over = true;
+      commit();
+      renderRun();
+    }, {ok: 'Abandon'});
+}
+
+/** Enter the Deep Run screen from anywhere. */
+function openRun() {
+  show('deeprun');
+  renderRun();
+}
+
 /* ==== src/render/modes.js =========================================== */
 // Mode select: Campaign, Onslaught, Gauntlet, plus the Ironman toggle.
 
@@ -12299,6 +13120,7 @@ function renderModes() {
   const g = active.gaunt;
   const cleared = Object.values(OPS).reduce((a, o) => a + ((active.ops[o.k] || {cleared: []}).cleared.length), 0);
   const doneToday = active.daily.date === todayKey() && active.daily.done;
+  const r = active.run && !active.run.over ? active.run : null;
 
   $('modesbody').innerHTML = `<div class="sect">Choose how you deploy</div>
   <div class="modegrid">
@@ -12316,6 +13138,11 @@ function renderModes() {
       <div class="mname">Onslaught</div>
       <div class="mdesc">One board. The waves never stop and keep getting heavier. Survive as long as you can — credits scale with how deep you get.</div>
       <div class="mfoot"><span>Best · ${active.bests.onslaught || 0} waves</span><span style="color:#ff4d8f">Deploy ▸</span></div></button>
+    <button class="modecard live" style="--oc:#9d6bff" id="goRun">
+      <div class="mname">Deep Run</div>
+      <div class="mdesc">A generated map, five cards and no lead. Every layer you clear offers three things — take one. Your collection is never consulted, and one loss ends the run.</div>
+      <div class="mfoot"><span>${r ? `In progress — layer ${(r.depth || 0) + 1}` : `Deepest layer · ${active.bests.run || 0}`}</span>
+        <span style="color:#9d6bff">${r ? 'Resume ▸' : 'Descend ▸'}</span></div></button>
     <button class="modecard live" style="--oc:#ffc94d" id="goGauntlet">
       <div class="mname">Gauntlet</div>
       <div class="mdesc">Three missions back to back, escalating rewards and heavier modifiers each leg. A single loss ends the chain.</div>
@@ -12334,6 +13161,7 @@ function renderModes() {
   $('goOnslaught').onclick = () => launchOnslaught();
   $('goGauntlet').onclick = () => launchGauntlet();
   $('goDaily').onclick = () => launchDaily();
+  $('goRun').onclick = () => openRun();
 }
 
 /* ==== src/rules/stratagems.js ======================================= */
@@ -15439,130 +16267,6 @@ function cardEl(id, mode) {
     ${g ? `<div class="gtag">◈ ${g.n}</div>` : ''}${foot}</button>`;
 }
 
-/* ==== src/render/packs.js =========================================== */
-// Requisition pack presentation: the sealed box, the burst, and the fan of
-// three cards to choose from.
-
-const BURST_MS = 260;
-
-let packPicks = [];
-let packOpen = false;
-
-/** Runs once the whole queue has been worked through. Set by wiring.js. */
-let afterPacks = () => {};
-const setAfterPacks = fn => { afterPacks = fn; };
-
-/** Everything the pack card needs to render one offer. Card picks carry no
- * sub-line — tier and stats stay in the shop and squad views; the pick's
- * rules text is already on the card. Non-card picks keep a kind label. */
-function packArt(p) {
-  if (p.kind === 'card') {
-    const k = POOL[p.id];
-    return {title: k.n, sub: '', body: k.d, art: artFor(p.id, k.t, 86), tier: k.t};
-  }
-  if (p.kind === 'gear') {
-    const g = GEAR[p.id];
-    return {title: g.n, sub: 'Gear', body: g.d, art: sigil(p.id, 'tech', 86), tier: 'tech'};
-  }
-  if (p.kind === 'vet') {
-    const k = POOL[p.id];
-    return {title: k.n, sub: 'Field promotion',
-      body: `+${p.amount} deployments logged — advances this card toward its next rank.`,
-      art: artFor(p.id, k.t, 86, '#9d6bff'), tier: 'special'};
-  }
-  return {title: '+' + p.amount + ' Credits', sub: 'Bonus payout', body: 'Extra requisition credits — nothing wasted.',
-    art: sigil('credits', 'tech', 86), tier: 'tech'};
-}
-
-/** Present the next owed pack. Returns false when the queue is empty. */
-function showPack() {
-  if (!packQueue.length) { packPicks = []; return false; }
-  const job = packQueue.shift();
-  packPicks = packOffer(job.tier);
-  packOpen = false;
-
-  const specialist = job.tier === 'specialist';
-  $('packlabel').textContent = job.label || 'Requisition';
-  $('packhint').textContent = 'Tap the pack to open';
-  $('packbg').innerHTML = bokehLayer(specialist
-    ? ['#ffc94d', '#9d6bff', '#ff4d8f']
-    : ['#4de8ff', '#9d6bff', '#5dffa0']);
-  $('packfoot').innerHTML = '';
-  $('packstage').innerHTML = `<button class="packbox${specialist ? ' spec' : ''}" id="packbox">
-      <span class="pbglow"></span>
-      <span class="pbseal">${specialist ? 'SPECIALIST' : 'STANDARD'}</span>
-      <span class="pbmark">◆</span>
-      <span class="pbsub">Requisition Pack</span>
-    </button>`;
-  $('packbox').onclick = burstPack;
-  $('pack').classList.add('on');
-  return true;
-}
-
-function burstPack() {
-  if (packOpen) return;
-  packOpen = true;
-  sfx('pack');
-
-  const flash = $('packflash');
-  flash.classList.remove('go');
-  void flash.offsetWidth;          // force a reflow so the animation replays
-  flash.classList.add('go');
-
-  const box = $('packbox');
-  if (box) box.classList.add('burst');
-  $('packhint').textContent = 'Choose one to keep — the others are returned';
-
-  setTimeout(() => {
-    $('packstage').innerHTML = `<div class="packfan">${packPicks.map((p, i) => {
-      const a = packArt(p);
-      // A pack pick's flavour text alone isn't the full story — the same
-      // stats a shop or squad tile shows a tap away live behind this one too,
-      // so choosing doesn't mean choosing blind.
-      const inspectable = p.kind === 'card' || p.kind === 'gear' || p.kind === 'vet';
-      return `<div class="packcard t-${a.tier}" data-pick="${i}" style="animation-delay:${i * 110}ms">
-        <button class="pclook"${inspectable ? ` data-inspect="${i}"` : ' disabled'} title="${inspectable ? 'Tap to inspect' : ''}">
-          <span class="pcart">${a.art}</span>
-          <span class="pcname">${a.title}</span>
-          ${a.sub ? `<span class="pcsub">${a.sub}</span>` : ''}
-          <span class="pctxt">${a.body}</span>
-        </button>
-        <button class="pctake" data-take="${i}">Keep this</button>
-      </div>`;
-    }).join('')}</div>`;
-    document.querySelectorAll('#packstage [data-take]').forEach(b => {
-      b.onclick = () => takePack(+b.dataset.take);
-    });
-    document.querySelectorAll('#packstage [data-inspect]').forEach(b => {
-      b.onclick = () => {
-        const p = packPicks[+b.dataset.inspect];
-        if (p.kind === 'gear') focusGear(p.id, true);
-        else focusCard(p.id);
-      };
-    });
-  }, BURST_MS);
-}
-
-function takePack(i) {
-  const p = packPicks[i];
-  if (!p) return;
-  claimPack(p);
-  const a = packArt(p);
-
-  document.querySelectorAll('#packstage [data-pick]').forEach(el => {
-    el.classList.add(+el.dataset.pick === i ? 'taken' : 'returned');
-  });
-  document.querySelectorAll('#packstage [data-take]').forEach(b => { b.onclick = null; });
-  document.querySelectorAll('#packstage [data-inspect]').forEach(b => { b.onclick = null; });
-  $('packhint').textContent = '';
-  $('packfoot').innerHTML = `<div class="packgot"><b>${a.title}</b> added to your collection</div>
-    <button class="btn" id="packnext">${packQueue.length ? 'Next pack' : 'Continue'}</button>`;
-  $('packnext').onclick = () => {
-    $('pack').classList.remove('on');
-    setTimeout(() => { if (!showPack()) afterPacks(); }, 120);
-  };
-}
-
 /* ==== src/render/panel-hints.js ===================================== */
 // One-time coach cards for the hold panels — Squad, Quartermaster, Database,
 // Service Record. Same gold coach-card chrome as the combat briefing
@@ -16096,6 +16800,8 @@ function achievementList() {
     {n: 'Deep Water', d: 'Hold twenty-five waves in one Onslaught.', have: active.bests.onslaught || 0, need: 25},
     {n: 'Chainrunner', d: 'Complete a Gauntlet chain.', have: active.bests.gauntlet || 0, need: 1},
     {n: 'Chain of Command', d: 'Complete five Gauntlet chains.', have: active.bests.gauntlet || 0, need: 5},
+    {n: 'Deep Water Mark', d: 'Reach the fourth layer of a Deep Run.', have: active.bests.run || 0, need: 4},
+    {n: 'Down and Out', d: 'Put down the target at the end of a Deep Run.', have: active.bests.runsDone || 0, need: 1},
     {n: 'Standing Order', d: 'Carry a seven-day Daily Challenge streak.',
       have: daily.streak || 0, need: 7},
     {n: 'Machine Spirit', d: 'Field a Proto Frame for the first time.', have: frameSorties, need: 1},
@@ -16168,6 +16874,8 @@ function recordPanel() {
    <div class="sect">Modes</div><div class="rows">
    <div class="row"><span>Onslaught best</span><span class="r hot">${active.bests.onslaught || 0} waves</span></div>
    <div class="row"><span>Gauntlets completed</span><span class="r hot">${active.bests.gauntlet || 0}</span></div>
+   <div class="row"><span>Deep Run — deepest layer</span><span class="r hot">${active.bests.run || 0}</span></div>
+   <div class="row"><span>Deep Runs completed</span><span class="r hot">${active.bests.runsDone || 0}</span></div>
    <div class="row"><span>Ironman</span><span class="r">${active.ironman ? 'Enabled' : 'Off'}</span></div></div>`;
 }
 
@@ -16434,9 +17142,17 @@ function openPanel(key, quiet) {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.40';
+const VERSION = '2.41';
 
 const PATCH_NOTES = [
+  {
+    v: '2.41',
+    notes: [
+      "DEEP RUN — A ROGUELIKE MODE. A generated map, eight to fourteen nodes, branching. You pick your route: clearing a node opens what it connects to, and every layer you take is one you cannot walk back. Depth is the difficulty — hive pressure climbs a step every two layers, so the drop point is flat ground and the last leg is deep zone. At the far end sits one of the six operation bosses, drawn fresh each run.",
+      'YOU GO IN WITH NOTHING. Five common cards, no gear and no lead. Your collection is never consulted — not the cards you own, not the gear you have bought, not the leads on your roster — so a commander on their first night and one with the whole shelf play the same run. You choose a lead and a card before the drop, and after that every layer you clear opens a field cache: three things offered, keep one. Cards until the manifest is full, then gear to bolt onto what you have.',
+      "AND ONE LOSS ENDS IT. There is no second attempt at a layer and no retreat to the hold to rebuild. Walking out mid-mission closes the run where it stands. Credits you have banked are yours; the deck you drafted is not — it goes in the dirt with the run. Putting the target down pays a bonus and a pack apiece, standard and specialist. Your deepest layer and your completed runs sit in the Service Record, with two badges to go with them.",
+    ],
+  },
   {
     v: '2.40',
     notes: [
@@ -17070,10 +17786,11 @@ function leaveCombat() {
   // Read before abortMission(), which tears the mission state down.
   const bossDown = G && G.over && G.type === 'boss' && G.result && G.result.cleared && G.boss
     ? G.boss.k : null;
-  const {wasEndless, wasGauntlet, wasDaily} = abortMission();
+  const {wasEndless, wasGauntlet, wasDaily, wasRun} = abortMission();
   $('result').classList.remove('on');
   closeFocus();
   setMusicMood('hold');
+  if (wasRun) { show('deeprun'); renderRun(); return; }
   if (wasEndless || wasGauntlet || wasDaily) { show('modes'); renderModes(); return; }
   show('map');
   renderMap();
@@ -17081,13 +17798,16 @@ function leaveCombat() {
 }
 
 /** What walking away costs, in this mode's own terms. */
-const abortStakes = () => (G.gauntlet
-  ? 'The gauntlet chain is forfeit — legs already cleared keep their pay, but the run ends here.'
-  : G.endless
-    ? 'Onslaught pays out only when your line falls. Abort now and the run pays nothing.'
-    : G.daily
-      ? 'This attempt is abandoned, but the streak is untouched — you can retry today\'s challenge.'
-      : 'Progress on this mission is lost. The node stays open to try again.');
+const abortStakes = () => (G.run
+  ? 'A Deep Run has no second attempt at a layer. Walk out and the run closes where it stands — ' +
+    'banked credits are yours, the deck you drafted is not.'
+  : G.gauntlet
+    ? 'The gauntlet chain is forfeit — legs already cleared keep their pay, but the run ends here.'
+    : G.endless
+      ? 'Onslaught pays out only when your line falls. Abort now and the run pays nothing.'
+      : G.daily
+        ? 'This attempt is abandoned, but the streak is untouched — you can retry today\'s challenge.'
+        : 'Progress on this mission is lost. The node stays open to try again.');
 
 /** All the way out: abort and land on the hold rather than the map. */
 function exitToHold() {
@@ -18189,7 +18909,10 @@ function render() {
 const AUTOSAVE_MS = 20000;
 
 /** Where to go once the result card and any packs have been dismissed. */
-function afterMission(wasEndless, wasGauntlet, wasDaily, cleared) {
+function afterMission(wasEndless, wasGauntlet, wasDaily, cleared, wasRun) {
+  // A Deep Run always comes back to its own map — won, lost or still going.
+  // The map is where the run reports what happened to it.
+  if (wasRun) { show('deeprun'); renderRun(); return; }
   if (wasEndless || wasDaily || (wasGauntlet && !cleared)) { show('modes'); renderModes(); return; }
   if (wasGauntlet && active.gaunt && active.gaunt.i < GAUNTLET_LEGS) { launchGauntlet(); return; }
   if (wasGauntlet) { show('modes'); renderModes(); return; }
@@ -18203,6 +18926,7 @@ function wireResultButton() {
     const wasGauntlet = G && G.gauntlet;
     const wasEndless = G && G.endless;
     const wasDaily = G && G.daily;
+    const wasRun = G && G.run;
     const cleared = !!(G && G.result && G.result.cleared);
     // Read before setG(null) tears the mission down: a first boss kill earns
     // the after-action call, played over the map once any packs are claimed.
@@ -18210,7 +18934,7 @@ function wireResultButton() {
     setG(null);
 
     const go = () => {
-      afterMission(wasEndless, wasGauntlet, wasDaily, cleared);
+      afterMission(wasEndless, wasGauntlet, wasDaily, cleared, wasRun);
       if (bossDown) playBossDebrief(bossDown, null);
     };
     setAfterPacks(go);
@@ -18295,8 +19019,10 @@ function wireNavigation() {
   $('modesmenu').onclick = () => $('drawtab').click();
   $('opsmenu').onclick = () => $('drawtab').click();
   $('mapmenu').onclick = () => $('drawtab').click();
+  $('runmenu').onclick = () => $('drawtab').click();
   $('panelmenu').onclick = () => $('drawtab').click();
   $('mapback').onclick = () => { show('ops'); renderOps(); };
+  $('runback').onclick = () => { show('modes'); renderModes(); };
   $('pclose').onclick = () => $('panel').classList.remove('on');
   $('fbg').onclick = closeFocus;
   document.querySelectorAll('[data-p]').forEach(b => { b.onclick = () => openPanel(b.dataset.p); });

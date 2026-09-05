@@ -4,9 +4,17 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.40';
+export const VERSION = '2.41';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.41',
+    notes: [
+      "DEEP RUN — A ROGUELIKE MODE. A generated map, eight to fourteen nodes, branching. You pick your route: clearing a node opens what it connects to, and every layer you take is one you cannot walk back. Depth is the difficulty — hive pressure climbs a step every two layers, so the drop point is flat ground and the last leg is deep zone. At the far end sits one of the six operation bosses, drawn fresh each run.",
+      'YOU GO IN WITH NOTHING. Five common cards, no gear and no lead. Your collection is never consulted — not the cards you own, not the gear you have bought, not the leads on your roster — so a commander on their first night and one with the whole shelf play the same run. You choose a lead and a card before the drop, and after that every layer you clear opens a field cache: three things offered, keep one. Cards until the manifest is full, then gear to bolt onto what you have.',
+      "AND ONE LOSS ENDS IT. There is no second attempt at a layer and no retreat to the hold to rebuild. Walking out mid-mission closes the run where it stands. Credits you have banked are yours; the deck you drafted is not — it goes in the dirt with the run. Putting the target down pays a bonus and a pack apiece, standard and specialist. Your deepest layer and your completed runs sit in the Service Record, with two badges to go with them.",
+    ],
+  },
   {
     v: '2.40',
     notes: [

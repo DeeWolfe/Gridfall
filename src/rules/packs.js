@@ -105,3 +105,13 @@ export function claimPack(pick) {
 export function queuePack(tier, label) {
   packQueue.push({tier, label});
 }
+
+/**
+ * Owe the player a Deep Run draft — same slot in the same queue, but the offer
+ * comes from the run and the pick goes into the run, never into the collection.
+ * Riding the pack queue rather than inventing a second overlay is deliberate:
+ * the reward beat already exists and the player already knows where to look.
+ */
+export function queueDraft(label) {
+  packQueue.push({tier: 'standard', label: label || 'Field salvage', draft: true});
+}

@@ -438,21 +438,27 @@ export function focusLead(k, ctx) {
   const price = leadPrice(k);
   const affordable = active.progress.credits >= price;
   const close = '<button class="btn ghost" data-close="1">Close</button>';
+  // 'view' is the read-only context: a Deep Run draft offer, where unlocks and
+  // credits do not apply and nothing on this card may touch the profile. The
+  // lock glyph and the price go with the buttons — inside a run they would be
+  // answering a question nobody asked.
+  const viewOnly = ctx === 'view';
 
-  const acts = assigned ? '<button class="btn ghost" data-close="1">Assigned — close</button>'
-    : open ? `<button class="btn" data-fassign="${k}" data-fctx="${ctx}">Assign lead</button>${close}`
-      : affordable ? `<button class="btn gold" data-frecruit="${k}" data-fctx="${ctx}">Recruit · ${price} cr</button>${close}`
-        : `<button class="btn ghost" data-close="1">Need ${price} cr</button>`;
+  const acts = viewOnly ? close
+    : assigned ? '<button class="btn ghost" data-close="1">Assigned — close</button>'
+      : open ? `<button class="btn" data-fassign="${k}" data-fctx="${ctx}">Assign lead</button>${close}`
+        : affordable ? `<button class="btn gold" data-frecruit="${k}" data-fctx="${ctx}">Recruit · ${price} cr</button>${close}`
+          : `<button class="btn ghost" data-close="1">Need ${price} cr</button>`;
 
   $('fwrap').innerHTML = `<div class="fcard flead" style="border-color:${L.col}">
       <div class="fart">${portrait(k)}</div>
-      <div class="fname" style="color:${L.col}">${open ? '' : '🔒 '}${L.call}</div>
+      <div class="fname" style="color:${L.col}">${open || viewOnly ? '' : '🔒 '}${L.call}</div>
       <div class="ftype">${L.role} · ${L.n}</div>
       <div class="ftxt">${L.bio}</div>
       ${L.passive ? `<div class="fab"><b>Passive · ${L.passive.n}</b>${L.passive.d}</div>` : ''}
       ${L.con ? `<div class="fab down"><b>Cost · ${L.con.n}</b>${L.con.d}</div>` : ''}
       <div class="fstats"><div class="fstat"><span class="k">Status</span>
-        <span class="v">${assigned ? 'Assigned' : open ? 'On the roster' : leadGateText(k)}</span></div></div>
+        <span class="v">${viewOnly ? 'Offered' : assigned ? 'Assigned' : open ? 'On the roster' : leadGateText(k)}</span></div></div>
     </div><div class="facts">${acts}</div>`;
   $('fbg').innerHTML = bokehLayer([L.col, '#9d6bff', '#4de8ff']);
   $('focus').classList.add('on');

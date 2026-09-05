@@ -4,7 +4,7 @@
 export const $ = id => document.getElementById(id);
 
 /** Every screen in the shell, in the order they appear. */
-export const SCREENS = ['title', 'boot', 'hold', 'modes', 'ops', 'map', 'combat'];
+export const SCREENS = ['title', 'boot', 'hold', 'modes', 'ops', 'map', 'deeprun', 'combat'];
 
 /**
  * Show exactly one screen. Visibility is driven purely by the `.on` class —

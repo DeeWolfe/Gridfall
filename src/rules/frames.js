@@ -16,12 +16,12 @@
 
 import {POOL} from '../content/cards.js';
 import {G, active} from '../state/session.js';
-import {isProto, leadIs, cardName, gearOf} from '../save/progression.js';
+import {isProto, leadIs, cardName, gearOf, liveLoadout} from '../save/progression.js';
 import {clog} from './log.js';
 
 /** Seed the loadout's Frame into the opening hand, outside the deck. */
 export function seedFrame() {
-  const id = active && active.loadout ? active.loadout.frame : null;
+  const id = liveLoadout().frame;
   G.frame = null;
   // No Frame (Master Chief): the slot may hold a machine, but it never flies.
   const noFrame = leadIs('masterchief');

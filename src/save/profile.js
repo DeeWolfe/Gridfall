@@ -38,7 +38,10 @@ export function blankProfile(callsign) {
     mode: 'campaign',
     ironman: false,
     gaunt: null,
-    bests: {onslaught: 0, gauntlet: 0},
+    // The Deep Run in progress: its own map, deck, gear and lead. Null between
+    // runs, and never merged into the profile loadout in either direction.
+    run: null,
+    bests: {onslaught: 0, gauntlet: 0, run: 0, runsDone: 0},
     settings: {},
   };
 }
@@ -62,7 +65,10 @@ export function migrate(p) {
   p.loadout = p.loadout || {};
   p.stats = p.stats || {};
 
-  // v3 and earlier stored a single in-progress run; v4 keys runs by operation.
+  // v3 and earlier stored a single in-progress campaign run on `p.run`; v4
+  // keys campaign runs by operation and drops it. The key was later reused for
+  // the Deep Run, which is a different shape entirely — deleting it here keeps
+  // a v3 save from arriving at the Deep Run repair pass wearing its clothes.
   if (!p.version || p.version < 4) {
     p.version = 4;
     p.op = 'ironveil';
@@ -372,7 +378,29 @@ export function migrate(p) {
   p.op = OPS[p.op] ? p.op : 'ironveil';
   p.mode = p.mode || 'campaign';
   p.bests = p.bests || {onslaught: 0, gauntlet: 0};
+  p.bests.run = p.bests.run || 0;
+  p.bests.runsDone = p.bests.runsDone || 0;
   p.gaunt = p.gaunt || null;
+
+  // A Deep Run survives a save round trip whole — it is plain data and holds
+  // no references into the profile. What it can hold is content we no longer
+  // ship, so those entries are dropped; a run whose map did not survive is
+  // dropped entirely rather than half-restored into something unplayable.
+  if (p.run && typeof p.run === 'object' && p.run.map
+    && Array.isArray(p.run.map.nodes) && p.run.map.nodes.length
+    && p.run.nodes && typeof p.run.nodes === 'object') {
+    p.run.cleared = Array.isArray(p.run.cleared) ? p.run.cleared : [];
+    p.run.deck = (Array.isArray(p.run.deck) ? p.run.deck : []).filter(c => POOL[c]);
+    p.run.gear = (p.run.gear && typeof p.run.gear === 'object') ? p.run.gear : {};
+    Object.keys(p.run.gear).forEach(k => {
+      if (!POOL[k] || !GEAR[p.run.gear[k]]) delete p.run.gear[k];
+    });
+    p.run.lead = LEADS[p.run.lead] ? p.run.lead : null;
+    p.run.depth = p.run.depth || 0;
+    p.run.over = !!p.run.over;
+  } else {
+    p.run = null;
+  }
   p.usage = p.usage || {};
   p.settings = p.settings || {};
   // Saved decks: name, the twelve, the Frame slot. Never more than a handful.

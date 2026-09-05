@@ -5303,3 +5303,122 @@ the other.
 
 Left alone deliberately: that is a design change, not a cleanup, and it is
 the designer's call which shape it takes.
+
+## v2.41 — the Deep Run
+
+The question was "what if the Gauntlet is a randomized roguelike run", and the
+answer was that the Gauntlet is not the thing to convert — it is three legs,
+all at `heat: 0`, relaunched by `afterMission` with no hold visit in between,
+so it has no escalation and no decision anywhere in it. A roguelike wants both.
+So the Deep Run is a new mode beside it rather than a rework of it, and the
+Gauntlet keeps its own job: a short, hot chain you run with the deck you built.
+
+### The shape
+
+A generated layered DAG: one drop, two or three middle layers of two or three
+nodes, one target. Six to eleven nodes; the guard rolls 400 maps a run and
+checks that every node is reachable from the drop and that every node but the
+target leads somewhere, because the renderer's open/locked walk assumes both
+and would silently strand a run if either broke.
+
+`heat` is the whole difficulty dial. It already scales the wave budget, so
+`runHeatAt(depth) = floor((depth - 1) / 2)` makes layer 1 flat and the last
+leg deep-zone without a second difficulty system. Modifier chance thickens
+with depth too — `min(0.75, 0.2 + depth * 0.12)` — rather than a flat coin
+flip at every node.
+
+The first cut ran three or four middle layers and drew every node with its full
+mission name. Both were wrong on the same measurement: six columns across a
+440-wide canvas leaves 66px a node, "DEFEND STRONGHOLD" is wider than that, and
+the map came out a wall of overlapping type — and six fights before a mode with
+no retries pays anything is too long anyway. Four or five layers now, and the
+board carries short codes (HOLD, UPLINK, CRYSTALS) with the full briefing in
+the route list beside it. `mapSvg` takes a `labelOf` hook for that; the
+operation maps keep their own two-line naming.
+
+The map is generated in exactly the shape an operation map has (`zones`,
+`nodes`, `edges`, `col`, `lore`), so `map.js`'s SVG builders draw it. They took
+`MAPDEF` and `nodeState` off the module scope before; they take a definition,
+a run and a state function now, and `mapSvg()` is the one entry point both
+screens use. A second map renderer would have drifted from the first by the
+second patch.
+
+### What the run does not read
+
+The mode's promise is that it is the same run for everybody, and the way that
+is enforced is `liveLoadout()` in `progression.js`: one function that answers
+"what is fielded right now", returning the run's drafted deck/gear/lead when
+`G.run` is set and the profile's otherwise. Everything downstream goes through
+it — `gearOf`, `leadOf`, `leadIs`, and (found late, by a guard that plays a run
+mission out over forty turns rather than only inspecting the opening hand) the
+reserve cycle in `deck.js` and the Frame slot in `frames.js`.
+
+Those last two are the interesting ones. `drawCard` reshuffles from "the
+loadout" when the deck runs dry, and reading that off the profile meant a run
+quietly started dealing the commander's own shelf on turn four. `seedFrame`
+did the same with the Proto Frame slot. Neither is visible at launch time, and
+neither would have been caught by a guard that only checked what `launchSpec`
+put in `G.deck`. **Any future "what am I fielding" read belongs in
+`liveLoadout()`, not at `active.loadout`.**
+
+### The draft
+
+It rides the pack queue. `queueDraft()` pushes a job with `draft: true`, and
+`showPack` rolls `runDraftOffer()` instead of `packOffer()` and routes the pick
+to `runDraftTake` instead of `claimPack`. The reward beat already existed and
+the player already knows where to look; a second overlay would have been a
+second thing to maintain and a second thing to learn.
+
+Order: leads once, then cards until the manifest hits the run's own cap
+(`runDeckCap()` — the drafted lead's, never the profile's), then gear. A full
+deck turning the draft from "another body" into "make one of these better" is
+what the back half of a run wants. Proto chassis and Frame gear stay out: a
+Frame is a deck-defining commitment plus three support cards, which is a whole
+run's worth of drafting arriving as one card you cannot support.
+
+Two picks land before the drop — the lead, then one card. The lead because
+fighting the first node under a default nobody chose is a bad first
+impression; the card because five is a hand, not a plan.
+
+### Numbers
+
+| | |
+|---|---|
+| starter | 5 commons: rifle, scout, medic, wall, marks |
+| node payout | `55 + 35 × depth` |
+| clear bonus | 400, plus one standard and one specialist pack |
+| bot, 60 runs | layers cleared: median 0, max 3, full clears 0/60 |
+
+The bot number reads worse than it is. It fails the drop point 78% of the
+time, which is exactly its campaign Stronghold rate (23% wins) — the five-card
+manifest is not what beats it. What beats it is compounding: four layers at a
+23% floor is nothing, and the bot takes the first draft offer every time
+because it cannot judge one. The Gauntlet's bot line reads `0 / 15` for the
+same reason. This is a floor, not a difficulty measurement, and the knobs if
+it turns out to be a real problem are `RUN_MIDDLE_LAYERS` and the divisor in
+`runHeatAt`.
+
+### Persistence
+
+`active.run` is plain data with no references into the profile, so it survives
+a save round trip whole. `migrate()` drops entries pointing at retired content
+and drops a run whose map did not survive rather than half-restoring it into
+something unplayable. No `SAVE_VERSION` bump: the field is additive and the
+repair pass covers a save that has never seen one.
+
+One trap worth remembering: `p.run` is a **reused key**. v3 and earlier stored
+a single in-progress campaign run there, and the v4 migration deletes it. That
+delete now also keeps a decade-old save from arriving at the Deep Run repair
+pass wearing its clothes.
+
+### Still open
+
+- This is the playable slice. There is no event node, no shop node, no rest
+  node — every node is a fight, which is the one thing a roguelike map usually
+  is not. That is the next thing to add if the mode is worth keeping.
+- Nothing carries between runs but credits and the two records. Whether a run
+  should unlock anything permanent is a design call, not a gap.
+- The target is drawn from the six operation bosses, so a run can hand you a
+  boss you have never seen. The codec brief plays, which softens it, but the
+  Crownring honour guards stay out of the pool on purpose — they are wing
+  fights and only mean something in their own map.

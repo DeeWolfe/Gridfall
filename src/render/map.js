@@ -1,4 +1,9 @@
 // The operation map: nodes, the edges that gate them, and the briefing list.
+//
+// The SVG builders take the map definition, the run and a node-state function
+// rather than reaching for MAPDEF and nodeState directly, because the Deep Run
+// draws its generated map through exactly the same code. One map renderer is
+// the point: a second one would have drifted from this one by the second patch.
 
 import {MAXDP} from '../state/constants.js';
 import {MISSIONS} from '../content/missions.js';
@@ -16,15 +21,15 @@ import {playBossBrief} from './codec.js';
 const CLEARED = '#5dffa0';
 const DARK = '#2b2558';
 
-function edgesSvg(run, complete) {
-  const node = id => MAPDEF.nodes.find(n => n.id === id);
-  return MAPDEF.edges.map(([a, b]) => {
+function edgesSvg(def, run, complete, stateOf) {
+  const node = id => def.nodes.find(n => n.id === id);
+  return def.edges.map(([a, b]) => {
     const A = node(a);
     const B = node(b);
     const done = complete || (run.cleared.includes(a) && run.cleared.includes(b));
-    const live = !complete && ((run.cleared.includes(a) && nodeState(b) === 'open') ||
-      (run.cleared.includes(b) && nodeState(a) === 'open'));
-    const stroke = done ? CLEARED : live ? MAPDEF.col : DARK;
+    const live = !complete && ((run.cleared.includes(a) && stateOf(b) === 'open') ||
+      (run.cleared.includes(b) && stateOf(a) === 'open'));
+    const stroke = done ? CLEARED : live ? def.col : DARK;
     return `<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="${stroke}" stroke-width="${done || live ? 2 : 1.2}" stroke-dasharray="${done || live ? '' : '3 3'}" opacity="${done || live ? 0.9 : 0.5}"/>`;
   }).join('');
 }
@@ -34,14 +39,14 @@ const GOLD = '#ffc94d';
 // Once the final node is cleared the run stays on the board as a finished
 // map — every node shown filled and ticked, whatever side objectives were
 // actually collected — rather than snapping back to a fresh roll unasked.
-function nodesSvg(run, complete) {
-  return MAPDEF.nodes.map(n => {
-    const st = complete ? 'clear' : nodeState(n.id);
+function nodesSvg(def, run, complete, stateOf, blocked, labelOf) {
+  return def.nodes.map(n => {
+    const st = complete ? 'clear' : stateOf(n.id);
     const m = MISSIONS[run.nodes[n.id].type];
-    const gated = !complete && reqBlocked(n.id);
+    const gated = !complete && blocked(n.id);
     // Open nodes get a breathing ring so the eye lands on what is playable.
     const pulse = st === 'open'
-      ? `<circle cx="${n.x}" cy="${n.y}" r="14" fill="none" stroke="${MAPDEF.col}" stroke-width="1" opacity=".5">
+      ? `<circle cx="${n.x}" cy="${n.y}" r="14" fill="none" stroke="${def.col}" stroke-width="1" opacity=".5">
         <animate attributeName="r" values="11;19;11" dur="2.3s" repeatCount="indefinite"/>
         <animate attributeName="opacity" values=".6;0;.6" dur="2.3s" repeatCount="indefinite"/></circle>`
       : '';
@@ -53,32 +58,59 @@ function nodesSvg(run, complete) {
     const halo = n.role === 'final'
       ? `<circle cx="${n.x}" cy="${n.y}" r="14.5" fill="none" stroke="${GOLD}" stroke-width="1.4" opacity=".85"/>`
       : n.role === 'side'
-        ? `<circle cx="${n.x}" cy="${n.y}" r="14" fill="none" stroke="${MAPDEF.col}" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/>`
+        ? `<circle cx="${n.x}" cy="${n.y}" r="14" fill="none" stroke="${def.col}" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/>`
         : '';
     const gate = gated
       ? `<path d="M${n.x - 4},${n.y - 1} h8 M${n.x},${n.y - 5} v8" stroke="${GOLD}" stroke-width="1.6" transform="rotate(45 ${n.x} ${n.y})"/>`
       : '';
-    const line1 = (n.l || m.n).toUpperCase();
-    const line2 = n.l ? m.n.toUpperCase() : n.role === 'side' ? 'BONUS' : '';
+    const [line1, line2] = labelOf(n, m);
     return `<g data-n="${n.id}" style="cursor:${st === 'open' ? 'pointer' : 'default'};opacity:${st === 'locked' && !gated ? 0.45 : 1}">
       ${pulse}${halo}
-      <circle cx="${n.x}" cy="${n.y}" r="10" fill="${st === 'clear' ? CLEARED : '#0d0b1c'}" stroke="${st === 'clear' ? '#9dffc6' : st === 'open' ? MAPDEF.col : n.role === 'final' ? GOLD : DARK}" stroke-width="2.4"/>
+      <circle cx="${n.x}" cy="${n.y}" r="10" fill="${st === 'clear' ? CLEARED : '#0d0b1c'}" stroke="${st === 'clear' ? '#9dffc6' : st === 'open' ? def.col : n.role === 'final' ? GOLD : DARK}" stroke-width="2.4"/>
       ${tick}${gate}
       <text x="${n.x}" y="${n.y + 23}" fill="${st === 'locked' ? '#4a4477' : '#d3d0ea'}" font-size="9" text-anchor="middle" letter-spacing="1" font-family="ui-monospace,monospace">${line1}</text>
       ${line2 ? `<text x="${n.x}" y="${n.y + 31}" fill="${n.role === 'side' && !n.l ? GOLD : '#8d86bd'}" font-size="8" text-anchor="middle" letter-spacing="1.2" font-family="ui-monospace,monospace">${line2}</text>` : ''}</g>`;
   }).join('');
 }
 
-function zonesSvg() {
-  const shapes = MAPDEF.zones
+function zonesSvg(def) {
+  const shapes = def.zones
     .map(z => `<polygon points="${z.p}" fill="#141033" stroke="#3a2f7a" stroke-width="1.2" opacity=".7"/>`).join('');
-  const labels = MAPDEF.zones.map(z => {
+  const labels = def.zones.map(z => {
     const coords = z.p.split(' ');
     const xs = coords.map(q => +q.split(',')[0]);
     const ys = coords.map(q => +q.split(',')[1]);
     return `<text x="${Math.min(...xs) + 14}" y="${Math.max(...ys) - 9}" fill="#847cb8" font-size="10" letter-spacing="2.2" font-family="ui-monospace,monospace">${z.l}</text>`;
   }).join('');
   return shapes + labels;
+}
+
+const NEVER_GATED = () => false;
+
+/**
+ * An operation node's two label lines: its own name over the mission it holds,
+ * or just the mission when the node is unnamed. The Deep Run passes its own —
+ * its nodes are unnamed and its mission names are too long for the spacing a
+ * generated map has.
+ */
+const OP_LABEL = (n, m) => [
+  (n.l || m.n).toUpperCase(),
+  n.l ? m.n.toUpperCase() : n.role === 'side' ? 'BONUS' : '',
+];
+
+/**
+ * The whole map as one SVG. Shared by the operation map and the Deep Run —
+ * pass the map definition, the run holding `cleared` and `nodes`, and the
+ * node-state walk that belongs to that mode.
+ */
+export function mapSvg(def, run, complete, stateOf, blocked, labelOf) {
+  const gate = blocked || NEVER_GATED;
+  const label = labelOf || OP_LABEL;
+  return `<svg viewBox="0 0 440 300" style="width:100%;display:block">
+      <defs><pattern id="gr" width="8" height="8" patternUnits="userSpaceOnUse">
+        <path d="M8 0H0V8" fill="none" stroke="#181340" stroke-width=".5"/></pattern></defs>
+      <rect width="440" height="300" fill="#080714"/><rect width="440" height="300" fill="url(#gr)"/>
+      ${zonesSvg(def)}${edgesSvg(def, run, complete, stateOf)}${nodesSvg(def, run, complete, stateOf, gate, label)}</svg>`;
 }
 
 export function renderMap() {
@@ -119,11 +151,7 @@ export function renderMap() {
       <div style="font-size:0.6562rem;color:var(--dim);margin-top:4px;line-height:1.5">${n.reqText || 'Requirements not met.'}</div></span></div>`).join('');
 
   $('mapbody').innerHTML = `<div class="mapwrap"><div><div class="mapsvg">
-    <svg viewBox="0 0 440 300" style="width:100%;display:block">
-      <defs><pattern id="gr" width="8" height="8" patternUnits="userSpaceOnUse">
-        <path d="M8 0H0V8" fill="none" stroke="#181340" stroke-width=".5"/></pattern></defs>
-      <rect width="440" height="300" fill="#080714"/><rect width="440" height="300" fill="url(#gr)"/>
-      ${zonesSvg()}${edgesSvg(run, complete)}${nodesSvg(run, complete)}</svg></div>
+    ${mapSvg(MAPDEF, run, complete, nodeState, reqBlocked)}</div>
     ${MAPDEF.lore ? `<div class="sect">状況 · Situation report</div>
       <div class="oplore" style="border-color:${MAPDEF.col}">${MAPDEF.lore}</div>` : ''}</div>
     <div><div class="sect">${complete ? 'Status' : 'Available — ' + open.length}</div><div class="rows">${briefings}${gatedRows}</div>

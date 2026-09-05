@@ -52,9 +52,14 @@ export {drawCard} from '../../src/rules/deck.js';
 export {spawnClash, resolveSpawn, spawnPhase} from '../../src/rules/spawn.js';
 export {playerPhase, enemyPhase, strike, territoryPhase, endTurn} from '../../src/rules/phases.js';
 export {
-  launch, launchSpec, launchOnslaught, launchGauntlet, abortMission, objBrief, winWhy, finish, PACK_METER_GOAL,
+  launch, launchSpec, launchOnslaught, launchGauntlet, launchRunNode, abortMission, objBrief, winWhy, finish, PACK_METER_GOAL,
 } from '../../src/rules/mission.js';
-export {packOffer, claimPack, queuePack, purchasePack, PACK_PRICE, PRIORITY_CHANCE} from '../../src/rules/packs.js';
+export {
+  RUN_STARTER, genRunMap, runHeatAt, runRewardAt, runDepthOf, runNodeSpec, runDeckCap,
+  runActive, runMap, startRun, runNodeState, runComplete, runDepthReached,
+  runDraftOffer, runDraftTake,
+} from '../../src/rules/roguelike.js';
+export {packOffer, claimPack, queuePack, queueDraft, purchasePack, PACK_PRICE, PRIORITY_CHANCE} from '../../src/rules/packs.js';
 export {forecastThreat, enemyIntent, supportTargets, influenceCells, supportLabel} from '../../src/rules/forecast.js';
 export {EVENTS, rollEvent, eventTick} from '../../src/rules/events.js';
 export {clog} from '../../src/rules/log.js';

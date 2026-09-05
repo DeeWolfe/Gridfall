@@ -18,6 +18,7 @@ import {startScene, stopScene, sizeScene, sceneRunning} from './battlefield.js';
 import {renderModes} from './modes.js';
 import {renderOps} from './ops.js';
 import {renderMap} from './map.js';
+import {renderRun} from './deeprun.js';
 import {drawAll, drawBoard} from './combat.js';
 import {openPanel, importRecordFlow} from './panels.js';
 import {showPack, setAfterPacks} from './packs.js';
@@ -33,7 +34,10 @@ import {VERSION} from '../content/patch-notes.js';
 const AUTOSAVE_MS = 20000;
 
 /** Where to go once the result card and any packs have been dismissed. */
-function afterMission(wasEndless, wasGauntlet, wasDaily, cleared) {
+function afterMission(wasEndless, wasGauntlet, wasDaily, cleared, wasRun) {
+  // A Deep Run always comes back to its own map — won, lost or still going.
+  // The map is where the run reports what happened to it.
+  if (wasRun) { show('deeprun'); renderRun(); return; }
   if (wasEndless || wasDaily || (wasGauntlet && !cleared)) { show('modes'); renderModes(); return; }
   if (wasGauntlet && active.gaunt && active.gaunt.i < GAUNTLET_LEGS) { launchGauntlet(); return; }
   if (wasGauntlet) { show('modes'); renderModes(); return; }
@@ -47,6 +51,7 @@ function wireResultButton() {
     const wasGauntlet = G && G.gauntlet;
     const wasEndless = G && G.endless;
     const wasDaily = G && G.daily;
+    const wasRun = G && G.run;
     const cleared = !!(G && G.result && G.result.cleared);
     // Read before setG(null) tears the mission down: a first boss kill earns
     // the after-action call, played over the map once any packs are claimed.
@@ -54,7 +59,7 @@ function wireResultButton() {
     setG(null);
 
     const go = () => {
-      afterMission(wasEndless, wasGauntlet, wasDaily, cleared);
+      afterMission(wasEndless, wasGauntlet, wasDaily, cleared, wasRun);
       if (bossDown) playBossDebrief(bossDown, null);
     };
     setAfterPacks(go);
@@ -139,8 +144,10 @@ function wireNavigation() {
   $('modesmenu').onclick = () => $('drawtab').click();
   $('opsmenu').onclick = () => $('drawtab').click();
   $('mapmenu').onclick = () => $('drawtab').click();
+  $('runmenu').onclick = () => $('drawtab').click();
   $('panelmenu').onclick = () => $('drawtab').click();
   $('mapback').onclick = () => { show('ops'); renderOps(); };
+  $('runback').onclick = () => { show('modes'); renderModes(); };
   $('pclose').onclick = () => $('panel').classList.remove('on');
   $('fbg').onclick = closeFocus;
   document.querySelectorAll('[data-p]').forEach(b => { b.onclick = () => openPanel(b.dataset.p); });

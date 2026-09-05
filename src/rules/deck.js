@@ -4,7 +4,7 @@ import {HAND_CAP} from '../state/constants.js';
 import {POOL} from '../content/cards.js';
 import {G, active} from '../state/session.js';
 import {shuffle} from '../state/rng.js';
-import {gearOf} from '../save/progression.js';
+import {gearOf, liveLoadout} from '../save/progression.js';
 import {clog} from './log.js';
 
 /**
@@ -27,7 +27,7 @@ import {clog} from './log.js';
  */
 export function recycleLineCard(u) {
   if (!u || !u.line || !G || !G.deck) return;
-  if (!active || !active.loadout.deck.includes(u.id)) return;
+  if (!active || !liveLoadout().deck.includes(u.id)) return;
   if (G.deck.includes(u.id) || G.hand.includes(u.id)) return;
   if (G.units.some(o => o.id === u.id)) return;           // another copy still stands
   // A Recovery Beacon puts the card straight back in your hand instead.
@@ -49,7 +49,9 @@ export function drawCard(force) {
     // deals a card with nothing left to do.
     // ...and minus any Fireteam that is standing on the field right now — one
     // of each team at a time; it comes back the moment the team is lost.
-    const back = active.loadout.deck.filter(c => POOL[c] && !G.hand.includes(c) && !(G.spent || []).includes(c)
+    // liveLoadout(), not the profile: a Deep Run cycles its own drafted deck
+    // and must never be handed a card off the commander's shelf.
+    const back = liveLoadout().deck.filter(c => POOL[c] && !G.hand.includes(c) && !(G.spent || []).includes(c)
       && !(POOL[c].line && G.units.some(u => u.id === c)));
     if (!back.length) return false;
     G.deck = shuffle([...back]);

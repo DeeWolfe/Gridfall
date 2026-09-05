@@ -27,10 +27,35 @@ export function vetOf(id) {
   return {t, u, n: VET[t].n, col: VET[t].col, next: t < VET.length - 1 ? VET[t + 1].at : null};
 }
 
+/**
+ * The loadout actually in force.
+ *
+ * A Deep Run brings its own deck, gear and lead — drafted inside the run and
+ * stored on `active.run`, never on the profile's loadout. Every reader below
+ * goes through here rather than at `active.loadout` directly, so the run is
+ * invisible to them: the same costOf(), gearOf() and leadOf() answer for a
+ * campaign mission and a run mission without either knowing the other exists.
+ *
+ * Outside a run mission this is the profile, unchanged.
+ */
+export function liveLoadout() {
+  if (G && G.run && active && active.run) {
+    // A run drafts no Proto Frame, so it flies none — the profile's Frame is
+    // not the run's to field.
+    return {deck: active.run.deck, gear: active.run.gear, lead: active.run.lead || 'ironbrand', frame: null};
+  }
+  if (!active) return {deck: [], gear: {}, lead: 'ironbrand', frame: null};
+  return {
+    deck: (active.loadout && active.loadout.deck) || [],
+    gear: (active.loadout && active.loadout.gear) || {},
+    lead: active.lead || 'ironbrand',
+    frame: (active.loadout && active.loadout.frame) || null,
+  };
+}
+
 /** The gear fitted to a card, or null. */
 export function gearOf(id) {
-  if (!active || !active.loadout || !active.loadout.gear) return null;
-  return GEAR[active.loadout.gear[id]] || null;
+  return GEAR[liveLoadout().gear[id]] || null;
 }
 
 /**
@@ -136,9 +161,9 @@ export function deckProblems(deck = active && active.loadout ? active.loadout.de
   return [];
 }
 
-/** The active profile's team lead, defaulting to Ironbrand. */
+/** The team lead in force — the run's while a Deep Run mission is live. */
 export function leadOf() {
-  return LEADS[(active && active.lead) || 'ironbrand'] || LEADS.ironbrand;
+  return LEADS[liveLoadout().lead] || LEADS.ironbrand;
 }
 
 /**
@@ -150,7 +175,7 @@ export function leadOf() {
  * it. The id is the stable key, so that is what the rules ask for; the prose
  * above stays prose.
  */
-export const leadIs = key => LEADS[(active && active.lead) || ''] ? active.lead === key : key === 'ironbrand';
+export const leadIs = key => (LEADS[liveLoadout().lead] ? liveLoadout().lead : 'ironbrand') === key;
 
 /**
  * Is this lead available to the active profile? The starting three carry no

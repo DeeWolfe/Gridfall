@@ -870,16 +870,23 @@ body{font-size:1rem}
   clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px));
   animation:packidle 2.6s ease-in-out infinite}
 .packbox.spec{border-color:var(--gold);background:linear-gradient(160deg,#4a3a10,#1a1408 62%)}
+/* The Deep Run's field cache. It is neither a requisition nor a specialist
+   drop — it is what the ground gave up — so it wears the run's own cyan
+   rather than the store's violet or the specialist gold. */
+.packbox.draft{border-color:var(--cyan);background:linear-gradient(160deg,#0f3a49,#0a1526 62%)}
 .packbox:hover{filter:brightness(1.15)}
 @keyframes packidle{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-7px) rotate(1deg)}}
 .pbglow{position:absolute;inset:-2px;background:radial-gradient(circle at 50% 30%,rgba(157,107,255,.4),transparent 68%);
   animation:pbpulse 2.2s ease-in-out infinite}
 .packbox.spec .pbglow{background:radial-gradient(circle at 50% 30%,rgba(255,201,77,.42),transparent 68%)}
+.packbox.draft .pbglow{background:radial-gradient(circle at 50% 30%,rgba(77,232,255,.38),transparent 68%)}
 @keyframes pbpulse{0%,100%{opacity:.5}50%{opacity:1}}
 .pbseal{font-size:0.6875rem;letter-spacing:.2em;color:var(--violet);z-index:2}
 .packbox.spec .pbseal{color:var(--gold)}
+.packbox.draft .pbseal{color:var(--cyan)}
 .pbmark{font-size:3.2rem;color:var(--violet);z-index:2;text-shadow:0 0 22px currentColor}
 .packbox.spec .pbmark{color:var(--gold)}
+.packbox.draft .pbmark{color:var(--cyan)}
 .pbsub{font-size:0.6562rem;letter-spacing:.16em;color:var(--dim);z-index:2}
 .packbox.burst{animation:packburst .3s ease-in forwards}
 @keyframes packburst{to{transform:scale(1.5);opacity:0;filter:blur(6px)}}
