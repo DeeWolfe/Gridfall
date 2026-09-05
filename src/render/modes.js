@@ -1,4 +1,9 @@
 // Mode select: Daily, Campaign, Onslaught, Deep Descent, plus the Ironman toggle.
+//
+// One hue per card, and they must stay distinct: Daily gold, Campaign cyan,
+// Onslaught magenta, Deep Descent violet. Daily and the Deep Descent were both
+// violet until v2.42.1 — two of four cards wearing the same identity colour —
+// and gold was free because the Gauntlet had just been retired out of it.
 
 import {OPS} from '../content/operations.js';
 import {active} from '../state/session.js';
@@ -19,11 +24,11 @@ export function renderModes() {
 
   $('modesbody').innerHTML = `<div class="sect">Choose how you deploy</div>
   <div class="modegrid">
-    <button class="modecard live" style="--oc:#9d6bff" id="goDaily">
+    <button class="modecard live" style="--oc:#ffc94d" id="goDaily">
       <div class="mname">Daily Challenge</div>
       <div class="mdesc">One mission and modifier, the same for every commander today. The first win of the day pays out and builds your streak — a loss just means try again.</div>
       <div class="mfoot"><span>${doneToday ? `Cleared today · streak ${active.daily.streak}` : active.daily.streak ? `Streak ${active.daily.streak} — not yet today` : 'Streak 0'}</span>
-        <span style="color:#9d6bff">${doneToday ? 'Replay ▸' : 'Deploy ▸'}</span></div></button>
+        <span style="color:#ffc94d">${doneToday ? 'Replay ▸' : 'Deploy ▸'}</span></div></button>
     <button class="modecard live" style="--oc:#4de8ff" id="goCampaign">
       <div class="mname">Campaign</div>
       <div class="mdesc">Work an operation node by node. Progress and credits persist between missions. Three operations available, each its own map.</div>

@@ -4,9 +4,15 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.42';
+export const VERSION = '2.42.1';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.42.1',
+    notes: [
+      'THE DAILY CHALLENGE IS GOLD. It and the Deep Descent were both violet, so two of the four cards on the deploy screen wore the same identity colour — easy to miss while a fifth card sat between them, obvious once the Gauntlet came out. Daily takes the gold the Gauntlet left behind, which suits it: gold is the payout colour everywhere else in the game, and the Daily is the one mode whose whole pitch is the first win of the day paying out.',
+    ],
+  },
   {
     v: '2.42',
     notes: [
