@@ -287,6 +287,29 @@ input:focus{border-color:var(--zan);box-shadow:0 0 18px rgba(255,77,143,.16)}
   font-size:0.625rem;letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
 .subsect .ct{color:var(--cyan);letter-spacing:.06em}
 
+/* ============ FOLDING CARD SHELVES ============
+   Every card group on Squad and the Quartermaster is a heading you can shut.
+   Styled as a heading first and a control second — it sits where a .sect sat
+   and reads as one, with the caret as the only thing announcing it is live. */
+.shelf{display:flex;align-items:center;gap:8px;width:100%;text-align:left;
+  margin:14px 0 6px;padding:5px 2px 5px 0;border:0;border-bottom:1px solid var(--line);
+  font-family:inherit;font-size:0.6875rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--dim);cursor:pointer}
+.shelf:hover{color:var(--txt);border-bottom-color:var(--line2)}
+.shelf:first-child{margin-top:0}
+.shcar{flex:0 0 auto;color:var(--violet);font-size:0.75rem;line-height:1;
+  transition:transform .16s ease}
+.shelf.shut .shcar{transform:rotate(-90deg)}
+.shname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.shelf .ct{flex:0 0 auto;color:var(--cyan);letter-spacing:.06em;font-size:0.6562rem}
+.shelf.shut .ct{color:var(--dim)}
+/* `hidden` is avoided on purpose here, the same way the gear picker avoids it:
+   the stub DOM the guards run against does not honour it, and a class keeps
+   the shelf's contents in the markup either way so the tests can still read
+   what a folded shelf is holding. */
+.shbody{display:none}
+.shbody.open{display:block}
+
 /* The Frame slot hangs off the bottom of the Active deck: a violet rail says
    "attached to this", the gap above says "not one of the twelve". */
 .frameslot{border-left:2px solid var(--violet);padding-left:clamp(9px,1vw,15px);

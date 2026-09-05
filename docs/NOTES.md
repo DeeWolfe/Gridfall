@@ -5589,3 +5589,92 @@ degrade to veterancy promotions once the collection is complete, so the sink is
 infinite. That corrects the read in the v2.42 economy report. What is genuinely
 missing is a *reason* to want promotions at that point, which is a progression
 question rather than an economy one.
+
+## v2.44 — the briefing for newcomers, and shelves that fold
+
+### The briefing
+
+Five steps became eight, written for somebody who has not played a game like
+this — and in places for somebody who has not played a game. The rules that
+produced the copy, and that the guard now enforces:
+
+- no genre words, no abbreviation used before it is spelled out (the old copy
+  said "6 DP a turn" on the deploy step, which is meaningless to a newcomer)
+- one idea per step
+- every step names something that is on the screen while it is being read
+- it opens with **what you are trying to do**, not with the grid — the old
+  first card explained territory to a player who did not yet know hostiles
+  walk left
+
+Three steps are new: the ORDERS panel, the incoming strip with its ◀ lane
+arrows, and the combat log. Those are the three pieces a new player has no way
+to work out on their own, and none of them was mentioned anywhere.
+
+**The furniture moves, so the copy moves with it.** `pc()` reads
+`resolvedMode()`, and the orders and log steps say "in the panel on the right"
+or "just under the board" / "behind the Log button below" accordingly. Verified
+in a real browser at both sizes: a phone player reading "just under the board,
+under OBJECTIVE" can see the OBJECTIVE panel in the same screenshot.
+
+Length matters on a phone and the first draft failed it — the orders card ran
+ten lines. Every body was cut; they run four to seven lines at 390px now,
+measured rather than eyeballed.
+
+### `tuttest` walks instead of counting
+
+The old guard counted clicks: `clickTut('next')` three times and then assert.
+Adding a step would have broken it, and *removing* one would have silently
+passed. It now walks the whole briefing the way a player does — presses Next on
+a step with a button, does the real thing on a step that is waiting — and
+asserts coverage over everything it saw:
+
+- the objective panel, the log, the lane arrows, the incoming strip and End
+  turn must each be named somewhere
+- `DP`, `AoE`, `meta`, `buff` must appear nowhere
+- the last card must still be the loss conditions, still name LAST-STAND
+  PROTOCOL, and still quote `GROUND_FLOOR`
+
+One trap: the walk presses Dismiss on the final card, which closes the overlay,
+so reading the live card afterwards reads an empty one. The guard keeps every
+card it saw and reads the last from that.
+
+### Folding shelves
+
+`shelf(id, label, count, body)` in panels.js. Seven shelves in the
+Quartermaster, one per class in the Squad reserve. Each carries its own owned
+count, so a folded shelf still answers "where am I with these".
+
+Measured on a fresh profile in a real browser: folding everything takes the
+Quartermaster from 2006px to 823px on a desktop and **3798px to 785px on a
+phone**, with all 86 card tiles still in the DOM.
+
+Three decisions worth keeping:
+
+- **Folded state lives on the profile** (`settings.folds`), keyed by a stable
+  id, beside the sort and split choices. Absent means open, so a new commander
+  sees everything and a renamed shelf simply loses its entry rather than
+  resurrecting shut.
+- **A fold toggles in place, it does not re-render.** A Quartermaster redraw is
+  ~145,000 characters of markup and would throw away the scroll position —
+  which is the exact thing the fold exists to protect.
+- **The body is addressed by `data-foldbody`, not by `nextElementSibling`.**
+  Adjacency breaks the moment anything is rendered between a heading and its
+  shelf, and the guards' stub DOM does not implement it either.
+
+### Two testing notes
+
+The stub `document` had `querySelectorAll` but not `querySelector`, so any src
+code reaching for a single element by selector broke in the guards and nowhere
+else. Elements already carried both; the document does now too.
+
+The stub's `scan()` matches on attribute NAME and ignores the value, and hands
+back bare elements with no classes parsed from the markup. So a class toggled
+in place is invisible to it, and `[data-foldbody="qm:common"]` returns the
+first shelf body rather than that one. The fold guard therefore asserts through
+the rendered markup and the profile — re-enter the panel and the shelf must
+come back shut — which is the contract that actually matters anyway.
+
+The "folding does not discard the contents" check first sliced 4000 characters
+from the folded shelf's opening tag; with the shelf emptied the slice ran into
+the *next* shelf, found its tiles, and passed. It counts tiles across the whole
+panel now: fold a shelf and the count must not move.

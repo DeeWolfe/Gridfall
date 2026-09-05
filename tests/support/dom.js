@@ -156,6 +156,10 @@ export function installDom() {
     body: makeElement('body'),
     getElementById: get,
     querySelectorAll: queryAll,
+    // The real document has both; the stub had only the plural, so any src
+    // code reaching for a single element by selector broke here and nowhere
+    // else. Elements already carry both (see makeElement).
+    querySelector: sel => queryAll(sel)[0] || null,
     createElement: () => makeElement('n'),
     addEventListener() {},
   };

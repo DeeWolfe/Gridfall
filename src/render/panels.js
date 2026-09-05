@@ -67,6 +67,32 @@ const squadSort = () => squadPref('squadSort') || 'name';
 // learned the pool in the first place.
 const squadGroup = () => squadPref('squadGroup') !== 'flat';
 
+/**
+ * A card shelf that folds.
+ *
+ * Both card screens are long — the Quartermaster runs 132 tiles over seven
+ * sections and the Squad reserve grows with the collection — and a player
+ * shopping for one Specialist should not have to scroll past every Common they
+ * already own to reach it. Every shelf carries its own name and count and
+ * folds away from the heading.
+ *
+ * Folded state lives on the profile under `settings.folds`, keyed by a stable
+ * id, so it survives the panel closing, the session ending and the record
+ * moving to another device — the same place the sort and split choices live.
+ * ABSENT means open: a new commander sees everything, and a shelf that is
+ * later renamed or removed simply loses its entry.
+ */
+const folded = id => !!(active.settings && active.settings.folds && active.settings.folds[id]);
+
+function shelf(id, label, count, body) {
+  const shut = folded(id);
+  return `<button class="shelf${shut ? ' shut' : ''}" data-fold="${attr(id)}"
+      aria-expanded="${shut ? 'false' : 'true'}">
+      <span class="shcar">▾</span><span class="shname">${label}</span>
+      <span class="ct">${count}</span></button>
+    <div class="shbody${shut ? '' : ' open'}" data-foldbody="${attr(id)}">${body}</div>`;
+}
+
 function sortCards(ids) {
   const by = squadSort();
   return [...ids].sort((a, b) => {
@@ -90,8 +116,8 @@ function sortCards(ids) {
 function reserveCards(ids) {
   if (!ids.length) return cardGridEmpty('Nothing in reserve.');
   if (!squadGroup()) return cardGrid(sortCards(ids), 'gear');
-  const sub = (label, list) => (list.length
-    ? `<div class="subsect">${label} <span class="ct">${list.length}</span></div>` + cardGrid(list, 'gear')
+  const sub = (label, list, id) => (list.length
+    ? shelf('sq:' + id, label, list.length, cardGrid(list, 'gear'))
     : '');
   return TIERS.map(t => {
     const inTier = ids.filter(c => POOL[c].t === t);
@@ -100,10 +126,10 @@ function reserveCards(ids) {
     // onto a machine — different shopping lists, different shelves.
     if (t === 'tech') {
       const kit = c => POOL[c].frameGear || POOL[c].fits;
-      return sub(TIERNAME.tech, sortCards(inTier.filter(c => !kit(c))))
-        + sub('Kit Tech', sortCards(inTier.filter(kit)));
+      return sub(TIERNAME.tech, sortCards(inTier.filter(c => !kit(c))), 'tech')
+        + sub('Kit Tech', sortCards(inTier.filter(kit)), 'kit');
     }
-    return sub(TIERNAME[t], sortCards(inTier));
+    return sub(TIERNAME[t], sortCards(inTier), t);
   }).join('');
 }
 
@@ -287,8 +313,11 @@ function savedDecksTab() {
 }
 
 function quartermasterPanel() {
-  const tier = t => `<div class="sect">${TIERNAME[t]}</div>` +
-    cardGrid(Object.keys(POOL).filter(c => POOL[c].t === t), 'shop');
+  const tier = t => {
+    const ids = Object.keys(POOL).filter(c => POOL[c].t === t);
+    const owned = ids.filter(c => active.unlocks.cards.includes(c)).length;
+    return shelf('qm:' + t, TIERNAME[t], `${owned}/${ids.length} owned`, cardGrid(ids, 'shop'));
+  };
 
   // Frame weapons are shelved separately and say which Frame they need. A
   // Beam Saber bought without a White Devil is a wasted 480 credits, and the
@@ -312,19 +341,22 @@ function quartermasterPanel() {
   const general = Object.keys(GEAR).filter(gi => !GEAR[gi].frame && !GEAR[gi].fits);
   const frameGear = Object.keys(GEAR).filter(gi => GEAR[gi].frame);
   const lineGear = Object.keys(GEAR).filter(gi => GEAR[gi].fits);
-  const gearGrid = `<div class="sect" style="color:var(--cyan)">Gear</div>
-     <div class="cgrid">${general.map(gearTile).join('')}</div>` +
-    (frameGear.length ? `<div class="sect" style="color:var(--violet)">Frame weapons</div>
-     <div class="bar"><div>Each one fits a single Frame and replaces its service weapon</div>
+  const ownedGear = list => list.filter(gi => active.unlocks.gear.includes(gi)).length;
+  const gearGrid =
+    shelf('qm:gear', 'Gear', `${ownedGear(general)}/${general.length} owned`,
+      `<div class="cgrid">${general.map(gearTile).join('')}</div>`) +
+    (frameGear.length ? shelf('qm:framegear', 'Frame weapons', `${ownedGear(frameGear)}/${frameGear.length} owned`,
+      `<div class="bar"><div>Each one fits a single Frame and replaces its service weapon</div>
        <div style="color:var(--dim);font-size:0.6875rem">Buy the Frame first — a weapon with no Frame does nothing</div></div>
-     <div class="cgrid">${frameGear.map(gearTile).join('')}</div>` : '') +
-    (lineGear.length ? `<div class="sect" style="color:var(--violet)">Fireteam weapons</div>
-     <div class="bar"><div>Fits a Fireteam and nothing else</div>
+     <div class="cgrid">${frameGear.map(gearTile).join('')}</div>`) : '') +
+    (lineGear.length ? shelf('qm:linegear', 'Fireteam weapons', `${ownedGear(lineGear)}/${lineGear.length} owned`,
+      `<div class="bar"><div>Fits a Fireteam and nothing else</div>
        <div style="color:var(--dim);font-size:0.6875rem">One gear per card, so a team carries one of these or one general piece</div></div>
-     <div class="cgrid">${lineGear.map(gearTile).join('')}</div>` : '');
+     <div class="cgrid">${lineGear.map(gearTile).join('')}</div>`) : '');
 
-  const schemeGrid = `<div class="sect" style="color:var(--gold)">Uniforms</div>
-     <div class="cgrid">${Object.keys(SCHEMES).map(k => {
+  const schemeGrid = shelf('qm:uniforms', 'Uniforms',
+    `${active.unlocks.schemes.length}/${Object.keys(SCHEMES).length} owned`,
+    `<div class="cgrid">${Object.keys(SCHEMES).map(k => {
        const sc = SCHEMES[k];
        const owned = active.unlocks.schemes.includes(k);
        const applied = (active.loadout.scheme || 'standard') === k;
@@ -336,7 +368,7 @@ function quartermasterPanel() {
          title="${attr(sc.n + ' — a field-plate recolour for every soldier on the grid.')}">
          <div class="swpre">${unitSprite('rifle', 0, k)}</div>
          <div class="tn">${sc.n}</div>${foot}</button>`;
-     }).join('')}</div>`;
+     }).join('')}</div>`);
 
   const canBuyPack = active.progress.credits >= PACK_PRICE;
   return `<div class="bar"><div>Credits <b>${active.progress.credits}</b></div>
@@ -347,7 +379,9 @@ function quartermasterPanel() {
    ${TIERS.map(tier).join('')}
    ${gearGrid}
    ${schemeGrid}
-   <div class="sect">Team leads</div>${leadTilesHTML('shop')}`;
+   ${shelf('qm:leads', 'Team leads',
+    `${Object.keys(LEADS).filter(leadUnlocked).length}/${Object.keys(LEADS).length} on the roster`,
+    leadTilesHTML('shop'))}`;
 }
 
 const dbTabs = () => `<div class="tabs">
@@ -740,6 +774,24 @@ export function openPanel(key, quiet) {
     active.settings.squadGroup = el.dataset.sqgroup;
     commit();
     openPanel('squad', true);
+  });
+  // A folded shelf toggles in place rather than re-rendering the panel: a
+  // Quartermaster redraw is 145,000 characters of markup and it would throw
+  // away the scroll position, which on the screen this exists to shorten is
+  // exactly the thing you were trying to keep.
+  each('[data-fold]', el => {
+    const id = el.dataset.fold;
+    active.settings.folds = active.settings.folds || {};
+    const shut = !active.settings.folds[id];
+    if (shut) active.settings.folds[id] = true; else delete active.settings.folds[id];
+    commit();
+    el.classList.toggle('shut', shut);
+    el.setAttribute('aria-expanded', shut ? 'false' : 'true');
+    // Addressed by key rather than by adjacency: a sibling lookup would break
+    // the moment anything is rendered between a heading and its shelf, and it
+    // is not something the guards' stub DOM implements either.
+    const body = document.querySelector(`[data-foldbody="${id}"]`);
+    if (body) body.classList.toggle('open', !shut);
   });
   each('[data-tab]', el => { dbTab = el.dataset.tab; openPanel('database'); });
   each('[data-rectab]', el => { recTab = el.dataset.rectab; openPanel('record'); });

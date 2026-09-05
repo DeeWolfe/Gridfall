@@ -4,9 +4,17 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.43';
+export const VERSION = '2.44';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.44',
+    notes: [
+      'THE FIRST-MISSION BRIEFING IS REWRITTEN FOR SOMEBODY WHO HAS NEVER PLAYED A GAME LIKE THIS. Five steps became eight, and it now opens by saying what you are actually trying to do before it says anything about tiles or cards. It names no genre, uses no abbreviation it has not spelled out, and every step points at something that is on the screen while you are reading it.',
+      'AND IT POINTS AT THE RIGHT PLACE. Three of the steps are new — your ORDERS panel, the strip of incoming hostiles with the ◀ arrows that promise which row each one enters, and the combat log where every shot is written down as it happens. The wording follows your layout: on a desktop the orders and the log are in the right-hand rail, on a phone the orders sit under the board and the log is behind the Log button. It says whichever one is true for you.',
+      'CARD SHELVES FOLD. Every group on Squad and in the Quartermaster — Common, Tech, Specialist, Gear, Fireteam weapons, Uniforms, Team leads — is a heading you can shut, and each carries its own owned count so a folded shelf still tells you where you stand. Shut them all and a phone Quartermaster goes from 3,800 pixels of scrolling to 785. Folded shelves stay folded: the arrangement lives on your record beside the sort and split choices, so it survives closing the panel, ending the session, and moving the record to another device.',
+    ],
+  },
   {
     v: '2.43',
     notes: [

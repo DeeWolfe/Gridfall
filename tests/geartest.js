@@ -123,7 +123,7 @@ A.enterProfile(p);
   }
   if (!body.includes(GEAR.barrel.d)) F.push('the locker does not say what a piece does');
   // Splitting by class is the default and has to actually split.
-  if (!body.includes('class="subsect"')) F.push('Squad does not split its grids by class');
+  if (!/class="shelf/.test(body)) F.push('Squad does not split its grids by class');
 }
 
 // --- both arrangement choices persist on the profile ---
@@ -138,6 +138,75 @@ A.enterProfile(p);
   const reloaded = A.initProfiles().find(x => x.id === p.id);
   if (!reloaded || reloaded.settings.squadSort !== 'level') {
     F.push('the sort choice did not survive a save/load round trip');
+  }
+}
+
+// --- card shelves fold, and stay folded ---
+//
+// Both card screens are long enough to need this: the Quartermaster runs 132
+// tiles over seven sections, and a player shopping for one Specialist should
+// not scroll past every Common they already own to reach it.
+//
+// The fold is asserted through the rendered markup and the profile rather than
+// through element classes: the stub scans for data attributes and hands back
+// bare elements, so a class toggled in place is not visible to it. What is
+// visible — and what actually matters — is that the panel re-renders folded,
+// that the record persists, and that folding hides without discarding.
+{
+  p.settings.squadGroup = 'class';      // the split view is what has shelves
+  p.settings.folds = {};
+  commit();
+
+  const shelvesIn = () => document.querySelectorAll('#pbody [data-fold]');
+  const tiles = html => (html.match(/data-focus=|data-scheme=|data-gear=|data-leadfocus=/g) || []).length;
+
+  ['squad', 'quartermaster'].forEach(panel => {
+    openPanel(panel);
+    let body = get('pbody')._html;
+    const shelves = shelvesIn();
+    if (!shelves.length) { F.push(`${panel} has no folding shelves`); return; }
+    if (shelves.some(el => !el.onclick)) F.push(`${panel} has an unwired shelf`);
+    if (/class="shelf shut/.test(body)) F.push(`${panel} opened with a shelf already folded shut`);
+    if (!/class="shbody open"/.test(body)) F.push(`${panel} rendered no open shelf body`);
+    const openTiles = tiles(body);
+    if (!openTiles) F.push(`${panel} rendered no card tiles at all`);
+
+    const id = shelves[0].dataset.fold;
+    shelves[0].onclick();
+    if (!A.active.settings.folds[id]) F.push(`${panel}: the fold was not recorded on the profile`);
+
+    // Re-enter the panel: the record has to drive the render, not just the
+    // click that made it.
+    openPanel('record');
+    openPanel(panel);
+    body = get('pbody')._html;
+    if (!/class="shelf shut"/.test(body)) F.push(`${panel}: the fold did not survive re-entry`);
+    if (!shelvesIn().some(el => el.dataset.fold === id)) {
+      F.push(`${panel}: the folded shelf vanished on re-entry`);
+    }
+    // Folded is hidden, not deleted — the cards stay in the markup, so a
+    // search, a screen reader or a guard can still reach what it holds.
+    //
+    // Counted across the whole panel rather than read out of the folded
+    // shelf: an emptied shelf leaves no boundary to slice on, and a slice
+    // that overran into the NEXT shelf found its tiles and passed anyway.
+    if (tiles(body) !== openTiles) {
+      F.push(`${panel}: folding a shelf dropped ${openTiles - tiles(body)} tiles from the markup`);
+    }
+
+    // Unfolding puts it back and clears the entry rather than storing `false`.
+    shelvesIn().find(el => el.dataset.fold === id).onclick();
+    if (A.active.settings.folds[id]) F.push(`${panel}: unfolding left a stale entry behind`);
+    openPanel(panel);
+    if (/class="shelf shut"/.test(get('pbody')._html)) F.push(`${panel}: the shelf would not open again`);
+  });
+
+  // And the whole arrangement survives a save round trip.
+  A.active.settings.folds = {'qm:common': true};
+  commit();
+  const back = A.initProfiles().find(x => x.id === p.id);
+  if (!back || !back.settings.folds || !back.settings.folds['qm:common']) {
+    F.push('folded shelves did not survive a save/load round trip');
   }
 }
 
