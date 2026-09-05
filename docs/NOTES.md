@@ -5422,3 +5422,67 @@ pass wearing its clothes.
   boss you have never seen. The codec brief plays, which softens it, but the
   Crownring honour guards stay out of the pool on purpose — they are wing
   fights and only mean something in their own map.
+
+## v2.42 — the Gauntlet retires, the Deep Run becomes the Deep Descent
+
+Two changes, one argument.
+
+### Why the Gauntlet went
+
+It was the weakest mode in the game and the Deep Run replaced it on every
+axis. Three legs, every one launched with no `heat`, `afterMission`
+relaunching straight into the next with no hold visit between them — so no
+escalation, no decision, and no finale. The Deep Run is the same pitch (a
+short chain, one loss ends it) with a route to pick, difficulty that climbs
+with depth, a draft between fights and a boss at the end.
+
+The slot the Gauntlet nominally owned — "a no-retry test of the deck you
+actually built" — was never really its own: Ironman Campaign covers it, and
+covers it better, because it puts a whole operation on the line instead of
+three random missions. Two modes asking the same question is two modes
+neither of which gets played enough to tune.
+
+Retired with it: `active.gaunt`, `bests.gauntlet`, `GAUNTLET_LEGS`,
+`launchGauntlet`, `settleGauntlet`, the mode card, three routing branches
+across `wiring.js` and `combat.js`, the Service Record row, and the
+Chainrunner / Chain of Command badges. 77 references across 16 files.
+
+The save leftovers are dropped by the repair pass rather than a version gate:
+there is nothing to back-fill, and `migrate()` already drops retired cards,
+gear and operation keys the same way. `SAVE_VERSION` stays at 21.
+
+Badge count is unchanged — the Deep Descent's own pair (Deep Water Mark, Down
+and Out) landed in v2.41. A commander who earned the Gauntlet two loses them;
+that is the one real cost and it is small.
+
+### Why the name changed, and why only the name
+
+The mode was always written vertically. The zones read APPROACH / DEEP GROUND
+/ THE TARGET, the record counts the *deepest layer reached*, the briefing is
+about "what the ground gives you on the way down", the badge is Deep Water
+Mark. "Gauntlet" is horizontal — a corridor of trials run end to end — and
+putting that word on a branching map would have meant either rewriting all of
+that copy or living with a name fighting it. "Deep Descent" keeps the whole
+vocabulary intact and describes the map better than either alternative.
+
+**Only the display strings moved.** `active.run`, `G.run`, `runNodeState`,
+`roguelike.js`, the `deeprun` screen id and the `runbody`/`runtitle` element
+ids all stay. Renaming ~200 internal identifiers for a label change is exactly
+the sort of churn that ships a bug for no player benefit, and the ids are load
+bearing in `csstest`'s DYNAMIC list and `navtest`'s screen table. This is a
+deliberate choice, not an oversight — if the internals are ever renamed it
+should be its own commit with nothing else in it.
+
+The one copy edit the rename forced: the start button read "Begin the
+descent", which under a mode called DEEP DESCENT is the title twice. It says
+"Drop in" now.
+
+### The balance harness moved with it
+
+`onstest.js` reported Gauntlet full clears; it now reports the Deep Descent's
+depth distribution — the measurement that was living in a throwaway
+`runbal.mjs`, folded into the harness that actually runs. Current floor, 24
+bot runs: median 0 layers, max 4, 0 full clears, spread `{0:19, 1:1, 2:3,
+4:1}`. That reads worse than it is (see the v2.41 note) but the number to
+watch is the tail, not the median: a mode where the tail never reaches the
+target is broken, and this one does.

@@ -6,7 +6,6 @@ import {costOf} from '../save/progression.js';
 import {setHooks} from '../state/hooks.js';
 import {store} from '../save/store.js';
 import {blankProfile, saveAll, commit, initProfiles} from '../save/profile.js';
-import {launchGauntlet, GAUNTLET_LEGS} from '../rules/mission.js';
 import {$, show} from './dom.js';
 import {ask, notify, dlgClose} from './dialog.js';
 import {closeFocus, setFocusFollowUp, setLeadFollowUp} from './focus.js';
@@ -34,13 +33,11 @@ import {VERSION} from '../content/patch-notes.js';
 const AUTOSAVE_MS = 20000;
 
 /** Where to go once the result card and any packs have been dismissed. */
-function afterMission(wasEndless, wasGauntlet, wasDaily, cleared, wasRun) {
-  // A Deep Run always comes back to its own map — won, lost or still going.
-  // The map is where the run reports what happened to it.
+function afterMission(wasEndless, wasDaily, wasRun) {
+  // A Deep Descent always comes back to its own map — won, lost or still
+  // going. The map is where the run reports what happened to it.
   if (wasRun) { show('deeprun'); renderRun(); return; }
-  if (wasEndless || wasDaily || (wasGauntlet && !cleared)) { show('modes'); renderModes(); return; }
-  if (wasGauntlet && active.gaunt && active.gaunt.i < GAUNTLET_LEGS) { launchGauntlet(); return; }
-  if (wasGauntlet) { show('modes'); renderModes(); return; }
+  if (wasEndless || wasDaily) { show('modes'); renderModes(); return; }
   show('map');
   renderMap();
 }
@@ -48,7 +45,6 @@ function afterMission(wasEndless, wasGauntlet, wasDaily, cleared, wasRun) {
 function wireResultButton() {
   $('rok').onclick = () => {
     $('result').classList.remove('on');
-    const wasGauntlet = G && G.gauntlet;
     const wasEndless = G && G.endless;
     const wasDaily = G && G.daily;
     const wasRun = G && G.run;
@@ -59,7 +55,7 @@ function wireResultButton() {
     setG(null);
 
     const go = () => {
-      afterMission(wasEndless, wasGauntlet, wasDaily, cleared, wasRun);
+      afterMission(wasEndless, wasDaily, wasRun);
       if (bossDown) playBossDebrief(bossDown, null);
     };
     setAfterPacks(go);

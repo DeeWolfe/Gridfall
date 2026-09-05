@@ -46,19 +46,19 @@ import {startScene} from './battlefield.js';
 
 const LOG_LINES = 40;
 
-/** Leaving combat: back to the map, or to mode select for endless/gauntlet. */
+/** Leaving combat: back to the map, the run's map, or mode select. */
 export function leaveCombat() {
   // A first boss kill earns an after-action call — the lore lands as the
   // commander walks away from the wreck, over the map the win just changed.
   // Read before abortMission(), which tears the mission state down.
   const bossDown = G && G.over && G.type === 'boss' && G.result && G.result.cleared && G.boss
     ? G.boss.k : null;
-  const {wasEndless, wasGauntlet, wasDaily, wasRun} = abortMission();
+  const {wasEndless, wasDaily, wasRun} = abortMission();
   $('result').classList.remove('on');
   closeFocus();
   setMusicMood('hold');
   if (wasRun) { show('deeprun'); renderRun(); return; }
-  if (wasEndless || wasGauntlet || wasDaily) { show('modes'); renderModes(); return; }
+  if (wasEndless || wasDaily) { show('modes'); renderModes(); return; }
   show('map');
   renderMap();
   if (bossDown) playBossDebrief(bossDown, null);
@@ -66,15 +66,13 @@ export function leaveCombat() {
 
 /** What walking away costs, in this mode's own terms. */
 const abortStakes = () => (G.run
-  ? 'A Deep Run has no second attempt at a layer. Walk out and the run closes where it stands — ' +
+  ? 'A Deep Descent has no second attempt at a layer. Walk out and the run closes where it stands — ' +
     'banked credits are yours, the deck you drafted is not.'
-  : G.gauntlet
-    ? 'The gauntlet chain is forfeit — legs already cleared keep their pay, but the run ends here.'
-    : G.endless
-      ? 'Onslaught pays out only when your line falls. Abort now and the run pays nothing.'
-      : G.daily
-        ? 'This attempt is abandoned, but the streak is untouched — you can retry today\'s challenge.'
-        : 'Progress on this mission is lost. The node stays open to try again.');
+  : G.endless
+    ? 'Onslaught pays out only when your line falls. Abort now and the run pays nothing.'
+    : G.daily
+      ? 'This attempt is abandoned, but the streak is untouched — you can retry today\'s challenge.'
+      : 'Progress on this mission is lost. The node stays open to try again.');
 
 /** All the way out: abort and land on the hold rather than the map. */
 function exitToHold() {

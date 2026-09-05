@@ -438,7 +438,7 @@ export function focusLead(k, ctx) {
   const price = leadPrice(k);
   const affordable = active.progress.credits >= price;
   const close = '<button class="btn ghost" data-close="1">Close</button>';
-  // 'view' is the read-only context: a Deep Run draft offer, where unlocks and
+  // 'view' is the read-only context: a Deep Descent draft offer, where unlocks and
   // credits do not apply and nothing on this card may touch the profile. The
   // lock glyph and the price go with the buttons — inside a run they would be
   // answering a question nobody asked.

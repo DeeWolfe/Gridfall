@@ -1,7 +1,7 @@
 // The operation map: nodes, the edges that gate them, and the briefing list.
 //
 // The SVG builders take the map definition, the run and a node-state function
-// rather than reaching for MAPDEF and nodeState directly, because the Deep Run
+// rather than reaching for MAPDEF and nodeState directly, because the Deep Descent
 // draws its generated map through exactly the same code. One map renderer is
 // the point: a second one would have drifted from this one by the second patch.
 
@@ -89,7 +89,7 @@ const NEVER_GATED = () => false;
 
 /**
  * An operation node's two label lines: its own name over the mission it holds,
- * or just the mission when the node is unnamed. The Deep Run passes its own —
+ * or just the mission when the node is unnamed. The Deep Descent passes its own —
  * its nodes are unnamed and its mission names are too long for the spacing a
  * generated map has.
  */
@@ -99,7 +99,7 @@ const OP_LABEL = (n, m) => [
 ];
 
 /**
- * The whole map as one SVG. Shared by the operation map and the Deep Run —
+ * The whole map as one SVG. Shared by the operation map and the Deep Descent —
  * pass the map definition, the run holding `cleared` and `nodes`, and the
  * node-state walk that belongs to that mode.
  */

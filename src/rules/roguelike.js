@@ -1,4 +1,4 @@
-// The Deep Run: a generated roguelike run.
+// The Deep Descent: a generated roguelike run.
 //
 // The campaign asks what your collection can do. This asks what you can do with
 // what the run hands you: a fixed five-card starter, a lead chosen from three,
@@ -125,7 +125,7 @@ export function genRunMap() {
 
   return {
     k: 'run',
-    n: 'DEEP RUN',
+    n: 'DEEP DESCENT',
     sub: 'Unsurveyed ground · one way in',
     col: '#9d6bff',
     zones: [

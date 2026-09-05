@@ -31,10 +31,6 @@ import {clog} from './log.js';
 /** Hostile types that can be set as an Acquire Specimens quota. */
 const QUOTA_TYPES = ['crawler', 'breacher', 'spitter', 'hulk'];
 
-// The handoff shipped four legs and roughly one full clear in fifteen attempts.
-// Three legs is the difference between a mode and a lottery ticket.
-export const GAUNTLET_LEGS = 3;
-
 /** Node wins per free standard pack — the hold readout counts down to this. */
 export const PACK_METER_GOAL = 3;
 
@@ -48,7 +44,7 @@ export const PACK_METER_GOAL = 3;
  */
 const ONSLAUGHT_PACK_WAVES = 10;
 
-/** Paid once, on top of the Deep Run's final node, for putting the target down. */
+/** Paid once, on top of the Deep Descent's final node, for putting the target down. */
 const RUN_CLEAR_BONUS = 400;
 
 /** Fresh, neutral-in-the-middle territory grid. */
@@ -80,14 +76,14 @@ function rollCrystals(heat) {
 
 /**
  * Start a mission. `nd` carries the node's type, modifier and payout, plus the
- * endless/gauntlet flags that change how finish() settles up.
+ * endless/run/daily flags that change how finish() settles up.
  */
 export function launchSpec(nd) {
   if (!active) return false;
   const m = MISSIONS[nd.type];
   if (!m) return false;
 
-  // A Deep Run fields the deck it drafted, not the profile's. That deck was
+  // A Deep Descent fields the deck it drafted, not the profile's. That deck was
   // assembled by this mode's own rules — it is never over its own cap and the
   // player cannot edit it between nodes — so the two loadout gates below are
   // the profile's problem, not the run's.
@@ -119,7 +115,7 @@ export function launchSpec(nd) {
     // A map node can name its own boss (Shallowhelm's chapel sub-bosses);
     // without one, a boss mission falls back to the operation's final target.
     bossK: nd.boss || null,
-    heat: nd.heat || 0, endless: !!nd.endless, gauntlet: !!nd.gauntlet, daily: !!nd.daily,
+    heat: nd.heat || 0, endless: !!nd.endless, daily: !!nd.daily,
     // `run` is read by liveLoadout(), which is what makes gearOf/leadOf/leadIs
     // resolve against the run's drafted kit for the length of this mission.
     run: !!nd.run,
@@ -188,8 +184,7 @@ export function launchSpec(nd) {
   if (G.mod !== 'none') clog(`Modifier: <span style="color:var(--violet)">${MODS[G.mod].n}</span> ${MODS[G.mod].d}`);
   if (G.heat) clog(`<span class="d">Deep-zone operation</span> — hive pressure +${G.heat} threat every wave.`);
   if (G.endless) clog('<span class="t">ONSLAUGHT</span> — the waves do not stop. See how far you get.');
-  if (G.gauntlet) clog(`<span class="t">GAUNTLET ${active.gaunt.i + 1} of ${GAUNTLET_LEGS}</span> — one loss ends the chain.`);
-  if (G.run) clog(`<span class="t">DEEP RUN \u00b7 LAYER ${nd.depth || 1}</span> — no resupply behind you. A loss ends the run.`);
+  if (G.run) clog(`<span class="t">DEEP DESCENT \u00b7 LAYER ${nd.depth || 1}</span> — no resupply behind you. A loss ends the run.`);
   if (G.daily) clog(`<span class="t">DAILY CHALLENGE</span> — today's op. A loss does not cost your streak; only the win of the day does.`);
 
   hooks.enterCombat();
@@ -205,7 +200,7 @@ export function launch(nodeId) {
 }
 
 /**
- * Deep Run: launch the mission sitting on run node `id`.
+ * Deep Descent: launch the mission sitting on run node `id`.
  *
  * The run supplies everything — deck, gear, lead, heat — so nothing here reads
  * the profile loadout. `run: true` is what tells launchSpec (and, through
@@ -228,34 +223,6 @@ export function launchRunNode(id) {
 export function launchOnslaught() {
   if (!active) return false;
   return launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0, endless: true});
-}
-
-/** Gauntlet: three missions back to back. One loss ends the chain. */
-export function launchGauntlet() {
-  if (!active) return false;
-  if (!active.gaunt || active.gaunt.i >= GAUNTLET_LEGS) {
-    // A boss encounter belongs to its operation's final node — the random
-    // modes draw from everything else.
-    const types = Object.keys(MISSIONS).filter(t => t !== 'boss');
-    const mods = Object.keys(MODS);
-    active.gaunt = {
-      i: 0,
-      // The first leg comes clean; the modifiers ramp in behind it. With the
-      // full bestiary in the pool, three modified legs stopped being a mode.
-      legs: Array.from({length: GAUNTLET_LEGS}, (_, i) => ({
-        type: types[randInt(types.length)],
-        mod: i > 0 && chance(0.5) ? mods[1 + randInt(mods.length - 1)] : 'none',
-      })),
-    };
-    commit();
-  }
-  const leg = active.gaunt.legs[active.gaunt.i];
-  if (!MISSIONS[leg.type] || leg.type === 'boss') leg.type = 'stronghold';
-  return launchSpec({
-    node: null, type: leg.type, mod: leg.mod,
-    reward: 85 + active.gaunt.i * 52,
-    gauntlet: true,
-  });
 }
 
 /** Calendar-day key in the commander's own local time, e.g. "2026-08-28". */
@@ -295,21 +262,19 @@ export function launchDaily() {
   });
 }
 
-/** Walk away mid-mission. A gauntlet run is forfeit. */
+/** Walk away mid-mission. A Deep Descent is forfeit. */
 export function abortMission() {
   const wasEndless = G && G.endless;
-  const wasGauntlet = G && G.gauntlet;
   const wasDaily = G && G.daily;
   const wasRun = G && G.run;
-  if (wasGauntlet) active.gaunt = null;
-  // Walking out of a Deep Run node is a loss by another name: the run closes
+  // Walking out of a Deep Descent node is a loss by another name: the run closes
   // where it stands rather than parking a node you could re-enter with the
   // board reshuffled in your favour.
   if (wasRun && active.run) active.run.over = true;
   setG(null);
   clearSelection();
   commit();
-  return {wasEndless, wasGauntlet, wasDaily, wasRun};
+  return {wasEndless, wasDaily, wasRun};
 }
 
 /**
@@ -437,46 +402,8 @@ function settleOnslaught() {
   };
 }
 
-function settleGauntlet(win, why) {
-  let cr = 0;
-  let title;
-
-  if (win) {
-    active.gaunt.i++;
-    cr = G.reward;
-    active.progress.credits += cr;
-    active.stats.held++;
-    const done = active.gaunt.i >= GAUNTLET_LEGS;
-    queuePack('standard', 'Gauntlet leg cleared');
-    if (done) {
-      active.bests.gauntlet = (active.bests.gauntlet || 0) + 1;
-      cr += 250;
-      active.progress.credits += 250;
-      active.gaunt = null;
-      queuePack('specialist', 'Gauntlet complete');
-    }
-    title = done ? 'GAUNTLET COMPLETE' : `LEG ${active.gaunt ? active.gaunt.i : GAUNTLET_LEGS} CLEARED`;
-  } else {
-    active.gaunt = null;
-    active.stats.lost++;
-    title = 'GAUNTLET BROKEN';
-  }
-
-  active.stats.deployments++;
-  active.stats.kills += G.kills;
-  commit();
-
-  return {
-    kind: win ? 'win' : 'lose',
-    cleared: win,
-    title, why,
-    lines: [`Hostiles destroyed · ${G.kills}`, `Units lost · ${G.lost}`],
-    payout: win ? {cr} : null,
-  };
-}
-
 /**
- * Deep Run settlement. One loss ends the run — there is no retry, no reroll and
+ * Deep Descent settlement. One loss ends the run — there is no retry, no reroll and
  * no partial credit beyond what earlier nodes already banked, which is what
  * makes the route choice on the map a decision rather than a formality.
  *
@@ -503,9 +430,9 @@ function settleRun(win, why) {
       active.progress.credits += RUN_CLEAR_BONUS;
       active.bests.runsDone = (active.bests.runsDone || 0) + 1;
       r.over = true;
-      queuePack('standard', 'Deep Run complete');
-      queuePack('specialist', 'Deep Run complete');
-      title = 'DEEP RUN COMPLETE';
+      queuePack('standard', 'Deep Descent complete');
+      queuePack('specialist', 'Deep Descent complete');
+      title = 'DEEP DESCENT COMPLETE';
     } else {
       // The draft rides the pack queue, so it lands in the same slot the
       // player already expects a reward to appear in.
@@ -641,9 +568,8 @@ export function finish(win, why) {
   G.over = true;
   G.result = G.endless ? settleOnslaught()
     : G.run ? settleRun(win, why)
-      : G.gauntlet ? settleGauntlet(win, why)
-        : G.daily ? settleDaily(win, why)
-          : settleCampaign(win, why);
+      : G.daily ? settleDaily(win, why)
+        : settleCampaign(win, why);
   hooks.showResult();
   hooks.invalidate();
 }

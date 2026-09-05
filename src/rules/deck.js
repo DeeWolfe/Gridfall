@@ -49,7 +49,7 @@ export function drawCard(force) {
     // deals a card with nothing left to do.
     // ...and minus any Fireteam that is standing on the field right now — one
     // of each team at a time; it comes back the moment the team is lost.
-    // liveLoadout(), not the profile: a Deep Run cycles its own drafted deck
+    // liveLoadout(), not the profile: a Deep Descent cycles its own drafted deck
     // and must never be handed a card off the commander's shelf.
     const back = liveLoadout().deck.filter(c => POOL[c] && !G.hand.includes(c) && !(G.spent || []).includes(c)
       && !(POOL[c].line && G.units.some(u => u.id === c)));

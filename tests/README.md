@@ -32,6 +32,7 @@ needing `install-dom.js`, something has leaked out of `src/render/`.
 | `foetest` | New hostiles: the Husk's death split, the Mender's triage, the Screamer's death rush |
 | `packtest` | Requisition packs: offers, fallback chain, full reveal flow |
 | `maptest` | Map roles: final is always Extraction, gates hold, side pay bonus, op completes on final; the uplink and blitz objectives |
+| `runtest` | Deep Descent: 400 generated maps checked for reachability and dead ends, kit isolation both ways, the draft order, settlement, the save round trip, and the screen |
 
 `packtest` and `aimtest` do install the stub for their final render checks.
 
@@ -87,7 +88,7 @@ promotions, and the campaign drip is one pack per two nodes secured.
 |---|---|
 | `test` | 40 mission simulations, win rate and end state |
 | `mtest` | Win rate per mission type across all three operations |
-| `onstest` | Onslaught waves survived, Gauntlet full clears |
+| `onstest` | Onslaught waves survived, Deep Descent depth reached |
 
 ## Shared support
 

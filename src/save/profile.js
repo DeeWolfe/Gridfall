@@ -37,11 +37,10 @@ export function blankProfile(callsign) {
     opsDone: {},
     mode: 'campaign',
     ironman: false,
-    gaunt: null,
-    // The Deep Run in progress: its own map, deck, gear and lead. Null between
+    // The Deep Descent in progress: its own map, deck, gear and lead. Null between
     // runs, and never merged into the profile loadout in either direction.
     run: null,
-    bests: {onslaught: 0, gauntlet: 0, run: 0, runsDone: 0},
+    bests: {onslaught: 0, run: 0, runsDone: 0},
     settings: {},
   };
 }
@@ -67,8 +66,8 @@ export function migrate(p) {
 
   // v3 and earlier stored a single in-progress campaign run on `p.run`; v4
   // keys campaign runs by operation and drops it. The key was later reused for
-  // the Deep Run, which is a different shape entirely — deleting it here keeps
-  // a v3 save from arriving at the Deep Run repair pass wearing its clothes.
+  // the Deep Descent, which is a different shape entirely — deleting it here keeps
+  // a v3 save from arriving at the Deep Descent repair pass wearing its clothes.
   if (!p.version || p.version < 4) {
     p.version = 4;
     p.op = 'ironveil';
@@ -377,12 +376,17 @@ export function migrate(p) {
   Object.keys(p.opsDone).forEach(k => { if (!OPS[k]) delete p.opsDone[k]; });
   p.op = OPS[p.op] ? p.op : 'ironveil';
   p.mode = p.mode || 'campaign';
-  p.bests = p.bests || {onslaught: 0, gauntlet: 0};
+  p.bests = p.bests || {onslaught: 0};
   p.bests.run = p.bests.run || 0;
   p.bests.runsDone = p.bests.runsDone || 0;
-  p.gaunt = p.gaunt || null;
+  // The Gauntlet was retired in v2.42 — the Deep Descent does the same job and
+  // does it with escalation and a route. Its leftovers go the way every other
+  // piece of retired content goes: dropped by the repair pass rather than
+  // carried forever by a version gate that would only ever run once.
+  delete p.gaunt;
+  delete p.bests.gauntlet;
 
-  // A Deep Run survives a save round trip whole — it is plain data and holds
+  // A Deep Descent survives a save round trip whole — it is plain data and holds
   // no references into the profile. What it can hold is content we no longer
   // ship, so those entries are dropped; a run whose map did not survive is
   // dropped entirely rather than half-restored into something unplayable.

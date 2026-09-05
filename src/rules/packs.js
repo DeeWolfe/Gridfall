@@ -1,7 +1,7 @@
 // Requisition packs: three items offered, keep one.
 //
 // Standard packs draw Commons and Tech only — Specialists come from the shop
-// or from specialist packs (operation complete, gauntlet complete), so their
+// or from specialist packs (operation cleared, a Deep Descent finished), so their
 // price tags are real saving goals rather than lottery noise. One slot
 // guarantees an unowned card while any remains; the other slots draw from the
 // whole pool, and a duplicate is offered as a field promotion instead — the
@@ -107,7 +107,7 @@ export function queuePack(tier, label) {
 }
 
 /**
- * Owe the player a Deep Run draft — same slot in the same queue, but the offer
+ * Owe the player a Deep Descent draft — same slot in the same queue, but the offer
  * comes from the run and the pick goes into the run, never into the collection.
  * Riding the pack queue rather than inventing a second overlay is deliberate:
  * the reward beat already exists and the player already knows where to look.

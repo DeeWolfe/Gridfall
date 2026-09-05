@@ -29,7 +29,7 @@ const {head, body} = pageParts(page);
   dups.forEach(d => F.push('duplicate id: ' + d));
 
   // Ids the script creates at runtime rather than declaring in the shell.
-  const DYNAMIC = ['expo', 'goCampaign', 'goGauntlet', 'goOnslaught', 'goDaily', 'goRun', 'ironbox',
+  const DYNAMIC = ['expo', 'goCampaign', 'goOnslaught', 'goDaily', 'goRun', 'ironbox',
     'runstart', 'runquit',
     'newrun', 'shipren', 'tutreplay', 'hintreplay', 'sndrow', 'musrow', 'swrec', 'impo', 'packbox', 'packnext', 'buypack', 'opreplay',
     'introreplay', 'cstage', 'cwell', 'csaid', 'cacts', 'cportl', 'cportr', 'cpips', 'cskip'];

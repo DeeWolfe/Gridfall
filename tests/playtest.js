@@ -142,12 +142,20 @@ T('onslaught abort routes to modes', () => {
   if (!get('modes')._cls.has('on')) F.push('abort did not return to modes');
 });
 
-// 6. the Gauntlet chain
-T('gauntlet', () => { A.launchGauntlet(); playMission('gauntlet'); });
-T('gauntlet abort clears chain', () => {
-  A.launchGauntlet();
+// 6. a Deep Descent leg, and the abort that closes the run
+T('deep descent', () => {
+  A.startRun();
+  A.active.run.lead = 'ironbrand';
+  A.launchRunNode(A.active.run.map.nodes[0].id);
+  playMission('deep descent');
+});
+T('descent abort closes the run', () => {
+  A.startRun();
+  A.active.run.lead = 'ironbrand';
+  A.launchRunNode(A.active.run.map.nodes[0].id);
   leaveCombat();
-  if (A.active.gaunt !== null) F.push('gauntlet chain not cleared on abort');
+  if (!A.active.run.over) F.push('walking out of a descent left the run open');
+  A.active.run = null;
 });
 
 // 7. every mission type, played to a conclusion
@@ -181,7 +189,7 @@ function clickAll(render, label) {
     render();
     const selectors = ['[data-focus]', '[data-foe]', '[data-gear]', '[data-tab]', '[data-op]',
       '[data-go]', '[data-n]', '#expo', '#newrun', '#shipren',
-      '#goCampaign', '#goOnslaught', '#goGauntlet', '#ironbox'];
+      '#goCampaign', '#goOnslaught', '#goDaily', '#goRun', '#ironbox'];
     selectors.forEach(sel => {
       document.querySelectorAll(sel).forEach(el => {
         try {

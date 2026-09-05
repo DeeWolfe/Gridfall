@@ -16,7 +16,7 @@ const BURST_MS = 260;
 
 export let packPicks = [];
 let packOpen = false;
-// True while the overlay is showing a Deep Run draft rather than a pack: the
+// True while the overlay is showing a Deep Descent draft rather than a pack: the
 // offer came from the run and the pick goes back into it.
 let packDraft = false;
 

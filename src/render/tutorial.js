@@ -62,7 +62,7 @@ export const tutorialActive = () => tutStep >= 0;
  * overlay survives from an aborted earlier run.
  */
 export function maybeStartTutorial() {
-  const wants = active && G && !G.endless && !G.gauntlet && (
+  const wants = active && G && !G.endless && (
     (active.settings.tutorial === undefined && active.stats.deployments === 0) ||
     active.settings.tutorial === 'replay'
   );

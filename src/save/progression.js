@@ -30,7 +30,7 @@ export function vetOf(id) {
 /**
  * The loadout actually in force.
  *
- * A Deep Run brings its own deck, gear and lead — drafted inside the run and
+ * A Deep Descent brings its own deck, gear and lead — drafted inside the run and
  * stored on `active.run`, never on the profile's loadout. Every reader below
  * goes through here rather than at `active.loadout` directly, so the run is
  * invisible to them: the same costOf(), gearOf() and leadOf() answer for a
@@ -161,7 +161,7 @@ export function deckProblems(deck = active && active.loadout ? active.loadout.de
   return [];
 }
 
-/** The team lead in force — the run's while a Deep Run mission is live. */
+/** The team lead in force — the run's while a Deep Descent mission is live. */
 export function leadOf() {
   return LEADS[liveLoadout().lead] || LEADS.ironbrand;
 }

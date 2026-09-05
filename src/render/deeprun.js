@@ -1,4 +1,4 @@
-// The Deep Run screen: the generated map, the route in front of you, and the
+// The Deep Descent screen: the generated map, the route in front of you, and the
 // kit the run has handed you so far.
 //
 // It shares the operation map's SVG builders (mapSvg) rather than drawing its
@@ -80,7 +80,7 @@ function idleHTML() {
   const won = ended && runComplete();
   const best = active.bests.run || 0;
   return `<div class="mapwrap"><div>
-      <div class="sect">${ended ? (won ? '突破 · Run complete' : '断絶 · Run ended') : '深層 · Deep Run'}</div>
+      <div class="sect">${ended ? (won ? '突破 · Run complete' : '断絶 · Run ended') : '深層 · Deep Descent'}</div>
       <div class="oplore" style="border-color:#9d6bff">${ended
     ? (won
       ? 'The target is down and the ground behind you is somebody else’s problem now. ' +
@@ -100,17 +100,17 @@ function idleHTML() {
     </div><div>
       <div class="sect">Record</div><div class="rows">
         <div class="row"><span>Deepest layer reached</span><span class="r hot">${best}</span></div>
-        <div class="row"><span>Runs completed</span><span class="r">${active.bests.runsDone || 0}</span></div>
+        <div class="row"><span>Descents completed</span><span class="r">${active.bests.runsDone || 0}</span></div>
       </div>
       <div class="row" style="margin-top:14px;justify-content:center">
-        <button class="btn gold" id="runstart">${ended ? '↺ Run it again' : 'Begin the descent ▸'}</button>
+        <button class="btn gold" id="runstart">${ended ? '↺ Drop again' : 'Drop in ▸'}</button>
       </div>
     </div></div>`;
 }
 
 export function renderRun() {
   if (!active) return;
-  active.bests = active.bests || {onslaught: 0, gauntlet: 0};
+  active.bests = active.bests || {onslaught: 0, run: 0, runsDone: 0};
 
   if (!runActive()) {
     $('runbody').innerHTML = idleHTML();
@@ -120,14 +120,14 @@ export function renderRun() {
       // decision and asking it after the drop would mean fighting the drop
       // under a default nobody chose; the card that follows is what turns
       // the starter five into a hand with an idea in it.
-      draft('Deep Run · choose your lead', 'Deep Run · first requisition');
+      draft('Deep Descent · choose your lead', 'Deep Descent · first requisition');
     };
     return;
   }
 
   const r = active.run;
   const map = runMap();
-  if (!r.lead) { draft('Deep Run · choose your lead'); return; }
+  if (!r.lead) { draft('Deep Descent · choose your lead'); return; }
 
   const open = map.nodes.filter(n => runNodeState(n.id) === 'open');
   const briefings = open.map(n => {
@@ -176,7 +176,7 @@ export function renderRun() {
     }, {ok: 'Abandon'});
 }
 
-/** Enter the Deep Run screen from anywhere. */
+/** Enter the Deep Descent screen from anywhere. */
 export function openRun() {
   show('deeprun');
   renderRun();

@@ -4,9 +4,17 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.41';
+export const VERSION = '2.42';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.42',
+    notes: [
+      'THE GAUNTLET IS RETIRED. It was three missions back to back, and that was all it was: every leg ran at flat difficulty, one relaunched straight into the next with no stop in between, and there was no decision anywhere in the chain. The Deep Descent is the same promise — a short run where one loss ends it — with a route to pick, pressure that climbs, a draft between fights and a target at the end. Two modes asking the same question meant neither got played enough to be worth tuning. If you want a no-retry test of the deck you actually built, that is Ironman Campaign, and it puts a whole operation on the line instead of three random missions.',
+      'THE CHAINRUNNER AND CHAIN OF COMMAND BADGES RETIRE WITH IT, and the Deep Descent brings two of its own — DEEP WATER MARK for reaching the fourth layer, DOWN AND OUT for putting the target down. Your Gauntlet count leaves the Service Record. Four modes on the deploy screen now, which is a cleaner shelf than five.',
+      'AND THE DEEP RUN IS NOW THE DEEP DESCENT. The mode was always written vertically — the ground reads APPROACH, DEEP GROUND, THE TARGET, the record counts the deepest layer you reached, the briefing talks about what the ground gives you on the way down. The name says the same thing now.',
+    ],
+  },
   {
     v: '2.41',
     notes: [

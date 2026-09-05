@@ -52,7 +52,7 @@ export {drawCard} from '../../src/rules/deck.js';
 export {spawnClash, resolveSpawn, spawnPhase} from '../../src/rules/spawn.js';
 export {playerPhase, enemyPhase, strike, territoryPhase, endTurn} from '../../src/rules/phases.js';
 export {
-  launch, launchSpec, launchOnslaught, launchGauntlet, launchRunNode, abortMission, objBrief, winWhy, finish, PACK_METER_GOAL,
+  launch, launchSpec, launchOnslaught, launchRunNode, abortMission, objBrief, winWhy, finish, PACK_METER_GOAL,
 } from '../../src/rules/mission.js';
 export {
   RUN_STARTER, genRunMap, runHeatAt, runRewardAt, runDepthOf, runNodeSpec, runDeckCap,

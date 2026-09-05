@@ -61,7 +61,7 @@ let names = [];
   p.loadout.gear = {};
   Object.keys(GEAR).slice(0, 8).forEach((gi, i) => { p.loadout.gear[p.loadout.deck[i]] = gi; });
   p.usage = Object.fromEntries(Object.keys(POOL).map(c => [c, 200]));
-  p.bests = {onslaught: 40, gauntlet: 9, run: 9, runsDone: 4};
+  p.bests = {onslaught: 40, run: 9, runsDone: 4};
   p.daily = {date: null, done: false, streak: 30};
   p.ops = Object.fromEntries(Object.values(OPS).map(o => [o.k, {cleared: o.nodes.map(n => n.id), nodes: {}}]));
 

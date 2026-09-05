@@ -42,8 +42,9 @@ step('paintHold', () => paintHold());
 PANELS.forEach(p => step('panel ' + p, () => openPanel(p)));
 step('onslaught launch', () => A.launchOnslaught());
 step('onslaught abort', () => A.abortMission());
-step('gauntlet launch', () => A.launchGauntlet());
-step('gauntlet abort', () => A.abortMission());
+step('descent start', () => { A.startRun(); A.active.run.lead = 'ironbrand'; });
+step('descent launch', () => A.launchRunNode(A.active.run.map.nodes[0].id));
+step('descent abort', () => A.abortMission());
 
 // Switching record drops the active profile; screens must not throw on it.
 step('switch record then renderModes', () => { A.setActive(null); renderModes(); });
