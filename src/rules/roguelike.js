@@ -56,9 +56,14 @@ const RUN_BOSSES = Object.keys(BOSSDEF).filter(k => !BOSSDEF[k].sub);
  * question the mode asks — push one layer deeper or take the target now — has
  * to have a real number on both sides of it.
  */
-const RUN_NODE_BASE = 55;
-const RUN_NODE_DEPTH = 35;
-export const runRewardAt = depth => RUN_NODE_BASE + depth * RUN_NODE_DEPTH;
+const RUN_NODE_BASE = 60;
+const RUN_NODE_DEPTH = 40;
+// ...and a square term, so the curve steepens rather than merely rising. A
+// straight line paid the same premium for the fourth layer as the second,
+// which is not what the fourth layer costs you: 108 / 172 / 252 / 348 / 460.
+const RUN_NODE_CURVE = 8;
+export const runRewardAt = depth =>
+  RUN_NODE_BASE + depth * RUN_NODE_DEPTH + RUN_NODE_CURVE * depth * depth;
 
 /** Heat by depth: the drop is flat, and it climbs one step every two layers. */
 export const runHeatAt = depth => Math.max(0, Math.floor((depth - 1) / 2));

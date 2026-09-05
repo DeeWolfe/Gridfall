@@ -5486,3 +5486,106 @@ bot runs: median 0 layers, max 4, 0 full clears, spread `{0:19, 1:1, 2:3,
 4:1}`. That reads worse than it is (see the v2.41 note) but the number to
 watch is the tail, not the median: a mode where the tail never reaches the
 target is broken, and this one does.
+
+## v2.43 — the currency award pass
+
+### The measurement
+
+Every credit source and sink, measured rather than read off the source:
+
+| source | pays | per mission |
+|---|---|---|
+| starting balance | 420 | — |
+| campaign node | 70–510, scaled by type and heat | 184–335 |
+| Descent layer | 90 / 125 / 160 / 195 / 230 | 108–240 |
+| Descent clear bonus | 400 | — |
+| Onslaught | `waves × 13.5` | 108 at the median |
+| Daily | `128 + streak×17`, streak caps at 10 | 145–298 |
+| research pod | 60 | — |
+| kill bonus | `floor(kills / 5)` | **+1** |
+
+Sinks: 25 commons (avg 110), 42 tech (179), 19 specialists (363), 24 gear
+(271), 11 gated leads (457), packs at 100. **Owning everything: 28,180 cr.**
+
+Four findings, in the order they mattered.
+
+**The campaign was the whole economy.** Clear an operation, press Replay on the
+completion panel, clear it again for full credits — forever. Crownring paid
+3,690 across 11 nodes and nothing else came close. The economically correct way
+to play Gridfall was to ignore every other mode and re-clear one map. A mode
+should not be strictly dominated by a button on another mode's results screen.
+
+**Onslaught paid worst and asked most.** 108 at the median, 162 for a strong
+12-wave run — under half of one Crownring node, for the longest single sitting
+in the game.
+
+**The Descent did not price its own risk.** One loss ends the run, but a third
+of the payout sat behind the completion bonus, so dying at layer 2 earned
+108/mission — exactly Onslaught's rate, from a mode with stakes, against one
+with none.
+
+**Two awards were decorative.** The kill bonus paid one credit over an average
+mission. The research pod paid 60 against a 300-credit node.
+
+### What shipped
+
+`opsDone` counts clears instead of recording a boolean (a `true` from an older
+save migrates to 1), and `campaignRate(clears)` reads it:
+`clears ? max(0.3, 1/(clears+1)) : 1` — 100% / 50% / 33% / 30%. Crownring's
+grind floor is now **101 cr/mission**, below Onslaught's median and below a
+completed Descent. The first pass through all six operations pays 12,021
+against a 28,180 shelf, which is the shape you want: playing the content once
+funds a bit under half the collection, and after that the modes with stakes are
+the fastest way on.
+
+Onslaught: `waves × 18 + waves² × 1.5` — 96 / 240 / 432 / 960 at 4 / 8 / 12 /
+20. Descent: `60 + 40d + 8d²` gives 108 / 172 / 252 / 348 / 460, and the clear
+bonus drops 400 → 200. A run that dies at layer 2 now earns 140/mission against
+308 for a full clear; the money is where the risk is. Kill bounty 3 a head,
+research pod 150.
+
+The map quotes nodes at what they will actually pay and the header carries
+`replay pay 30%`. A payout curve the player cannot see is a bug report waiting
+to be filed.
+
+### Two things I got wrong on the way
+
+`settleRun` sits above `settleCampaign` in mission.js and both held the string
+`G.reward + Math.floor(G.kills / 5)`. The first edit landed the campaign replay
+curve on the **Deep Descent** — invisible, because `opClears(null)` is 0 and 0
+means full rate. The guard caught it as "replay paid more than the first
+clear". Two identical expressions in one file is a trap; the fix asserts a
+count of 1 before replacing.
+
+The Onslaught helper in `econtest` played the run out with `endTurn` and then
+called `finish()` — but an endless run settles itself the moment the line
+falls, so the payout was counted twice and an 8-wave run read 175 credits
+against an actual 108. The wave count is the input to the curve under test, so
+it is now set rather than survived.
+
+### `econtest.js`
+
+Six checks, all driven through real play and all break-tested in both
+directions. The relations are the point — any single number here is a balance
+decision and will move again:
+
+- a repeatable grind must never out-earn a mode with stakes (measured, not
+  asserted: it grinds Crownring to its floor and compares against a real
+  Onslaught settlement)
+- the replay curve must fall, and must find a floor rather than decay to zero
+- doubling Onslaught's waves must more than double its payout
+- the Descent's depth curve must *steepen*, not merely rise — the second
+  difference is checked, so a straight line fails
+- the completion bonus must stay under a quarter of a full run
+- eight kills must be worth at least 15 credits, and never more than the node
+
+Replay clears are compared by **realized rate**, not by credits: the map
+rerolls on every replay, so raw totals compare two different dice rolls.
+
+### Still open
+
+Credits are not dead weight past 28,180 after all — packs still cost 100 and
+degrade to veterancy promotions once the collection is complete, so the sink is
+infinite. That corrects the read in the v2.42 economy report. What is genuinely
+missing is a *reason* to want promotions at that point, which is a progression
+question rather than an economy one.

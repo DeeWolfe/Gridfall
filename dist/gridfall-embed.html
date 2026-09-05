@@ -4858,7 +4858,7 @@ function migrate(p) {
       const map = OPS[op];
       if (!map || !run || !Array.isArray(run.cleared)) return;
       const fin = map.nodes.find(n => n.role === 'final');
-      if (fin && run.cleared.includes(fin.id)) p.opsDone[op] = true;
+      if (fin && run.cleared.includes(fin.id)) p.opsDone[op] = 1;
     });
   }
 
@@ -4897,7 +4897,15 @@ function migrate(p) {
   p.stats.opsCleared = p.stats.opsCleared || 0;
   p.ops = p.ops || {};
   p.opsDone = (p.opsDone && typeof p.opsDone === 'object') ? p.opsDone : {};
-  Object.keys(p.opsDone).forEach(k => { if (!OPS[k]) delete p.opsDone[k]; });
+  // v2.43: opsDone counts clears rather than recording a boolean, because the
+  // campaign payout curve reads the count. A `true` from an older save is one
+  // clear; anything that is not a positive number at all is not a record.
+  Object.keys(p.opsDone).forEach(k => {
+    if (!OPS[k]) { delete p.opsDone[k]; return; }
+    const v = p.opsDone[k];
+    const n = typeof v === 'number' && v > 0 ? Math.floor(v) : (v ? 1 : 0);
+    if (n) p.opsDone[k] = n; else delete p.opsDone[k];
+  });
   p.op = OPS[p.op] ? p.op : 'ironveil';
   p.mode = p.mode || 'campaign';
   p.bests = p.bests || {onslaught: 0};
@@ -10216,16 +10224,29 @@ function opComplete() {
  * replay, a reroll or an Ironman loss throws away. This reads the career
  * record, so the map still says "you have done this" on a fresh run.
  */
-const opCleared = k => !!(active && active.opsDone && active.opsDone[k]);
+const opCleared = k => opClears(k) > 0;
 
-/** Mark it cleared for good. Returns true only the FIRST time it is called
- * for an operation — which is what pays the first-clear packs. */
+/**
+ * How many times this operation has been cleared, for the whole career.
+ *
+ * It was a boolean until v2.43 and the count is what the payout curve reads:
+ * the first clear pays full, and every one after it pays less (see
+ * `campaignRate` in mission.js). A save from before the count exists reads
+ * `true`, which `+` turns into 1 — the right answer for "cleared once".
+ */
+const opClears = k => {
+  const v = active && active.opsDone ? active.opsDone[k] : 0;
+  return typeof v === 'number' ? v : (v ? 1 : 0);
+};
+
+/** Record a clear. Returns true only the FIRST time it is called for an
+ * operation — which is what pays the first-clear packs. */
 function markOpCleared(k) {
   if (!active || !k) return false;
   active.opsDone = active.opsDone || {};
-  if (active.opsDone[k]) return false;
-  active.opsDone[k] = true;
-  return true;
+  const first = opClears(k) === 0;
+  active.opsDone[k] = opClears(k) + 1;
+  return first;
 }
 
 /**
@@ -10431,9 +10452,14 @@ const RUN_BOSSES = Object.keys(BOSSDEF).filter(k => !BOSSDEF[k].sub);
  * question the mode asks — push one layer deeper or take the target now — has
  * to have a real number on both sides of it.
  */
-const RUN_NODE_BASE = 55;
-const RUN_NODE_DEPTH = 35;
-const runRewardAt = depth => RUN_NODE_BASE + depth * RUN_NODE_DEPTH;
+const RUN_NODE_BASE = 60;
+const RUN_NODE_DEPTH = 40;
+// ...and a square term, so the curve steepens rather than merely rising. A
+// straight line paid the same premium for the fourth layer as the second,
+// which is not what the fourth layer costs you: 108 / 172 / 252 / 348 / 460.
+const RUN_NODE_CURVE = 8;
+const runRewardAt = depth =>
+  RUN_NODE_BASE + depth * RUN_NODE_DEPTH + RUN_NODE_CURVE * depth * depth;
 
 /** Heat by depth: the drop is flat, and it climbs one step every two layers. */
 const runHeatAt = depth => Math.max(0, Math.floor((depth - 1) / 2));
@@ -10800,6 +10826,36 @@ const QUOTA_TYPES = ['crawler', 'breacher', 'spitter', 'hulk'];
 const PACK_METER_GOAL = 3;
 
 /**
+ * What a campaign node pays, as a fraction of its face value, given how many
+ * times its operation has already been cleared.
+ *
+ * The first pass through an operation pays in full. Every pass after it pays
+ * less, bottoming out at 30%.
+ *
+ * The reason is a measurement: an operation could be cleared, rerolled from
+ * the completion panel and cleared again for full credits, forever, and
+ * Crownring at 3,693 credits across 11 nodes was the best rate in the game by
+ * a distance. The economically correct way to play was to ignore every other
+ * mode and re-clear one map. A mode should not be strictly dominated by a
+ * button on another mode's results screen.
+ *
+ * Replaying is still worth doing — the missions reroll, the packs still come
+ * every third node — it is just no longer the fastest way to money.
+ */
+const CAMPAIGN_REPLAY_FLOOR = 0.3;
+const campaignRate = clears =>
+  (clears <= 0 ? 1 : Math.max(CAMPAIGN_REPLAY_FLOOR, 1 / (clears + 1)));
+
+/**
+ * Credits per hostile destroyed, on top of a node's face value.
+ *
+ * It was `floor(kills / 5)`, which over a measured average of 8 kills a
+ * mission paid one credit. A reward nobody can perceive is not a reward; it is
+ * a line of code claiming to be one.
+ */
+const KILL_BOUNTY = 3;
+
+/**
  * Waves per free pack in Onslaught.
  *
  * It was 5, and 5 is exactly what a player reaches by deploying nothing at all
@@ -10809,8 +10865,14 @@ const PACK_METER_GOAL = 3;
  */
 const ONSLAUGHT_PACK_WAVES = 10;
 
-/** Paid once, on top of the Deep Descent's final node, for putting the target down. */
-const RUN_CLEAR_BONUS = 400;
+/**
+ * Paid once, on top of the Deep Descent's final node, for putting the target
+ * down. It was 400 — a third of the mode's whole payout sitting behind a full
+ * clear, which meant a run that died at layer 2 earned the same rate per
+ * mission as Onslaught, a mode with no stakes at all. The money moved into
+ * the depth curve in roguelike.js, where the risk actually is.
+ */
+const RUN_CLEAR_BONUS = 200;
 
 /** Fresh, neutral-in-the-middle territory grid. */
 function freshTerritory() {
@@ -11146,7 +11208,13 @@ function settleOnslaught() {
   const record = best > previous;
   active.bests.onslaught = best;
 
-  const cr = G.turn * 12 + Math.floor(G.turn * 1.5);
+  // Flat 13.5 a wave paid 108 at the measured median of 8 — half of one
+  // campaign node, for the mode that asks for the longest unbroken attention
+  // in the game. The curve is superlinear now, so the pitch ("credits scale
+  // with how deep you get") is true rather than decorative: wave 8 pays 240,
+  // wave 12 pays 432, wave 20 pays 960. An idle run still ends around wave 5,
+  // which pays 127 and no pack.
+  const cr = G.turn * 18 + Math.round(G.turn * G.turn * 1.5);
   active.progress.credits += cr;
   active.stats.deployments++;
   active.stats.kills += G.kills;
@@ -11186,7 +11254,7 @@ function settleRun(win, why) {
   if (win) {
     if (!r.cleared.includes(G.node)) r.cleared.push(G.node);
     r.depth = Math.max(r.depth || 0, depth);
-    cr = G.reward + Math.floor(G.kills / 5);
+    cr = G.reward + G.kills * KILL_BOUNTY;
     active.progress.credits += cr;
     active.stats.held++;
     done = runComplete();
@@ -11239,7 +11307,10 @@ function settleCampaign(win, why) {
   let cr = 0;
 
   if (win) {
-    cr = G.reward + Math.floor(G.kills / 5);
+    // The rate is read BEFORE markOpCleared runs below, so the node that
+    // completes an operation is still paid at the rate that operation was
+    // being played at — you are not docked for finishing.
+    cr = Math.round((G.reward + G.kills * KILL_BOUNTY) * campaignRate(opClears(G.op)));
     active.progress.credits += cr;
     opRun().cleared.push(G.node);
     active.stats.held++;
@@ -12608,12 +12679,15 @@ function renderMap() {
   $('maptitle').textContent = MAPDEF.n;
 
   const open = complete ? [] : MAPDEF.nodes.filter(n => nodeState(n.id) === 'open');
+  // Node payouts are quoted at what they will actually pay, not at face value:
+  // a replay pays a fraction and a briefing that hid that would be lying.
+  const rate = campaignRate(opClears(active.op));
   const briefings = complete
     // The final node is down — the map stays up showing every node secured,
     // rather than snapping to a fresh roll before the player has seen it.
     ? `<div class="row" style="flex-direction:column;align-items:flex-start;gap:10px;padding:16px 4px">
         <span style="color:var(--gold);letter-spacing:1px">作戦完了 · OPERATION COMPLETE</span>
-        <span style="font-size:0.6562rem;color:var(--dim);line-height:1.5">The first clear paid its requisition bundle. A replay pays credits and node drops as usual — the bundle is a one-time thing, and this operation stays on your record whatever you roll next.</span>
+        <span style="font-size:0.6562rem;color:var(--dim);line-height:1.5">The first clear paid its requisition bundle and its full rate. A replay rerolls every mission and still drops packs every third node, but it pays <b style="color:var(--gold)">${Math.round(campaignRate(opClears(active.op)) * 100)}%</b> of face value — ground you have already taken is worth less than ground you have not. This operation stays on your record whatever you roll next.</span>
         <span style="font-size:0.6562rem;color:var(--dim);line-height:1.5">Every node on this map has been secured. Any unclaimed bonus objectives are forfeit — replay to roll a fresh set of missions here.</span>
         <button class="btn gold" id="opreplay">↺ Replay operation</button>
       </div>`
@@ -12627,7 +12701,7 @@ function renderMap() {
       return `<div class="row" data-go="${n.id}" style="cursor:pointer">
         <span><b style="color:var(--zan)">${n.l ? n.l + ' — ' : ''}${m.n}</b>${nd.mod !== 'none' ? ` <span style="color:var(--violet)">· ${md.n}</span>` : ''}${tag}
         <div style="font-size:0.6562rem;color:var(--dim);margin-top:4px;line-height:1.5">${n.lore ? n.lore + ' ' : ''}${m.d}${md.d ? ' ' + md.d : ''}</div></span>
-        <span class="r hot">${nd.reward} cr ▸</span></div>`;
+        <span class="r hot">${Math.round(nd.reward * rate)} cr ▸</span></div>`;
     }).join('') || '<div class="row"><span style="color:var(--dim)">Operation complete.</span></div>';
 
   // Gated nodes the player could otherwise reach: say what is holding them.
@@ -12639,7 +12713,8 @@ function renderMap() {
     ${mapSvg(MAPDEF, run, complete, nodeState, reqBlocked)}</div>
     ${MAPDEF.lore ? `<div class="sect">状況 · Situation report</div>
       <div class="oplore" style="border-color:${MAPDEF.col}">${MAPDEF.lore}</div>` : ''}</div>
-    <div><div class="sect">${complete ? 'Status' : 'Available — ' + open.length}</div><div class="rows">${briefings}${gatedRows}</div>
+    <div><div class="sect">${complete ? 'Status'
+    : `Available — ${open.length}${rate < 1 ? ` · replay pay ${Math.round(rate * 100)}%` : ''}`}</div><div class="rows">${briefings}${gatedRows}</div>
     <div class="sect">Loadout</div><div class="rows">
       <div class="row"><span>Deck size</span><span class="r${active.loadout.deck.length < 6 ? '' : ' hot'}">${active.loadout.deck.length} cards</span></div>
       <div class="row"><span>Gear fitted</span><span class="r">${Object.keys(active.loadout.gear).length}</span></div>
@@ -13910,6 +13985,9 @@ function sporePulse(e, D) {
 
 const MINDCTRL_TURNS = 2;
 
+/** Credits for extracting a Research Team pod. */
+const RESEARCH_BOUNTY = 150;
+
 /** Puppeteer: seizes the nearest un-controlled friendly in its lane, turning
  * it against the player until it breaks free or the Puppeteer dies. Checked
  * ahead of the spd===0 return — its own stillness must not swallow the cast. */
@@ -14190,8 +14268,11 @@ function territoryPhase() {
     v.timer--;
     if (v.timer > 0) return;
     G.civ = G.civ.filter(x => x !== v);
-    active.progress.credits += 60;
-    clog('<span class="g">Research team extracted</span> — specimen data logged, +60 credits.', 'order');
+    // 60 against a 300-credit node was a thank-you note, not a payout. Saving
+    // the pod costs you a turn of attention in the middle of a fight; half a
+    // node is what that is worth.
+    active.progress.credits += RESEARCH_BOUNTY;
+    clog(`<span class="g">Research team extracted</span> — specimen data logged, +${RESEARCH_BOUNTY} credits.`, 'order');
   });
 }
 
@@ -17060,9 +17141,18 @@ function openPanel(key, quiet) {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.42.1';
+const VERSION = '2.43';
 
 const PATCH_NOTES = [
+  {
+    v: '2.43',
+    notes: [
+      "GROUND YOU HAVE ALREADY TAKEN PAYS LESS. An operation could be cleared, rerolled from its own completion panel and cleared again at full rate, forever — and Crownring at 3,690 credits across 11 nodes was the best rate in the game by a distance, which made the economically correct way to play 'ignore every other mode and re-clear one map'. The first pass through an operation still pays in full. The second pays half, the third a third, and it floors at 30%. Replays are still worth running — the missions reroll and packs still drop every third node — they are just no longer the fastest way to money. The map quotes what a node will actually pay, so nothing is hidden.",
+      'ONSLAUGHT PAYS FOR DEPTH. It was 13.5 credits a wave flat, which came to 108 at the median — half of one campaign node, for the mode that asks the longest unbroken attention in the game. The curve is steep now: 8 waves pays 240, 12 pays 432, 20 pays 960. The mode card said credits scale with how deep you get; now they do.',
+      "THE DEEP DESCENT'S MONEY MOVED INTO THE DEPTH. A third of a full run's payout sat behind the completion bonus, so a run that died on layer 2 earned the same rate per mission as Onslaught — a mode with no stakes at all. Layers now pay 108 / 172 / 252 / 348 / 460, a curve that steepens rather than a line that rises, and the completion bonus is 200. Pushing one layer deeper is paid for the risk it actually is.",
+      'AND TWO REWARDS THAT WERE NOT REWARDS. The kill bonus was one credit per five hostiles — over a measured average of eight kills a mission, that is one credit. It is 3 a kill now. Extracting a research team paid 60 against a 300-credit node; it pays 150, which is what a turn of your attention in the middle of a firefight is worth.',
+    ],
+  },
   {
     v: '2.42.1',
     notes: [

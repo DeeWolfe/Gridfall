@@ -4,9 +4,18 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.42.1';
+export const VERSION = '2.43';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.43',
+    notes: [
+      "GROUND YOU HAVE ALREADY TAKEN PAYS LESS. An operation could be cleared, rerolled from its own completion panel and cleared again at full rate, forever — and Crownring at 3,690 credits across 11 nodes was the best rate in the game by a distance, which made the economically correct way to play 'ignore every other mode and re-clear one map'. The first pass through an operation still pays in full. The second pays half, the third a third, and it floors at 30%. Replays are still worth running — the missions reroll and packs still drop every third node — they are just no longer the fastest way to money. The map quotes what a node will actually pay, so nothing is hidden.",
+      'ONSLAUGHT PAYS FOR DEPTH. It was 13.5 credits a wave flat, which came to 108 at the median — half of one campaign node, for the mode that asks the longest unbroken attention in the game. The curve is steep now: 8 waves pays 240, 12 pays 432, 20 pays 960. The mode card said credits scale with how deep you get; now they do.',
+      "THE DEEP DESCENT'S MONEY MOVED INTO THE DEPTH. A third of a full run's payout sat behind the completion bonus, so a run that died on layer 2 earned the same rate per mission as Onslaught — a mode with no stakes at all. Layers now pay 108 / 172 / 252 / 348 / 460, a curve that steepens rather than a line that rises, and the completion bonus is 200. Pushing one layer deeper is paid for the risk it actually is.",
+      'AND TWO REWARDS THAT WERE NOT REWARDS. The kill bonus was one credit per five hostiles — over a measured average of eight kills a mission, that is one credit. It is 3 a kill now. Extracting a research team paid 60 against a 300-credit node; it pays 150, which is what a turn of your attention in the middle of a firefight is worth.',
+    ],
+  },
   {
     v: '2.42.1',
     notes: [

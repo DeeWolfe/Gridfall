@@ -33,6 +33,7 @@ needing `install-dom.js`, something has leaked out of `src/render/`.
 | `packtest` | Requisition packs: offers, fallback chain, full reveal flow |
 | `maptest` | Map roles: final is always Extraction, gates hold, side pay bonus, op completes on final; the uplink and blitz objectives |
 | `runtest` | Deep Descent: 400 generated maps checked for reachability and dead ends, kit isolation both ways, the draft order, settlement, the save round trip, and the screen |
+| `econtest` | The credit economy: the campaign replay curve, the Onslaught and Descent depth curves, and the relation that matters — no repeatable grind out-earns a mode with stakes |
 
 `packtest` and `aimtest` do install the stub for their final render checks.
 

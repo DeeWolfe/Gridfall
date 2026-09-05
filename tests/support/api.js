@@ -31,7 +31,7 @@ export {
   nextUid, clearSelection,
 } from '../../src/state/session.js';
 
-export {genRun, opRun, nodeState, enterProfile, reqBlocked, opComplete, opCleared, markOpCleared} from '../../src/rules/run.js';
+export {genRun, opRun, nodeState, enterProfile, reqBlocked, opComplete, opCleared, opClears, markOpCleared} from '../../src/rules/run.js';
 export {
   unitAt, foeAt, civAt, held, heldEnemyHalf, crystalsHeld, scorched,
   cellPassable, validTiles, breachAllowance, visibleCells, cellVisible, foeVisible,
@@ -53,6 +53,7 @@ export {spawnClash, resolveSpawn, spawnPhase} from '../../src/rules/spawn.js';
 export {playerPhase, enemyPhase, strike, territoryPhase, endTurn} from '../../src/rules/phases.js';
 export {
   launch, launchSpec, launchOnslaught, launchRunNode, abortMission, objBrief, winWhy, finish, PACK_METER_GOAL,
+  campaignRate, CAMPAIGN_REPLAY_FLOOR,
 } from '../../src/rules/mission.js';
 export {
   RUN_STARTER, genRunMap, runHeatAt, runRewardAt, runDepthOf, runNodeSpec, runDeckCap,

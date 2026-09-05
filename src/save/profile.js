@@ -334,7 +334,7 @@ export function migrate(p) {
       const map = OPS[op];
       if (!map || !run || !Array.isArray(run.cleared)) return;
       const fin = map.nodes.find(n => n.role === 'final');
-      if (fin && run.cleared.includes(fin.id)) p.opsDone[op] = true;
+      if (fin && run.cleared.includes(fin.id)) p.opsDone[op] = 1;
     });
   }
 
@@ -373,7 +373,15 @@ export function migrate(p) {
   p.stats.opsCleared = p.stats.opsCleared || 0;
   p.ops = p.ops || {};
   p.opsDone = (p.opsDone && typeof p.opsDone === 'object') ? p.opsDone : {};
-  Object.keys(p.opsDone).forEach(k => { if (!OPS[k]) delete p.opsDone[k]; });
+  // v2.43: opsDone counts clears rather than recording a boolean, because the
+  // campaign payout curve reads the count. A `true` from an older save is one
+  // clear; anything that is not a positive number at all is not a record.
+  Object.keys(p.opsDone).forEach(k => {
+    if (!OPS[k]) { delete p.opsDone[k]; return; }
+    const v = p.opsDone[k];
+    const n = typeof v === 'number' && v > 0 ? Math.floor(v) : (v ? 1 : 0);
+    if (n) p.opsDone[k] = n; else delete p.opsDone[k];
+  });
   p.op = OPS[p.op] ? p.op : 'ironveil';
   p.mode = p.mode || 'campaign';
   p.bests = p.bests || {onslaught: 0};

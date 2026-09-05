@@ -146,16 +146,29 @@ export function opComplete() {
  * replay, a reroll or an Ironman loss throws away. This reads the career
  * record, so the map still says "you have done this" on a fresh run.
  */
-export const opCleared = k => !!(active && active.opsDone && active.opsDone[k]);
+export const opCleared = k => opClears(k) > 0;
 
-/** Mark it cleared for good. Returns true only the FIRST time it is called
- * for an operation — which is what pays the first-clear packs. */
+/**
+ * How many times this operation has been cleared, for the whole career.
+ *
+ * It was a boolean until v2.43 and the count is what the payout curve reads:
+ * the first clear pays full, and every one after it pays less (see
+ * `campaignRate` in mission.js). A save from before the count exists reads
+ * `true`, which `+` turns into 1 — the right answer for "cleared once".
+ */
+export const opClears = k => {
+  const v = active && active.opsDone ? active.opsDone[k] : 0;
+  return typeof v === 'number' ? v : (v ? 1 : 0);
+};
+
+/** Record a clear. Returns true only the FIRST time it is called for an
+ * operation — which is what pays the first-clear packs. */
 export function markOpCleared(k) {
   if (!active || !k) return false;
   active.opsDone = active.opsDone || {};
-  if (active.opsDone[k]) return false;
-  active.opsDone[k] = true;
-  return true;
+  const first = opClears(k) === 0;
+  active.opsDone[k] = opClears(k) + 1;
+  return first;
 }
 
 /**

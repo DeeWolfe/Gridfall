@@ -18,7 +18,7 @@ import {commit} from '../save/profile.js';
 import {deckCapOf, leadOf, deckProblems} from '../save/progression.js';
 import {held, heldEnemyHalf, crystalsHeld, breachAllowance, ENDGAME_TURNS} from './board.js';
 import {wave, rollDoctrine, predictSpawns} from './waves.js';
-import {opRun, genRun, opComplete, markOpCleared} from './run.js';
+import {opRun, genRun, opComplete, markOpCleared, opClears} from './run.js';
 import {runNodeState, runComplete, runDepthReached, runNodeSpec} from './roguelike.js';
 import {queuePack, queueDraft} from './packs.js';
 import {tapeEnd} from './tape.js';
@@ -35,6 +35,36 @@ const QUOTA_TYPES = ['crawler', 'breacher', 'spitter', 'hulk'];
 export const PACK_METER_GOAL = 3;
 
 /**
+ * What a campaign node pays, as a fraction of its face value, given how many
+ * times its operation has already been cleared.
+ *
+ * The first pass through an operation pays in full. Every pass after it pays
+ * less, bottoming out at 30%.
+ *
+ * The reason is a measurement: an operation could be cleared, rerolled from
+ * the completion panel and cleared again for full credits, forever, and
+ * Crownring at 3,693 credits across 11 nodes was the best rate in the game by
+ * a distance. The economically correct way to play was to ignore every other
+ * mode and re-clear one map. A mode should not be strictly dominated by a
+ * button on another mode's results screen.
+ *
+ * Replaying is still worth doing — the missions reroll, the packs still come
+ * every third node — it is just no longer the fastest way to money.
+ */
+export const CAMPAIGN_REPLAY_FLOOR = 0.3;
+export const campaignRate = clears =>
+  (clears <= 0 ? 1 : Math.max(CAMPAIGN_REPLAY_FLOOR, 1 / (clears + 1)));
+
+/**
+ * Credits per hostile destroyed, on top of a node's face value.
+ *
+ * It was `floor(kills / 5)`, which over a measured average of 8 kills a
+ * mission paid one credit. A reward nobody can perceive is not a reward; it is
+ * a line of code claiming to be one.
+ */
+const KILL_BOUNTY = 3;
+
+/**
  * Waves per free pack in Onslaught.
  *
  * It was 5, and 5 is exactly what a player reaches by deploying nothing at all
@@ -44,8 +74,14 @@ export const PACK_METER_GOAL = 3;
  */
 const ONSLAUGHT_PACK_WAVES = 10;
 
-/** Paid once, on top of the Deep Descent's final node, for putting the target down. */
-const RUN_CLEAR_BONUS = 400;
+/**
+ * Paid once, on top of the Deep Descent's final node, for putting the target
+ * down. It was 400 — a third of the mode's whole payout sitting behind a full
+ * clear, which meant a run that died at layer 2 earned the same rate per
+ * mission as Onslaught, a mode with no stakes at all. The money moved into
+ * the depth curve in roguelike.js, where the risk actually is.
+ */
+const RUN_CLEAR_BONUS = 200;
 
 /** Fresh, neutral-in-the-middle territory grid. */
 function freshTerritory() {
@@ -381,7 +417,13 @@ function settleOnslaught() {
   const record = best > previous;
   active.bests.onslaught = best;
 
-  const cr = G.turn * 12 + Math.floor(G.turn * 1.5);
+  // Flat 13.5 a wave paid 108 at the measured median of 8 — half of one
+  // campaign node, for the mode that asks for the longest unbroken attention
+  // in the game. The curve is superlinear now, so the pitch ("credits scale
+  // with how deep you get") is true rather than decorative: wave 8 pays 240,
+  // wave 12 pays 432, wave 20 pays 960. An idle run still ends around wave 5,
+  // which pays 127 and no pack.
+  const cr = G.turn * 18 + Math.round(G.turn * G.turn * 1.5);
   active.progress.credits += cr;
   active.stats.deployments++;
   active.stats.kills += G.kills;
@@ -421,7 +463,7 @@ function settleRun(win, why) {
   if (win) {
     if (!r.cleared.includes(G.node)) r.cleared.push(G.node);
     r.depth = Math.max(r.depth || 0, depth);
-    cr = G.reward + Math.floor(G.kills / 5);
+    cr = G.reward + G.kills * KILL_BOUNTY;
     active.progress.credits += cr;
     active.stats.held++;
     done = runComplete();
@@ -474,7 +516,10 @@ function settleCampaign(win, why) {
   let cr = 0;
 
   if (win) {
-    cr = G.reward + Math.floor(G.kills / 5);
+    // The rate is read BEFORE markOpCleared runs below, so the node that
+    // completes an operation is still paid at the rate that operation was
+    // being played at — you are not docked for finishing.
+    cr = Math.round((G.reward + G.kills * KILL_BOUNTY) * campaignRate(opClears(G.op)));
     active.progress.credits += cr;
     opRun().cleared.push(G.node);
     active.stats.held++;

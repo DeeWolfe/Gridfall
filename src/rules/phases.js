@@ -148,6 +148,9 @@ function sporePulse(e, D) {
 
 const MINDCTRL_TURNS = 2;
 
+/** Credits for extracting a Research Team pod. */
+const RESEARCH_BOUNTY = 150;
+
 /** Puppeteer: seizes the nearest un-controlled friendly in its lane, turning
  * it against the player until it breaks free or the Puppeteer dies. Checked
  * ahead of the spd===0 return — its own stillness must not swallow the cast. */
@@ -428,8 +431,11 @@ export function territoryPhase() {
     v.timer--;
     if (v.timer > 0) return;
     G.civ = G.civ.filter(x => x !== v);
-    active.progress.credits += 60;
-    clog('<span class="g">Research team extracted</span> — specimen data logged, +60 credits.', 'order');
+    // 60 against a 300-credit node was a thank-you note, not a payout. Saving
+    // the pod costs you a turn of attention in the middle of a fight; half a
+    // node is what that is worth.
+    active.progress.credits += RESEARCH_BOUNTY;
+    clog(`<span class="g">Research team extracted</span> — specimen data logged, +${RESEARCH_BOUNTY} credits.`, 'order');
   });
 }
 

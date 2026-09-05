@@ -10,9 +10,9 @@ import {MISSIONS} from '../content/missions.js';
 import {MODS} from '../content/modifiers.js';
 import {OPS} from '../content/operations.js';
 import {active, MAPDEF, setMapdef} from '../state/session.js';
-import {opRun, nodeState, reqBlocked, opComplete, genRun} from '../rules/run.js';
+import {opRun, nodeState, reqBlocked, opComplete, genRun, opClears} from '../rules/run.js';
 import {bossForOp} from '../rules/boss.js';
-import {launch} from '../rules/mission.js';
+import {launch, campaignRate} from '../rules/mission.js';
 import {commit} from '../save/profile.js';
 import {$} from './dom.js';
 import {ask} from './dialog.js';
@@ -123,12 +123,15 @@ export function renderMap() {
   $('maptitle').textContent = MAPDEF.n;
 
   const open = complete ? [] : MAPDEF.nodes.filter(n => nodeState(n.id) === 'open');
+  // Node payouts are quoted at what they will actually pay, not at face value:
+  // a replay pays a fraction and a briefing that hid that would be lying.
+  const rate = campaignRate(opClears(active.op));
   const briefings = complete
     // The final node is down — the map stays up showing every node secured,
     // rather than snapping to a fresh roll before the player has seen it.
     ? `<div class="row" style="flex-direction:column;align-items:flex-start;gap:10px;padding:16px 4px">
         <span style="color:var(--gold);letter-spacing:1px">作戦完了 · OPERATION COMPLETE</span>
-        <span style="font-size:0.6562rem;color:var(--dim);line-height:1.5">The first clear paid its requisition bundle. A replay pays credits and node drops as usual — the bundle is a one-time thing, and this operation stays on your record whatever you roll next.</span>
+        <span style="font-size:0.6562rem;color:var(--dim);line-height:1.5">The first clear paid its requisition bundle and its full rate. A replay rerolls every mission and still drops packs every third node, but it pays <b style="color:var(--gold)">${Math.round(campaignRate(opClears(active.op)) * 100)}%</b> of face value — ground you have already taken is worth less than ground you have not. This operation stays on your record whatever you roll next.</span>
         <span style="font-size:0.6562rem;color:var(--dim);line-height:1.5">Every node on this map has been secured. Any unclaimed bonus objectives are forfeit — replay to roll a fresh set of missions here.</span>
         <button class="btn gold" id="opreplay">↺ Replay operation</button>
       </div>`
@@ -142,7 +145,7 @@ export function renderMap() {
       return `<div class="row" data-go="${n.id}" style="cursor:pointer">
         <span><b style="color:var(--zan)">${n.l ? n.l + ' — ' : ''}${m.n}</b>${nd.mod !== 'none' ? ` <span style="color:var(--violet)">· ${md.n}</span>` : ''}${tag}
         <div style="font-size:0.6562rem;color:var(--dim);margin-top:4px;line-height:1.5">${n.lore ? n.lore + ' ' : ''}${m.d}${md.d ? ' ' + md.d : ''}</div></span>
-        <span class="r hot">${nd.reward} cr ▸</span></div>`;
+        <span class="r hot">${Math.round(nd.reward * rate)} cr ▸</span></div>`;
     }).join('') || '<div class="row"><span style="color:var(--dim)">Operation complete.</span></div>';
 
   // Gated nodes the player could otherwise reach: say what is holding them.
@@ -154,7 +157,8 @@ export function renderMap() {
     ${mapSvg(MAPDEF, run, complete, nodeState, reqBlocked)}</div>
     ${MAPDEF.lore ? `<div class="sect">状況 · Situation report</div>
       <div class="oplore" style="border-color:${MAPDEF.col}">${MAPDEF.lore}</div>` : ''}</div>
-    <div><div class="sect">${complete ? 'Status' : 'Available — ' + open.length}</div><div class="rows">${briefings}${gatedRows}</div>
+    <div><div class="sect">${complete ? 'Status'
+    : `Available — ${open.length}${rate < 1 ? ` · replay pay ${Math.round(rate * 100)}%` : ''}`}</div><div class="rows">${briefings}${gatedRows}</div>
     <div class="sect">Loadout</div><div class="rows">
       <div class="row"><span>Deck size</span><span class="r${active.loadout.deck.length < 6 ? '' : ' hot'}">${active.loadout.deck.length} cards</span></div>
       <div class="row"><span>Gear fitted</span><span class="r">${Object.keys(active.loadout.gear).length}</span></div>
