@@ -17,7 +17,7 @@ import {commit} from '../save/profile.js';
 import {deckCapOf, leadOf, deckProblems} from '../save/progression.js';
 import {held, heldEnemyHalf, crystalsHeld, breachAllowance, ENDGAME_TURNS} from './board.js';
 import {wave, rollDoctrine, predictSpawns} from './waves.js';
-import {opRun, genRun, opComplete} from './run.js';
+import {opRun, genRun, opComplete, markOpCleared} from './run.js';
 import {queuePack} from './packs.js';
 import {tapeEnd} from './tape.js';
 import {seedFrame} from './frames.js';
@@ -453,7 +453,15 @@ function settleCampaign(win, why) {
     }
     if (opComplete()) {
       active.stats.opsCleared = (active.stats.opsCleared || 0) + 1;
-      queuePack('specialist', MAPDEF.n + ' complete');
+      // The first clear of an operation is the one that pays: two standard
+      // packs and a specialist. Every clear after it is a replay of ground
+      // already taken, so it pays credits and nothing else — markOpCleared
+      // returns true exactly once per operation, for the whole career.
+      if (markOpCleared(G.op)) {
+        queuePack('standard', MAPDEF.n + ' — first clear');
+        queuePack('standard', MAPDEF.n + ' — first clear');
+        queuePack('specialist', MAPDEF.n + ' — first clear');
+      }
     }
   } else {
     active.stats.lost++;

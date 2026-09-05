@@ -4,9 +4,16 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.39.5';
+export const VERSION = '2.40';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.40',
+    notes: [
+      "CLEARING AN OPERATION PAYS A REQUISITION BUNDLE — ONCE. The first time you take an operation's last node, three packs land instead of one: two standard and a specialist. It is a first-clear reward, so replaying the map pays its credits and its node drops as normal and nothing more.",
+      'AND THE MAP REMEMBERS. An operation you have finished keeps a gold tick on the shelf for the rest of your career — through a replay, a reroll, and an Ironman wipe. The card reads "✓ · 0 / 7 cleared · replaying" so the run in progress and the ground you have already taken are two separate facts. The Service Record\'s Operations tab says the same. Commanders who have already finished an operation keep the credit for it: the record back-fills from your saved runs on load.',
+    ],
+  },
   {
     v: '2.39.5',
     notes: [

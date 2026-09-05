@@ -140,6 +140,25 @@ export function opComplete() {
 }
 
 /**
+ * Has this operation ever been cleared by this commander?
+ *
+ * Deliberately NOT opComplete(): that reads the run in progress, which a
+ * replay, a reroll or an Ironman loss throws away. This reads the career
+ * record, so the map still says "you have done this" on a fresh run.
+ */
+export const opCleared = k => !!(active && active.opsDone && active.opsDone[k]);
+
+/** Mark it cleared for good. Returns true only the FIRST time it is called
+ * for an operation — which is what pays the first-clear packs. */
+export function markOpCleared(k) {
+  if (!active || !k) return false;
+  active.opsDone = active.opsDone || {};
+  if (active.opsDone[k]) return false;
+  active.opsDone[k] = true;
+  return true;
+}
+
+/**
  * Make `p` the profile being played. DOM-free: the renderer wraps this to also
  * switch to the hold screen.
  */

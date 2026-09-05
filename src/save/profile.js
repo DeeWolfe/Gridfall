@@ -32,6 +32,9 @@ export function blankProfile(callsign) {
     usage: {},
     op: 'ironveil',
     ops: {},
+    // Operations cleared at least once, ever. Survives a replay, a reroll and
+    // an Ironman wipe — `ops` is the run in progress, this is the career.
+    opsDone: {},
     mode: 'campaign',
     ironman: false,
     gaunt: null,
@@ -314,6 +317,22 @@ export function migrate(p) {
     Object.keys(p.loadout.gear || {}).forEach(c => { if (refunds[p.loadout.gear[c]]) delete p.loadout.gear[c]; });
   }
 
+  // v21: operations remember they were cleared, permanently. `ops` holds the
+  // run in progress and is thrown away by a replay, a reroll or an Ironman
+  // wipe, so it could never answer "have I finished this one before?". The
+  // record moves outside it — and back-fills from any stored run whose final
+  // node is already cleared, which is the only evidence an old save carries.
+  if (p.version < 21) {
+    p.version = 21;
+    p.opsDone = p.opsDone || {};
+    Object.entries(p.ops || {}).forEach(([op, run]) => {
+      const map = OPS[op];
+      if (!map || !run || !Array.isArray(run.cleared)) return;
+      const fin = map.nodes.find(n => n.role === 'final');
+      if (fin && run.cleared.includes(fin.id)) p.opsDone[op] = true;
+    });
+  }
+
   p.unlocks = p.unlocks || {};
   p.unlocks.cards = p.unlocks.cards || [...STARTER];
   p.unlocks.enemies = p.unlocks.enemies || [];
@@ -348,6 +367,8 @@ export function migrate(p) {
   p.stats = p.stats || {deployments: 0, held: 0, lost: 0, breaches: 0, kills: 0, unitsLost: 0};
   p.stats.opsCleared = p.stats.opsCleared || 0;
   p.ops = p.ops || {};
+  p.opsDone = (p.opsDone && typeof p.opsDone === 'object') ? p.opsDone : {};
+  Object.keys(p.opsDone).forEach(k => { if (!OPS[k]) delete p.opsDone[k]; });
   p.op = OPS[p.op] ? p.op : 'ironveil';
   p.mode = p.mode || 'campaign';
   p.bests = p.bests || {onslaught: 0, gauntlet: 0};

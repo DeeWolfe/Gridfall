@@ -96,6 +96,7 @@ export function renderMap() {
     // rather than snapping to a fresh roll before the player has seen it.
     ? `<div class="row" style="flex-direction:column;align-items:flex-start;gap:10px;padding:16px 4px">
         <span style="color:var(--gold);letter-spacing:1px">作戦完了 · OPERATION COMPLETE</span>
+        <span style="font-size:0.6562rem;color:var(--dim);line-height:1.5">The first clear paid its requisition bundle. A replay pays credits and node drops as usual — the bundle is a one-time thing, and this operation stays on your record whatever you roll next.</span>
         <span style="font-size:0.6562rem;color:var(--dim);line-height:1.5">Every node on this map has been secured. Any unclaimed bonus objectives are forfeit — replay to roll a fresh set of missions here.</span>
         <button class="btn gold" id="opreplay">↺ Replay operation</button>
       </div>`

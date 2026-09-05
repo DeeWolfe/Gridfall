@@ -31,7 +31,7 @@ export {
   nextUid, clearSelection,
 } from '../../src/state/session.js';
 
-export {genRun, opRun, nodeState, enterProfile, reqBlocked, opComplete} from '../../src/rules/run.js';
+export {genRun, opRun, nodeState, enterProfile, reqBlocked, opComplete, opCleared, markOpCleared} from '../../src/rules/run.js';
 export {
   unitAt, foeAt, civAt, held, heldEnemyHalf, crystalsHeld, scorched,
   cellPassable, validTiles, breachAllowance, visibleCells, cellVisible, foeVisible,

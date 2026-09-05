@@ -3,7 +3,7 @@
 import {OPS} from '../content/operations.js';
 import {active, setMapdef} from '../state/session.js';
 import {commit} from '../save/profile.js';
-import {genRun} from '../rules/run.js';
+import {genRun, opCleared} from '../rules/run.js';
 import {$, show} from './dom.js';
 import {leadCardHTML, leadTilesHTML, toggleRoster, opThumb} from './hold.js';
 import {focusLead} from './focus.js';
@@ -21,12 +21,18 @@ export function renderOps() {
     const done = run ? run.cleared.length : 0;
     const final = o.nodes.find(n => n.role === 'final');
     const complete = !!(run && final && run.cleared.includes(final.id));
+    // Two different facts, and they part company the moment a map is replayed:
+    // `complete` is this run, `cleared` is the career. The tick belongs to the
+    // career — an operation you have finished stays finished on the shelf, and
+    // a fresh roll of it shows the tick beside a progress count of 0.
+    const cleared = opCleared(o.k);
     const current = active.op === o.k;
     return `<button class="opcard${current ? ' cur' : ''}" data-op="${o.k}" style="--oc:${o.col}">
-      <div class="opname">${o.n}${o.heat ? `<span class="heatpips" title="Deep zone — +${o.heat} threat every wave">${'▲'.repeat(o.heat)}</span>` : ''}${complete ? ' <span style="color:var(--gold)">✓</span>' : ''}</div>
+      <div class="opname">${o.n}${o.heat ? `<span class="heatpips" title="Deep zone — +${o.heat} threat every wave">${'▲'.repeat(o.heat)}</span>` : ''}${cleared ? ' <span style="color:var(--gold)" title="Cleared — you have finished this operation">✓</span>' : ''}</div>
       <div class="opsub">${o.sub}</div>
       ${opThumb(o, run)}
-      <div class="opfoot"><span${complete ? ' style="color:var(--gold)"' : ''}>${complete ? 'Complete' : `${done} / ${o.nodes.length} cleared`}</span>
+      <div class="opfoot"><span${complete ? ' style="color:var(--gold)"' : ''}>${complete ? 'Complete'
+      : `${done} / ${o.nodes.length} cleared${cleared ? ' · replaying' : ''}`}</span>
         <span style="color:${o.col}">${current ? 'ACTIVE ▸' : 'Deploy ▸'}</span></div></button>`;
   }).join('')}</div>
   <div class="mnote">Each operation is its own map with its own missions. Progress is tracked separately — switch between them freely.</div>`;

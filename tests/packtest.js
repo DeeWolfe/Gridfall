@@ -205,11 +205,13 @@ A.enterProfile(p);
     A.finish(true, '');
     A.setG(null);
     const expected = Math.floor(win / A.PACK_METER_GOAL);
-    // Completing the whole operation also queues a specialist pack; only count
-    // the standard drip here.
-    const standard = A.packQueue.filter(x => x.tier === 'standard').length;
-    if (standard !== expected) {
-      F.push(`after ${win} wins expected ${expected} standard packs, got ${standard}`);
+    // Completing the whole operation pays its own first-clear bundle (two
+    // standard, one specialist), so the meter is counted by its own label
+    // rather than by tier — otherwise finishing the map looks like the meter
+    // running fast.
+    const meter = A.packQueue.filter(x => x.label === 'Node secured').length;
+    if (meter !== expected) {
+      F.push(`after ${win} wins expected ${expected} meter packs, got ${meter}`);
     }
   }
 }
@@ -244,6 +246,52 @@ A.enterProfile(p);
     F.push(`surviving 20 waves paid ${A.packQueue.length} packs, expected 2`);
   }
   A.setG(null);
+}
+
+// 8. clearing an operation pays a first-clear bundle — once, ever
+//
+// The whole point of the record is that it outlives the run: `ops` is thrown
+// away by a replay, a reroll or an Ironman loss, so the payout has to hang off
+// something else or a commander could farm the bundle by rerolling the map.
+{
+  const clearOp = () => {
+    let guard = 0;
+    while (!A.opComplete() && guard++ < 40) {
+      const open = Object.keys(A.opRun().nodes).filter(id => A.nodeState(id) === 'open');
+      if (!open.length) break;
+      A.launch(open[0]);
+      A.finish(true, '');
+      A.setG(null);
+    }
+  };
+  const bundle = () => A.packQueue.filter(x => /first clear/.test(x.label));
+
+  A.enterProfile(A.blankProfile('FIRST'));
+  if (A.opCleared(A.active.op)) F.push('a fresh commander already has an operation on record');
+  A.setPackQueue([]);
+  const op = A.active.op;
+  clearOp();
+  if (!A.opComplete()) F.push('could not clear the operation');
+  if (!A.opCleared(op)) F.push('clearing the operation did not go on the record');
+
+  const first = bundle();
+  const std = first.filter(x => x.tier === 'standard').length;
+  const spec = first.filter(x => x.tier === 'specialist').length;
+  if (std !== 2 || spec !== 1) {
+    F.push(`first clear paid ${std} standard + ${spec} specialist, expected 2 + 1`);
+  }
+
+  // Reroll the map and clear it again: credits yes, bundle no.
+  A.setPackQueue([]);
+  A.genRun();
+  if (!A.opCleared(op)) F.push('a reroll wiped the completion record');
+  clearOp();
+  if (bundle().length) F.push(`a repeat clear paid ${bundle().length} first-clear pack(s)`);
+
+  // And the record survives a save round trip.
+  A.commit();
+  const back = A.initProfiles().find(x => x.callsign === 'FIRST');
+  if (!back || !back.opsDone || !back.opsDone[op]) F.push('the completion record did not persist');
 }
 
 F.report('requisition packs: all checks pass');

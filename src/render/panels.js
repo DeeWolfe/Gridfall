@@ -12,7 +12,7 @@ import {active, profiles, setActive} from '../state/session.js';
 import {store} from '../save/store.js';
 import {commit, migrate, saveAll} from '../save/profile.js';
 import {rankName, costOf, vetOf, leadUnlocked, deckCapOf, leadBan, leadOf, deckProblems} from '../save/progression.js';
-import {genRun} from '../rules/run.js';
+import {genRun, opCleared} from '../rules/run.js';
 import {purchasePack, PACK_PRICE} from '../rules/packs.js';
 import {$, attr, show, markSwipe} from './dom.js';
 import {sigil} from './art.js';
@@ -546,7 +546,13 @@ function recordPanel() {
     const operations = Object.values(OPS).map(o => {
       const r = active.ops[o.k];
       const done = r ? r.cleared.length : 0;
-      return `<div class="row"><span>${o.n}</span><span class="r${done ? ' hot' : ''}">${done} / ${o.nodes.length} cleared</span></div>`;
+      // The career record first, the run in progress second — an operation you
+      // finished and then rerolled reads "Cleared · 2 / 7 this run", not as
+      // though you had never been there.
+      const ever = opCleared(o.k);
+      return `<div class="row"><span>${ever ? '<b style="color:var(--gold)">◆</b> ' : ''}${o.n}</span>
+        <span class="r${ever ? ' hot' : ''}">${ever ? `Cleared · ${done} / ${o.nodes.length} this run`
+        : `${done} / ${o.nodes.length} cleared`}</span></div>`;
     }).join('');
     return bar + `<div class="sect">Operations</div><div class="rows">${operations}</div>`;
   }

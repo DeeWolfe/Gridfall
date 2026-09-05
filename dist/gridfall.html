@@ -3739,7 +3739,7 @@ const GROUND_FLOOR = 6;
  */
 const HAND_CAP = 6;
 const DECKSIZE = 12;
-const SAVE_VERSION = 20;
+const SAVE_VERSION = 21;
 const STARTER = ["scout", "rifle", "marks", "wall", "medic", "archer", "lancer", "bulwark", "assassin"];
 
 /* ==== src/save/progression.js ======================================= */
@@ -4524,6 +4524,9 @@ function blankProfile(callsign) {
     usage: {},
     op: 'ironveil',
     ops: {},
+    // Operations cleared at least once, ever. Survives a replay, a reroll and
+    // an Ironman wipe — `ops` is the run in progress, this is the career.
+    opsDone: {},
     mode: 'campaign',
     ironman: false,
     gaunt: null,
@@ -4806,6 +4809,22 @@ function migrate(p) {
     Object.keys(p.loadout.gear || {}).forEach(c => { if (refunds[p.loadout.gear[c]]) delete p.loadout.gear[c]; });
   }
 
+  // v21: operations remember they were cleared, permanently. `ops` holds the
+  // run in progress and is thrown away by a replay, a reroll or an Ironman
+  // wipe, so it could never answer "have I finished this one before?". The
+  // record moves outside it — and back-fills from any stored run whose final
+  // node is already cleared, which is the only evidence an old save carries.
+  if (p.version < 21) {
+    p.version = 21;
+    p.opsDone = p.opsDone || {};
+    Object.entries(p.ops || {}).forEach(([op, run]) => {
+      const map = OPS[op];
+      if (!map || !run || !Array.isArray(run.cleared)) return;
+      const fin = map.nodes.find(n => n.role === 'final');
+      if (fin && run.cleared.includes(fin.id)) p.opsDone[op] = true;
+    });
+  }
+
   p.unlocks = p.unlocks || {};
   p.unlocks.cards = p.unlocks.cards || [...STARTER];
   p.unlocks.enemies = p.unlocks.enemies || [];
@@ -4840,6 +4859,8 @@ function migrate(p) {
   p.stats = p.stats || {deployments: 0, held: 0, lost: 0, breaches: 0, kills: 0, unitsLost: 0};
   p.stats.opsCleared = p.stats.opsCleared || 0;
   p.ops = p.ops || {};
+  p.opsDone = (p.opsDone && typeof p.opsDone === 'object') ? p.opsDone : {};
+  Object.keys(p.opsDone).forEach(k => { if (!OPS[k]) delete p.opsDone[k]; });
   p.op = OPS[p.op] ? p.op : 'ironveil';
   p.mode = p.mode || 'campaign';
   p.bests = p.bests || {onslaught: 0, gauntlet: 0};
@@ -8488,6 +8509,25 @@ function opComplete() {
 }
 
 /**
+ * Has this operation ever been cleared by this commander?
+ *
+ * Deliberately NOT opComplete(): that reads the run in progress, which a
+ * replay, a reroll or an Ironman loss throws away. This reads the career
+ * record, so the map still says "you have done this" on a fresh run.
+ */
+const opCleared = k => !!(active && active.opsDone && active.opsDone[k]);
+
+/** Mark it cleared for good. Returns true only the FIRST time it is called
+ * for an operation — which is what pays the first-clear packs. */
+function markOpCleared(k) {
+  if (!active || !k) return false;
+  active.opsDone = active.opsDone || {};
+  if (active.opsDone[k]) return false;
+  active.opsDone[k] = true;
+  return true;
+}
+
+/**
  * Make `p` the profile being played. DOM-free: the renderer wraps this to also
  * switch to the hold screen.
  */
@@ -9037,7 +9077,15 @@ function settleCampaign(win, why) {
     }
     if (opComplete()) {
       active.stats.opsCleared = (active.stats.opsCleared || 0) + 1;
-      queuePack('specialist', MAPDEF.n + ' complete');
+      // The first clear of an operation is the one that pays: two standard
+      // packs and a specialist. Every clear after it is a replay of ground
+      // already taken, so it pays credits and nothing else — markOpCleared
+      // returns true exactly once per operation, for the whole career.
+      if (markOpCleared(G.op)) {
+        queuePack('standard', MAPDEF.n + ' — first clear');
+        queuePack('standard', MAPDEF.n + ' — first clear');
+        queuePack('specialist', MAPDEF.n + ' — first clear');
+      }
     }
   } else {
     active.stats.lost++;
@@ -12126,6 +12174,7 @@ function renderMap() {
     // rather than snapping to a fresh roll before the player has seen it.
     ? `<div class="row" style="flex-direction:column;align-items:flex-start;gap:10px;padding:16px 4px">
         <span style="color:var(--gold);letter-spacing:1px">作戦完了 · OPERATION COMPLETE</span>
+        <span style="font-size:0.6562rem;color:var(--dim);line-height:1.5">The first clear paid its requisition bundle. A replay pays credits and node drops as usual — the bundle is a one-time thing, and this operation stays on your record whatever you roll next.</span>
         <span style="font-size:0.6562rem;color:var(--dim);line-height:1.5">Every node on this map has been secured. Any unclaimed bonus objectives are forfeit — replay to roll a fresh set of missions here.</span>
         <button class="btn gold" id="opreplay">↺ Replay operation</button>
       </div>`
@@ -12203,12 +12252,18 @@ function renderOps() {
     const done = run ? run.cleared.length : 0;
     const final = o.nodes.find(n => n.role === 'final');
     const complete = !!(run && final && run.cleared.includes(final.id));
+    // Two different facts, and they part company the moment a map is replayed:
+    // `complete` is this run, `cleared` is the career. The tick belongs to the
+    // career — an operation you have finished stays finished on the shelf, and
+    // a fresh roll of it shows the tick beside a progress count of 0.
+    const cleared = opCleared(o.k);
     const current = active.op === o.k;
     return `<button class="opcard${current ? ' cur' : ''}" data-op="${o.k}" style="--oc:${o.col}">
-      <div class="opname">${o.n}${o.heat ? `<span class="heatpips" title="Deep zone — +${o.heat} threat every wave">${'▲'.repeat(o.heat)}</span>` : ''}${complete ? ' <span style="color:var(--gold)">✓</span>' : ''}</div>
+      <div class="opname">${o.n}${o.heat ? `<span class="heatpips" title="Deep zone — +${o.heat} threat every wave">${'▲'.repeat(o.heat)}</span>` : ''}${cleared ? ' <span style="color:var(--gold)" title="Cleared — you have finished this operation">✓</span>' : ''}</div>
       <div class="opsub">${o.sub}</div>
       ${opThumb(o, run)}
-      <div class="opfoot"><span${complete ? ' style="color:var(--gold)"' : ''}>${complete ? 'Complete' : `${done} / ${o.nodes.length} cleared`}</span>
+      <div class="opfoot"><span${complete ? ' style="color:var(--gold)"' : ''}>${complete ? 'Complete'
+      : `${done} / ${o.nodes.length} cleared${cleared ? ' · replaying' : ''}`}</span>
         <span style="color:${o.col}">${current ? 'ACTIVE ▸' : 'Deploy ▸'}</span></div></button>`;
   }).join('')}</div>
   <div class="mnote">Each operation is its own map with its own missions. Progress is tracked separately — switch between them freely.</div>`;
@@ -16093,7 +16148,13 @@ function recordPanel() {
     const operations = Object.values(OPS).map(o => {
       const r = active.ops[o.k];
       const done = r ? r.cleared.length : 0;
-      return `<div class="row"><span>${o.n}</span><span class="r${done ? ' hot' : ''}">${done} / ${o.nodes.length} cleared</span></div>`;
+      // The career record first, the run in progress second — an operation you
+      // finished and then rerolled reads "Cleared · 2 / 7 this run", not as
+      // though you had never been there.
+      const ever = opCleared(o.k);
+      return `<div class="row"><span>${ever ? '<b style="color:var(--gold)">◆</b> ' : ''}${o.n}</span>
+        <span class="r${ever ? ' hot' : ''}">${ever ? `Cleared · ${done} / ${o.nodes.length} this run`
+        : `${done} / ${o.nodes.length} cleared`}</span></div>`;
     }).join('');
     return bar + `<div class="sect">Operations</div><div class="rows">${operations}</div>`;
   }
@@ -16373,9 +16434,16 @@ function openPanel(key, quiet) {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.39.5';
+const VERSION = '2.40';
 
 const PATCH_NOTES = [
+  {
+    v: '2.40',
+    notes: [
+      "CLEARING AN OPERATION PAYS A REQUISITION BUNDLE — ONCE. The first time you take an operation's last node, three packs land instead of one: two standard and a specialist. It is a first-clear reward, so replaying the map pays its credits and its node drops as normal and nothing more.",
+      'AND THE MAP REMEMBERS. An operation you have finished keeps a gold tick on the shelf for the rest of your career — through a replay, a reroll, and an Ironman wipe. The card reads "✓ · 0 / 7 cleared · replaying" so the run in progress and the ground you have already taken are two separate facts. The Service Record\'s Operations tab says the same. Commanders who have already finished an operation keep the credit for it: the record back-fills from your saved runs on load.',
+    ],
+  },
   {
     v: '2.39.5',
     notes: [
