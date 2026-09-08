@@ -9,8 +9,7 @@ import {LANES, COLS} from '../state/constants.js';
 import {BEST} from '../content/hostiles.js';
 import {G} from '../state/session.js';
 import {unitAt, foeAt, civAt, foeVisible} from './board.js';
-import {dampenIn, hymnAt, chillFactor} from './combat.js';
-import {eventStrikeMalus} from './events.js';
+import {dampenIn, hymnAt, chillFactor, foeStrike} from './combat.js';
 import {bossSelThreat} from './boss.js';
 
 /**
@@ -52,9 +51,9 @@ export function forecastThreat() {
     const cv = civAt(e.lane, e.col - 1);
     atk[e.uid] = true;
 
-    // Mirrors strike(): the chorus aura and a Seismic Tremor shift every blow.
+    // Mirrors strike(): chorus, sermon, tremor and suppression, one helper.
     const chorus = G.enemies.some(o => BEST[o.k].aura) ? 1 : 0;
-    const raw = Math.max(1, D.dmg + chorus - eventStrikeMalus());
+    const raw = foeStrike(e, D, chorus);
     if (cv) {
       const key = 'c' + cv.l + ',' + cv.c;
       hits[key] = (hits[key] || 0) + raw;
@@ -85,7 +84,7 @@ export function enemyIntent(e) {
   if (D.spd === 0) return {k: 'hold'};
 
   const chorus = G.enemies.some(o => BEST[o.k].aura) ? 1 : 0;
-  const dmg = Math.max(1, (D.dmg || 0) + chorus - eventStrikeMalus());
+  const dmg = foeStrike(e, D, chorus);
 
   if (D.mend && G.enemies.some(o =>
     o.uid !== e.uid && o.lane === e.lane && o.hp < BEST[o.k].hp)) return {k: 'mend'};

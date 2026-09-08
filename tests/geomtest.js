@@ -164,7 +164,9 @@ if (checked < 1000) F.push(`only ${checked} pairs checked — the fixture stoppe
   for (const id of Object.keys(POOL)) {
     const k = POOL[id];
     const h = hitboxFor(id);
-    const armed = !!(k.tg && k.tg !== 'none' && k.dmg);
+    // A Suppression Barrage is armed without dealing damage: what it covers IS
+    // the card, so it draws a diagram like any other weapon.
+    const armed = !!(k.tg && k.tg !== 'none' && (k.dmg || k.suppress));
     if (h) withDiagram++;
     if (!!h !== armed) F.push(`${id}: diagram=${!!h} but armed=${armed}`);
     if (h && count(h, 'me') !== 1) F.push(`${id}: diagram has ${count(h, 'me')} unit markers`);

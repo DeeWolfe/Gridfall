@@ -45,6 +45,8 @@ const KANJI = {
   beamrifle: '射', beamsaber: '剣', booster: '翔', beamjavelin: '投', guardianfield: '守', devilsdrive: '猛',
   greatsword: '大', longsword: '長', resonator: '振', pilebunker: '穿', dualblades: '双', doubleblade: '對',
   lasergatling: '閃', missilegatling: '雨', ammohopper: '弾', siegecannon: '砲', corebooster: '脚',
+  hypermace: '槌', hyperbazooka: '轟', zanshinstance: '残', phaseshift: '移',
+  suppressionbarrage: '抑', targetinguplink: '標',
 };
 
 const INK = '#e8e4f5';

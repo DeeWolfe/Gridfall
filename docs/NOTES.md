@@ -5773,3 +5773,77 @@ Fireteam armour (`fits`: camo, lock, jetpack, dropshield, hologram, xgrenade)
 has the same shape of problem — six cards that are dead unless a Fireteam is
 standing — and was deliberately left alone. It is a different line with a
 different host, and converting it is a separate decision.
+
+## v2.46 — the second kits, and what the audit turned up
+
+An external design patch arrived as three JSON files plus a README: a kit
+rebalance, six new hardpoints, and two hostile reworks. Its own README said to
+distrust its value model, which turned out to be the right instinct. What
+follows is what was checked before any of it was applied, and what the
+measurements said afterwards.
+
+### The audit
+
+All eleven "before" values in the rebalance matched the live build exactly —
+zero drift, so the patch was written against a current read of the data. Four
+things did not line up and were corrected on the way in:
+
+- `sporenode` and `bulwarkpylon` are `spore` and `pylon` in the data.
+- The Choir Warden's healing field is `mend`, not `heal`.
+- `range2v2` (the Crystal Longsword's new shape) did not exist and had to be
+  built, in both `geomFor` and `geomCells`.
+- The README says six new pieces; the JSON's own `_note` says five. Six is
+  right.
+
+Both hostile diagnoses were confirmed independently rather than taken on
+trust. The Choir Warden and the Mender were the same hostile twice (`mend: 2`,
+threat 4, 7 vs 8 hull). The Lector and the Spitter were identical in **every**
+number: 5 hull, 4 damage, 3 threat, halt at column four.
+
+### What the bot measured
+
+Every chassis against every hardpoint combination, 400 first-node missions a
+build (σ ≈ 2.5 points), baseline 42% for a deck with no Frame:
+
+- The spread runs 37–64%, which is a healthy table — no mount has one
+  obviously correct answer, which is the thing these kits exist to fix.
+- **The Siege Cannon at 12 was the exception.** Re-run at 1,200 missions a
+  build to separate it from noise: dmg 8 → ~52%, dmg 10 → ~55%, dmg 12 → ~59%,
+  against a next-best of 51–54% anywhere else in the game. Twelve made it the
+  single right answer. It shipped at **10** — measurably above the 8 it was,
+  still the top of the Heavy Arms table, not five to eight points clear of
+  every other build.
+- **The Suppression Barrage measures badly and shipped anyway:** 38–43%
+  against 41% for a bare Heavy Arms. That is the expected reading and not a
+  reason to change it. The bot fires whatever is loaded at whatever is in
+  reach and never plans a turn ahead, so a weapon whose entire value is *next*
+  turn is invisible to it. `tests/README.md` is explicit that the bot is a
+  floor, not a measurement of how the game plays in human hands. This is the
+  card where that distinction does the work. It is the one number in this
+  patch worth revisiting on player feedback rather than on a bot run.
+
+### Eight cards were lying about their damage
+
+The rebalance changed eleven numbers and no card text. Eight kits were
+advertising damage the weapon no longer dealt — the Beam Rifle said 5 and dealt
+6, the Siege Cannon said 8 and dealt 12. All eight are rewritten, and
+`tests/kittest.js` now fails the build if a Frame weapon's description quotes a
+figure that is not its damage. A kit whose text describes the shape and leaves
+the number to the stat row is legitimate and exempt by name (the Dual Blades);
+quoting the *wrong* number is not.
+
+### Two rules holes the new weapon opened
+
+`geomFor` and `geomCells` both began `if (u.tg === 'none' || !u.dmg) return []`,
+which is correct until a weapon deals no damage on purpose. The Suppression
+Barrage had no targets and lit no cells — the one weapon whose whole job is
+area denial would have been the one weapon you could not aim. Both now read
+`(!u.dmg && !u.suppress)`.
+
+### One shared reading for the hostile blow
+
+`strike()`, `forecastThreat()` and `enemyIntent()` each computed the incoming
+number themselves and had already been kept in sync by hand. The Lector's
+sermon and suppression's halving would have been three edits, so they are one
+now: `foeStrike(e, D, chorus)` in `combat.js`. The swing, the number painted on
+your board, and the intent badge on the hostile's chip cannot disagree.

@@ -4,9 +4,21 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.45.1';
+export const VERSION = '2.46';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.46',
+    notes: [
+      'EVERY FRAME MOUNT NOW HAS A CHOICE IN IT. Six new hardpoints, two per machine, so no mount on any chassis is down to a single right answer. The White Devil gets the HYPER MACE (8 at contact, and whatever lives through it is driven back a cell) and the HYPER BAZOOKA (4 across three lanes at exactly three cells out, and blind at contact — the first weapon in the game that cannot defend itself). The Seven Blades gets ZANSHIN STANCE (its riposte answers every hostile standing adjacent, not only the one that swung) and PHASE SHIFT (the first blow it takes each turn passes straight through). The Heavy Arms gets the SUPPRESSION BARRAGE and the TARGETING UPLINK.',
+      'THE SUPPRESSION BARRAGE DEALS NO DAMAGE AT ALL. It is the only weapon in the game that does not, and it is not a mistake: everything under the cross it lands hits for half on its next turn. Trading your whole weapon mount for area denial is a real cost and the numbers say so — the balance bot, which fires whatever is loaded at whatever is in reach and never plans a turn ahead, wins 38-43% with it against 41% for a bare Heavy Arms. It is a card for a commander who reads the board, not one that plays itself.',
+      'THE TARGETING UPLINK is the first SUPPORT that changes how the weapon lands rather than what the machine is: the Heavy Arms ignores armour floors entirely while it is fitted, whichever gatling is bolted on, and swapping the gun mid-mission does not knock the uplink loose.',
+      'ELEVEN KITS REBALANCED, AND EVERY CARD NOW QUOTES THE RIGHT NUMBER. The Beam Rifle, Beam Saber, Crystal Longsword, Pile Bunker, Dual Blades, Double Blade, Laser Gatling and Siege Cannon went up; the Crystal Greatsword, Beam Javelin and Missile Gatling came down. The Crystal Longsword also stopped being a single cell at range and now cuts both cells directly ahead. The Siege Cannon settled at 10 rather than the 12 the pass first tried: measured over 1,200 missions a build, 12 put it five to eight points clear of every other build in the game, which is the "one right answer" problem these kits exist to solve.',
+      'THE CHOIR WARDEN SINGS TO THE WHOLE LANE. It and the Mender were the same hostile with different names — both knitting 2 hull a turn into the worst-hurt body beside them. The Warden is the wide one now: 1 hull back into EVERY wounded hostile in its lane, every turn, with a point more hull of its own to make you spend a real volley on it. The Mender keeps the deep heal.',
+      'AND THE LECTOR PREACHES. He and the Spitter were identical in every number on the card. He is a support piece now — thinner (4 hull), further back (halts at column five), and every Zealot in his lane hits a point harder while he is alive. The first hostile in the game that makes another hostile stronger, and the incoming-damage numbers on your board count it, so you can see the sermon before it lands.',
+      'EMPLACEMENTS ARRIVE AT WAVE 2 INSTEAD OF WAVE 4. Spore Nodes, Bulwark Pylons and Menders show up two waves earlier. The early game with a built deck was measurably a formality — your board compounds and the hive\'s does not, so a bigger wave just walks into the same wall. These three do not kill you; they make the board harder to CLEAR, which is the one pressure a static line has no answer to. The Jammer stays at wave 4: it is a hard counter to two cards rather than pressure on a formation, so early it either does nothing or shuts a deck off outright.',
+    ],
+  },
   {
     v: '2.45.1',
     notes: [

@@ -163,13 +163,15 @@ export function applyFrameGear(u, cid, atSpawn) {
     // plate, Majestic steadies the line. Each reads from the kit or the card.
     const base = POOL[u.id];
     u.blocker = !!(base.blocker || k.blocker);
-    u.pen = !!(base.pen || k.pen);
+    u.pen = !!(base.pen || k.pen || u.penGrant);
     u.indirect = !!(base.indirect || k.indirect);
     u.aura = base.aura || k.aura || 0;
     u.choose = !!(base.choose || k.choose);
     u.push = !!(base.push || k.push);
     u.recharge = !!(base.recharge || k.recharge);
     u.falloff = !!(base.falloff || k.falloff);
+    // Suppression Barrage: the one weapon that fires with no damage at all.
+    u.suppress = !!k.suppress;
     u.cycling = 0;
   } else {
     u.gearS.push(cid);
@@ -185,6 +187,14 @@ export function applyFrameGear(u, cid, atSpawn) {
     if (k.dmg) { u.gearDmg = (u.gearDmg || 0) + k.dmg; u.dmg += k.dmg; }
     // Devil's Drive: a live bonus read off current hull, not a fitted number.
     if (k.berserk) u.berserk = true;
+    // Zanshin Stance: the riposte answers the whole huddle, not the swinger.
+    if (k.riposteAll) u.riposteAll = true;
+    // Phase Shift: one blow a turn slips through. Armed here, spent in
+    // dmgUnit, restored by playerPhase.
+    if (k.negateFirst) { u.negateFirst = true; u.phaseReady = true; }
+    // Targeting Uplink: the first support that changes how the WEAPON lands.
+    // Tracked separately so refitting the weapon cannot wipe the grant.
+    if (k.pen) { u.penGrant = true; u.pen = true; }
   }
   clog(`<span class="g">${k.n}</span> fitted to ${u.n}.`, 'order');
 }
@@ -197,13 +207,14 @@ function unmountWeapon(u) {
   u.single = !!k.single;
   u.riposte = k.riposte || 0;
   u.blocker = !!k.blocker;
-  u.pen = !!k.pen;
+  u.pen = !!k.pen || !!u.penGrant;
   u.indirect = !!k.indirect;
   u.aura = k.aura || 0;
   u.choose = !!k.choose;
   u.push = !!k.push;
   u.recharge = !!k.recharge;
   u.falloff = !!k.falloff;
+  u.suppress = false;
   u.cycling = 0;
 }
 
@@ -216,6 +227,10 @@ function unmountSupports(u) {
   u.auraShield = false;
   u.mobGrant = false;
   u.berserk = false;
+  u.riposteAll = false;
+  u.negateFirst = false;
+  u.penGrant = false;
+  u.pen = !!POOL[u.id].pen;
 }
 
 /**

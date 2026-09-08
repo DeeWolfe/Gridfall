@@ -47,7 +47,17 @@ export function wave(t) {
   const pool = ['crawler'];
   if (t >= 2) pool.push('hulk', 'breacher', 'husk');
   if (t >= 3) pool.push('spitter', 'burrower');
-  if (t >= 4 || G.mod === 'nest') pool.push('spore', 'jammer', 'pylon', 'mender');
+  // Emplacements from wave 2. The early game was measurably a formality with a
+  // built deck — the player's board compounds (a unit deployed on turn 2 is
+  // still firing on turn 8) and the hive's does not, so a bigger wave simply
+  // walks into the same wall. These three do not kill you; they make the board
+  // harder to CLEAR, which is the one pressure a static line has no answer to.
+  //
+  // The Jammer stays at 4 on purpose: it is a hard counter to two cards rather
+  // than pressure on a formation, so early it either does nothing or shuts a
+  // deck off outright.
+  if (t >= 2 || G.mod === 'nest') pool.push('spore', 'pylon', 'mender');
+  if (t >= 4 || G.mod === 'nest') pool.push('jammer');
   if (t >= 5) pool.push('harrower', 'puppeteer', 'oni');
   if (t >= 6) pool.push('screamer');
   if ((t >= G.waves || (G.endless && t >= 7)) && G.type !== 'extract') pool.push('chorus', 'sovereign');

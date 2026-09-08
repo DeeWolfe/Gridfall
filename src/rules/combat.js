@@ -9,7 +9,7 @@ import {buffOf, leadBonus, packBonus, berserkBonus} from './units.js';
 import {recycleLineCard} from './deck.js';
 import {leadIs} from '../save/progression.js';
 import {targetsFor, laneFloor} from './targeting.js';
-import {eventTechBonus} from './events.js';
+import {eventTechBonus, eventStrikeMalus} from './events.js';
 import {dmgBoss} from './boss.js';
 import {salvageFrame} from './frames.js';
 import {clog} from './log.js';
@@ -26,6 +26,34 @@ export const dampenIn = l => G.units.reduce((m, o) => (o.lane === l && o.dampen 
  * that matters, not where it hits. Two Singers do not stack. */
 export const hymnAt = (lane, col) => (lane === undefined || col === undefined ? 0
   : G.units.reduce((m, o) => (o.hymn > m && Math.max(Math.abs(o.lane - lane), Math.abs(o.col - col)) <= 2 ? o.hymn : m), 0));
+
+/**
+ * The Lector's sermon: a preacher standing in the lane makes every hostile of
+ * the kind he names hit harder. The first hostile buff in the game, so it is
+ * deliberately narrow — one named kind, one lane, and never itself. Two
+ * preachers do not stack; the loudest one is the one you hear.
+ */
+export const sermonAt = e => G.enemies.reduce((m, o) => {
+  const B = BEST[o.k];
+  const d = B.buffLine === e.k && o.uid !== e.uid && o.lane === e.lane ? (B.buffDmg || 0) : 0;
+  return d > m ? d : m;
+}, 0);
+
+/**
+ * What one hostile's blow is worth this turn, before the target's own damping.
+ * strike(), forecastThreat() and enemyIntent() all read this, so the incoming
+ * number on the board, the intent badge and the swing itself can never quote
+ * three different figures.
+ *
+ * Order matters: the chorus aura and the Lector's sermon are added to printed
+ * damage, a Seismic Tremor is taken off, the floor of 1 holds — and only then
+ * does suppression halve it, so a suppressed hostile always hits for less than
+ * the same hostile unsuppressed.
+ */
+export const foeStrike = (e, D, chorus) => {
+  const raw = Math.max(1, (D.dmg || 0) + (chorus || 0) + sermonAt(e) - eventStrikeMalus());
+  return e.supp ? Math.ceil(raw / 2) : raw;
+};
 
 /** A Cryo Projector halves every hostile's advance in its lane. Does not stack. */
 export const chillFactor = l => (G.units.some(o => o.chill && o.lane === l) ? 0.5 : 1);
@@ -189,7 +217,23 @@ export function dmgUnit(u, d, src, attacker) {
     return;
   }
   if (u.riposte && attacker && attacker.hp > 0) {
-    dmgEnemy(attacker, u.riposte, u.n + ' riposte', false);
+    // Zanshin Stance: the answer is not aimed at whoever swung, it is aimed
+    // at everything close enough to be answered. The attacker is always in
+    // it — a ranged attacker gets the ordinary riposte and nothing more.
+    const back = u.riposteAll
+      ? G.enemies.filter(e => e.uid === attacker.uid
+        || (Math.abs(e.lane - u.lane) <= 1 && e.col >= u.col - 1 && e.col <= u.col + u.size))
+      : [attacker];
+    back.forEach(e => { if (e.hp > 0) dmgEnemy(e, u.riposte, u.n + ' riposte', false); });
+  }
+  // Phase Shift: the first blow each turn passes straight through. It sits
+  // AFTER the riposte on purpose — the Seven Blades still answers a swing it
+  // shrugged off — and before the shield, so the two do not both spend on one
+  // hit. Restored in playerPhase's end-of-turn pass.
+  if (u.negateFirst && u.phaseReady !== false) {
+    u.phaseReady = false;
+    clog(`<span class="g">Phase Shift</span> — the blow passed through ${u.n}.`, 'info');
+    return;
   }
   // Duel Protocol: the duelist cannot be touched until the player's next turn.
   if (u.dueled) {
@@ -255,7 +299,10 @@ export function pierceUnit(u, d, src) {
 export function fire(u, onPlay) {
   // A jammed weapon (the Conduit's arc, the Communion's dynamo hymn) sits
   // out the turn — the soldier still moves; only the gun is dead.
-  if (u.tg === 'none' || !u.dmg || u.stun || u.jam) return;
+  if (u.tg === 'none' || u.stun || u.jam) return;
+  // A Suppression Barrage carries no damage at all — it is still a weapon,
+  // and the only one that fires with u.dmg at zero.
+  if (!u.dmg && !u.suppress) return;
   const k = POOL[u.id];
   const pristine = u.pristine && u.hp >= u.max ? u.pristine : 0;
   const gearBonus = u.dmg - (k.dmg || 0);
@@ -275,9 +322,18 @@ export function fire(u, onPlay) {
     // Falloff: the first cell hit takes the full shot, anything behind it
     // in the same volley takes half, rounded up so it is never nothing.
     ts.forEach((e, i) => {
+      // Suppression Barrage: everything under the cross hits for half on its
+      // next turn. Read off the PRINTED damage, not the buffed total, so no
+      // lead bonus can turn a barrage that says "no damage" into a gun.
+      if (u.suppress) e.supp = 1;
+      if (!u.dmg) return;
       const full = base + lensBonus(u, e);
       dmgEnemy(e, i === 0 || !u.falloff ? full : Math.max(1, Math.ceil(full / 2)), u.n, u.pen, u);
     });
+
+    if (u.suppress) {
+      clog(`<span class="g">${u.n}</span> pinned ${ts.length} hostile${ts.length === 1 ? '' : 's'} — half damage next turn.`, 'order');
+    }
 
     // A recharge weapon spends the next turn cycling. Set to 2 because the
     // end-of-turn reset decrements once immediately after this fires.

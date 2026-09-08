@@ -716,7 +716,7 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'xgrenade']
   A.G.dp = 5;
   const wd = spawnUnit('whitedevil', 2, 2);
   fitKit(wd, 'beamjavelin');
-  if (wd.gearW !== 'beamjavelin' || wd.tg !== 'around' || wd.dmg !== 3) F.push('Beam Javelin did not fit');
+  if (wd.gearW !== 'beamjavelin' || wd.tg !== 'around' || wd.dmg !== A.POOL.beamjavelin.dmg) F.push('Beam Javelin did not fit');
   const cells = new Set(A.geomCells(wd));
   if (cells.size !== 8) F.push(`Beam Javelin reaches ${cells.size} cells, wanted the 8 around it`);
 }
@@ -805,11 +805,12 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'xgrenade']
   A.G.dp = 5;
   const ha = spawnUnit('heavyarms', 2, 1);
   fitKit(ha, 'siegecannon');
-  if (ha.tg !== 'boardFurthest' || ha.dmg !== 8 || !ha.recharge) F.push('Siege Cannon did not fit');
-  const deep = spawnFoe('crawler', 4, 7, 20);
+  if (ha.tg !== 'boardFurthest' || ha.dmg !== A.POOL.siegecannon.dmg || !ha.recharge) F.push('Siege Cannon did not fit');
+  const deep = spawnFoe('crawler', 4, 7, 30);
   ha.fresh = false; ha.acted = false;
   A.fire(ha, false);
-  if (20 - deep.hp !== 8) F.push(`Siege Cannon dealt ${20 - deep.hp}, wanted 8`);
+  const want = A.POOL.siegecannon.dmg;
+  if (30 - deep.hp !== want) F.push(`Siege Cannon dealt ${30 - deep.hp}, wanted ${want}`);
   if (ha.cycling <= 0) F.push('Siege Cannon did not start cycling');
 }
 

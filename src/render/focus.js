@@ -48,7 +48,7 @@ function statRows(id) {
     : (g && g.dp) ? 'geared' : null;
   return [
     isProto(id) ? ['Frame', 'Seeded into your opening hand — outside the deck, one per mission'] : null,
-    k.frameGear ? ['Fits', `${POOL[k.frameGear].n} only — played onto it while it stands`] : null,
+    k.frameGear ? ['Fits', `${POOL[k.frameGear].n} only — bolted on at the armoury, never played from hand`] : null,
     k.fits ? ['Fits', 'Any Fireteam — played onto it while it stands'] : null,
     k.slot === 'armor' ? ['Slot', 'Armour ability — one carried at a time, the new one replaces the last; one use a mission'] : null,
     k.line ? ['Line', 'Fireteam — one of each on the field; the card leaves the deck while the team stands and returns when it is lost'] : null,
@@ -95,6 +95,10 @@ function statRows(id) {
     (k.frameGear && k.pen) ? ['Kit trait', 'Ignores armour floors'] : null,
     (k.frameGear && k.indirect) ? ['Kit trait', 'Indirect — arcs over your own walls'] : null,
     (k.frameGear && k.aura) ? ['Kit trait', `+${k.aura} damage to adjacent friendlies`] : null,
+    (k.frameGear && k.push) ? ['Kit trait', 'Survivors are driven back a cell'] : null,
+    (k.frameGear && k.suppress) ? ['Kit trait', 'No damage — everything hit deals half on its next turn'] : null,
+    (k.frameGear && k.riposteAll) ? ['Kit trait', 'The riposte answers every adjacent hostile, not just the one that struck'] : null,
+    (k.frameGear && k.negateFirst) ? ['Kit trait', 'The first blow taken each turn passes through'] : null,
     k.pack ? ['Rally', `+${k.pack} damage per adjacent friendly, no cap`] : null,
     k.ember ? ['On hit', 'The ground under the target burns for a turn'] : null,
     k.backblast ? ['Backblast', `${k.backblast} hull off the friendly directly behind, every shot`] : null,

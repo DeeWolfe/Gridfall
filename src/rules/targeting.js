@@ -65,7 +65,8 @@ export function laneBehind(u, L) {
 
 /** Every hostile inside this unit's firing geometry right now. */
 export function geomFor(u) {
-  if (u.tg === 'none' || !u.dmg || u.stun) return [];
+  // A Suppression Barrage has targets without having damage — see geomCells.
+  if (u.tg === 'none' || (!u.dmg && !u.suppress) || u.stun) return [];
   if (u.cycling > 0) return [];                  // a recharge weapon mid-cycle
   if (u.indirect && laneJammed(u.lane)) return [];
 
@@ -131,6 +132,12 @@ function geomBase(u) {
     case 'window': return inLane.filter(e => e.col === front + 2 || e.col === front + 3);
     case 'range2':
       return G.enemies.filter(e => e.lane === L && e.col === front + 2);
+    // Crystal Longsword: contact AND one cell past it. A single cell at
+    // exactly two out whiffs entirely the moment a hostile closes, which on a
+    // contact chassis made reach a drawback you paid for rather than a choice.
+    case 'range2v2':
+      return G.enemies.filter(e => e.lane === L
+        && (e.col === front + 1 || e.col === front + 2));
     case 'range3': {
       // Direct fire at a fixed range: a blocker of yours in between cuts it.
       //
@@ -195,6 +202,12 @@ function geomBase(u) {
       const cc = front + 1;
       return G.enemies.filter(e => e.col === cc && Math.abs(e.lane - L) <= 1);
     }
+    // Hyper Bazooka: vert3's three-lane bar, held at exactly three cells out.
+    // Blind at contact — the standoff weapon cannot answer what closes on it.
+    case 'vert3at3': {
+      const cc = front + 3;
+      return G.enemies.filter(e => e.col === cc && Math.abs(e.lane - L) <= 1);
+    }
     // Hyper Napalm: one cell at the mouth, three across behind it. The only
     // widening pattern in the game, and the only one that leaves the ground
     // burning after it lands (see `scorch` in units.js).
@@ -250,7 +263,10 @@ function geomBase(u) {
  * @returns {number[]} cell indices (lane * COLS + col)
  */
 export function geomCells(u, at) {
-  if (u.tg === 'none' || !u.dmg) return [];
+  // A Suppression Barrage carries no damage and still has a footprint — the
+  // board must light the cross it pins, or the one weapon whose whole job is
+  // area denial is the one weapon you cannot aim.
+  if (u.tg === 'none' || (!u.dmg && !u.suppress)) return [];
   const L = at ? at.lane : u.lane;
   const col = at ? at.col : u.col;
   const front = col + (u.size || 1) - 1;
@@ -306,6 +322,9 @@ export function geomCells(u, at) {
       for (let d = 2; d <= 3; d++) { if (cutTo(front + d)) break; add(L, front + d); }
       break;
     case 'range2': add(L, front + 2); break;
+    case 'range2v2':
+      for (let d = 1; d <= 2; d++) add(L, front + d);
+      break;
     // Only a blocker strictly BETWEEN us and the target cuts this — one
     // standing on the target square itself is not in the way. geomFor()
     // draws the line the same place; the invariant guard holds us to it.
@@ -345,6 +364,9 @@ export function geomCells(u, at) {
       break;
     case 'vert3':
       for (let l = L - 1; l <= L + 1; l++) add(l, front + 1);
+      break;
+    case 'vert3at3':
+      for (let l = L - 1; l <= L + 1; l++) add(l, front + 3);
       break;
     case 'cone':
       add(L, front + 1);

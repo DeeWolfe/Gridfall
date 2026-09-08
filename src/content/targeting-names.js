@@ -31,4 +31,6 @@ export const TGNAME = {
   radius2: "Any hostile within two cells",
   blast3: "3x3 centred three cells ahead",
   flank2: "The lane above and below, one cell ahead — own lane clear",
+  range2v2: "One and two cells ahead",
+  vert3at3: "Three cells vertically, three columns ahead",
 };

@@ -40,13 +40,17 @@ function hbOffsets(id) {
   // A fitted weapon gear draws ITS pattern — that is the gun this card fires now.
   const tg = (g && g.tg) || k.tg;
   const dmg = g && g.tg ? g.dmg : k.dmg;
-  if (!tg || tg === 'none' || !dmg) return null;
+  // A Suppression Barrage deals no damage and still covers ground — the
+  // diagram is what it covers, which is the only thing that card is FOR.
+  const suppress = !!(g && g.tg ? g.suppress : k.suppress);
+  if (!tg || tg === 'none' || (!dmg && !suppress)) return null;
 
   // A stand-in with just the fields geomCells reads. Deliberately not mkUnit:
   // the diagram is the card's printed pattern, not one unit's live situation.
   const stub = {
     tg,
     dmg,
+    suppress,
     single: g && g.tg ? !!g.single : !!k.single,
     size: k.size || 1,
     indirect: !!k.indirect || !!(g && g.indirect),

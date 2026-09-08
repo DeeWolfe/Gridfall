@@ -15,8 +15,8 @@ import {hooks} from '../state/hooks.js';
 import {randInt} from '../state/rng.js';
 import {leadOf, leadIs} from '../save/progression.js';
 import {unitAt, foeAt, civAt, held, heldEnemyHalf, crystalsHeld, scorched, breachAllowance, ENDGAME_TURNS} from './board.js';
-import {fire, healPass, dmgUnit, dmgEnemy, breachAt, chillFactor} from './combat.js';
-import {eventTick, eventStrikeMalus} from './events.js';
+import {fire, healPass, dmgUnit, dmgEnemy, breachAt, chillFactor, foeStrike} from './combat.js';
+import {eventTick} from './events.js';
 import {wave, rollDoctrine, predictSpawns, laneScore} from './waves.js';
 import {spawnPhase, mkFoe} from './spawn.js';
 import {drawCard, recycleLineCard} from './deck.js';
@@ -53,6 +53,8 @@ export function playerPhase() {
     if (nanites) u.hp = Math.min(u.max, u.hp + 1);
     if (fabrication && u.tech) u.hp = Math.min(u.max, u.hp + 1);
     if (u.regen) u.shield = Math.max(u.shield, u.shieldMax || 1);
+    // Phase Shift: one blow slips through per turn, restored here.
+    if (u.negateFirst) u.phaseReady = true;
   });
   // Guardian Field: every friendly adjacent to the carrier holds a shield too.
   G.units.filter(u => u.auraShield).forEach(u => {
@@ -94,7 +96,7 @@ export function playerPhase() {
 
 /** A hostile attacking rather than advancing. Civilians in front come first. */
 export function strike(e, D, chorus, pressing) {
-  const dmg = Math.max(1, D.dmg + chorus - eventStrikeMalus());
+  const dmg = foeStrike(e, D, chorus);
   const cv = civAt(e.lane, e.col - 1);
   if (cv) {
     cv.hp -= dmg;
@@ -270,10 +272,23 @@ function actHostile(e, chorus) {
   if (D.mend) {
     // Boss proxies mirror a shared body pool — healing one directly would
     // desync the mirror, so the knitting never touches a boss cell.
-    const hurt = G.enemies
+    const wounded = G.enemies
       .filter(o => o.uid !== e.uid && o.lane === e.lane && !o.boss && o.hp < BEST[o.k].hp)
-      .sort((a, b) => a.hp / BEST[a.k].hp - b.hp / BEST[b.k].hp)[0];
-    if (hurt) {
+      .sort((a, b) => a.hp / BEST[a.k].hp - b.hp / BEST[b.k].hp);
+    // Wide against deep. The Choir Warden knits a little into EVERY hostile
+    // beside it; the Mender knits more into the worst hurt one. They cost the
+    // same threat and were otherwise the identical card, which made the
+    // cheaper-to-kill one strictly worse — dead content the wave builder could
+    // pick but never wanted.
+    if (D.mendAll) {
+      if (wounded.length) {
+        wounded.forEach(o => { o.hp = Math.min(BEST[o.k].hp, o.hp + D.mend); });
+        clog(`<span class="d">${BEST[e.k].n}</span> knit ${D.mend} hull back into ` +
+          `${wounded.length} hostile${wounded.length === 1 ? '' : 's'} in the lane.`, 'wave');
+        return;
+      }
+    } else if (wounded[0]) {
+      const hurt = wounded[0];
       hurt.hp = Math.min(BEST[hurt.k].hp, hurt.hp + D.mend);
       clog(`<span class="d">Mender</span> knit ${D.mend} hull back into ${BEST[hurt.k].n}.`, 'wave');
       return;
@@ -382,6 +397,10 @@ export function enemyPhase() {
     // — or broke sideways into another lane, which is movement too.
     tapeMark('enemy', e.col !== wasCol || e.lane !== wasLane);
   });
+  // Suppression buys exactly one enemy turn. Cleared here, after every
+  // hostile has acted, so a barrage fired on turn N is spent on turn N's
+  // horde and never carries into turn N+1.
+  G.enemies.forEach(e => { e.supp = 0; });
   controlledUnitsAct();
 }
 
