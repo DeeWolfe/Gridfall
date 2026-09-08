@@ -4,9 +4,15 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.45';
+export const VERSION = '2.45.1';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.45.1',
+    notes: [
+      "THE CODE SAYS WHAT IT DOES. Bushido's card still promised a destroyed Frame back \"with its gear\", which stopped being true the moment kits became hardpoints — there are no gear cards left to hand back. The rule never changed and is if anything better than the old wording suggested: the hardpoints never left the machine, so a salvaged Frame redeploys fully kitted and 2 deploy points cheaper. Wording only.",
+    ],
+  },
   {
     v: '2.45',
     notes: [

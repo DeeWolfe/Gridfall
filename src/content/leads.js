@@ -104,7 +104,7 @@ export const LEADS = {
     bio: "Fights every sortie as a private duel. Has lost more machines than anyone in the service and walked away from all of them.",
     passive: {
       n: "The Code",
-      d: "Your destroyed Frame returns to hand with its gear and redeploys 2 DP cheaper next time.",
+      d: "Your destroyed Frame returns to hand and redeploys 2 DP cheaper next time. Its hardpoints never left the machine, so it comes back fully kitted.",
     },
     con: {n: "Rushed Assembly", d: "Your Frame deploys with half hull."},
   },
