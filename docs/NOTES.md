@@ -5678,3 +5678,98 @@ The "folding does not discard the contents" check first sliced 4000 characters
 from the folded shelf's opening tag; with the shelf emptied the slice ran into
 the *next* shelf, found its tiles, and passed. It counts tiles across the whole
 panel now: fold a shelf and the count must not move.
+
+## v2.45 — Frame kits become hardpoints
+
+### The measurement that forced it
+
+40 bot missions per build, same operation, first node:
+
+| build | wins |
+|---|---|
+| conventional deck, no Frame | 40% |
+| Frame with **no kit at all** | 40–57% |
+| Frame + one weapon kit | 38–43% |
+| Frame + **all** its kit cards | **10–28%** |
+
+The Frame reached the board in 37–40 of 40 in every case, so this was not the
+bot refusing to fly it. **The bare chassis was the best Frame build and every
+kit card made it worse**, monotonically. Seven Blades: 57% bare → 43% light →
+10% fully committed.
+
+The cause is structural, not skill. A kit card is a slot in the twelve that
+does nothing until one specific unit is standing. Six of them is half a deck
+hostage to one body. The system asked for 1,500–1,640 credits and 42–50% of
+the deck to make the win rate go down.
+
+Two more facts fell out of the same audit: 17 of the 67 standard-pool cards
+were kits, so a standard pack had a one-in-four chance of offering something
+unplayable; and the Deep Descent had no Frame content at all, because v2.41
+excluded chassis and kits from the draft for exactly this reason.
+
+### What shipped
+
+`loadout.hard = {frameId: {w, s}}` — one weapon hardpoint, one support, fitted
+at the armoury and applied by `fitHardpoints()` from `deploy()` the moment the
+machine lands. Kits are no longer cards anywhere: not in a deck, not in a hand,
+not in the reserve grid, not in a pack. They are bought on their own machine's
+shelf in the Quartermaster.
+
+Re-measured over 120 missions: fitted Heavy Arms **53%**, bare 43%, no Frame
+45%. The kit is worth about +10 points where it used to cost 12–30. Across all
+three Frames at N=40 the ordering is consistent — fitted beat bare every time
+(38>30, 45>40, 48>25) — which is the finding; the individual percentages carry
+roughly ±8 points of noise at that sample size.
+
+Every Frame has at least one weapon and one support kit, so 1+1 is a shape all
+three actually fit — checked by a guard rather than assumed.
+
+### The v22 migration
+
+Ownership is untouched. A commander who bought kits keeps them, the machine is
+auto-fitted with the first owned weapon and support so it flies on the next
+sortie without a visit to the armoury, and every kit still sitting in a deck or
+a saved preset comes out. A commander who owns the Frame but no kit is left
+bare rather than handed a free 200-credit weapon — the repair pass drops any
+hardpoint naming a card the profile does not own.
+
+### Aki-Kaze had to change, and this is the honest account
+
+Field Refit read *"swapping gear returns the old gear to your hand and repairs
+3 hull"*. With no gear cards there is nothing to swap, and the passive became
+provably inert — `fitHardpoints` passes `atSpawn`, so the refit branch can no
+longer fire at all. Shipping a 500-credit lead with a dead upside was not an
+option, and inventing her a new mechanic unprompted was not either.
+
+What shipped is the reading of her existing card that costs no new mechanic:
+**Single Mount** stays the cost (one hardpoint, never two) and **Open Mount**
+is what it buys — that one mount takes either kind. She is the only commander
+who can field a Frame carrying a support alongside its own printed weapon;
+everyone else fills two fixed slots. Three lines in `hardOf`, one row in the
+armoury, and it makes her the flexibility lead her bio always claimed.
+
+If a real mid-mission refit is wanted later it needs a kit picker on the board,
+which the ability system does not have — abilities here are fire-and-forget or
+cell-targeted. That is a feature, not a patch.
+
+### Notes for next time
+
+- `balancetest` held ten `A.deploy('<kit>', l, c)` calls testing what each kit
+  DOES. Those are still worth having, so they were converted to a `fitKit()`
+  helper rather than deleted. A mechanical nearest-`spawnUnit` substitution got
+  one of them wrong — Guardian Field was fitted to the marksman standing next
+  to the machine — which the guard caught immediately. Worth remembering that
+  the heuristic is only as good as the block's variable ordering.
+- The Frame's own regen grants `shield: 1`, so a lethal-blow test has to clear
+  the shield first. Both salvage guards do; the rewrite forgot and it cost a
+  debugging round.
+- `hostFor`, `kitHost` and the `frameGear` branches in `validTiles` all existed
+  only to find a kit card a home on the board. They are gone; `hostFor` now
+  answers only for Fireteam armour.
+
+### Still open
+
+Fireteam armour (`fits`: camo, lock, jetpack, dropshield, hologram, xgrenade)
+has the same shape of problem — six cards that are dead unless a Fireteam is
+standing — and was deliberately left alone. It is a different line with a
+different host, and converting it is a separate decision.

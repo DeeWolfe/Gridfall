@@ -14,7 +14,7 @@ import {VET} from '../content/ranks.js';
 import {hooks} from '../state/hooks.js';
 import {unitAt, foeAt, civAt} from './board.js';
 import {mkUnit} from './units.js';
-import {applyFrameGear} from './frames.js';
+import {applyFrameGear, fitHardpoints} from './frames.js';
 import {armCall} from './stratagems.js';
 import {fire, blast, healPass, dmgEnemy} from './combat.js';
 import {clog} from './log.js';
@@ -181,7 +181,7 @@ export function deploy(cid, l, c) {
     return consume(cid);
   }
 
-  if (k.frameGear || k.fits) {
+  if (k.fits) {
     // X-Grenade is thrown, not carried: the player names the landing cell
     // (validTiles offered every cell within throw range of a team) and it
     // hits that cell and its four diagonals, armour ignored. Then spent.
@@ -197,13 +197,13 @@ export function deploy(cid, l, c) {
       if (!G.spent.includes(cid)) G.spent.push(cid);
       return consume(cid);
     }
-    // A kit lands on its host — validTiles only ever offers the host's cell,
-    // so the unit under (l, c) is the machine or the team this kit fits.
+    // Fireteam armour lands on its team — validTiles only ever offers a
+    // host's cell, so the unit under (l, c) is a team this armour fits.
     const fr = unitAt(l, c);
-    if (!fr || !(k.frameGear ? fr.id === k.frameGear : fr.line === k.fits)) return;
-    // Every kit is spent the moment it is played — Frame gear and Fireteam
-    // armour alike: fitted, later stripped, it never comes back through the
-    // reserve. One use a mission, so a reshuffle never deals a dead kit.
+    if (!fr || fr.line !== k.fits) return;
+    // Armour is spent the moment it is played: fitted, later stripped, it
+    // never comes back through the reserve. One use a mission, so a reshuffle
+    // never deals a dead kit.
     G.spent = G.spent || [];
     if (!G.spent.includes(cid)) G.spent.push(cid);
     applyFrameGear(fr, cid);
@@ -234,6 +234,8 @@ export function deploy(cid, l, c) {
 
     const u = mkUnit(cid, l, c);
     G.units.push(u);
+    // A Frame arrives already carrying what the armoury bolted to it.
+    fitHardpoints(u);
     if (k.drop) {
       G.ter[l][c] = 'p';
       blast(l, c, k.burstBlast || 0, u.n + ' (impact)');

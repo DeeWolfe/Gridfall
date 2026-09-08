@@ -3701,10 +3701,10 @@ const LEADS = {
     col: "#ff9d4d",
     bio: "Rebuilds a loadout mid-sortie the way other people change their mind. Considers a fixed configuration a failure of imagination.",
     passive: {
-      n: "Field Refit",
-      d: "Swapping gear returns the old gear to your hand and repairs 3 hull. The Frame can still act this turn if it hasn't already.",
+      n: "Open Mount",
+      d: "Her Frame’s one hardpoint takes anything — weapon or support. She can fly a support nobody else can mount at all.",
     },
-    con: {n: "Single Mount", d: "Your Frame may carry only one gear at a time."},
+    con: {n: "Single Mount", d: "Your Frame carries one kit, never two."},
   },
   masterchief: {
     n: "JOHN-117",
@@ -3776,7 +3776,7 @@ const GROUND_FLOOR = 6;
  */
 const HAND_CAP = 6;
 const DECKSIZE = 12;
-const SAVE_VERSION = 21;
+const SAVE_VERSION = 22;
 const STARTER = ["scout", "rifle", "marks", "wall", "medic", "archer", "lancer", "bulwark", "assassin"];
 
 /* ==== src/save/progression.js ======================================= */
@@ -3816,16 +3816,57 @@ function liveLoadout() {
   if (G && G.run && active && active.run) {
     // A run drafts no Proto Frame, so it flies none — the profile's Frame is
     // not the run's to field.
-    return {deck: active.run.deck, gear: active.run.gear, lead: active.run.lead || 'ironbrand', frame: null};
+    return {deck: active.run.deck, gear: active.run.gear, lead: active.run.lead || 'ironbrand',
+      frame: null, hard: {}};
   }
-  if (!active) return {deck: [], gear: {}, lead: 'ironbrand', frame: null};
+  if (!active) return {deck: [], gear: {}, lead: 'ironbrand', frame: null, hard: {}};
   return {
     deck: (active.loadout && active.loadout.deck) || [],
     gear: (active.loadout && active.loadout.gear) || {},
     lead: active.lead || 'ironbrand',
     frame: (active.loadout && active.loadout.frame) || null,
+    hard: (active.loadout && active.loadout.hard) || {},
   };
 }
+
+/** Hardpoint slots a Frame carries: one weapon, one support. */
+const HARDPOINTS = ['w', 's'];
+
+/**
+ * What is bolted to a Frame, as `{w, s}` of kit card ids.
+ *
+ * Kits used to be cards inside the twelve, and that was the system's whole
+ * problem: a kit is dead in hand until its specific machine is standing, so
+ * running a Frame's full kit meant half the deck was hostage to one unit. It
+ * was measurable — a fully-kitted Frame won 10-28% of missions against 40% for
+ * a deck with no Frame at all, while the SAME Frame with no kit won 40-57%.
+ * The fantasy was punished exactly in proportion to how much you bought into
+ * it. Kits are fitted at the armoury now and cost nothing from the deck.
+ *
+ * Aki-Kaze is the one lead that reaches in here. Single Mount is her cost —
+ * one hardpoint, never two — and Open Mount is what she gets for it: that one
+ * mount takes either kind, so she is the only commander who can fly a Frame
+ * carrying a support and its own printed weapon. Everyone else fills two fixed
+ * slots; she fills one with whatever she likes.
+ */
+function hardOf(frameId) {
+  const fit = liveLoadout().hard[frameId] || {};
+  const ok = (id, slot) => {
+    const k = POOL[id];
+    return k && k.frameGear === frameId && k.slot === slot ? id : null;
+  };
+  const w = ok(fit.w, 'weapon');
+  const s = ok(fit.s, 'support');
+  // One mount: the weapon wins if both are somehow set, so the answer is
+  // never ambiguous and never depends on object key order.
+  if (leadIs('fieldrefit')) return w ? {w, s: null} : {w: null, s};
+  return {w, s};
+}
+
+/** Every kit card that fits this Frame, split by hardpoint. */
+const kitsFor = (frameId, slot) =>
+  Object.keys(POOL).filter(c => POOL[c].frameGear === frameId
+    && (!slot || POOL[c].slot === (slot === 'w' ? 'weapon' : 'support')));
 
 /** The gear fitted to a card, or null. */
 function gearOf(id) {
@@ -4579,7 +4620,9 @@ function blankProfile(callsign) {
     lastPlayed: Date.now(),
     progress: {rank: 1, xp: 0, credits: 420},
     unlocks: {cards: [...STARTER], enemies: [], gear: [], leads: [], schemes: ['standard']},
-    loadout: {deck: [...STARTER], gear: {}, scheme: 'standard', frame: null},
+    // `hard` is the Frame hardpoints: {frameId: {w, s}} of kit card ids,
+    // fitted at the armoury and never in the deck. See hardOf() for why.
+    loadout: {deck: [...STARTER], gear: {}, scheme: 'standard', frame: null, hard: {}},
     stats: {deployments: 0, held: 0, lost: 0, breaches: 0, kills: 0, unitsLost: 0},
     ship: 'ANVIL-7',
     lead: 'ironbrand',
@@ -4892,6 +4935,35 @@ function migrate(p) {
     });
   }
 
+  // v22: Frame kits leave the deck and become hardpoints on the machine.
+  //
+  // A kit was a card inside the twelve, dead in hand until its specific Frame
+  // stood, so a fully-kitted Frame cost half the deck and MEASURABLY lost more
+  // than a deck with no Frame at all. A commander who already bought kits keeps
+  // them — ownership is untouched — and the machine is auto-fitted with the
+  // first weapon and support they own so it flies on the next sortie without a
+  // visit to the armoury. Every kit still sitting in a deck or a saved preset
+  // comes out; it is not a card any more.
+  if (p.version < 22) {
+    p.version = 22;
+    p.loadout = p.loadout || {};
+    p.loadout.hard = p.loadout.hard || {};
+    const owned = p.unlocks && Array.isArray(p.unlocks.cards) ? p.unlocks.cards : [];
+    Object.keys(POOL).filter(c => POOL[c].chassis === 'proto').forEach(f => {
+      if (!owned.includes(f) || p.loadout.hard[f]) return;
+      const mine = slot => owned.find(c => POOL[c] && POOL[c].frameGear === f && POOL[c].slot === slot);
+      const w = mine('weapon');
+      const s = mine('support');
+      if (w || s) p.loadout.hard[f] = {w: w || null, s: s || null};
+    });
+    if (Array.isArray(p.loadout.deck)) p.loadout.deck = p.loadout.deck.filter(c => !(POOL[c] && POOL[c].frameGear));
+    if (Array.isArray(p.presets)) {
+      p.presets.forEach(pr => {
+        if (Array.isArray(pr.deck)) pr.deck = pr.deck.filter(c => !(POOL[c] && POOL[c].frameGear));
+      });
+    }
+  }
+
   p.unlocks = p.unlocks || {};
   p.unlocks.cards = p.unlocks.cards || [...STARTER];
   p.unlocks.enemies = p.unlocks.enemies || [];
@@ -4922,6 +4994,24 @@ function migrate(p) {
       || card.attach || card.chassis === 'proto');
     if (!GEAR[p.loadout.gear[k]] || !card || slotless) delete p.loadout.gear[k];
   });
+
+  // Hardpoints: a kit only counts where it names the Frame it is bolted to,
+  // sits in the right slot, and is actually owned. Anything else is dropped
+  // rather than fielded — an unowned kit would be a free 200-credit weapon.
+  p.loadout.hard = (p.loadout.hard && typeof p.loadout.hard === 'object') ? p.loadout.hard : {};
+  Object.keys(p.loadout.hard).forEach(f => {
+    if (!POOL[f] || POOL[f].chassis !== 'proto') { delete p.loadout.hard[f]; return; }
+    const fit = p.loadout.hard[f] || {};
+    const keep = (id, slot) => {
+      const k = POOL[id];
+      return k && k.frameGear === f && k.slot === slot && p.unlocks.cards.includes(id) ? id : null;
+    };
+    const w = keep(fit.w, 'weapon');
+    const s = keep(fit.s, 'support');
+    if (w || s) p.loadout.hard[f] = {w, s}; else delete p.loadout.hard[f];
+  });
+  // ...and a kit is never a deck card again, whatever an import hands us.
+  p.loadout.deck = p.loadout.deck.filter(c => !(POOL[c] && POOL[c].frameGear));
 
   p.stats = p.stats || {deployments: 0, held: 0, lost: 0, breaches: 0, kills: 0, unitsLost: 0};
   p.stats.opsCleared = p.stats.opsCleared || 0;
@@ -5780,16 +5870,26 @@ function clog(html, cat) {
 }
 
 /* ==== src/rules/frames.js =========================================== */
-// The Frame system: a machine you commit a deck to.
+// The Frame system: a machine that carries its own kit.
 //
 // A Proto Frame is a 5 DP Specialist card SEEDED into the opening hand at
 // launch, outside the deck and outside its size — same mechanism, and same
-// reasoning, as the lead's stratagem. Its gear are cheap cards inside the
-// deck, exclusive to their own Frame and playable only while it stands, so
-// committing to a Frame means buying three of twelve slots into one plan.
-// Seeding removes the LUCK from that gamble while keeping the cost: the
-// Frame sits visible and unaffordable from turn one, and every turn you do
-// not field it is a turn you chose something else.
+// reasoning, as the lead's stratagem. Seeding removes the LUCK from the
+// gamble while keeping the cost: the Frame sits visible and unaffordable from
+// turn one, and every turn you do not field it is a turn you chose something
+// else.
+//
+// Its kit rides with it. Until v2.45 the kits were cards INSIDE the twelve —
+// cheap, exclusive to one Frame, and playable only while that Frame stood —
+// so committing to a machine meant handing half the deck to a unit that might
+// not survive turn three. That was measured and it was as bad as it sounds: a
+// fully-kitted Frame won 10-28% of missions where a deck with no Frame won
+// 40%, and the SAME Frame with no kit at all won 40-57%. The system punished
+// the fantasy in exact proportion to how much you bought into it.
+//
+// Kits are hardpoints now: one weapon and one support, chosen at the armoury,
+// bolted on the instant the machine lands. The deck is untouched, so a Frame
+// costs its 5 DP and nothing else.
 //
 // The Pilot is gone. It was a key card whose job ended the moment it worked,
 // and it left a defenceless body on the board. The Frame deploys like any
@@ -5808,12 +5908,24 @@ function seedFrame() {
   }
 }
 
-/** The unit a kit card bolts onto — its Frame, or the Fireteam — if it stands. */
+/** The unit a kit card bolts onto — the Fireteam it fits — if it stands. */
 const kitHost = id => G.units.find(u => u.id === id) || null;
 
-/** The standing host for a kit card: a named Frame, or any unit of the line it fits. */
-const hostFor = k => (k.frameGear ? kitHost(k.frameGear)
-  : k.fits ? G.units.find(u => u.line === k.fits) || null : null);
+/** The standing host for a Fireteam armour card: any unit of the line it fits. */
+const hostFor = k => (k.fits ? G.units.find(u => u.line === k.fits) || null : null);
+
+/**
+ * Bolt the armoury's hardpoints onto a Frame the moment it lands.
+ *
+ * Called from deploy(), so the machine is never on the board unequipped —
+ * which is the whole difference between a hardpoint and the card it used to
+ * be: there is no turn where you have the Frame but not its weapon.
+ */
+function fitHardpoints(u) {
+  if (!u || !u.frame) return;
+  const {w, s} = hardOf(u.id);
+  [w, s].filter(Boolean).forEach(cid => applyFrameGear(u, cid, true));
+}
 
 /** The one Frame standing on the board, or null. Only one may stand. */
 const frameOnBoard = () => G.units.find(u => u.frame) || null;
@@ -5836,7 +5948,8 @@ function frameGateText(cid) {
   if (k.chassis === 'proto' && frameOnBoard()) return 'One Frame on the board at a time';
   // One of each Fireteam at a time: the card waits while its team stands.
   if (k.line && G.units.some(u => u.id === cid)) return `${k.n} is already on the field`;
-  if (k.frameGear && !kitHost(k.frameGear)) return `${POOL[k.frameGear].n} must be on the board`;
+  // Frame kits are not cards any more — they are fitted at the armoury and
+  // arrive bolted on — so there is no gate left for them to fail.
   if (k.fits && !hostFor(k)) return 'A Fireteam must be on the board';
   return null;
 }
@@ -5848,9 +5961,11 @@ function frameGateText(cid) {
  * 3 hull, and it costs no action of its own — the Frame still moves, fires
  * or uses its ability after, if it hadn't already this turn.
  */
-function applyFrameGear(u, cid) {
+function applyFrameGear(u, cid, atSpawn) {
   const k = POOL[cid];
-  const refit = leadIs('fieldrefit');
+  // Field Refit's strip-and-return only makes sense for a swap made in the
+  // field. Bolting the armoury's own hardpoints on at the drop is not a swap.
+  const refit = leadIs('fieldrefit') && !atSpawn;
   const carried = [u.gearW, ...u.gearS].filter(Boolean);
 
   // Single Mount: everything already carried comes off — and back to hand,
@@ -5971,22 +6086,26 @@ function unmountSupports(u) {
 }
 
 /**
- * A destroyed Frame under Bushido's Code comes back to the hand — machine
- * and every attached gear together. The loss still counts as a loss; what
- * The Code buys is that it is never a PERMANENT one.
+ * A destroyed Frame under Bushido's Code comes back to the hand. The loss
+ * still counts as a loss; what The Code buys is that it is never a PERMANENT
+ * one.
+ *
+ * It used to hand back the attached gear cards too, because they WERE cards.
+ * Hardpoints never left the machine, so a salvaged Frame simply redeploys
+ * with its kit — the same promise, delivered by the fitting rather than by
+ * shuffling three cards back into a hand.
  */
 function salvageFrame(u) {
   if (!u.frame) return;
   if (!leadIs('salvagerights')) return;
-  const back = [u.id, u.gearW, ...u.gearS].filter(Boolean);
+  const back = [u.id];
   back.forEach(c => G.hand.push(c));
   G.spent = (G.spent || []).filter(c => !back.includes(c));
   // A salvaged Frame is already built — fielding it again costs 2 less,
   // spent the moment the card is redeployed.
   G.salvageDiscount = G.salvageDiscount || {};
   G.salvageDiscount[u.id] = 2;
-  clog(`<span class="g">The Code</span> — ${cardName(u.id)} recovered to hand` +
-    (back.length > 1 ? ' with its gear' : '') + '.', 'order');
+  clog(`<span class="g">The Code</span> — ${cardName(u.id)} recovered to hand, kit intact.`, 'order');
 }
 
 /* ==== src/rules/board.js ============================================ */
@@ -6095,7 +6214,7 @@ function validTiles(cid) {
   // Quietstep's No Rear Line: nothing that lands a body may land in the two
   // rearmost columns. Instants, attachments, gear and calls are not bodies.
   const minCol = leadOf().minCol || 0;
-  if (!minCol || k.instant || k.attach || k.frameGear || k.strat) return tiles;
+  if (!minCol || k.instant || k.attach || k.fits || k.strat) return tiles;
   return tiles.filter(i => i % COLS >= minCol);
 }
 
@@ -6149,14 +6268,9 @@ function rawTiles(cid, k) {
     return out;
   }
 
-  // Gear lands on the machine itself: the standing Frame's cell is the one
-  // legal target. frameGateText() above already guaranteed it is the right
-  // Frame, so this cannot offer someone else's kit a home.
-  if (k.frameGear) {
-    const fr = hostFor(k);
-    if (fr) out.push(fr.lane * COLS + fr.col);
-    return out;
-  }
+  // A Frame kit is not a card any more — it is a hardpoint bolted on at the
+  // armoury and applied the moment the machine lands — so nothing here has to
+  // find it a home on the board.
   // A thrown kit (the X-Grenade) is aimed: any cell within throw range of a
   // standing team of its line, hostiles under it or not — that is the point.
   if (k.fits && k.throw) {
@@ -10775,8 +10889,13 @@ function purchasePack() {
  */
 function packOffer(tier) {
   const owned = active.unlocks.cards || [];
-  const pool = Object.keys(POOL).filter(id =>
-    tier === 'specialist' ? POOL[id].t === 'special' : POOL[id].t !== 'special');
+  // Frame kits are not cards a pack can usefully hand you: they are hardpoints
+  // bought on the machine's own shelf, and dead weight to anyone not flying
+  // that Frame. Seventeen of the sixty-seven standard-pool cards were kits —
+  // a one-in-four chance of pulling something unplayable — which is why they
+  // are off the table rather than merely unlikely.
+  const pool = Object.keys(POOL).filter(id => !POOL[id].frameGear && (
+    tier === 'specialist' ? POOL[id].t === 'special' : POOL[id].t !== 'special'));
 
   const out = [];
 
@@ -10811,7 +10930,9 @@ function claimPack(pick) {
     // A new card slides straight into the deck while there is room for it.
     // A Proto Frame takes its own slot beside the deck, never one of the
     // twelve — auto-adding one here would silently evict a real card.
-    if (POOL[pick.id].chassis !== 'proto'
+    // A Proto Frame takes its own slot beside the deck and a kit is not a
+    // deck card at all; neither may slide into the twelve.
+    if (POOL[pick.id].chassis !== 'proto' && !POOL[pick.id].frameGear
       && active.loadout.deck.length < deckCapOf() && !active.loadout.deck.includes(pick.id)) {
       active.loadout.deck.push(pick.id);
     }
@@ -13805,7 +13926,7 @@ function deploy(cid, l, c) {
     return consume(cid);
   }
 
-  if (k.frameGear || k.fits) {
+  if (k.fits) {
     // X-Grenade is thrown, not carried: the player names the landing cell
     // (validTiles offered every cell within throw range of a team) and it
     // hits that cell and its four diagonals, armour ignored. Then spent.
@@ -13821,13 +13942,13 @@ function deploy(cid, l, c) {
       if (!G.spent.includes(cid)) G.spent.push(cid);
       return consume(cid);
     }
-    // A kit lands on its host — validTiles only ever offers the host's cell,
-    // so the unit under (l, c) is the machine or the team this kit fits.
+    // Fireteam armour lands on its team — validTiles only ever offers a
+    // host's cell, so the unit under (l, c) is a team this armour fits.
     const fr = unitAt(l, c);
-    if (!fr || !(k.frameGear ? fr.id === k.frameGear : fr.line === k.fits)) return;
-    // Every kit is spent the moment it is played — Frame gear and Fireteam
-    // armour alike: fitted, later stripped, it never comes back through the
-    // reserve. One use a mission, so a reshuffle never deals a dead kit.
+    if (!fr || fr.line !== k.fits) return;
+    // Armour is spent the moment it is played: fitted, later stripped, it
+    // never comes back through the reserve. One use a mission, so a reshuffle
+    // never deals a dead kit.
     G.spent = G.spent || [];
     if (!G.spent.includes(cid)) G.spent.push(cid);
     applyFrameGear(fr, cid);
@@ -13858,6 +13979,8 @@ function deploy(cid, l, c) {
 
     const u = mkUnit(cid, l, c);
     G.units.push(u);
+    // A Frame arrives already carrying what the armoury bolted to it.
+    fitHardpoints(u);
     if (k.drop) {
       G.ter[l][c] = 'p';
       blast(l, c, k.burstBlast || 0, u.n + ' (impact)');
@@ -16531,9 +16654,15 @@ function deckFrame() {
       ? 'Nothing fielded — pick one in the Proto Frame slot below.'
       : 'No prototype on strength. The Quartermaster carries them.'}</div></div>`;
   }
+  const fit = hardOf(fielded);
+  const name = id => (POOL[id] ? POOL[id].n : 'empty');
   return `<div class="frameslot">${head}
    ${cardGrid([fielded], 'proto')}
-   <div class="framehint">Seeded into your opening hand — outside the deck, one on the board at a time.</div></div>`;
+   <div class="framehint">Seeded into your opening hand — outside the deck, one on the board at a time.
+     It lands carrying <b style="color:var(--cyan)">${name(fit.w)}</b>${leadIs('fieldrefit')
+    ? ' <span style="color:var(--dim)">· Single Mount — no support</span>'
+    : ` and <b style="color:var(--cyan)">${name(fit.s)}</b>`}.
+     Fit them in the Proto Frame slot below; hardpoints cost no deck space.</div></div>`;
 }
 
 /**
@@ -16550,22 +16679,70 @@ function frameSlot() {
     return `<div class="sect" style="color:var(--violet)">Proto Frame slot</div>
      <div class="stub"><b>No prototype on strength</b>${all.length} Proto Frames exist.
        The fielded one is seeded straight into your opening hand — outside the
-       deck and its size — and its gear cards ride inside the deck.</div>`;
+       deck and its size — and it lands carrying the kit you bolt to it.
+       Hardpoints cost no deck space.</div>`;
   }
   // Fielded first: the answer, then what you could swap it for.
   const order = [...owned].sort((a, b) => (b === fielded ? 1 : 0) - (a === fielded ? 1 : 0)
     || POOL[a].n.localeCompare(POOL[b].n));
   return `<div class="sect" style="color:var(--violet)">Proto Frame slot — ${fielded ? POOL[fielded].n : 'empty'}</div>
    <div class="bar"><div>Seeded into your opening hand — one Frame on the board at a time</div>
-     <div style="color:var(--dim);font-size:0.6875rem">Tap to field it; its gear cards go in the deck</div></div>
-   ${cardGrid(order, 'proto')}`;
+     <div style="color:var(--dim);font-size:0.6875rem">Tap to field it; its kit bolts on below and costs no deck space</div></div>
+   ${cardGrid(order, 'proto')}
+   ${fielded ? hardpointRows(fielded) : ''}`;
+}
+
+/**
+ * The hardpoints: one weapon, one support, chosen from the kit you own.
+ *
+ * This is where a Frame is actually built. Until v2.45 a kit was a card you
+ * filed in the twelve and hoped to draw while the machine was still standing;
+ * fitting it here costs nothing but the credits, which is the whole point of
+ * the rework — see hardOf() for the numbers that forced it.
+ */
+function hardpointRows(frameId) {
+  const fit = hardOf(frameId);
+  const single = leadIs('fieldrefit');
+  const row = (slot, label) => {
+    const mine = kitsFor(frameId, slot).filter(c => active.unlocks.cards.includes(c));
+    const all = kitsFor(frameId, slot);
+    const on = fit[slot];
+    // Aki-Kaze has ONE mount that takes either kind, so her armoury shows one
+    // row of everything rather than two rows she can only half use.
+    if (single && slot === 's' && fit.w) {
+      return `<div class="row locked"><span><b style="color:var(--gold)">⛒ ${label}</b>
+        <div style="font-size:0.6562rem;color:var(--dim);margin-top:4px;line-height:1.5">${
+  leadOf().call} runs a single mount, and it is carrying ${POOL[fit.w].n}. Clear the
+        weapon to fly a support instead — she is the only lead who can.</div></span></div>`;
+    }
+    if (!mine.length) {
+      return `<div class="row"><span><b>${label}</b>
+        <div style="font-size:0.6562rem;color:var(--dim);margin-top:4px;line-height:1.5">None owned. ${
+  all.length} ${all.length === 1 ? 'fits' : 'fit'} this machine — the Quartermaster carries them.</div></span>
+        <span class="r">empty</span></div>`;
+    }
+    const chips = mine.map(c => `<button class="mini${on === c ? ' on' : ''}"
+        data-hard="${attr(frameId)}" data-hardslot="${slot}" data-hardkit="${attr(c)}"
+        title="${attr(POOL[c].d)}">${POOL[c].n}</button>`).join('')
+      + `<button class="mini${on ? '' : ' on'}" data-hard="${attr(frameId)}"
+        data-hardslot="${slot}" data-hardkit="">None</button>`;
+    return `<div class="row"><span><b>${label}</b>
+      <div style="font-size:0.6562rem;color:var(--dim);margin-top:4px;line-height:1.5">${
+  on ? POOL[on].d : 'Nothing fitted — the machine flies its own weapon.'}</div>
+      <div class="orgset" style="margin-top:6px">${chips}</div></span></div>`;
+  };
+  return `<div class="sect">Hardpoints — ${POOL[frameId].n}</div><div class="rows">
+     ${row('w', 'Weapon')}${row('s', 'Support')}</div>`;
 }
 
 function squadPanel() {
   const deck = active.loadout.deck;
   // Proto Frames live in their own slot and never in the twelve, so they are
   // filtered out of both grids rather than competing for a deck place.
-  const reserve = active.unlocks.cards.filter(c => !deck.includes(c) && POOL[c].chassis !== 'proto');
+  // Proto Frames live in their own slot and kits are hardpoints on the
+  // machine; neither is a card the twelve can hold, so neither competes here.
+  const reserve = active.unlocks.cards.filter(c => !deck.includes(c)
+    && POOL[c].chassis !== 'proto' && !POOL[c].frameGear);
   // A Frame with no Pilot in the deck is a dead slot, and the deck screen is
   // the only place that can say so before the mission starts. Cheap to check,
   // and the alternative is finding out on the board with six DP spent.
@@ -16651,11 +16828,27 @@ function savedDecksTab() {
 }
 
 function quartermasterPanel() {
+  // Frame kits are shelved with their machines below, not filed under Tech:
+  // they are hardpoints, not cards, and a Tech shelf listing seventeen items
+  // you can only use if you own one specific Specialist is a bad shelf.
   const tier = t => {
-    const ids = Object.keys(POOL).filter(c => POOL[c].t === t);
+    const ids = Object.keys(POOL).filter(c => POOL[c].t === t && !POOL[c].frameGear);
     const owned = ids.filter(c => active.unlocks.cards.includes(c)).length;
     return shelf('qm:' + t, TIERNAME[t], `${owned}/${ids.length} owned`, cardGrid(ids, 'shop'));
   };
+
+  // One shelf per Frame, so a kit is bought next to the machine it bolts to.
+  const kitShelves = Object.keys(POOL).filter(c => POOL[c].chassis === 'proto').map(f => {
+    const ids = kitsFor(f);
+    const owned = ids.filter(c => active.unlocks.cards.includes(c)).length;
+    const have = active.unlocks.cards.includes(f);
+    return shelf('qm:kit:' + f, POOL[f].n + ' kit', `${owned}/${ids.length} owned`,
+      `<div class="bar"><div>${have
+        ? 'Bolts to the machine at the armoury — it costs no deck space and lands fitted'
+        : `<span style="color:var(--gold)">Buy the ${POOL[f].n} first</span> — a kit with no machine does nothing`}</div>
+        <div style="color:var(--dim);font-size:0.6875rem">One weapon and one support fly at a time</div></div>
+      ${cardGrid(ids, 'shop')}`);
+  }).join('');
 
   // Frame weapons are shelved separately and say which Frame they need. A
   // Beam Saber bought without a White Devil is a wasted 480 credits, and the
@@ -16715,6 +16908,7 @@ function quartermasterPanel() {
      <div style="color:var(--dim);font-size:0.6875rem;margin-top:3px">Three offers, keep one — duplicates promote the card instead. Now and then one arrives as a priority requisition.</div></div>
      <button class="btn${canBuyPack ? '' : ' ghost'}" id="buypack"${canBuyPack ? '' : ' disabled'}>Buy pack · ${PACK_PRICE} cr</button></div>
    ${TIERS.map(tier).join('')}
+   ${kitShelves}
    ${gearGrid}
    ${schemeGrid}
    ${shelf('qm:leads', 'Team leads',
@@ -17117,6 +17311,18 @@ function openPanel(key, quiet) {
   // Quartermaster redraw is 145,000 characters of markup and it would throw
   // away the scroll position, which on the screen this exists to shorten is
   // exactly the thing you were trying to keep.
+  // Bolting a kit to a hardpoint. Empty `data-hardkit` clears the slot.
+  each('[data-hard]', el => {
+    const f = el.dataset.hard;
+    const slot = el.dataset.hardslot;
+    const kit = el.dataset.hardkit || null;
+    active.loadout.hard = active.loadout.hard || {};
+    const fit = Object.assign({w: null, s: null}, active.loadout.hard[f] || {});
+    fit[slot] = kit;
+    if (fit.w || fit.s) active.loadout.hard[f] = fit; else delete active.loadout.hard[f];
+    commit();
+    openPanel('squad', true);
+  });
   each('[data-fold]', el => {
     const id = el.dataset.fold;
     active.settings.folds = active.settings.folds || {};
@@ -17223,9 +17429,18 @@ function openPanel(key, quiet) {
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-const VERSION = '2.44';
+const VERSION = '2.45';
 
 const PATCH_NOTES = [
+  {
+    v: '2.45',
+    notes: [
+      'FRAME KITS ARE HARDPOINTS, NOT CARDS. A kit used to be a card inside your twelve, dead in hand until its one specific machine was standing — so running a Frame\'s full kit meant handing half the deck to a unit that might not survive turn three. It was measured and it was as bad as it sounds: a fully-kitted Frame won 10–28% of missions where a deck with NO Frame won 40%, and the same Frame with no kit at all won 40–57%. The system punished the fantasy in exact proportion to how much you bought into it.',
+      'SO THE MACHINE CARRIES ITS OWN KIT NOW. Every Frame has two hardpoints — one weapon, one support — fitted in the Proto Frame slot on the Squad screen and bolted on the instant it lands. They cost nothing from the deck. Measured again over 120 missions afterwards: a fitted Heavy Arms wins 53% against 43% bare and 45% for a deck with no Frame. The kit is worth ten points now instead of costing thirty.',
+      'KITS LEAVE THE PACKS AND GET THEIR OWN SHELVES. Seventeen of the sixty-seven standard-pool cards were Frame kits, so a standard pack had a one-in-four chance of offering something you could not play. They are bought on their machine\'s own shelf in the Quartermaster now, next to the Frame they bolt to, and a pack never offers one again. Everything you already own is kept, and a commander who had kits in a deck has them bolted on automatically — no trip to the armoury needed.',
+      'AKI-KAZE FLIES AN OPEN MOUNT. Field Refit was about swapping gear cards mid-sortie and there are no gear cards left to swap, so it is Open Mount instead: her single hardpoint takes either kind. She is the only commander who can field a Frame carrying a SUPPORT alongside its own printed weapon — everyone else fills two fixed slots. Single Mount is still the cost; one kit, never two.',
+    ],
+  },
   {
     v: '2.44',
     notes: [

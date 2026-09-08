@@ -11,7 +11,7 @@ import {LEADS} from '../content/leads.js';
 import {active, profiles, setActive} from '../state/session.js';
 import {store} from '../save/store.js';
 import {commit, migrate, saveAll} from '../save/profile.js';
-import {rankName, costOf, vetOf, leadUnlocked, deckCapOf, leadBan, leadOf, deckProblems} from '../save/progression.js';
+import {rankName, costOf, vetOf, leadUnlocked, deckCapOf, leadBan, leadOf, leadIs, deckProblems, hardOf, kitsFor} from '../save/progression.js';
 import {genRun, opCleared} from '../rules/run.js';
 import {purchasePack, PACK_PRICE} from '../rules/packs.js';
 import {$, attr, show, markSwipe} from './dom.js';
@@ -193,9 +193,15 @@ function deckFrame() {
       ? 'Nothing fielded — pick one in the Proto Frame slot below.'
       : 'No prototype on strength. The Quartermaster carries them.'}</div></div>`;
   }
+  const fit = hardOf(fielded);
+  const name = id => (POOL[id] ? POOL[id].n : 'empty');
   return `<div class="frameslot">${head}
    ${cardGrid([fielded], 'proto')}
-   <div class="framehint">Seeded into your opening hand — outside the deck, one on the board at a time.</div></div>`;
+   <div class="framehint">Seeded into your opening hand — outside the deck, one on the board at a time.
+     It lands carrying <b style="color:var(--cyan)">${name(fit.w)}</b>${leadIs('fieldrefit')
+    ? ' <span style="color:var(--dim)">· Single Mount — no support</span>'
+    : ` and <b style="color:var(--cyan)">${name(fit.s)}</b>`}.
+     Fit them in the Proto Frame slot below; hardpoints cost no deck space.</div></div>`;
 }
 
 /**
@@ -212,22 +218,70 @@ function frameSlot() {
     return `<div class="sect" style="color:var(--violet)">Proto Frame slot</div>
      <div class="stub"><b>No prototype on strength</b>${all.length} Proto Frames exist.
        The fielded one is seeded straight into your opening hand — outside the
-       deck and its size — and its gear cards ride inside the deck.</div>`;
+       deck and its size — and it lands carrying the kit you bolt to it.
+       Hardpoints cost no deck space.</div>`;
   }
   // Fielded first: the answer, then what you could swap it for.
   const order = [...owned].sort((a, b) => (b === fielded ? 1 : 0) - (a === fielded ? 1 : 0)
     || POOL[a].n.localeCompare(POOL[b].n));
   return `<div class="sect" style="color:var(--violet)">Proto Frame slot — ${fielded ? POOL[fielded].n : 'empty'}</div>
    <div class="bar"><div>Seeded into your opening hand — one Frame on the board at a time</div>
-     <div style="color:var(--dim);font-size:0.6875rem">Tap to field it; its gear cards go in the deck</div></div>
-   ${cardGrid(order, 'proto')}`;
+     <div style="color:var(--dim);font-size:0.6875rem">Tap to field it; its kit bolts on below and costs no deck space</div></div>
+   ${cardGrid(order, 'proto')}
+   ${fielded ? hardpointRows(fielded) : ''}`;
+}
+
+/**
+ * The hardpoints: one weapon, one support, chosen from the kit you own.
+ *
+ * This is where a Frame is actually built. Until v2.45 a kit was a card you
+ * filed in the twelve and hoped to draw while the machine was still standing;
+ * fitting it here costs nothing but the credits, which is the whole point of
+ * the rework — see hardOf() for the numbers that forced it.
+ */
+function hardpointRows(frameId) {
+  const fit = hardOf(frameId);
+  const single = leadIs('fieldrefit');
+  const row = (slot, label) => {
+    const mine = kitsFor(frameId, slot).filter(c => active.unlocks.cards.includes(c));
+    const all = kitsFor(frameId, slot);
+    const on = fit[slot];
+    // Aki-Kaze has ONE mount that takes either kind, so her armoury shows one
+    // row of everything rather than two rows she can only half use.
+    if (single && slot === 's' && fit.w) {
+      return `<div class="row locked"><span><b style="color:var(--gold)">⛒ ${label}</b>
+        <div style="font-size:0.6562rem;color:var(--dim);margin-top:4px;line-height:1.5">${
+  leadOf().call} runs a single mount, and it is carrying ${POOL[fit.w].n}. Clear the
+        weapon to fly a support instead — she is the only lead who can.</div></span></div>`;
+    }
+    if (!mine.length) {
+      return `<div class="row"><span><b>${label}</b>
+        <div style="font-size:0.6562rem;color:var(--dim);margin-top:4px;line-height:1.5">None owned. ${
+  all.length} ${all.length === 1 ? 'fits' : 'fit'} this machine — the Quartermaster carries them.</div></span>
+        <span class="r">empty</span></div>`;
+    }
+    const chips = mine.map(c => `<button class="mini${on === c ? ' on' : ''}"
+        data-hard="${attr(frameId)}" data-hardslot="${slot}" data-hardkit="${attr(c)}"
+        title="${attr(POOL[c].d)}">${POOL[c].n}</button>`).join('')
+      + `<button class="mini${on ? '' : ' on'}" data-hard="${attr(frameId)}"
+        data-hardslot="${slot}" data-hardkit="">None</button>`;
+    return `<div class="row"><span><b>${label}</b>
+      <div style="font-size:0.6562rem;color:var(--dim);margin-top:4px;line-height:1.5">${
+  on ? POOL[on].d : 'Nothing fitted — the machine flies its own weapon.'}</div>
+      <div class="orgset" style="margin-top:6px">${chips}</div></span></div>`;
+  };
+  return `<div class="sect">Hardpoints — ${POOL[frameId].n}</div><div class="rows">
+     ${row('w', 'Weapon')}${row('s', 'Support')}</div>`;
 }
 
 function squadPanel() {
   const deck = active.loadout.deck;
   // Proto Frames live in their own slot and never in the twelve, so they are
   // filtered out of both grids rather than competing for a deck place.
-  const reserve = active.unlocks.cards.filter(c => !deck.includes(c) && POOL[c].chassis !== 'proto');
+  // Proto Frames live in their own slot and kits are hardpoints on the
+  // machine; neither is a card the twelve can hold, so neither competes here.
+  const reserve = active.unlocks.cards.filter(c => !deck.includes(c)
+    && POOL[c].chassis !== 'proto' && !POOL[c].frameGear);
   // A Frame with no Pilot in the deck is a dead slot, and the deck screen is
   // the only place that can say so before the mission starts. Cheap to check,
   // and the alternative is finding out on the board with six DP spent.
@@ -313,11 +367,27 @@ function savedDecksTab() {
 }
 
 function quartermasterPanel() {
+  // Frame kits are shelved with their machines below, not filed under Tech:
+  // they are hardpoints, not cards, and a Tech shelf listing seventeen items
+  // you can only use if you own one specific Specialist is a bad shelf.
   const tier = t => {
-    const ids = Object.keys(POOL).filter(c => POOL[c].t === t);
+    const ids = Object.keys(POOL).filter(c => POOL[c].t === t && !POOL[c].frameGear);
     const owned = ids.filter(c => active.unlocks.cards.includes(c)).length;
     return shelf('qm:' + t, TIERNAME[t], `${owned}/${ids.length} owned`, cardGrid(ids, 'shop'));
   };
+
+  // One shelf per Frame, so a kit is bought next to the machine it bolts to.
+  const kitShelves = Object.keys(POOL).filter(c => POOL[c].chassis === 'proto').map(f => {
+    const ids = kitsFor(f);
+    const owned = ids.filter(c => active.unlocks.cards.includes(c)).length;
+    const have = active.unlocks.cards.includes(f);
+    return shelf('qm:kit:' + f, POOL[f].n + ' kit', `${owned}/${ids.length} owned`,
+      `<div class="bar"><div>${have
+        ? 'Bolts to the machine at the armoury — it costs no deck space and lands fitted'
+        : `<span style="color:var(--gold)">Buy the ${POOL[f].n} first</span> — a kit with no machine does nothing`}</div>
+        <div style="color:var(--dim);font-size:0.6875rem">One weapon and one support fly at a time</div></div>
+      ${cardGrid(ids, 'shop')}`);
+  }).join('');
 
   // Frame weapons are shelved separately and say which Frame they need. A
   // Beam Saber bought without a White Devil is a wasted 480 credits, and the
@@ -377,6 +447,7 @@ function quartermasterPanel() {
      <div style="color:var(--dim);font-size:0.6875rem;margin-top:3px">Three offers, keep one — duplicates promote the card instead. Now and then one arrives as a priority requisition.</div></div>
      <button class="btn${canBuyPack ? '' : ' ghost'}" id="buypack"${canBuyPack ? '' : ' disabled'}>Buy pack · ${PACK_PRICE} cr</button></div>
    ${TIERS.map(tier).join('')}
+   ${kitShelves}
    ${gearGrid}
    ${schemeGrid}
    ${shelf('qm:leads', 'Team leads',
@@ -779,6 +850,18 @@ export function openPanel(key, quiet) {
   // Quartermaster redraw is 145,000 characters of markup and it would throw
   // away the scroll position, which on the screen this exists to shorten is
   // exactly the thing you were trying to keep.
+  // Bolting a kit to a hardpoint. Empty `data-hardkit` clears the slot.
+  each('[data-hard]', el => {
+    const f = el.dataset.hard;
+    const slot = el.dataset.hardslot;
+    const kit = el.dataset.hardkit || null;
+    active.loadout.hard = active.loadout.hard || {};
+    const fit = Object.assign({w: null, s: null}, active.loadout.hard[f] || {});
+    fit[slot] = kit;
+    if (fit.w || fit.s) active.loadout.hard[f] = fit; else delete active.loadout.hard[f];
+    commit();
+    openPanel('squad', true);
+  });
   each('[data-fold]', el => {
     const id = el.dataset.fold;
     active.settings.folds = active.settings.folds || {};

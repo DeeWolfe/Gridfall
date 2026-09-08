@@ -115,10 +115,10 @@ export const LEADS = {
     col: "#ff9d4d",
     bio: "Rebuilds a loadout mid-sortie the way other people change their mind. Considers a fixed configuration a failure of imagination.",
     passive: {
-      n: "Field Refit",
-      d: "Swapping gear returns the old gear to your hand and repairs 3 hull. The Frame can still act this turn if it hasn't already.",
+      n: "Open Mount",
+      d: "Her Frame’s one hardpoint takes anything — weapon or support. She can fly a support nobody else can mount at all.",
     },
-    con: {n: "Single Mount", d: "Your Frame may carry only one gear at a time."},
+    con: {n: "Single Mount", d: "Your Frame carries one kit, never two."},
   },
   masterchief: {
     n: "JOHN-117",

@@ -85,11 +85,19 @@ function scan(html, selector) {
     let m;
     while ((m = re.exec(html))) {
       const el = makeElement('dyn');
+      // Every data-* on the SAME tag, not just the one queried. This used to
+      // be a 160-character window around the match with a special case for
+      // data-mode, which quietly handed back elements missing their siblings:
+      // a hardpoint chip queried by [data-hard] arrived with no data-hardkit,
+      // so the test could see the control but not what it controlled. The tag
+      // is the right boundary, so the tag is what gets parsed.
+      const open = html.lastIndexOf('<', m.index);
+      const close = html.indexOf('>', m.index);
+      const tag = open >= 0 && close > open ? html.slice(open, close) : '';
+      let a;
+      const attrs = /data-([\w-]+)="([^"]*)"/g;
+      while ((a = attrs.exec(tag))) el.dataset[camel(a[1])] = a[2];
       el.dataset[camel(attrName)] = m[1];
-      // Card tiles carry data-mode alongside data-focus; keep them together.
-      const near = html.slice(Math.max(0, m.index - 160), m.index + 160);
-      const mode = /data-mode="([^"]*)"/.exec(near);
-      if (mode) el.dataset.mode = mode[1];
       out.push(el);
     }
   } else if (idName && new RegExp('id="' + idName + '"').test(html)) {

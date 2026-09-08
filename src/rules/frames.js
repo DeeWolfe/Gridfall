@@ -1,13 +1,23 @@
-// The Frame system: a machine you commit a deck to.
+// The Frame system: a machine that carries its own kit.
 //
 // A Proto Frame is a 5 DP Specialist card SEEDED into the opening hand at
 // launch, outside the deck and outside its size — same mechanism, and same
-// reasoning, as the lead's stratagem. Its gear are cheap cards inside the
-// deck, exclusive to their own Frame and playable only while it stands, so
-// committing to a Frame means buying three of twelve slots into one plan.
-// Seeding removes the LUCK from that gamble while keeping the cost: the
-// Frame sits visible and unaffordable from turn one, and every turn you do
-// not field it is a turn you chose something else.
+// reasoning, as the lead's stratagem. Seeding removes the LUCK from the
+// gamble while keeping the cost: the Frame sits visible and unaffordable from
+// turn one, and every turn you do not field it is a turn you chose something
+// else.
+//
+// Its kit rides with it. Until v2.45 the kits were cards INSIDE the twelve —
+// cheap, exclusive to one Frame, and playable only while that Frame stood —
+// so committing to a machine meant handing half the deck to a unit that might
+// not survive turn three. That was measured and it was as bad as it sounds: a
+// fully-kitted Frame won 10-28% of missions where a deck with no Frame won
+// 40%, and the SAME Frame with no kit at all won 40-57%. The system punished
+// the fantasy in exact proportion to how much you bought into it.
+//
+// Kits are hardpoints now: one weapon and one support, chosen at the armoury,
+// bolted on the instant the machine lands. The deck is untouched, so a Frame
+// costs its 5 DP and nothing else.
 //
 // The Pilot is gone. It was a key card whose job ended the moment it worked,
 // and it left a defenceless body on the board. The Frame deploys like any
@@ -16,7 +26,7 @@
 
 import {POOL} from '../content/cards.js';
 import {G, active} from '../state/session.js';
-import {isProto, leadIs, cardName, gearOf, liveLoadout} from '../save/progression.js';
+import {isProto, leadIs, cardName, gearOf, liveLoadout, hardOf} from '../save/progression.js';
 import {clog} from './log.js';
 
 /** Seed the loadout's Frame into the opening hand, outside the deck. */
@@ -31,12 +41,24 @@ export function seedFrame() {
   }
 }
 
-/** The unit a kit card bolts onto — its Frame, or the Fireteam — if it stands. */
+/** The unit a kit card bolts onto — the Fireteam it fits — if it stands. */
 export const kitHost = id => G.units.find(u => u.id === id) || null;
 
-/** The standing host for a kit card: a named Frame, or any unit of the line it fits. */
-export const hostFor = k => (k.frameGear ? kitHost(k.frameGear)
-  : k.fits ? G.units.find(u => u.line === k.fits) || null : null);
+/** The standing host for a Fireteam armour card: any unit of the line it fits. */
+export const hostFor = k => (k.fits ? G.units.find(u => u.line === k.fits) || null : null);
+
+/**
+ * Bolt the armoury's hardpoints onto a Frame the moment it lands.
+ *
+ * Called from deploy(), so the machine is never on the board unequipped —
+ * which is the whole difference between a hardpoint and the card it used to
+ * be: there is no turn where you have the Frame but not its weapon.
+ */
+export function fitHardpoints(u) {
+  if (!u || !u.frame) return;
+  const {w, s} = hardOf(u.id);
+  [w, s].filter(Boolean).forEach(cid => applyFrameGear(u, cid, true));
+}
 
 /** The one Frame standing on the board, or null. Only one may stand. */
 export const frameOnBoard = () => G.units.find(u => u.frame) || null;
@@ -59,7 +81,8 @@ export function frameGateText(cid) {
   if (k.chassis === 'proto' && frameOnBoard()) return 'One Frame on the board at a time';
   // One of each Fireteam at a time: the card waits while its team stands.
   if (k.line && G.units.some(u => u.id === cid)) return `${k.n} is already on the field`;
-  if (k.frameGear && !kitHost(k.frameGear)) return `${POOL[k.frameGear].n} must be on the board`;
+  // Frame kits are not cards any more — they are fitted at the armoury and
+  // arrive bolted on — so there is no gate left for them to fail.
   if (k.fits && !hostFor(k)) return 'A Fireteam must be on the board';
   return null;
 }
@@ -71,9 +94,11 @@ export function frameGateText(cid) {
  * 3 hull, and it costs no action of its own — the Frame still moves, fires
  * or uses its ability after, if it hadn't already this turn.
  */
-export function applyFrameGear(u, cid) {
+export function applyFrameGear(u, cid, atSpawn) {
   const k = POOL[cid];
-  const refit = leadIs('fieldrefit');
+  // Field Refit's strip-and-return only makes sense for a swap made in the
+  // field. Bolting the armoury's own hardpoints on at the drop is not a swap.
+  const refit = leadIs('fieldrefit') && !atSpawn;
   const carried = [u.gearW, ...u.gearS].filter(Boolean);
 
   // Single Mount: everything already carried comes off — and back to hand,
@@ -194,20 +219,24 @@ function unmountSupports(u) {
 }
 
 /**
- * A destroyed Frame under Bushido's Code comes back to the hand — machine
- * and every attached gear together. The loss still counts as a loss; what
- * The Code buys is that it is never a PERMANENT one.
+ * A destroyed Frame under Bushido's Code comes back to the hand. The loss
+ * still counts as a loss; what The Code buys is that it is never a PERMANENT
+ * one.
+ *
+ * It used to hand back the attached gear cards too, because they WERE cards.
+ * Hardpoints never left the machine, so a salvaged Frame simply redeploys
+ * with its kit — the same promise, delivered by the fitting rather than by
+ * shuffling three cards back into a hand.
  */
 export function salvageFrame(u) {
   if (!u.frame) return;
   if (!leadIs('salvagerights')) return;
-  const back = [u.id, u.gearW, ...u.gearS].filter(Boolean);
+  const back = [u.id];
   back.forEach(c => G.hand.push(c));
   G.spent = (G.spent || []).filter(c => !back.includes(c));
   // A salvaged Frame is already built — fielding it again costs 2 less,
   // spent the moment the card is redeployed.
   G.salvageDiscount = G.salvageDiscount || {};
   G.salvageDiscount[u.id] = 2;
-  clog(`<span class="g">The Code</span> — ${cardName(u.id)} recovered to hand` +
-    (back.length > 1 ? ' with its gear' : '') + '.', 'order');
+  clog(`<span class="g">The Code</span> — ${cardName(u.id)} recovered to hand, kit intact.`, 'order');
 }

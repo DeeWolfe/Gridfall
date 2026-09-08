@@ -4,9 +4,18 @@
 // new entry to the front of PATCH_NOTES with every release worth telling a
 // commander about; skip the ones that are pure internal cleanup.
 
-export const VERSION = '2.44';
+export const VERSION = '2.45';
 
 export const PATCH_NOTES = [
+  {
+    v: '2.45',
+    notes: [
+      'FRAME KITS ARE HARDPOINTS, NOT CARDS. A kit used to be a card inside your twelve, dead in hand until its one specific machine was standing — so running a Frame\'s full kit meant handing half the deck to a unit that might not survive turn three. It was measured and it was as bad as it sounds: a fully-kitted Frame won 10–28% of missions where a deck with NO Frame won 40%, and the same Frame with no kit at all won 40–57%. The system punished the fantasy in exact proportion to how much you bought into it.',
+      'SO THE MACHINE CARRIES ITS OWN KIT NOW. Every Frame has two hardpoints — one weapon, one support — fitted in the Proto Frame slot on the Squad screen and bolted on the instant it lands. They cost nothing from the deck. Measured again over 120 missions afterwards: a fitted Heavy Arms wins 53% against 43% bare and 45% for a deck with no Frame. The kit is worth ten points now instead of costing thirty.',
+      'KITS LEAVE THE PACKS AND GET THEIR OWN SHELVES. Seventeen of the sixty-seven standard-pool cards were Frame kits, so a standard pack had a one-in-four chance of offering something you could not play. They are bought on their machine\'s own shelf in the Quartermaster now, next to the Frame they bolt to, and a pack never offers one again. Everything you already own is kept, and a commander who had kits in a deck has them bolted on automatically — no trip to the armoury needed.',
+      'AKI-KAZE FLIES AN OPEN MOUNT. Field Refit was about swapping gear cards mid-sortie and there are no gear cards left to swap, so it is Open Mount instead: her single hardpoint takes either kind. She is the only commander who can field a Frame carrying a SUPPORT alongside its own printed weapon — everyone else fills two fixed slots. Single Mount is still the cost; one kit, never two.',
+    ],
+  },
   {
     v: '2.44',
     notes: [

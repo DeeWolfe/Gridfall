@@ -112,7 +112,7 @@ export function validTiles(cid) {
   // Quietstep's No Rear Line: nothing that lands a body may land in the two
   // rearmost columns. Instants, attachments, gear and calls are not bodies.
   const minCol = leadOf().minCol || 0;
-  if (!minCol || k.instant || k.attach || k.frameGear || k.strat) return tiles;
+  if (!minCol || k.instant || k.attach || k.fits || k.strat) return tiles;
   return tiles.filter(i => i % COLS >= minCol);
 }
 
@@ -166,14 +166,9 @@ function rawTiles(cid, k) {
     return out;
   }
 
-  // Gear lands on the machine itself: the standing Frame's cell is the one
-  // legal target. frameGateText() above already guaranteed it is the right
-  // Frame, so this cannot offer someone else's kit a home.
-  if (k.frameGear) {
-    const fr = hostFor(k);
-    if (fr) out.push(fr.lane * COLS + fr.col);
-    return out;
-  }
+  // A Frame kit is not a card any more — it is a hardpoint bolted on at the
+  // armoury and applied the moment the machine lands — so nothing here has to
+  // find it a home on the board.
   // A thrown kit (the X-Grenade) is aimed: any cell within throw range of a
   // standing team of its line, hostiles under it or not — that is the point.
   if (k.fits && k.throw) {

@@ -7,6 +7,16 @@ import {failures} from './support/harness.js';
 import {spawnUnit, spawnFoe, clearBoard, unlockAll} from './support/fixtures.js';
 
 const F = failures();
+
+/**
+ * Bolt a Frame hardpoint straight onto the machine.
+ *
+ * Kits stopped being playable cards in v2.45 — they are fitted at the armoury
+ * and applied when the Frame lands — so a guard that wants one on a machine
+ * fits it rather than deploying it. What each kit DOES is unchanged, which is
+ * what these blocks are actually about.
+ */
+const fitKit = (u, cid) => A.applyFrameGear(u, cid, true);
 const HULL = [2, 3, 5, 8, 12, 18, 24];
 const DMG = [1, 2, 3, 5, 8];
 const CUT = ['knight', 'vanguard', 'turret', 'biomed', 'pulse', 'suppressor', 'battery', 'bore', 'cache', 'sapper'];
@@ -494,20 +504,11 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'xgrenade']
   if (drawn.includes('xgrenade')) F.push('a thrown X-Grenade came back through the reserve');
   if (!drawn.includes('rifle')) F.push('the reserve stopped cycling ordinary cards');
   if (drawn.includes('ftnoble')) F.push('a standing Fireteam cycled back while on the field');
-  // Field Refit hands a displaced FRAME gear back — and it is in play again.
-  // (A Fireteam's stripped ability is lost; Refit reads "your Frame".)
-  A.active.lead = 'fieldrefit';
-  ['whitedevil', 'beamrifle', 'beamsaber'].forEach(c => { if (!A.active.unlocks.cards.includes(c)) A.active.unlocks.cards.push(c); });
-  A.active.loadout.deck.push('beamrifle', 'beamsaber');
-  const wd = spawnUnit('whitedevil', 0, 1);
-  A.G.hand.push('beamrifle', 'beamsaber');
-  A.G.dp = 5;
-  A.deploy('beamrifle', 0, 1);
-  if (!A.G.spent.includes('beamrifle')) F.push('a fitted Beam Rifle was not marked spent');
-  A.deploy('beamsaber', 0, 1);
-  if (!A.G.hand.includes('beamrifle')) F.push('Field Refit did not hand the Beam Rifle back');
-  if (A.G.spent.includes('beamrifle')) F.push('a gear returned to hand by Field Refit stayed spent');
-  if (!A.G.spent.includes('beamsaber') || wd.gearW !== 'beamsaber') F.push('the Beam Saber did not take the mount');
+  // Field Refit used to be tested here by playing one Frame gear card over
+  // another and watching the displaced one come back to hand. There are no
+  // Frame gear cards any more — kits are hardpoints — so that swap has no
+  // subject and the block ends with the Fireteam kits above. Single Mount,
+  // the half of Aki-Kaze that still bites, is guarded in frametest.
   A.active.lead = 'ironbrand';
 }
 
@@ -712,10 +713,9 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'xgrenade']
 // --- Beam Javelin: sweeps every cell around the White Devil ---
 {
   start(['whitedevil', 'beamjavelin', 'rifle', 'marks', 'wall', 'medic']);
-  A.G.hand = ['beamjavelin'];
   A.G.dp = 5;
   const wd = spawnUnit('whitedevil', 2, 2);
-  A.deploy('beamjavelin', 2, 2);
+  fitKit(wd, 'beamjavelin');
   if (wd.gearW !== 'beamjavelin' || wd.tg !== 'around' || wd.dmg !== 3) F.push('Beam Javelin did not fit');
   const cells = new Set(A.geomCells(wd));
   if (cells.size !== 8) F.push(`Beam Javelin reaches ${cells.size} cells, wanted the 8 around it`);
@@ -724,12 +724,11 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'xgrenade']
 // --- Guardian Field: a standing aura, refreshed every turn, gone once stripped ---
 {
   start(['whitedevil', 'guardianfield', 'rifle', 'marks', 'wall', 'medic']);
-  A.G.hand = ['guardianfield'];
   A.G.dp = 5;
   const wd = spawnUnit('whitedevil', 2, 2);
   const near = spawnUnit('rifle', 2, 3);
   const far = spawnUnit('marks', 4, 2);
-  A.deploy('guardianfield', 2, 2);
+  fitKit(wd, 'guardianfield');
   if (!wd.auraShield) F.push('Guardian Field did not fit');
   near.shield = 0; far.shield = 0;
   A.endTurn();
@@ -743,11 +742,10 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'xgrenade']
 // --- Devil's Drive: a Barbatos-style bonus that scales with the machine's own wounds ---
 {
   start(['whitedevil', 'devilsdrive', 'rifle', 'marks', 'wall', 'medic']);
-  A.G.hand = ['devilsdrive'];
   A.G.dp = 5;
   const wd = spawnUnit('whitedevil', 2, 2);
   if (A.berserkBonus(wd)) F.push('Devil\'s Drive applied before it was fitted');
-  A.deploy('devilsdrive', 2, 2);
+  fitKit(wd, 'devilsdrive');
   if (!wd.berserk) F.push('Devil\'s Drive did not fit');
   const before = A.dmgPreview(wd);
   if (A.berserkBonus(wd) !== 0) F.push(`a full-hull Frame should carry no berserk bonus, got ${A.berserkBonus(wd)}`);
@@ -763,10 +761,9 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'xgrenade']
 // --- Pile Bunker Blade: full damage through armour at the first cell, half at the second ---
 {
   start(['sevenblades', 'pilebunker', 'rifle', 'marks', 'wall', 'medic']);
-  A.G.hand = ['pilebunker'];
   A.G.dp = 5;
   const sb = spawnUnit('sevenblades', 2, 1);
-  A.deploy('pilebunker', 2, 1);
+  fitKit(sb, 'pilebunker');
   if (sb.gearW !== 'pilebunker' || !sb.pen || !sb.falloff) F.push('Pile Bunker Blade did not fit with its traits');
   const near = spawnFoe('hulk', 2, 2, 30);           // armour floor — pen must ignore it
   const far = spawnFoe('hulk', 2, 3, 30);
@@ -779,10 +776,9 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'xgrenade']
 // --- Dual Blades: the lane above and below, one cell ahead, own lane clear ---
 {
   start(['sevenblades', 'dualblades', 'rifle', 'marks', 'wall', 'medic']);
-  A.G.hand = ['dualblades'];
   A.G.dp = 5;
   const sb = spawnUnit('sevenblades', 2, 1);
-  A.deploy('dualblades', 2, 1);
+  fitKit(sb, 'dualblades');
   const up = spawnFoe('crawler', 1, 2, 10);
   const own = spawnFoe('crawler', 2, 2, 10);
   const down = spawnFoe('crawler', 3, 2, 10);
@@ -794,10 +790,9 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'xgrenade']
 // --- Double Blade: the cell ahead and the cell behind, in one motion ---
 {
   start(['sevenblades', 'doubleblade', 'rifle', 'marks', 'wall', 'medic']);
-  A.G.hand = ['doubleblade'];
   A.G.dp = 5;
   const sb = spawnUnit('sevenblades', 2, 2);
-  A.deploy('doubleblade', 2, 2);
+  fitKit(sb, 'doubleblade');
   const ahead = spawnFoe('crawler', 2, 3, 10);
   const behind = spawnFoe('crawler', 2, 1, 10);
   const hit = A.targetsFor(sb).map(e => e.uid);
@@ -807,10 +802,9 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'xgrenade']
 // --- Siege Cannon: reaches the whole board, needs a turn to cycle ---
 {
   start(['heavyarms', 'siegecannon', 'rifle', 'marks', 'wall', 'medic']);
-  A.G.hand = ['siegecannon'];
   A.G.dp = 5;
   const ha = spawnUnit('heavyarms', 2, 1);
-  A.deploy('siegecannon', 2, 1);
+  fitKit(ha, 'siegecannon');
   if (ha.tg !== 'boardFurthest' || ha.dmg !== 8 || !ha.recharge) F.push('Siege Cannon did not fit');
   const deep = spawnFoe('crawler', 4, 7, 20);
   ha.fresh = false; ha.acted = false;
@@ -822,11 +816,10 @@ const ARMOUR = ['camo', 'lock', 'jetpack', 'dropshield', 'hologram', 'xgrenade']
 // --- Core Booster: the Heavy Arms may move ---
 {
   start(['heavyarms', 'corebooster', 'rifle', 'marks', 'wall', 'medic']);
-  A.G.hand = ['corebooster'];
   A.G.dp = 5;
   const ha = spawnUnit('heavyarms', 2, 1);
   if (ha.mob) F.push('Heavy Arms should be anchored bare');
-  A.deploy('corebooster', 2, 1);
+  fitKit(ha, 'corebooster');
   if (!ha.mob) F.push('Core Booster did not grant movement');
   ha.fresh = false; ha.acted = false; ha.moved = false;
   if (!A.moveTargets(ha).length) F.push('a mobile Heavy Arms has no move targets');

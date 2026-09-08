@@ -42,16 +42,57 @@ export function liveLoadout() {
   if (G && G.run && active && active.run) {
     // A run drafts no Proto Frame, so it flies none — the profile's Frame is
     // not the run's to field.
-    return {deck: active.run.deck, gear: active.run.gear, lead: active.run.lead || 'ironbrand', frame: null};
+    return {deck: active.run.deck, gear: active.run.gear, lead: active.run.lead || 'ironbrand',
+      frame: null, hard: {}};
   }
-  if (!active) return {deck: [], gear: {}, lead: 'ironbrand', frame: null};
+  if (!active) return {deck: [], gear: {}, lead: 'ironbrand', frame: null, hard: {}};
   return {
     deck: (active.loadout && active.loadout.deck) || [],
     gear: (active.loadout && active.loadout.gear) || {},
     lead: active.lead || 'ironbrand',
     frame: (active.loadout && active.loadout.frame) || null,
+    hard: (active.loadout && active.loadout.hard) || {},
   };
 }
+
+/** Hardpoint slots a Frame carries: one weapon, one support. */
+export const HARDPOINTS = ['w', 's'];
+
+/**
+ * What is bolted to a Frame, as `{w, s}` of kit card ids.
+ *
+ * Kits used to be cards inside the twelve, and that was the system's whole
+ * problem: a kit is dead in hand until its specific machine is standing, so
+ * running a Frame's full kit meant half the deck was hostage to one unit. It
+ * was measurable — a fully-kitted Frame won 10-28% of missions against 40% for
+ * a deck with no Frame at all, while the SAME Frame with no kit won 40-57%.
+ * The fantasy was punished exactly in proportion to how much you bought into
+ * it. Kits are fitted at the armoury now and cost nothing from the deck.
+ *
+ * Aki-Kaze is the one lead that reaches in here. Single Mount is her cost —
+ * one hardpoint, never two — and Open Mount is what she gets for it: that one
+ * mount takes either kind, so she is the only commander who can fly a Frame
+ * carrying a support and its own printed weapon. Everyone else fills two fixed
+ * slots; she fills one with whatever she likes.
+ */
+export function hardOf(frameId) {
+  const fit = liveLoadout().hard[frameId] || {};
+  const ok = (id, slot) => {
+    const k = POOL[id];
+    return k && k.frameGear === frameId && k.slot === slot ? id : null;
+  };
+  const w = ok(fit.w, 'weapon');
+  const s = ok(fit.s, 'support');
+  // One mount: the weapon wins if both are somehow set, so the answer is
+  // never ambiguous and never depends on object key order.
+  if (leadIs('fieldrefit')) return w ? {w, s: null} : {w: null, s};
+  return {w, s};
+}
+
+/** Every kit card that fits this Frame, split by hardpoint. */
+export const kitsFor = (frameId, slot) =>
+  Object.keys(POOL).filter(c => POOL[c].frameGear === frameId
+    && (!slot || POOL[c].slot === (slot === 'w' ? 'weapon' : 'support')));
 
 /** The gear fitted to a card, or null. */
 export function gearOf(id) {

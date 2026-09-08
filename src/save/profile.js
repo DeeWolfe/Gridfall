@@ -25,7 +25,9 @@ export function blankProfile(callsign) {
     lastPlayed: Date.now(),
     progress: {rank: 1, xp: 0, credits: 420},
     unlocks: {cards: [...STARTER], enemies: [], gear: [], leads: [], schemes: ['standard']},
-    loadout: {deck: [...STARTER], gear: {}, scheme: 'standard', frame: null},
+    // `hard` is the Frame hardpoints: {frameId: {w, s}} of kit card ids,
+    // fitted at the armoury and never in the deck. See hardOf() for why.
+    loadout: {deck: [...STARTER], gear: {}, scheme: 'standard', frame: null, hard: {}},
     stats: {deployments: 0, held: 0, lost: 0, breaches: 0, kills: 0, unitsLost: 0},
     ship: 'ANVIL-7',
     lead: 'ironbrand',
@@ -338,6 +340,35 @@ export function migrate(p) {
     });
   }
 
+  // v22: Frame kits leave the deck and become hardpoints on the machine.
+  //
+  // A kit was a card inside the twelve, dead in hand until its specific Frame
+  // stood, so a fully-kitted Frame cost half the deck and MEASURABLY lost more
+  // than a deck with no Frame at all. A commander who already bought kits keeps
+  // them — ownership is untouched — and the machine is auto-fitted with the
+  // first weapon and support they own so it flies on the next sortie without a
+  // visit to the armoury. Every kit still sitting in a deck or a saved preset
+  // comes out; it is not a card any more.
+  if (p.version < 22) {
+    p.version = 22;
+    p.loadout = p.loadout || {};
+    p.loadout.hard = p.loadout.hard || {};
+    const owned = p.unlocks && Array.isArray(p.unlocks.cards) ? p.unlocks.cards : [];
+    Object.keys(POOL).filter(c => POOL[c].chassis === 'proto').forEach(f => {
+      if (!owned.includes(f) || p.loadout.hard[f]) return;
+      const mine = slot => owned.find(c => POOL[c] && POOL[c].frameGear === f && POOL[c].slot === slot);
+      const w = mine('weapon');
+      const s = mine('support');
+      if (w || s) p.loadout.hard[f] = {w: w || null, s: s || null};
+    });
+    if (Array.isArray(p.loadout.deck)) p.loadout.deck = p.loadout.deck.filter(c => !(POOL[c] && POOL[c].frameGear));
+    if (Array.isArray(p.presets)) {
+      p.presets.forEach(pr => {
+        if (Array.isArray(pr.deck)) pr.deck = pr.deck.filter(c => !(POOL[c] && POOL[c].frameGear));
+      });
+    }
+  }
+
   p.unlocks = p.unlocks || {};
   p.unlocks.cards = p.unlocks.cards || [...STARTER];
   p.unlocks.enemies = p.unlocks.enemies || [];
@@ -368,6 +399,24 @@ export function migrate(p) {
       || card.attach || card.chassis === 'proto');
     if (!GEAR[p.loadout.gear[k]] || !card || slotless) delete p.loadout.gear[k];
   });
+
+  // Hardpoints: a kit only counts where it names the Frame it is bolted to,
+  // sits in the right slot, and is actually owned. Anything else is dropped
+  // rather than fielded — an unowned kit would be a free 200-credit weapon.
+  p.loadout.hard = (p.loadout.hard && typeof p.loadout.hard === 'object') ? p.loadout.hard : {};
+  Object.keys(p.loadout.hard).forEach(f => {
+    if (!POOL[f] || POOL[f].chassis !== 'proto') { delete p.loadout.hard[f]; return; }
+    const fit = p.loadout.hard[f] || {};
+    const keep = (id, slot) => {
+      const k = POOL[id];
+      return k && k.frameGear === f && k.slot === slot && p.unlocks.cards.includes(id) ? id : null;
+    };
+    const w = keep(fit.w, 'weapon');
+    const s = keep(fit.s, 'support');
+    if (w || s) p.loadout.hard[f] = {w, s}; else delete p.loadout.hard[f];
+  });
+  // ...and a kit is never a deck card again, whatever an import hands us.
+  p.loadout.deck = p.loadout.deck.filter(c => !(POOL[c] && POOL[c].frameGear));
 
   p.stats = p.stats || {deployments: 0, held: 0, lost: 0, breaches: 0, kills: 0, unitsLost: 0};
   p.stats.opsCleared = p.stats.opsCleared || 0;

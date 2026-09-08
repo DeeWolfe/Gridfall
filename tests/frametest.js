@@ -1,33 +1,46 @@
-// The Frame system, rebuilt: a 5 DP machine seeded into the opening hand,
-// deployed like any other unit, running a closed kit of 1 DP gear cards.
+// The Frame system: a machine that carries its own kit.
 //
-// The Pilot is gone. What these guards keep true instead:
+// A Proto Frame is a 5 DP Specialist seeded into the opening hand at launch,
+// outside the deck. Its kit is NOT in the deck either — it is a pair of
+// hardpoints, one weapon and one support, fitted at the armoury and bolted on
+// the instant the machine lands.
 //
-//   - the fielded Frame is seeded to hand at launch, outside the deck;
+// That is the v2.45 change and the reason for it is measured: as cards inside
+// the twelve, a Frame's kit was dead in hand until the machine stood, so a
+// fully-kitted Frame won 10-28% of missions where a deck with no Frame won
+// 40%, and the same Frame with NO kit won 40-57%. The system punished the
+// fantasy in proportion to how much you bought into it. What these guards keep
+// true now:
+//
+//   - the Frame is seeded to hand at launch, outside the deck;
 //   - it deploys on held ground with a functional base weapon;
 //   - one Frame on the board at a time;
-//   - gear fits only its own Frame, and is dead in hand without it;
-//   - weapon gear replaces the weapon, support gear rides alongside;
-//   - a riposte is a trait and survives a weapon swap;
+//   - a kit is never a card: not in a deck, not in a hand, not in a pack;
+//   - a Frame lands already carrying both its hardpoints;
+//   - only kits that fit THIS Frame, in the right slot, and are owned, count;
+//   - weapon replaces the weapon, support rides alongside, riposte is a trait;
 //   - the reserve cycle never re-deals the machine;
-//   - The Code (Bushido) returns the wreck and its kit to hand, at half hull;
-//   - Field Refit swaps gear freely, one mounted at a time, for the turn.
+//   - The Code (Bushido) returns the wreck to hand at half hull, kit intact;
+//   - Single Mount (Aki-Kaze) flies the weapon and nothing else.
 import './support/install-dom.js';
 import * as A from './support/api.js';
 import {failures} from './support/harness.js';
 import {spawnFoe, clearBoard, unlockAll, stillAir} from './support/fixtures.js';
 import {POOL} from '../src/content/cards.js';
-import {GEAR} from '../src/content/gear.js';
 import {isProto} from '../src/save/progression.js';
+import {openPanel} from '../src/render/panels.js';
+import {get} from './support/dom.js';
 
 const F = failures();
 const FRAMES = Object.keys(POOL).filter(c => isProto(c));
-const GEARCARDS = Object.keys(POOL).filter(c => POOL[c].frameGear);
+const KITS = Object.keys(POOL).filter(c => POOL[c].frameGear);
 
 let p;
-const start = (frame, lead) => {
+/** A profile in a mission, with `frame` fielded and `hard` bolted to it. */
+const start = (frame = 'whitedevil', hard = null, lead = null) => {
   p = unlockAll(A.blankProfile('FRAME'), ['rifle', 'wall', 'medic', 'marks', 'cipher']);
-  p.loadout.frame = frame === undefined ? 'whitedevil' : frame;
+  p.loadout.frame = frame;
+  if (frame && hard) p.loadout.hard = {[frame]: hard};
   if (lead) p.lead = lead;
   A.enterProfile(p);
   A.launchSpec({node: null, type: 'stronghold', mod: 'none', reward: 0});
@@ -48,241 +61,320 @@ const play = (cid, l, c) => {
 // --- the shape of the content ---
 {
   if (FRAMES.length !== 3) F.push(`expected 3 Proto Frames, found ${FRAMES.length}`);
-  if (POOL.pilot) F.push('the Pilot card still exists');
-  FRAMES.forEach(c => {
-    if (POOL[c].dp !== 5) F.push(`${c} costs ${POOL[c].dp} DP, spec says 5`);
-    if (!POOL[c].dmg || POOL[c].tg === 'none') F.push(`${c} has no functional base weapon`);
-  });
-  // The Fireteam's kits ride the same mechanism; only the Frame kits are counted here.
-  const FRAMEKITS = GEARCARDS.filter(c => isProto(POOL[c].frameGear));
-  if (FRAMEKITS.length !== 17) F.push(`expected 17 Frame gear cards, found ${FRAMEKITS.length}`);
-  GEARCARDS.forEach(c => {
-    const k = POOL[c];
-    if (!POOL[k.frameGear]) F.push(`${c} points at a host that does not exist`);
-    if (k.dp !== 1) F.push(`${c} costs ${k.dp} DP, spec says 1`);
-    if (k.slot !== 'weapon' && k.slot !== 'support') F.push(`${c} has no slot`);
-  });
-  const KITSIZE = {whitedevil: 6, sevenblades: 6, heavyarms: 5};
   FRAMES.forEach(f => {
-    const kit = GEARCARDS.filter(c => POOL[c].frameGear === f);
-    if (kit.length !== KITSIZE[f]) F.push(`${f} kit has ${kit.length} pieces, wanted ${KITSIZE[f]}`);
+    const k = POOL[f];
+    if (k.t !== 'special') F.push(`${f} is not a Specialist`);
+    if (!k.dmg) F.push(`${f} lands with no weapon of its own`);
+    if (!k.hp) F.push(`${f} has no hull`);
+    // Every Frame must offer both hardpoints, or its armoury page is a lie.
+    ['w', 's'].forEach(slot => {
+      if (!A.kitsFor(f, slot).length) F.push(`${f} has no ${slot === 'w' ? 'weapon' : 'support'} kit to fit`);
+    });
   });
-  // The armoury's frame pieces are gone — gear cards replaced them all.
-  Object.keys(GEAR).forEach(g => {
-    if (GEAR[g].frame) F.push(`armoury piece '${g}' still claims a frame`);
+  KITS.forEach(c => {
+    const k = POOL[c];
+    if (!POOL[k.frameGear]) F.push(`kit ${c} names a Frame that does not exist`);
+    if (!['weapon', 'support'].includes(k.slot)) F.push(`kit ${c} sits in no hardpoint`);
   });
-  console.log('shape: 3 frames at 5 DP with base weapons, 9 gear cards at 1 DP, no Pilot');
+}
+
+// --- a kit is not a card ---
+//
+// The whole point of the rework. A kit may not reach a deck, a hand or a pack;
+// if any of those leaks it is back to being a slot tax with extra steps.
+{
+  start();
+  if (A.G.hand.some(c => POOL[c].frameGear)) F.push('a kit was dealt into the opening hand');
+  if (A.G.deck.some(c => POOL[c].frameGear)) F.push('a kit was shuffled into the mission deck');
+  if (p.loadout.deck.some(c => POOL[c].frameGear)) F.push('a kit survived in the profile deck');
+
+  // unlockAll gives the commander every card; the deck builder must still
+  // refuse to file a kit as one of the twelve.
+  const all = A.migrate(Object.assign(A.blankProfile('LEAK'), {
+    unlocks: {cards: Object.keys(POOL), enemies: [], gear: [], leads: [], schemes: ['standard']},
+    loadout: {deck: [...KITS.slice(0, 6), 'rifle'], gear: {}, frame: 'whitedevil'},
+  }));
+  if (all.loadout.deck.some(c => POOL[c].frameGear)) F.push('migrate left kits in the deck');
+  if (!all.loadout.deck.includes('rifle')) F.push('migrate threw away a real card with the kits');
+
+  // ...and a pack never offers one, because it could never be played.
+  A.enterProfile(A.blankProfile('PACK'));
+  let offered = 0;
+  for (let i = 0; i < 300; i++) {
+    offered += A.packOffer(i % 4 === 0 ? 'specialist' : 'standard')
+      .filter(x => x.id && POOL[x.id] && POOL[x.id].frameGear).length;
+  }
+  if (offered) F.push(`packs offered a Frame kit ${offered} times in 300 pulls`);
 }
 
 // --- seeding: opening hand, outside the deck ---
 {
-  start('whitedevil');
-  if (!A.G.hand.includes('whitedevil')) F.push('the fielded Frame was not seeded to hand');
-  if (!A.G.frame || A.G.frame.k !== 'whitedevil') F.push('G.frame does not carry the seed');
-  if (A.G.deck.includes('whitedevil')) F.push('the Frame leaked into the deck');
+  start();
+  if (!A.G.hand.includes('whitedevil')) F.push('the Frame was not seeded into the opening hand');
+  if (A.G.deck.includes('whitedevil')) F.push('the Frame is also in the draw pile');
+  if (!A.G.frame || A.G.frame.k !== 'whitedevil') F.push('G.frame does not name the fielded machine');
+
   start(null);
-  if (A.G.hand.some(c => isProto(c))) F.push('a Frame was seeded with an empty slot');
-  console.log('seeding: the fielded Frame opens in hand, outside the deck');
+  if (A.G.hand.some(isProto)) F.push('a commander with no Frame was seeded one');
 }
 
-// --- deploys on held ground, base weapon live, one at a time ---
+// --- a Frame lands already carrying its hardpoints ---
 {
-  start('whitedevil');
-  const tiles = A.validTiles('whitedevil');
-  if (!tiles.length) F.push('a Frame has nowhere to deploy');
-  if (tiles.some(i => A.G.ter[(i / A.COLS) | 0][i % A.COLS] !== 'p')) {
-    F.push('a Frame was offered ground it does not hold');
-  }
+  start('whitedevil', {w: 'beamsaber', s: 'booster'});
   const u = play('whitedevil', 2, 1);
-  if (!u) F.push('the Frame did not deploy');
+  if (!u) { F.push('the Frame did not deploy'); } else {
+    if (u.gearW !== 'beamsaber') F.push(`the weapon hardpoint did not fit: ${u.gearW}`);
+    if (!u.gearS.includes('booster')) F.push('the support hardpoint did not fit');
+    // Beam Saber: 7 damage at contact, and it strikes back.
+    if (u.dmg !== POOL.beamsaber.dmg) F.push(`fitted damage ${u.dmg}, wanted ${POOL.beamsaber.dmg}`);
+    if (u.tg !== POOL.beamsaber.tg) F.push('the fitted weapon did not set the targeting');
+    if (!u.riposte) F.push('the saber riposte did not come with it');
+    if (!u.mob) F.push('the booster did not ride alongside');
+    // Fitting is free: the machine costs its own DP and nothing more.
+    if ((A.G.spent || []).some(c => POOL[c] && POOL[c].frameGear)) {
+      F.push('fitting a hardpoint spent a card');
+    }
+  }
+}
+
+// --- and a bare Frame still fights ---
+{
+  start('whitedevil', null);
+  const u = play('whitedevil', 2, 1);
+  if (!u) F.push('a Frame with no hardpoints would not deploy');
   else {
-    if (!u.frame) F.push('the deployed machine is not flagged as a Frame');
-    if (u.tg !== 'adj' || u.dmg !== 2) F.push(`vulcans wrong: ${u.tg}/${u.dmg}`);
-    const e = spawnFoe('crawler', 2, 2, 99);
-    A.fire(u, false);
-    if (e.hp !== 97) F.push(`base weapon dealt ${99 - e.hp}, wanted 2`);
+    if (u.gearW) F.push('an unfitted Frame arrived carrying a weapon');
+    if (u.dmg !== POOL.whitedevil.dmg) F.push('a bare Frame lost its own weapon');
   }
-  // A second machine waits its turn — even someone else's.
-  if (A.validTiles('sevenblades').length) F.push('a second Frame could deploy alongside the first');
-  if (!A.frameGateText('sevenblades')) F.push('the one-at-a-time gate gave no reason');
-  console.log('deploy: held ground, vulcans land 2, one machine at a time');
 }
 
-// --- gear gating: dead without its Frame, alive on its cell ---
+// --- only a kit that fits THIS Frame, in the right slot, and is owned ---
 {
-  start('whitedevil');
-  if (A.validTiles('beamrifle').length) F.push('gear playable with no Frame on the board');
-  if (!A.frameGateText('beamrifle')) F.push('absent-Frame gate gave no reason');
+  start('whitedevil', {w: 'greatsword', s: 'resonator'});   // Seven Blades' kit
   const u = play('whitedevil', 2, 1);
-  const tiles = A.validTiles('beamrifle');
-  if (tiles.length !== 1 || tiles[0] !== u.lane * A.COLS + u.col) {
-    F.push('gear does not target exactly its Frame\'s cell');
-  }
-  if (A.validTiles('greatsword').length) F.push('another Frame\'s gear fit the wrong machine');
-  console.log('gating: gear dead in hand without its own Frame, targets its cell with it');
+  if (u.gearW === 'greatsword') F.push("another Frame's weapon fitted the wrong machine");
+  if (u.gearS.includes('resonator')) F.push("another Frame's support fitted the wrong machine");
+
+  start('whitedevil', {w: 'booster', s: 'beamsaber'});      // slots swapped
+  const u2 = play('whitedevil', 2, 1);
+  if (u2.gearW === 'booster') F.push('a support card fitted the weapon hardpoint');
+  if (u2.gearS.includes('beamsaber')) F.push('a weapon card fitted the support hardpoint');
+
+  // An unowned kit is a free 200-credit weapon if it survives the repair pass.
+  const thief = A.migrate(Object.assign(A.blankProfile('THIEF'), {
+    unlocks: {cards: ['whitedevil'], enemies: [], gear: [], leads: [], schemes: ['standard']},
+    loadout: {deck: ['rifle'], gear: {}, frame: 'whitedevil', hard: {whitedevil: {w: 'beamsaber', s: 'booster'}}},
+  }));
+  if (thief.loadout.hard.whitedevil) F.push('an unowned kit stayed bolted to the machine');
 }
 
-// --- weapon gear replaces; support gear rides alongside ---
+// --- weapon replaces, support rides alongside, riposte is a trait ---
 {
-  start('whitedevil');
-  const u = play('whitedevil', 2, 1);
-  play('beamrifle', 2, 1);
-  if (u.gearW !== 'beamrifle' || u.tg !== 'first' || u.dmg !== 5 || !u.single) {
-    F.push(`beam rifle mount wrong: ${u.gearW}/${u.tg}/${u.dmg}`);
-  }
-  play('booster', 2, 1);
-  if (!u.gearS.includes('booster') || !u.boost || !u.servo) F.push('thruster pack did not ride alongside');
-  if (u.gearW !== 'beamrifle') F.push('a support displaced the weapon');
-  // Move two cells, then still fire — the pack's whole promise.
-  u.acted = false; u.moved = false;
-  if (!A.moveTargets(u).includes(2 * A.COLS + 3)) F.push('boosted Frame cannot stride two cells');
-  A.doMove(u, 2, 3);
-  if (u.acted) F.push('boosted move spent the action');
-  // A second weapon tears the first off — no refit lead, no refund.
-  play('beamsaber', 2, 3);
-  if (u.gearW !== 'beamsaber' || u.dmg !== 7) F.push('beam saber did not replace the rifle');
-  if (A.G.hand.includes('beamrifle')) F.push('the torn-off rifle came back without Field Refit');
-  if (u.riposte !== 3) F.push(`beam saber riposte wrong: ${u.riposte}`);
-  console.log('gear: rifle mounts, pack rides, saber replaces — 7 at contact, striking back');
-}
-
-// --- the riposte is a trait: Seven Blades answers blows under any sword ---
-{
-  start('sevenblades');
+  // The greatsword's upgrade is its footprint, not its number: same 5 damage
+  // as the arm blade, across all three cells ahead instead of one.
+  start('sevenblades', {w: 'greatsword', s: 'resonator'});
   const u = play('sevenblades', 2, 1);
-  if (u.riposte !== POOL.sevenblades.riposte) F.push('Seven Blades lost its temper on deploy');
-  play('greatsword', 2, 1);
-  if (u.riposte !== POOL.sevenblades.riposte) F.push('a greatsword disarmed the riposte trait');
-  if (u.tg !== 'vert3' || u.dmg !== 5) F.push(`greatsword wrong: ${u.tg}/${u.dmg}`);
-  // Ammo Hopper on Heavy Arms: the gatling fires twice.
-  start('heavyarms');
-  const ha = play('heavyarms', 2, 1);
-  play('ammohopper', 2, 1);
-  if (!ha.twin) F.push('ammo hopper did not double the gatling');
-  const e = spawnFoe('crawler', 2, 5, 99);
-  A.fire(ha, false);
-  const twice = POOL.heavyarms.dmg * 2;
-  if (99 - e.hp !== twice) F.push(`hoppered gatling dealt ${99 - e.hp}, wanted ${twice}`);
-  // Resonance Core: +1 per adjacent hostile.
-  start('sevenblades');
-  const sb = play('sevenblades', 2, 3);
-  play('resonator', 2, 3);
-  spawnFoe('crawler', 1, 3, 99);
-  const prey = spawnFoe('crawler', 2, 4, 99);
-  A.fire(sb, false);
-  if (99 - prey.hp !== POOL.sevenblades.dmg + 2) {
-    F.push(`resonating blade dealt ${99 - prey.hp}, wanted ${POOL.sevenblades.dmg + 2}`);
-  }
-  console.log('traits: riposte survives the swap, hopper doubles, core resonates');
+  if (u.gearW !== 'greatsword') F.push('the greatsword did not mount');
+  if (u.tg === POOL.sevenblades.tg) F.push('the greatsword did not widen the footprint');
+  // Seven Blades answers blows under any sword — the trait is the body's, and
+  // a sword that carries its own adds on top.
+  if (u.riposte < (POOL.sevenblades.riposte || 0)) F.push('the chassis riposte was lost under a sword');
+
+  start('heavyarms', {w: 'lasergatling', s: 'ammohopper'});
+  const h = play('heavyarms', 2, 1);
+  if (h.gearW !== 'lasergatling') F.push('the gatling did not mount');
+  if (!h.gearS.includes('ammohopper')) F.push('the hopper did not ride alongside');
+  if (h.twin !== true) F.push('the hopper did not double the gatling');
+}
+
+// --- one Frame on the board at a time ---
+{
+  start('whitedevil', {w: 'beamrifle', s: null});
+  play('whitedevil', 2, 1);
+  if (!A.frameGateText('whitedevil')) F.push('a second Frame was not gated');
+  if (A.validTiles('whitedevil').length) F.push('a second Frame was offered tiles');
 }
 
 // --- the reserve cycle never re-deals the machine ---
 {
-  start('whitedevil');
+  start('whitedevil', {w: 'beamrifle', s: null});
   play('whitedevil', 2, 1);
-  A.G.hand = [];
   A.G.deck = [];
-  let dealtFrame = false;
-  for (let i = 0; i < 20; i++) { A.drawCard(); if (A.G.hand.includes('whitedevil')) dealtFrame = true; }
-  if (dealtFrame) F.push('the cycled reserve dealt the Frame back');
-  console.log('cycle: the machine is seeded once and never reshuffled in');
+  A.G.hand = [];
+  for (let i = 0; i < 20; i++) A.drawCard(true);
+  if (A.G.hand.some(isProto)) F.push('the reserve cycle dealt the Frame a second time');
+  if (A.G.hand.some(c => POOL[c].frameGear)) F.push('the reserve cycle dealt a kit');
 }
 
-// --- The Code: half hull, and the wreck comes home with its kit ---
+// --- The Code: the wreck comes home, kit intact ---
 {
-  start('whitedevil', 'salvagerights');
+  start('whitedevil', {w: 'beamsaber', s: 'booster'}, 'salvagerights');
   const u = play('whitedevil', 2, 1);
+  const wasSaber = u.gearW;
+  // Rushed Assembly is Bushido's cost: the machine comes off the line at half
+  // hull. Everyone else's units are untouched.
   if (u.max !== Math.ceil(POOL.whitedevil.hp / 2)) {
     F.push(`Rushed Assembly hull wrong: ${u.max}, wanted ${Math.ceil(POOL.whitedevil.hp / 2)}`);
   }
-  play('beamsaber', 2, 1);
-  play('booster', 2, 1);
+  if (A.mkUnit('rifle', 3, 1).max !== POOL.rifle.hp) F.push('Rushed Assembly thinned a non-Frame');
   const lost = A.G.lost;
-  u.shield = 0;
+  u.shield = 0;                 // the regen shield eats the first blow
   A.dmgUnit(u, 99, 'test');
-  if (A.G.units.some(x => x.uid === u.uid)) F.push('the frame survived 99');
-  if (A.G.lost !== lost + 1) F.push('a salvaged frame did not count as a loss');
-  ['whitedevil', 'beamsaber', 'booster'].forEach(c => {
-    if (!A.G.hand.includes(c)) F.push(`The Code lost ${c}`);
-  });
-  // Rushed Assembly leaves everyone else's units whole.
-  const r = A.mkUnit('rifle', 3, 1);
-  if (r.max !== A.POOL.rifle.hp) F.push('Rushed Assembly thinned a non-Frame');
-  // And under any other lead the wreck stays a wreck.
-  start('whitedevil', 'ironbrand');
+  if (A.G.units.some(x => x.uid === u.uid)) F.push('the Frame survived a lethal blow');
+  if (A.G.lost !== lost + 1) F.push('a salvaged Frame did not count as a loss');
+  if (!A.G.hand.includes('whitedevil')) F.push('The Code did not return the machine to hand');
+  // The kit never left the armoury, so redeploying brings it straight back —
+  // that is what "kit intact" means now that a kit is not a card.
+  if (A.G.hand.some(c => POOL[c].frameGear)) F.push('The Code handed back a kit as a card');
+  clearBoard();
+  A.G.dp = 30;
+  const again = play('whitedevil', 2, 1);
+  if (!again) F.push('the salvaged Frame would not redeploy');
+  else if (again.gearW !== wasSaber) F.push('the salvaged Frame came back without its weapon');
+
+  // Under any other lead the wreck stays a wreck.
+  start('whitedevil', {w: 'beamsaber', s: null}, 'ironbrand');
   const v = play('whitedevil', 2, 1);
   v.shield = 0;
   A.dmgUnit(v, 99, 'test');
-  if (A.G.hand.includes('whitedevil')) F.push('a frame came back without The Code');
-  console.log('the code: half hull out, machine and kit recovered on death');
+  if (A.G.hand.includes('whitedevil')) F.push('a Frame came back without The Code');
 }
 
-// --- The Code: 2 DP off every salvage, and never more than 2 ---
-//
-// The two halves of the rule pull opposite ways and both matter. The Ace
-// Pilot may work the loop as many times as the mission allows — every wreck
-// recovered comes back cheaper, not just the first. But the discount is a
-// flat 2 off the next deployment, so a Frame lost three times redeploys at
-// 2 off, not 6: it is assigned, never accumulated, and spent on redeploy.
+// --- The Code: 2 DP off every salvage, never more than 2 ---
 {
-  start('whitedevil', 'salvagerights');
-  const base = A.costOf('whitedevil');
-  const wreck = () => {
-    const u = A.G.units.find(x => x.id === 'whitedevil');
-    u.shield = 0;
-    A.dmgUnit(u, 99, 'test');
-  };
-
-  // Three full loops: each death discounts the next deployment by exactly 2,
-  // and each deployment spends it back to the printed cost.
-  for (let round = 1; round <= 3; round++) {
-    play('whitedevil', 2, 1);
-    if (A.costOf('whitedevil') !== base) F.push(`round ${round}: deploying should spend the discount`);
-    wreck();
-    if (A.costOf('whitedevil') !== Math.max(1, base - 2)) {
-      F.push(`round ${round}: salvage should take 2 off, got ${A.costOf('whitedevil')}`);
-    }
-    if (!A.G.hand.includes('whitedevil')) F.push(`round ${round}: the wreck did not come home`);
-  }
-
-  // And it does not accumulate: salvaging again over a discount already owed
-  // re-states 2, it does not add to it.
-  const held = A.G.units.find(x => x.id === 'whitedevil')
-    || A.mkUnit('whitedevil', 2, 1);
-  A.salvageFrame(held);
-  A.salvageFrame(held);
-  if (A.G.salvageDiscount.whitedevil !== 2) {
-    F.push(`the discount stacked to ${A.G.salvageDiscount.whitedevil}`);
-  }
-  if (A.costOf('whitedevil') !== Math.max(1, base - 2)) {
-    F.push(`stacked salvages priced the frame at ${A.costOf('whitedevil')}`);
-  }
-  console.log('the code: 2 DP off every salvage, repeatable, never stacking');
-}
-
-// --- Field Refit: swap freely, one mount, heals 3, costs no action ---
-{
-  start('whitedevil', 'fieldrefit');
+  start('whitedevil', {w: 'beamrifle', s: null}, 'salvagerights');
   const u = play('whitedevil', 2, 1);
-  play('beamrifle', 2, 1);
-  if (u.gearW !== 'beamrifle') F.push('refit: first mount failed');
-  u.acted = false;
-  u.hp = Math.max(1, u.max - 6);
-  const before = u.hp;
-  play('beamsaber', 2, 1);
-  if (u.gearW !== 'beamsaber') F.push('refit: swap did not mount the saber');
-  if (!A.G.hand.includes('beamrifle')) F.push('refit: the rifle was not returned to hand');
-  if (u.hp !== Math.min(u.max, before + 3)) F.push(`refit: the swap should heal 3, went ${before} -> ${u.hp}`);
-  if (u.acted) F.push('refit: the swap spent the Frame\'s turn — it should not have');
-  // Single Mount: a support does not ride alongside — it replaces.
-  u.acted = false;
-  play('booster', 2, 1);
-  if (u.gearW || !u.gearS.includes('booster')) F.push('refit: single mount broken (weapon stayed on)');
-  if (!A.G.hand.includes('beamsaber')) F.push('refit: the displaced saber was lost');
-  if (u.dmg !== POOL.whitedevil.dmg || u.tg !== POOL.whitedevil.tg) {
-    F.push('refit: base weapon not restored when the saber came off');
-  }
-  console.log('field refit: swaps return gear to hand, one mount, heal 3, no lost action');
+  const full = A.costOf('whitedevil');
+  u.shield = 0;
+  A.dmgUnit(u, 99, 'test');
+  const cut = A.costOf('whitedevil');
+  if (cut !== Math.max(1, full - 2)) F.push(`salvage discount wrong: ${full} -> ${cut}`);
+  clearBoard();
+  A.G.dp = 30;
+  play('whitedevil', 2, 1);
+  if (A.costOf('whitedevil') !== full) F.push('the salvage discount outlived its redeploy');
 }
 
-F.report('the frame line holds: seeded, functional bare, closed kits, both frame leads honest');
+// --- Aki-Kaze: one mount, and it takes anything ---
+//
+// Single Mount is the cost and Open Mount is what it buys. She is the only
+// commander who can fly a Frame carrying a SUPPORT and its own printed weapon;
+// everyone else fills two fixed slots or leaves them empty.
+{
+  start('whitedevil', {w: 'beamsaber', s: 'booster'}, 'fieldrefit');
+  const both = A.hardOf('whitedevil');
+  if (both.w !== 'beamsaber') F.push('Single Mount stripped the weapon too');
+  if (both.s) F.push('Single Mount flew a support as well as a weapon');
+  const u = play('whitedevil', 2, 1);
+  if (u.gearS.length) F.push('Single Mount put a support on the board');
+  if (u.gearW !== 'beamsaber') F.push('Single Mount lost the weapon');
+
+  // Clear the weapon and the same mount carries the support instead.
+  start('whitedevil', {w: null, s: 'booster'}, 'fieldrefit');
+  const sup = A.hardOf('whitedevil');
+  if (sup.s !== 'booster') F.push('Open Mount would not carry a support alone');
+  if (sup.w) F.push('Open Mount conjured a weapon');
+  const v = play('whitedevil', 2, 1);
+  if (!v.gearS.includes('booster')) F.push('the support did not reach the board');
+  if (!v.mob) F.push('the support did not take effect');
+  if (v.dmg !== POOL.whitedevil.dmg) F.push('a support-only Frame lost its printed weapon');
+
+  // ...and no other lead can do that: they get both slots, or neither.
+  start('whitedevil', {w: null, s: 'booster'}, 'ironbrand');
+  const other = A.hardOf('whitedevil');
+  if (other.s !== 'booster') F.push('a support-only fit was refused for an ordinary lead');
+  const w = play('whitedevil', 2, 1);
+  if (!w.gearS.includes('booster')) F.push('an ordinary lead lost the support');
+}
+
+// --- No Frame: Master Chief's slot may hold a machine, it never flies ---
+{
+  start('whitedevil', {w: 'beamsaber', s: 'booster'}, 'masterchief');
+  if (A.G.hand.some(isProto)) F.push('No Frame seeded a machine anyway');
+  if (A.G.frame) F.push('No Frame still named a fielded machine');
+}
+
+// --- the v22 migration: kits out of the deck, machine auto-fitted ---
+{
+  const old = A.migrate({
+    version: 21, callsign: 'OLD',
+    unlocks: {cards: ['rifle', 'whitedevil', 'beamsaber', 'booster'], enemies: [], gear: [], leads: [], schemes: ['standard']},
+    loadout: {deck: ['rifle', 'beamsaber', 'booster'], gear: {}, frame: 'whitedevil'},
+    presets: [{n: 'old', deck: ['rifle', 'beamsaber'], frame: 'whitedevil'}],
+    progress: {rank: 1, xp: 0, credits: 0},
+  });
+  if (old.loadout.deck.some(c => POOL[c].frameGear)) F.push('the migration left kits in the deck');
+  if (!old.loadout.deck.includes('rifle')) F.push('the migration ate a real card');
+  if (old.presets[0].deck.some(c => POOL[c].frameGear)) F.push('the migration left kits in a saved deck');
+  // The kits they already paid for are bolted on rather than orphaned.
+  const fit = old.loadout.hard && old.loadout.hard.whitedevil;
+  if (!fit) F.push('the migration did not fit the kits the commander already owned');
+  else {
+    if (fit.w !== 'beamsaber') F.push('the migration did not fit the owned weapon');
+    if (fit.s !== 'booster') F.push('the migration did not fit the owned support');
+  }
+  ['beamsaber', 'booster'].forEach(c => {
+    if (!old.unlocks.cards.includes(c)) F.push(`the migration confiscated ${c}`);
+  });
+
+  // A commander who owns the machine but no kit is left bare, not handed one.
+  const bare = A.migrate({
+    version: 21, callsign: 'BARE',
+    unlocks: {cards: ['rifle', 'whitedevil'], enemies: [], gear: [], leads: [], schemes: ['standard']},
+    loadout: {deck: ['rifle'], gear: {}, frame: 'whitedevil'},
+    progress: {rank: 1, xp: 0, credits: 0},
+  });
+  if (bare.loadout.hard.whitedevil) F.push('a commander with no kits was issued one free');
+}
+
+// --- the armoury: where a hardpoint is actually chosen ---
+//
+// The rules can be right and the machine still unbuildable if the Squad screen
+// offers no way to bolt anything on. This drives the real panel.
+{
+  const p2 = A.blankProfile('ARMOURY');
+  p2.unlocks.cards = [...p2.unlocks.cards, 'whitedevil', 'beamsaber', 'beamrifle', 'booster'];
+  p2.loadout.frame = 'whitedevil';
+  A.enterProfile(p2);
+  openPanel('squad');
+  const body = () => get('pbody')._html;
+
+  const rows = document.querySelectorAll('#pbody [data-hard]');
+  if (!rows.length) { F.push('the armoury offers no hardpoint to fit'); } else {
+    if (rows.some(el => !el.onclick)) F.push('a hardpoint chip is not wired');
+    const kits = rows.map(el => el.dataset.hardkit).filter(Boolean);
+    if (!kits.includes('beamsaber')) F.push('an owned weapon kit was not offered');
+    if (!kits.includes('booster')) F.push('an owned support kit was not offered');
+    if (kits.includes('greatsword')) F.push("another Frame's kit was offered");
+
+    // Fit one, and it sticks — on the profile and in the next render.
+    rows.find(el => el.dataset.hardkit === 'beamsaber').onclick();
+    if (!p2.loadout.hard.whitedevil || p2.loadout.hard.whitedevil.w !== 'beamsaber') {
+      F.push('fitting a hardpoint did not reach the profile');
+    }
+    openPanel('squad');
+    if (!body().includes(POOL.beamsaber.n)) F.push('the armoury does not say what is bolted on');
+
+    // ...and clearing it puts the machine back to bare.
+    document.querySelectorAll('#pbody [data-hard]')
+      .find(el => el.dataset.hardslot === 'w' && !el.dataset.hardkit).onclick();
+    if (p2.loadout.hard.whitedevil && p2.loadout.hard.whitedevil.w) {
+      F.push('clearing a hardpoint left the kit bolted on');
+    }
+  }
+
+  // A kit is never offered as a deck card in the reserve.
+  openPanel('squad');
+  const reserveKits = document.querySelectorAll('#pbody [data-focus]')
+    .filter(el => POOL[el.dataset.focus] && POOL[el.dataset.focus].frameGear
+      && el.dataset.mode !== 'shop');
+  if (reserveKits.length) F.push(`${reserveKits.length} kits are still filed as deck cards`);
+
+  // The Quartermaster shelves them with their machine instead.
+  openPanel('quartermaster');
+  const shop = get('pbody')._html;
+  if (!shop.includes('qm:kit:whitedevil')) F.push('the shop has no shelf for the White Devil kit');
+  if (!shop.includes(POOL.beamsaber.n)) F.push('the shop does not stock the kit at all');
+}
+
+F.report('Frames: kits are hardpoints, and the machine carries them in');

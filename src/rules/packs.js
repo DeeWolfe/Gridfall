@@ -50,8 +50,13 @@ export function purchasePack() {
  */
 export function packOffer(tier) {
   const owned = active.unlocks.cards || [];
-  const pool = Object.keys(POOL).filter(id =>
-    tier === 'specialist' ? POOL[id].t === 'special' : POOL[id].t !== 'special');
+  // Frame kits are not cards a pack can usefully hand you: they are hardpoints
+  // bought on the machine's own shelf, and dead weight to anyone not flying
+  // that Frame. Seventeen of the sixty-seven standard-pool cards were kits —
+  // a one-in-four chance of pulling something unplayable — which is why they
+  // are off the table rather than merely unlikely.
+  const pool = Object.keys(POOL).filter(id => !POOL[id].frameGear && (
+    tier === 'specialist' ? POOL[id].t === 'special' : POOL[id].t !== 'special'));
 
   const out = [];
 
@@ -86,7 +91,9 @@ export function claimPack(pick) {
     // A new card slides straight into the deck while there is room for it.
     // A Proto Frame takes its own slot beside the deck, never one of the
     // twelve — auto-adding one here would silently evict a real card.
-    if (POOL[pick.id].chassis !== 'proto'
+    // A Proto Frame takes its own slot beside the deck and a kit is not a
+    // deck card at all; neither may slide into the twelve.
+    if (POOL[pick.id].chassis !== 'proto' && !POOL[pick.id].frameGear
       && active.loadout.deck.length < deckCapOf() && !active.loadout.deck.includes(pick.id)) {
       active.loadout.deck.push(pick.id);
     }
